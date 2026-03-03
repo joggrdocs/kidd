@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { hasTag } from '@kidd/utils/tag'
+import { hasTag } from '@kidd-cli/utils/tag'
 
 import { auth } from './auth.js'
 

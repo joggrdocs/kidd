@@ -1,5 +1,5 @@
 {
-  "name": "@kidd/utils",
+  "name": "@kidd-cli/utils",
   "version": "0.0.0",
   "description": "Shared utilities for the kidd ecosystem",
   "license": "MIT",

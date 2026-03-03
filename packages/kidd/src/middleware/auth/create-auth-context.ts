@@ -8,8 +8,8 @@
  * @module
  */
 
-import type { AsyncResult, Result } from '@kidd/utils/fp'
-import { ok } from '@kidd/utils/fp'
+import type { AsyncResult, Result } from '@kidd-cli/utils/fp'
+import { ok } from '@kidd-cli/utils/fp'
 
 import type { Prompts } from '@/context/types.js'
 import { createStore } from '@/lib/store/create-store.js'

@@ -1,4 +1,4 @@
-import { err, ok } from '@kidd/utils/fp'
+import { err, ok } from '@kidd-cli/utils/fp'
 import { build as tsdownBuild } from 'tsdown'
 
 import { mapToWatchConfig } from './map-config.js'

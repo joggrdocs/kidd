@@ -1,7 +1,7 @@
 import { existsSync, readFileSync, statSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 
-import { attempt } from '@kidd/utils/fp'
+import { attempt } from '@kidd-cli/utils/fp'
 
 import type { ProjectRoot } from './types.js'
 

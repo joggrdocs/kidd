@@ -1,5 +1,5 @@
-import type { Tagged } from '@kidd/utils/tag'
-import { TAG, hasTag, withTag } from '@kidd/utils/tag'
+import type { Tagged } from '@kidd-cli/utils/tag'
+import { TAG, hasTag, withTag } from '@kidd-cli/utils/tag'
 
 import { DEFAULT_EXIT_CODE } from '@/utils/constants.js'
 

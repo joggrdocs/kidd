@@ -1,4 +1,4 @@
-import { withTag } from '@kidd/utils/tag'
+import { withTag } from '@kidd-cli/utils/tag'
 
 import type { ArgsDef, CommandDef, Command as CommandType } from './types.js'
 

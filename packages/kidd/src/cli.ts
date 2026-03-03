@@ -1,7 +1,7 @@
 import { resolve } from 'node:path'
 
-import { loadConfig } from '@kidd/config/loader'
-import { attemptAsync, isPlainObject, isString } from '@kidd/utils/fp'
+import { loadConfig } from '@kidd-cli/config/loader'
+import { attemptAsync, isPlainObject, isString } from '@kidd-cli/utils/fp'
 import yargs from 'yargs'
 import type { z } from 'zod'
 

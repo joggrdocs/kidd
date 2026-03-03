@@ -1,4 +1,4 @@
-import { TAG } from '@kidd/utils/tag'
+import { TAG } from '@kidd-cli/utils/tag'
 import { describe, expect, it } from 'vitest'
 
 import { defineConfig } from './define-config.js'

@@ -1,5 +1,5 @@
-import { attemptAsync, err, ok } from '@kidd/utils/fp'
-import type { AsyncResult } from '@kidd/utils/fp'
+import { attemptAsync, err, ok } from '@kidd-cli/utils/fp'
+import type { AsyncResult } from '@kidd-cli/utils/fp'
 import type { z } from 'zod'
 
 import { createContext } from '@/context/index.js'

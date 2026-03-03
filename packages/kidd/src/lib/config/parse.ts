@@ -1,7 +1,7 @@
 import { extname } from 'node:path'
 
-import { attempt, err, match } from '@kidd/utils/fp'
-import { jsonParse, jsonStringify } from '@kidd/utils/json'
+import { attempt, err, match } from '@kidd-cli/utils/fp'
+import { jsonParse, jsonStringify } from '@kidd-cli/utils/json'
 import type { ParseError } from 'jsonc-parser'
 import { parse as parseJsonc, printParseErrorCode } from 'jsonc-parser'
 import { parse as parseYaml, stringify as stringifyYaml } from 'yaml'

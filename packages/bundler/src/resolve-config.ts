@@ -1,7 +1,7 @@
 import { existsSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 
-import type { CompileOptions, KiddConfig } from '@kidd/config'
+import type { CompileOptions, KiddConfig } from '@kidd-cli/config'
 
 import {
   DEFAULT_BINARY_NAME,
@@ -42,7 +42,7 @@ export function normalizeCompileOptions(
 /**
  * Fill defaults and resolve relative paths against `cwd`.
  *
- * This is a pure function — the incoming config is already validated by `@kidd/config`.
+ * This is a pure function — the incoming config is already validated by `@kidd-cli/config`.
  * It only fills missing optional fields with defaults and resolves paths to absolute.
  *
  * @param params - The raw config and working directory.

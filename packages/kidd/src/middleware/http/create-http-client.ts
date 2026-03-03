@@ -8,7 +8,7 @@
  * @module
  */
 
-import { attemptAsync } from '@kidd/utils/fp'
+import { attemptAsync } from '@kidd-cli/utils/fp'
 
 import type { AuthCredential } from '../auth/types.js'
 import { buildAuthHeaders } from './build-auth-headers.js'

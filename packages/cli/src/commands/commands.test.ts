@@ -5,7 +5,7 @@ vi.mock(import('node:fs'), () => ({
   existsSync: vi.fn(),
 }))
 
-vi.mock(import('@kidd/config/loader'), () => ({
+vi.mock(import('@kidd-cli/config/loader'), () => ({
   loadConfig: vi.fn(),
 }))
 
@@ -15,7 +15,7 @@ vi.mock(import('kidd'), () => ({
 }))
 
 const { existsSync } = await import('node:fs')
-const { loadConfig } = await import('@kidd/config/loader')
+const { loadConfig } = await import('@kidd-cli/config/loader')
 const { autoload } = await import('kidd')
 const mockedExistsSync = vi.mocked(existsSync)
 const mockedLoadConfig = vi.mocked(loadConfig)

@@ -1,8 +1,8 @@
 import { access, readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 
-import { attemptAsync, ok, toErrorMessage } from '@kidd/utils/fp'
-import type { AsyncResult } from '@kidd/utils/fp'
+import { attemptAsync, ok, toErrorMessage } from '@kidd-cli/utils/fp'
+import type { AsyncResult } from '@kidd-cli/utils/fp'
 
 import type { GenerateError, ProjectInfo } from './types.js'
 

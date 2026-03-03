@@ -1,7 +1,7 @@
 import type { Context } from 'kidd'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-vi.mock(import('@kidd/config/loader'), () => ({
+vi.mock(import('@kidd-cli/config/loader'), () => ({
   loadConfig: vi.fn(),
 }))
 
@@ -17,7 +17,7 @@ vi.mock(import('../../lib/write.js'), () => ({
   writeFiles: vi.fn(),
 }))
 
-const { loadConfig } = await import('@kidd/config/loader')
+const { loadConfig } = await import('@kidd-cli/config/loader')
 const { detectProject } = await import('../../lib/detect.js')
 const { renderTemplate } = await import('../../lib/render.js')
 const { writeFiles } = await import('../../lib/write.js')

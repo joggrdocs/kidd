@@ -1,10 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-vi.mock(import('@kidd/utils/manifest'), () => ({
+vi.mock(import('@kidd-cli/utils/manifest'), () => ({
   readManifest: vi.fn(),
 }))
 
-import { readManifest } from '@kidd/utils/manifest'
+import { readManifest } from '@kidd-cli/utils/manifest'
 
 import { loadCLIManifest } from './manifest.js'
 

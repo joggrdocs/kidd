@@ -1,4 +1,4 @@
-import { TAG } from '@kidd/utils/tag'
+import { TAG } from '@kidd-cli/utils/tag'
 import { describe, expect, it, vi } from 'vitest'
 
 vi.mock(import('c12'), () => ({

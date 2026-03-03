@@ -82,7 +82,7 @@ function buildExternals(userExternals: readonly string[]): (string | RegExp)[] {
 }
 
 /**
- * Resolve the absolute file path to the `@kidd/utils/tag` module.
+ * Resolve the absolute file path to the `@kidd-cli/utils/tag` module.
  *
  * The static autoloader virtual module imports `withTag` via this path.
  * Using an absolute path ensures rolldown can resolve the import from
@@ -94,5 +94,5 @@ function buildExternals(userExternals: readonly string[]): (string | RegExp)[] {
  */
 function resolveTagModulePath(): string {
   const require = createRequire(import.meta.url)
-  return require.resolve('@kidd/utils/tag')
+  return require.resolve('@kidd-cli/utils/tag')
 }

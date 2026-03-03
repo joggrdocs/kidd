@@ -1,9 +1,9 @@
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
 
-import type { KiddConfig } from '@kidd/config'
-import { loadConfig } from '@kidd/config/loader'
-import type { LoadConfigResult } from '@kidd/config/loader'
+import type { KiddConfig } from '@kidd-cli/config'
+import { loadConfig } from '@kidd-cli/config/loader'
+import type { LoadConfigResult } from '@kidd-cli/config/loader'
 import { autoload, command } from 'kidd'
 import type { Command as KiddCommand, Context } from 'kidd'
 

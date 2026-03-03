@@ -1,6 +1,6 @@
-import { err, ok } from '@kidd/utils/fp'
-import type { Result } from '@kidd/utils/fp'
-import { formatZodIssues } from '@kidd/utils/validate'
+import { err, ok } from '@kidd-cli/utils/fp'
+import type { Result } from '@kidd-cli/utils/fp'
+import { formatZodIssues } from '@kidd-cli/utils/validate'
 
 import type { Command } from '@/types.js'
 

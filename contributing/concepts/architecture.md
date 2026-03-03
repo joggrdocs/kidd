@@ -19,7 +19,7 @@ packages/
 | Package     | Purpose                                                       |
 | ----------- | ------------------------------------------------------------- |
 | `kidd`      | Core framework: `cli()`, `command()`, `middleware()`, context |
-| `@kidd/cli` | DX companion CLI: scaffolding, dev mode, build, compile       |
+| `kidd-cli` | DX companion CLI: scaffolding, dev mode, build, compile       |
 
 ## Layers
 

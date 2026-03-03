@@ -1,4 +1,4 @@
-import type { Tagged } from '@kidd/utils/tag'
+import type { Tagged } from '@kidd-cli/utils/tag'
 import type { z } from 'zod'
 
 import type { Context } from './context/types.js'

@@ -71,10 +71,10 @@ importers:
 
   packages/bundler:
     dependencies:
-      '@kidd/config':
+      '@kidd-cli/config':
         specifier: workspace:*
         version: link:../config
-      '@kidd/utils':
+      '@kidd-cli/utils':
         specifier: workspace:*
         version: link:../utils
       es-toolkit:
@@ -102,13 +102,13 @@ importers:
 
   packages/cli:
     dependencies:
-      '@kidd/bundler':
+      '@kidd-cli/bundler':
         specifier: workspace:*
         version: link:../bundler
-      '@kidd/config':
+      '@kidd-cli/config':
         specifier: workspace:*
         version: link:../config
-      '@kidd/utils':
+      '@kidd-cli/utils':
         specifier: workspace:*
         version: link:../utils
       fs-extra:
@@ -142,7 +142,7 @@ importers:
 
   packages/config:
     dependencies:
-      '@kidd/utils':
+      '@kidd-cli/utils':
         specifier: workspace:*
         version: link:../utils
       c12:
@@ -173,10 +173,10 @@ importers:
       '@clack/prompts':
         specifier: ^1.0.1
         version: 1.0.1
-      '@kidd/config':
+      '@kidd-cli/config':
         specifier: workspace:*
         version: link:../config
-      '@kidd/utils':
+      '@kidd-cli/utils':
         specifier: workspace:*
         version: link:../utils
       '@pinojs/redact':

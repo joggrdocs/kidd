@@ -2,7 +2,7 @@ import type { Dirent } from 'node:fs'
 import { readdir } from 'node:fs/promises'
 import { resolve } from 'node:path'
 
-import { hasTag, withTag } from '@kidd/utils/tag'
+import { hasTag, withTag } from '@kidd-cli/utils/tag'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { autoload } from './autoloader.js'

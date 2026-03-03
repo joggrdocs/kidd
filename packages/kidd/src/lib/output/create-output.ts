@@ -1,5 +1,5 @@
-import { err } from '@kidd/utils/fp'
-import type { Result } from '@kidd/utils/fp'
+import { err } from '@kidd-cli/utils/fp'
+import type { Result } from '@kidd-cli/utils/fp'
 
 import { createCliLogger } from '@/lib/logger.js'
 

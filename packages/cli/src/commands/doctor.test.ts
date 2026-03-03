@@ -3,11 +3,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { CheckContext, CheckResult, DiagnosticCheck, FixResult } from '../lib/checks.js'
 
-vi.mock(import('@kidd/config/loader'), () => ({
+vi.mock(import('@kidd-cli/config/loader'), () => ({
   loadConfig: vi.fn(),
 }))
 
-vi.mock(import('@kidd/utils/manifest'), () => ({
+vi.mock(import('@kidd-cli/utils/manifest'), () => ({
   readManifest: vi.fn(),
 }))
 
@@ -34,8 +34,8 @@ vi.mock(import('picocolors'), () => {
   } as never
 })
 
-const { loadConfig } = await import('@kidd/config/loader')
-const { readManifest } = await import('@kidd/utils/manifest')
+const { loadConfig } = await import('@kidd-cli/config/loader')
+const { readManifest } = await import('@kidd-cli/utils/manifest')
 const { CHECKS, createCheckContext, readRawPackageJson } = await import('../lib/checks.js')
 
 const mockedLoadConfig = vi.mocked(loadConfig)

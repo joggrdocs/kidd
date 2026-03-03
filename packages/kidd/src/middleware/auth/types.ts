@@ -8,7 +8,7 @@
  * @module
  */
 
-import type { AsyncResult } from '@kidd/utils/fp'
+import type { AsyncResult } from '@kidd-cli/utils/fp'
 
 // ---------------------------------------------------------------------------
 // Auth credentials

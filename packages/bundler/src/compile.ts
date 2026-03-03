@@ -2,9 +2,9 @@ import { execFile as execFileCb } from 'node:child_process'
 import { readdirSync, unlinkSync } from 'node:fs'
 import { join } from 'node:path'
 
-import type { CompileTarget } from '@kidd/config'
-import { err, ok } from '@kidd/utils/fp'
-import type { AsyncResult } from '@kidd/utils/fp'
+import type { CompileTarget } from '@kidd-cli/config'
+import { err, ok } from '@kidd-cli/utils/fp'
+import type { AsyncResult } from '@kidd-cli/utils/fp'
 
 import { DEFAULT_COMPILE_TARGETS } from './constants.js'
 import { detectBuildEntry, resolveConfig } from './resolve-config.js'

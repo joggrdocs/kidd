@@ -1,8 +1,8 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 
-import { attemptAsync, err, match } from '@kidd/utils/fp'
-import { formatZodIssues } from '@kidd/utils/validate'
+import { attemptAsync, err, match } from '@kidd-cli/utils/fp'
+import { formatZodIssues } from '@kidd-cli/utils/validate'
 import type { ZodTypeAny, output } from 'zod'
 
 import { findConfig, getConfigFileNames } from './find.js'

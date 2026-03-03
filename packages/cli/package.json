@@ -25,9 +25,9 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@kidd/bundler": "workspace:*",
-    "@kidd/config": "workspace:*",
-    "@kidd/utils": "workspace:*",
+    "@kidd-cli/bundler": "workspace:*",
+    "@kidd-cli/config": "workspace:*",
+    "@kidd-cli/utils": "workspace:*",
     "fs-extra": "^11.3.3",
     "kidd": "workspace:*",
     "liquidjs": "catalog:",

@@ -2,8 +2,8 @@ import type { Dirent } from 'node:fs'
 import { readdir } from 'node:fs/promises'
 import { basename, extname, join, resolve } from 'node:path'
 
-import { isPlainObject, isString } from '@kidd/utils/fp'
-import { hasTag, withTag } from '@kidd/utils/tag'
+import { isPlainObject, isString } from '@kidd-cli/utils/fp'
+import { hasTag, withTag } from '@kidd-cli/utils/tag'
 
 import type { AutoloadOptions, Command, CommandMap } from './types.js'
 

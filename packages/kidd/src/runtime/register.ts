@@ -1,4 +1,4 @@
-import { hasTag } from '@kidd/utils/tag'
+import { hasTag } from '@kidd-cli/utils/tag'
 import type { Argv } from 'yargs'
 
 import type { Context } from '@/context/types.js'

@@ -1,5 +1,5 @@
-import type { BuildOptions, CompileOptions, CompileTarget, KiddConfig } from '@kidd/config'
-import type { AsyncResult, Result } from '@kidd/utils/fp'
+import type { BuildOptions, CompileOptions, CompileTarget, KiddConfig } from '@kidd-cli/config'
+import type { AsyncResult, Result } from '@kidd-cli/utils/fp'
 
 // ---------------------------------------------------------------------------
 // Resolved config types (all fields required, paths absolute)
@@ -141,7 +141,7 @@ export interface ScanResult {
 }
 
 // ---------------------------------------------------------------------------
-// Re-exports from @kidd/config for convenience
+// Re-exports from @kidd-cli/config for convenience
 // ---------------------------------------------------------------------------
 
 export type { BuildOptions, CompileOptions, CompileTarget, KiddConfig }

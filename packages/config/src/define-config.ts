@@ -1,5 +1,5 @@
-import type { Tagged } from '@kidd/utils/tag'
-import { withTag } from '@kidd/utils/tag'
+import type { Tagged } from '@kidd-cli/utils/tag'
+import { withTag } from '@kidd-cli/utils/tag'
 
 import type { KiddConfig } from './types.js'
 

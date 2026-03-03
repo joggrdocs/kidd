@@ -1,13 +1,13 @@
 import type { Context } from 'kidd'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-vi.mock(import('@kidd/bundler'), () => ({
+vi.mock(import('@kidd-cli/bundler'), () => ({
   build: vi.fn(),
   compile: vi.fn(),
   resolveTargetLabel: vi.fn((t: string) => t),
 }))
 
-vi.mock(import('@kidd/config/loader'), () => ({
+vi.mock(import('@kidd-cli/config/loader'), () => ({
   loadConfig: vi.fn(),
 }))
 
@@ -15,8 +15,8 @@ vi.mock(import('kidd'), () => ({
   command: vi.fn((def) => def),
 }))
 
-const { build, compile } = await import('@kidd/bundler')
-const { loadConfig } = await import('@kidd/config/loader')
+const { build, compile } = await import('@kidd-cli/bundler')
+const { loadConfig } = await import('@kidd-cli/config/loader')
 
 const mockedBuild = vi.mocked(build)
 const mockedCompile = vi.mocked(compile)

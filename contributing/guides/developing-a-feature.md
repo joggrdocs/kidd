@@ -75,7 +75,7 @@ Lefthook runs git hooks automatically:
 
 ### 6. Add a changeset
 
-If the change affects published packages (`kidd`, `@kidd/*`), create a changeset:
+If the change affects published packages (`kidd`, `@kidd-cli/*`), create a changeset:
 
 ```bash
 pnpm changeset
@@ -85,7 +85,7 @@ Follow the prompts to select the package, semver bump type (patch, minor, major)
 
 **When to add a changeset:**
 
-- New features, bug fixes, or breaking changes to `kidd` or `@kidd/*` packages
+- New features, bug fixes, or breaking changes to `kidd` or `@kidd-cli/*` packages
 
 **When to skip:**
 

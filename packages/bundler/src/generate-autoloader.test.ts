@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { generateAutoloaderParts, generateStaticAutoloader } from './generate-autoloader.js'
 import type { ScanResult } from './types.js'
 
-const TAG_PATH = '/project/node_modules/@kidd/utils/src/tag.ts'
+const TAG_PATH = '/project/node_modules/@kidd-cli/utils/src/tag.ts'
 
 describe('static autoloader generation', () => {
   it('should generate static imports for flat command files', () => {

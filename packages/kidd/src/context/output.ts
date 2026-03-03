@@ -1,4 +1,4 @@
-import { jsonStringify } from '@kidd/utils/json'
+import { jsonStringify } from '@kidd-cli/utils/json'
 
 import type { Output, OutputOptions } from './types.js'
 

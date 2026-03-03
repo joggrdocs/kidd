@@ -1,11 +1,11 @@
 import { access, mkdir, readFile, writeFile } from 'node:fs/promises'
 import { dirname, join, relative } from 'node:path'
 
-import type { LoadConfigResult } from '@kidd/config/loader'
-import { attemptAsync, err, ok } from '@kidd/utils/fp'
-import type { AsyncResult } from '@kidd/utils/fp'
-import { jsonParse, jsonStringify } from '@kidd/utils/json'
-import type { Manifest } from '@kidd/utils/manifest'
+import type { LoadConfigResult } from '@kidd-cli/config/loader'
+import { attemptAsync, err, ok } from '@kidd-cli/utils/fp'
+import type { AsyncResult } from '@kidd-cli/utils/fp'
+import { jsonParse, jsonStringify } from '@kidd-cli/utils/json'
+import type { Manifest } from '@kidd-cli/utils/manifest'
 
 // ---------------------------------------------------------------------------
 // Constants

@@ -1,6 +1,6 @@
 import { join } from 'node:path'
 
-import { readManifest } from '@kidd/utils/manifest'
+import { readManifest } from '@kidd-cli/utils/manifest'
 
 /**
  * Validated CLI manifest with all required fields guaranteed present.

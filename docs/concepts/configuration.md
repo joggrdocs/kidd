@@ -14,7 +14,7 @@ Config files are named `.<name>.jsonc`, `.<name>.json`, or `.<name>.yaml`, where
 
 ## `defineConfig()`
 
-Type-safe helper for `kidd.config.ts`. Used by the `@kidd/cli` build system.
+Type-safe helper for `kidd.config.ts`. Used by the `kidd-cli` build system.
 
 ```ts
 import { defineConfig } from 'kidd'
@@ -133,4 +133,4 @@ The first matching file wins. Files are checked in extension order: `.jsonc`, `.
 
 - [kidd API Reference](../reference/kidd.md)
 - [Context](./context.md)
-- [@kidd/cli Reference](../reference/cli.md)
+- [kidd-cli Reference](../reference/cli.md)

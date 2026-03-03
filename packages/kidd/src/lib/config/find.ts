@@ -1,7 +1,7 @@
 import { access } from 'node:fs/promises'
 import { join } from 'node:path'
 
-import { attemptAsync } from '@kidd/utils/fp'
+import { attemptAsync } from '@kidd-cli/utils/fp'
 
 import { findProjectRoot } from '@/lib/project/index.js'
 

@@ -2,8 +2,8 @@ import { access, mkdir, readFile, writeFile } from 'node:fs/promises'
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import type { LoadConfigResult } from '@kidd/config/loader'
-import type { Manifest } from '@kidd/utils/manifest'
+import type { LoadConfigResult } from '@kidd-cli/config/loader'
+import type { Manifest } from '@kidd-cli/utils/manifest'
 
 import type { CheckContext, RawPackageJson } from './checks.js'
 import { CHECKS, createCheckContext, readRawPackageJson } from './checks.js'

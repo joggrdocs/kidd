@@ -1,7 +1,7 @@
-import { watch } from '@kidd/bundler'
-import type { KiddConfig } from '@kidd/config'
-import { loadConfig } from '@kidd/config/loader'
-import type { LoadConfigResult } from '@kidd/config/loader'
+import { watch } from '@kidd-cli/bundler'
+import type { KiddConfig } from '@kidd-cli/config'
+import { loadConfig } from '@kidd-cli/config/loader'
+import type { LoadConfigResult } from '@kidd-cli/config/loader'
 import { command } from 'kidd'
 import type { Command, Context } from 'kidd'
 

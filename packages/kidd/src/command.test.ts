@@ -1,4 +1,4 @@
-import { TAG, hasTag } from '@kidd/utils/tag'
+import { TAG, hasTag } from '@kidd-cli/utils/tag'
 import { describe, expect, it } from 'vitest'
 
 import { command } from './command.js'

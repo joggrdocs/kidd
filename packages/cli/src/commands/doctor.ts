@@ -1,5 +1,5 @@
-import { loadConfig } from '@kidd/config/loader'
-import { readManifest } from '@kidd/utils/manifest'
+import { loadConfig } from '@kidd-cli/config/loader'
+import { readManifest } from '@kidd-cli/utils/manifest'
 import { command } from 'kidd'
 import type { Command, Context } from 'kidd'
 import pc from 'picocolors'

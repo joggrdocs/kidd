@@ -1,8 +1,8 @@
 import { access, mkdir, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 
-import { attemptAsync, ok, toErrorMessage } from '@kidd/utils/fp'
-import type { AsyncResult } from '@kidd/utils/fp'
+import { attemptAsync, ok, toErrorMessage } from '@kidd-cli/utils/fp'
+import type { AsyncResult } from '@kidd-cli/utils/fp'
 
 import type { GenerateError, RenderedFile, WriteFilesParams, WriteResult } from './types.js'
 

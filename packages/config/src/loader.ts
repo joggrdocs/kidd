@@ -1,8 +1,8 @@
-import { toErrorMessage } from '@kidd/utils'
-import type { AsyncResult } from '@kidd/utils'
-import { err } from '@kidd/utils/fp'
-import type { Tagged } from '@kidd/utils/tag'
-import { withTag } from '@kidd/utils/tag'
+import { toErrorMessage } from '@kidd-cli/utils'
+import type { AsyncResult } from '@kidd-cli/utils'
+import { err } from '@kidd-cli/utils/fp'
+import type { Tagged } from '@kidd-cli/utils/tag'
+import { withTag } from '@kidd-cli/utils/tag'
 import { loadConfig as c12LoadConfig } from 'c12'
 import { attemptAsync } from 'es-toolkit'
 

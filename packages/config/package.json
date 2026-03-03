@@ -1,5 +1,5 @@
 {
-  "name": "@kidd/config",
+  "name": "@kidd-cli/config",
   "version": "0.0.0",
   "description": "Build-time configuration for kidd CLIs",
   "license": "MIT",
@@ -24,7 +24,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@kidd/utils": "workspace:*",
+    "@kidd-cli/utils": "workspace:*",
     "c12": "4.0.0-beta.3",
     "es-toolkit": "catalog:",
     "zod": "catalog:"

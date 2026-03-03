@@ -1,9 +1,9 @@
 ---
 "kidd": minor
 "kidd-cli": minor
-"@kidd/utils": minor
-"@kidd/config": minor
-"@kidd/bundler": minor
+"@kidd-cli/utils": minor
+"@kidd-cli/config": minor
+"@kidd-cli/bundler": minor
 ---
 
 Initial release

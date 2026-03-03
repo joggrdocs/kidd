@@ -24,13 +24,13 @@ An opinionated CLI framework for Node.js. Convention over configuration, end-to-
 flowchart LR
     subgraph framework["Framework"]
         K(["kidd"])
-        CLI(["@kidd/cli"])
+        CLI(["kidd-cli"])
     end
 
     subgraph internal["Internal"]
-        CFG(["@kidd/config"])
-        UTL(["@kidd/utils"])
-        BDL(["@kidd/bundler"])
+        CFG(["@kidd-cli/config"])
+        UTL(["@kidd-cli/utils"])
+        BDL(["@kidd-cli/bundler"])
     end
 
     CLI --> K
@@ -54,10 +54,10 @@ flowchart LR
 | Package                                  | Purpose                                                  | Runtime  |
 | ---------------------------------------- | -------------------------------------------------------- | -------- |
 | [`kidd`](./reference/kidd.md)            | Core CLI framework (commands, middleware, config, store)  | CLI      |
-| [`@kidd/cli`](./reference/cli.md)        | DX companion CLI (init, build, doctor, add)               | CLI      |
-| `@kidd/config`                           | Configuration loading, validation, and schema (internal)  | Library  |
-| `@kidd/utils`                            | Shared functional utilities (internal)                    | Library  |
-| `@kidd/bundler`                          | tsdown bundling and binary compilation (internal)         | CLI      |
+| [`kidd-cli`](./reference/cli.md)        | DX companion CLI (init, build, doctor, add)               | CLI      |
+| `@kidd-cli/config`                           | Configuration loading, validation, and schema (internal)  | Library  |
+| `@kidd-cli/utils`                            | Shared functional utilities (internal)                    | Library  |
+| `@kidd-cli/bundler`                          | tsdown bundling and binary compilation (internal)         | CLI      |
 
 ## Concepts
 
@@ -74,4 +74,4 @@ flowchart LR
 ## Reference
 
 - [kidd](./reference/kidd.md) -- core framework API
-- [@kidd/cli](./reference/cli.md) -- DX companion CLI commands
+- [kidd-cli](./reference/cli.md) -- DX companion CLI commands

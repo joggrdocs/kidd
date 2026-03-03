@@ -1,9 +1,9 @@
 import fs from 'node:fs'
 import path from 'node:path'
 
-import { attempt, err, ok } from '@kidd/utils/fp'
-import type { Result } from '@kidd/utils/fp'
-import { jsonStringify } from '@kidd/utils/json'
+import { attempt, err, ok } from '@kidd-cli/utils/fp'
+import type { Result } from '@kidd-cli/utils/fp'
+import { jsonStringify } from '@kidd-cli/utils/json'
 
 import { redactObject } from '@/context/redact.js'
 

@@ -1,4 +1,4 @@
-import { withTag } from '@kidd/utils/tag'
+import { withTag } from '@kidd-cli/utils/tag'
 
 import type { Middleware, MiddlewareFn } from './types.js'
 

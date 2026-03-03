@@ -1,4 +1,4 @@
-import type { AsyncResult, Result } from '@kidd/utils/fp'
+import type { AsyncResult, Result } from '@kidd-cli/utils/fp'
 import type { z } from 'zod'
 
 import type { Context } from '@/context/types.js'

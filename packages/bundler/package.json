@@ -1,5 +1,5 @@
 {
-  "name": "@kidd/bundler",
+  "name": "@kidd-cli/bundler",
   "version": "0.0.0",
   "description": "Programmatic bundler for kidd CLI tools powered by tsdown",
   "license": "MIT",
@@ -22,8 +22,8 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@kidd/config": "workspace:*",
-    "@kidd/utils": "workspace:*",
+    "@kidd-cli/config": "workspace:*",
+    "@kidd-cli/utils": "workspace:*",
     "es-toolkit": "catalog:",
     "ts-pattern": "catalog:",
     "tsdown": "catalog:",

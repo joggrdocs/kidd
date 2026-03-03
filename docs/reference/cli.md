@@ -1,11 +1,11 @@
-# @kidd/cli
+# kidd-cli
 
 DX companion CLI for kidd projects. Provides scaffolding, building, diagnostics, and code generation commands.
 
 ## Installation
 
 ```bash
-pnpm add -D @kidd/cli
+pnpm add -D kidd-cli
 ```
 
 ## Commands

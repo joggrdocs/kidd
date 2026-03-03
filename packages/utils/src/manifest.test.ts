@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { readManifest } from './manifest.js'
 
-vi.mock('node:fs/promises', () => ({
+vi.mock(import('node:fs/promises'), () => ({
   readFile: vi.fn(),
 }))
 
@@ -15,18 +15,18 @@ beforeEach(() => {
   vi.clearAllMocks()
 })
 
-describe('readManifest', () => {
+describe(readManifest, () => {
   it('should return manifest when valid package.json exists', async () => {
     const pkg = {
-      name: 'my-pkg',
-      version: '1.0.0',
-      description: 'A test package',
-      license: 'MIT',
       author: 'Alice',
-      repository: 'https://github.com/test/repo',
+      bin: { cli: './bin/cli.js' },
+      description: 'A test package',
       homepage: 'https://example.com',
       keywords: ['test', 'example'],
-      bin: { cli: './bin/cli.js' },
+      license: 'MIT',
+      name: 'my-pkg',
+      repository: 'https://github.com/test/repo',
+      version: '1.0.0',
     }
     mockedReadFile.mockResolvedValueOnce(JSON.stringify(pkg))
 
@@ -34,15 +34,15 @@ describe('readManifest', () => {
 
     expect(error).toBeNull()
     expect(manifest).toEqual({
-      name: 'my-pkg',
-      version: '1.0.0',
-      description: 'A test package',
-      license: 'MIT',
       author: 'Alice',
-      repository: 'https://github.com/test/repo',
+      bin: { cli: './bin/cli.js' },
+      description: 'A test package',
       homepage: 'https://example.com',
       keywords: ['test', 'example'],
-      bin: { cli: './bin/cli.js' },
+      license: 'MIT',
+      name: 'my-pkg',
+      repository: 'https://github.com/test/repo',
+      version: '1.0.0',
     })
   })
 
@@ -77,21 +77,21 @@ describe('readManifest', () => {
 
     expect(error).toBeNull()
     expect(manifest).toEqual({
-      name: undefined,
-      version: undefined,
-      description: undefined,
-      license: undefined,
       author: undefined,
-      repository: undefined,
+      bin: undefined,
+      description: undefined,
       homepage: undefined,
       keywords: [],
-      bin: undefined,
+      license: undefined,
+      name: undefined,
+      repository: undefined,
+      version: undefined,
     })
   })
 
   it('should normalize author object to string', async () => {
     const pkg = {
-      author: { name: 'Bob', email: 'bob@example.com', url: 'https://bob.dev' },
+      author: { email: 'bob@example.com', name: 'Bob', url: 'https://bob.dev' },
     }
     mockedReadFile.mockResolvedValueOnce(JSON.stringify(pkg))
 
@@ -105,9 +105,9 @@ describe('readManifest', () => {
   it('should normalize repository object to URL string', async () => {
     const pkg = {
       repository: {
+        directory: 'packages/core',
         type: 'git',
         url: 'https://github.com/test/repo.git',
-        directory: 'packages/core',
       },
     }
     mockedReadFile.mockResolvedValueOnce(JSON.stringify(pkg))
@@ -147,7 +147,7 @@ describe('readManifest', () => {
 
   it('should pass through record bin', async () => {
     const pkg = {
-      bin: { serve: './bin/serve.js', build: './bin/build.js' },
+      bin: { build: './bin/build.js', serve: './bin/serve.js' },
     }
     mockedReadFile.mockResolvedValueOnce(JSON.stringify(pkg))
 
@@ -155,7 +155,7 @@ describe('readManifest', () => {
 
     expect(error).toBeNull()
     expect(manifest).not.toBeNull()
-    expect(manifest!.bin).toEqual({ serve: './bin/serve.js', build: './bin/build.js' })
+    expect(manifest!.bin).toEqual({ build: './bin/build.js', serve: './bin/serve.js' })
   })
 })
 
@@ -174,8 +174,8 @@ describe('readManifest integration', () => {
   it('should handle author as object with email and url', async () => {
     const pkg = {
       author: {
-        name: 'Jane',
         email: 'jane@example.com',
+        name: 'Jane',
         url: 'https://jane.dev',
       },
     }

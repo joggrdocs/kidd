@@ -62,7 +62,7 @@ function findCheck(name: string) {
   return check
 }
 
-describe('createCheckContext', () => {
+describe(createCheckContext, () => {
   it('should create context with provided parameters', () => {
     const configResult = makeConfigResult()
     const manifest = makeManifest()
@@ -84,7 +84,7 @@ describe('createCheckContext', () => {
   })
 })
 
-describe('readRawPackageJson', () => {
+describe(readRawPackageJson, () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })
@@ -119,7 +119,7 @@ describe('readRawPackageJson', () => {
   })
 })
 
-describe('CHECKS', () => {
+describe(CHECKS, () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })
@@ -360,13 +360,13 @@ describe('fix functions', () => {
       mockedWriteFile.mockResolvedValue(undefined)
       const context = makeContext()
 
-      const fix = findCheck('module type').fix
+      const {fix} = findCheck('module type')
       if (!fix) {
         expect.unreachable('fix should be defined')
       }
       const result = await fix(context)
 
-      expect(result.fixed).toBe(true)
+      expect(result.fixed).toBeTruthy()
       expect(result.name).toBe('module type')
       expect(mockedWriteFile).toHaveBeenCalledTimes(1)
     })
@@ -378,13 +378,13 @@ describe('fix functions', () => {
       mockedWriteFile.mockResolvedValue(undefined)
       const context = makeContext()
 
-      const fix = findCheck('kidd dependency').fix
+      const {fix} = findCheck('kidd dependency')
       if (!fix) {
         expect.unreachable('fix should be defined')
       }
       const result = await fix(context)
 
-      expect(result.fixed).toBe(true)
+      expect(result.fixed).toBeTruthy()
       expect(result.name).toBe('kidd dependency')
       expect(mockedWriteFile).toHaveBeenCalledTimes(1)
     })
@@ -396,13 +396,13 @@ describe('fix functions', () => {
       mockedWriteFile.mockResolvedValue(undefined)
       const context = makeContext()
 
-      const fix = findCheck('entry point').fix
+      const {fix} = findCheck('entry point')
       if (!fix) {
         expect.unreachable('fix should be defined')
       }
       const result = await fix(context)
 
-      expect(result.fixed).toBe(true)
+      expect(result.fixed).toBeTruthy()
       expect(result.name).toBe('entry point')
       expect(mockedMkdir).toHaveBeenCalledTimes(1)
       expect(mockedWriteFile).toHaveBeenCalledTimes(1)
@@ -414,13 +414,13 @@ describe('fix functions', () => {
       mockedMkdir.mockResolvedValue(undefined)
       const context = makeContext()
 
-      const fix = findCheck('commands directory').fix
+      const {fix} = findCheck('commands directory')
       if (!fix) {
         expect.unreachable('fix should be defined')
       }
       const result = await fix(context)
 
-      expect(result.fixed).toBe(true)
+      expect(result.fixed).toBeTruthy()
       expect(result.name).toBe('commands directory')
       expect(mockedMkdir).toHaveBeenCalledTimes(1)
     })

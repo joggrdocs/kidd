@@ -6,11 +6,11 @@
 
 ## Features
 
-- 🧰 **Batteries included** — Config, auth, prompts, logging, output, and middleware built in. One framework for the entire CLI lifecycle
-- 📁 **File-system autoloading** — Drop a file in `commands/`, get a command. No registration, no barrel files, no wiring
-- ⚡ **Build and compile** — `kidd build` generates static imports from your command tree. `kidd compile` produces cross-platform standalone binaries
-- 🚀 **Two files to a full CLI** — Define a schema, write a handler. kidd wires parsing, validation, config, and type inference automatically
-- 🛠️ **Developer experience** — Scaffolding, code generation, hot reload, route inspection, and project diagnostics out of the box
+- 🧰 **Batteries included** — Config, auth, prompts, logging, output, and middleware built in
+- 📁 **File-system autoloading** — Drop a file in `commands/`, get a command
+- ⚡ **Build and compile** — Bundle your command tree or produce cross-platform standalone binaries
+- 🚀 **Two files to a full CLI** — Define a schema, write a handler, done
+- 🛠️ **Developer experience** — Scaffolding, hot reload, route inspection, and diagnostics out of the box
 
 ## Install
 
@@ -27,7 +27,7 @@ npm install kidd
 import { cli } from 'kidd'
 import { z } from 'zod'
 
-cli({
+await cli({
   name: 'deploy',
   version: '0.1.0',
   config: {

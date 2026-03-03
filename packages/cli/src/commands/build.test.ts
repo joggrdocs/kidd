@@ -243,11 +243,12 @@ describe('build command', () => {
       const mod = await import('./build.js')
       await mod.default.handler!(ctx)
 
-      const binariesNote = vi.mocked(ctx.logger.note).mock.calls.find(
-        (call) => call[1] === 'Binaries'
+      const mockNote = ctx.logger.note as ReturnType<typeof vi.fn>
+      const binariesNote = mockNote.mock.calls.find(
+        (call: readonly [unknown, unknown]) => call[1] === 'Binaries'
       )
       expect(binariesNote).toBeDefined()
-      const noteBody = binariesNote![0] as string
+      const noteBody = binariesNote[0] as string
       expect(noteBody).toContain('macOS ARM64')
       expect(noteBody).toContain('Linux x64')
       expect(noteBody).toContain('dist/bin/cli-darwin-arm64')

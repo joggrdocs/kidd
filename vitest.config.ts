@@ -2,16 +2,7 @@ import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
   test: {
-    projects: [
-      'packages/bundler',
-      'packages/cli',
-      'packages/config',
-      'packages/kidd',
-      'packages/utils',
-    ],
     coverage: {
-      provider: 'v8',
-      include: ['packages/*/src/**/*.ts'],
       exclude: [
         '**/*.test.ts',
         '**/*.d.ts',
@@ -20,6 +11,8 @@ export default defineConfig({
         '**/test/**',
         '**/templates/**',
       ],
+      include: ['packages/*/src/**/*.ts'],
+      provider: 'v8',
       reporter: [
         ['text', { skipFull: true }],
         ['json', {}],
@@ -27,11 +20,18 @@ export default defineConfig({
       ],
       reportsDirectory: './coverage',
       thresholds: {
-        lines: 60,
-        functions: 60,
         branches: 60,
+        functions: 60,
+        lines: 60,
         statements: 60,
       },
     },
+    projects: [
+      'packages/bundler',
+      'packages/cli',
+      'packages/config',
+      'packages/kidd',
+      'packages/utils',
+    ],
   },
 })

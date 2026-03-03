@@ -5,10 +5,9 @@ import { attemptAsync, isPlainObject, isString } from '@kidd/utils/fp'
 import yargs from 'yargs'
 import type { z } from 'zod'
 
-import { isContextError } from '@/context/index.js'
+import { DEFAULT_EXIT_CODE, isContextError } from '@/context/index.js'
 import { createCliLogger } from '@/lib/logger.js'
 import type { CliOptions, CommandMap } from '@/types.js'
-import { DEFAULT_EXIT_CODE } from '@/utils/constants.js'
 
 import { autoload } from './autoloader.js'
 import { createRuntime, registerCommands } from './runtime/index.js'

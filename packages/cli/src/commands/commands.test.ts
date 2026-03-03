@@ -111,9 +111,9 @@ describe('commands command', () => {
     mockedLoadConfig.mockResolvedValue([null, { config: {} }] as never)
     mockedExistsSync.mockReturnValue(true)
     mockedAutoload.mockResolvedValue({
-      deploy: { description: 'Deploy' },
-      build: { description: 'Build' },
       add: { description: 'Add' },
+      build: { description: 'Build' },
+      deploy: { description: 'Deploy' },
     } as never)
 
     const mod = await import('./commands.js')
@@ -165,11 +165,11 @@ describe('commands command', () => {
     mockedExistsSync.mockReturnValue(true)
     mockedAutoload.mockResolvedValue({
       parent: {
-        description: 'Parent cmd',
         commands: {
           child1: { description: 'Child one' },
           child2: { description: 'Child two' },
         },
+        description: 'Parent cmd',
       },
     } as never)
 
@@ -190,15 +190,15 @@ describe('commands command', () => {
     mockedExistsSync.mockReturnValue(true)
     mockedAutoload.mockResolvedValue({
       root: {
-        description: 'Root',
         commands: {
           mid: {
-            description: 'Middle',
             commands: {
               leaf: { description: 'Leaf' },
             },
+            description: 'Middle',
           },
         },
+        description: 'Root',
       },
     } as never)
 
@@ -257,10 +257,10 @@ describe('commands command', () => {
     mockedExistsSync.mockReturnValue(true)
     mockedAutoload.mockResolvedValue({
       alpha: {
-        description: 'Alpha',
         commands: {
           sub: { description: 'Sub' },
         },
+        description: 'Alpha',
       },
       beta: { description: 'Beta' },
     } as never)

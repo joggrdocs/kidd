@@ -14,6 +14,7 @@
     "build": "turbo run build",
     "dev": "turbo run dev",
     "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
     "typecheck": "turbo run typecheck",
     "check": "turbo run typecheck && pnpm lint && pnpm format",
@@ -30,7 +31,8 @@
     "oxfmt": "^0.36.0",
     "oxlint": "^1.51.0",
     "turbo": "^2.8.12",
-    "vitest": "^4.0.18"
+    "@vitest/coverage-v8": "catalog:",
+    "vitest": "catalog:"
   },
   "packageManager": "pnpm@10.30.1"
 }

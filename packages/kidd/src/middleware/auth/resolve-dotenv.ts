@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from 'node:fs'
+import { readFileSync } from 'node:fs'
 
 import { parse } from 'dotenv'
 import { attempt } from 'es-toolkit'
@@ -11,6 +11,9 @@ import type { AuthCredential } from './types.js'
  * Reads the file and parses it with `dotenv.parse`. If the target variable
  * is present, returns a bearer credential. Otherwise returns null.
  *
+ * Skips a separate existence check to avoid a TOCTOU race — if the file
+ * does not exist, `readFileSync` throws and `attempt` captures the error.
+ *
  * @param options - Options with the env variable name and file path.
  * @returns A bearer credential if found, null otherwise.
  */
@@ -18,10 +21,6 @@ export function resolveFromDotenv(options: {
   readonly tokenVar: string
   readonly path: string
 }): AuthCredential | null {
-  if (!existsSync(options.path)) {
-    return null
-  }
-
   const [readError, content] = attempt(() => readFileSync(options.path, 'utf8'))
 
   if (readError || content === null) {

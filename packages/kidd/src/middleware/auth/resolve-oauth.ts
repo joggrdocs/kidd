@@ -1,4 +1,5 @@
 import { execFile } from 'node:child_process'
+import { randomBytes } from 'node:crypto'
 import { createServer } from 'node:http'
 import type { IncomingMessage, Server, ServerResponse } from 'node:http'
 import type { Socket } from 'node:net'
@@ -7,6 +8,16 @@ import { platform } from 'node:os'
 import { match } from 'ts-pattern'
 
 import type { AuthCredential } from './types.js'
+
+/**
+ * Maximum request body size in bytes (16 KB).
+ *
+ * Limits memory consumption from the local OAuth callback server
+ * to prevent resource exhaustion from oversized payloads.
+ *
+ * @private
+ */
+const MAX_BODY_BYTES = 16_384
 
 const CLOSE_PAGE_HTML = [
   '<!DOCTYPE html>',
@@ -36,6 +47,7 @@ export async function resolveFromOAuth(options: {
   readonly timeout: number
 }): Promise<AuthCredential | null> {
   const controller = new AbortController()
+  const state = randomBytes(32).toString('hex')
 
   const timeout = createTimeout(options.timeout)
 
@@ -43,6 +55,7 @@ export async function resolveFromOAuth(options: {
     callbackPath: options.callbackPath,
     port: options.port,
     signal: controller.signal,
+    state,
   })
 
   const timeoutPromise = timeout.promise.then((): null => {
@@ -58,8 +71,8 @@ export async function resolveFromOAuth(options: {
     return null
   }
 
-  const callbackUrl = `http://localhost:${String(serverPort)}${options.callbackPath}`
-  const fullAuthUrl = `${options.authUrl}?callback_url=${encodeURIComponent(callbackUrl)}`
+  const callbackUrl = `http://127.0.0.1:${String(serverPort)}${options.callbackPath}`
+  const fullAuthUrl = `${options.authUrl}?callback_url=${encodeURIComponent(callbackUrl)}&state=${encodeURIComponent(state)}`
   openBrowser(fullAuthUrl)
 
   const result = await Promise.race([tokenPromise.result, timeoutPromise])
@@ -98,6 +111,7 @@ function listenForToken(options: {
   readonly callbackPath: string
   readonly port: number
   readonly signal: AbortSignal
+  readonly state: string
 }): TokenListener {
   const portResolvers = createDeferred<number | null>()
   const resultResolvers = createDeferred<AuthCredential | null>()
@@ -107,7 +121,7 @@ function listenForToken(options: {
   const sockets = new Set<Socket>()
 
   const server = createServer((req, res) => {
-    extractTokenFromBody(req, options.callbackPath, (token) => {
+    extractTokenFromBody(req, options.callbackPath, options.state, (token) => {
       if (!token) {
         res.writeHead(400)
         res.end()
@@ -133,7 +147,7 @@ function listenForToken(options: {
     resultResolvers.resolve(null)
   })
 
-  server.listen(options.port, () => {
+  server.listen(options.port, '127.0.0.1', () => {
     const addr = server.address()
 
     if (addr === null || typeof addr === 'string') {
@@ -274,19 +288,29 @@ async function getServerPort(listener: TokenListener): Promise<number | null> {
 /**
  * Extract a token from the POST body of an incoming HTTP request.
  *
- * Only POST requests to the callback path with a JSON body containing
- * a `token` field are accepted. Query-string tokens are intentionally
- * rejected to prevent credential leakage through browser history,
- * server logs, and referrer headers.
+ * Only POST requests to the callback path with `application/json`
+ * Content-Type and a JSON body containing `token` and matching `state`
+ * fields are accepted. Query-string tokens are intentionally rejected
+ * to prevent credential leakage through browser history, server logs,
+ * and referrer headers.
+ *
+ * The `Content-Type` check prevents CORS-safelisted simple requests
+ * (which skip preflight) from delivering forged payloads — `text/plain`
+ * is safelisted, but `application/json` is not (Fetch Standard §2.2.2).
+ *
+ * Body size is capped at {@link MAX_BODY_BYTES} to prevent resource
+ * exhaustion from oversized payloads.
  *
  * @private
  * @param req - The incoming request.
  * @param callbackPath - The expected callback path.
+ * @param expectedState - The state nonce to validate against.
  * @param callback - Called with the extracted token or null.
  */
 function extractTokenFromBody(
   req: IncomingMessage,
   callbackPath: string,
+  expectedState: string,
   callback: (token: string | null) => void
 ): void {
   const reqUrl = new URL(req.url ?? '/', 'http://localhost')
@@ -301,16 +325,35 @@ function extractTokenFromBody(
     return
   }
 
+  const contentType = req.headers['content-type'] ?? ''
+
+  if (!contentType.startsWith('application/json')) {
+    callback(null)
+    return
+  }
+
   const chunks: Buffer[] = []
 
+  // Mutable byte counter — streams must be checked incrementally
+  // Before the full payload is buffered to prevent resource exhaustion.
+  const received = { bytes: 0 }
+
   req.on('data', (chunk: Buffer) => {
+    received.bytes += chunk.length
+
+    if (received.bytes > MAX_BODY_BYTES) {
+      req.destroy()
+      callback(null)
+      return
+    }
+
     chunks.push(chunk)
   })
 
   req.on('end', () => {
     const body = Buffer.concat(chunks).toString('utf8')
 
-    const token = parseTokenFromJson(body)
+    const token = parseTokenFromJson(body, expectedState)
     callback(token)
   })
 
@@ -320,16 +363,17 @@ function extractTokenFromBody(
 }
 
 /**
- * Parse a token string from a JSON body.
+ * Parse a token string from a JSON body and validate the state nonce.
  *
- * Expects `{ "token": "<value>" }`. Returns null for invalid JSON
- * or missing/empty token fields.
+ * Expects `{ "token": "<value>", "state": "<value>" }`. Returns null
+ * for invalid JSON, missing/empty token fields, or mismatched state.
  *
  * @private
  * @param body - The raw request body string.
+ * @param expectedState - The state nonce that must match.
  * @returns The token string or null.
  */
-function parseTokenFromJson(body: string): string | null {
+function parseTokenFromJson(body: string, expectedState: string): string | null {
   try {
     const parsed: unknown = JSON.parse(body)
 
@@ -340,6 +384,10 @@ function parseTokenFromJson(body: string): string | null {
     const record = parsed as Record<string, unknown>
 
     if (typeof record.token !== 'string' || record.token === '') {
+      return null
+    }
+
+    if (record.state !== expectedState) {
       return null
     }
 
@@ -363,13 +411,17 @@ function sendSuccessPage(res: ServerResponse): void {
 /**
  * Open a URL in the user's default browser using a platform-specific command.
  *
+ * On Windows, `start` is a `cmd.exe` built-in — not a standalone executable —
+ * so it must be invoked via `cmd /c start "" <url>`. The empty string argument
+ * prevents `cmd` from interpreting the URL as a window title.
+ *
  * @private
  * @param url - The URL to open.
  */
 function openBrowser(url: string): void {
-  const command = match(platform())
-    .with('darwin', () => 'open')
-    .with('win32', () => 'start')
-    .otherwise(() => 'xdg-open')
-  execFile(command, [url])
+  const { command, args } = match(platform())
+    .with('darwin', () => ({ args: [url], command: 'open' }))
+    .with('win32', () => ({ args: ['/c', 'start', '', url], command: 'cmd' }))
+    .otherwise(() => ({ args: [url], command: 'xdg-open' }))
+  execFile(command, args)
 }

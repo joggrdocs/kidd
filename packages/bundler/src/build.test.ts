@@ -29,6 +29,7 @@ describe('build operation', () => {
   })
 
   it('should return err with Error on tsdown failure', async () => {
+    vi.spyOn(console, 'error').mockImplementation(function noop() {})
     mockTsdownBuild.mockRejectedValueOnce(new Error('tsdown crashed'))
     const [error, output] = await build({ config: {}, cwd: '/project' })
 

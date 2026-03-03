@@ -5,12 +5,22 @@ vi.mock(import('node:fs'), () => ({
   readFileSync: vi.fn(),
 }))
 
-import { existsSync, readFileSync } from 'node:fs'
+vi.mock(import('./resolve-file.js'), () => ({
+  resolveFromFile: vi.fn(),
+}))
+
+vi.mock(import('./resolve-oauth.js'), () => ({
+  resolveFromOAuth: vi.fn(),
+}))
+
+import { readFileSync } from 'node:fs'
 
 import type { Prompts } from '@/context/types.js'
 
 import { resolveFromDotenv } from './resolve-dotenv.js'
 import { resolveFromEnv } from './resolve-env.js'
+import { resolveFromFile } from './resolve-file.js'
+import { resolveFromOAuth } from './resolve-oauth.js'
 import { resolveFromPrompt } from './resolve-prompt.js'
 import { resolveCredentials } from './resolve-credentials.js'
 
@@ -48,7 +58,6 @@ describe('resolveFromDotenv()', () => {
   })
 
   it('should return BearerCredential when variable found in .env file', () => {
-    vi.mocked(existsSync).mockReturnValue(true)
     vi.mocked(readFileSync).mockReturnValue('MY_TOKEN=secret-value\n')
 
     const result = resolveFromDotenv({ path: '/app/.env', tokenVar: 'MY_TOKEN' })
@@ -57,7 +66,9 @@ describe('resolveFromDotenv()', () => {
   })
 
   it('should return null when .env file does not exist', () => {
-    vi.mocked(existsSync).mockReturnValue(false)
+    vi.mocked(readFileSync).mockImplementation(() => {
+      throw new Error('ENOENT: no such file or directory')
+    })
 
     const result = resolveFromDotenv({ path: '/app/.env', tokenVar: 'MY_TOKEN' })
 
@@ -65,7 +76,6 @@ describe('resolveFromDotenv()', () => {
   })
 
   it('should return null when variable not in .env file', () => {
-    vi.mocked(existsSync).mockReturnValue(true)
     vi.mocked(readFileSync).mockReturnValue('OTHER_VAR=value\n')
 
     const result = resolveFromDotenv({ path: '/app/.env', tokenVar: 'MY_TOKEN' })
@@ -74,7 +84,6 @@ describe('resolveFromDotenv()', () => {
   })
 
   it('should return null when readFileSync throws', () => {
-    vi.mocked(existsSync).mockReturnValue(true)
     vi.mocked(readFileSync).mockImplementation(() => {
       throw new Error('read error')
     })
@@ -116,6 +125,7 @@ describe('resolveFromPrompt()', () => {
 describe('resolveCredentials()', () => {
   afterEach(() => {
     vi.unstubAllEnvs()
+    vi.clearAllMocks()
   })
 
   it('should return first resolved credential (short-circuit)', async () => {
@@ -191,5 +201,85 @@ describe('resolveCredentials()', () => {
     })
 
     expect(result).toEqual({ token: 'custom', type: 'bearer' })
+  })
+
+  it('should dispatch to file resolver with default filename and dirName', async () => {
+    vi.mocked(resolveFromFile).mockReturnValue({ token: 'from-file', type: 'bearer' })
+
+    const prompts = { password: vi.fn() } as unknown as Prompts
+    const result = await resolveCredentials({
+      cliName: 'my-cli',
+      prompts,
+      resolvers: [{ source: 'file' }],
+    })
+
+    expect(result).toEqual({ token: 'from-file', type: 'bearer' })
+    expect(resolveFromFile).toHaveBeenCalledWith({
+      dirName: '.my-cli',
+      filename: 'auth.json',
+    })
+  })
+
+  it('should dispatch to file resolver with custom filename and dirName', async () => {
+    vi.mocked(resolveFromFile).mockReturnValue({ token: 'from-custom-file', type: 'bearer' })
+
+    const prompts = { password: vi.fn() } as unknown as Prompts
+    const result = await resolveCredentials({
+      cliName: 'my-cli',
+      prompts,
+      resolvers: [{ dirName: '.my-custom-dir', filename: 'creds.json', source: 'file' }],
+    })
+
+    expect(result).toEqual({ token: 'from-custom-file', type: 'bearer' })
+    expect(resolveFromFile).toHaveBeenCalledWith({
+      dirName: '.my-custom-dir',
+      filename: 'creds.json',
+    })
+  })
+
+  it('should dispatch to oauth resolver', async () => {
+    vi.mocked(resolveFromOAuth).mockResolvedValue({ token: 'from-oauth', type: 'bearer' })
+
+    const prompts = { password: vi.fn() } as unknown as Prompts
+    const result = await resolveCredentials({
+      cliName: 'my-cli',
+      prompts,
+      resolvers: [{ authUrl: 'https://auth.example.com/login', source: 'oauth' }],
+    })
+
+    expect(result).toEqual({ token: 'from-oauth', type: 'bearer' })
+    expect(resolveFromOAuth).toHaveBeenCalledWith({
+      authUrl: 'https://auth.example.com/login',
+      callbackPath: '/callback',
+      port: 0,
+      timeout: 120_000,
+    })
+  })
+
+  it('should return null when custom resolver returns null', async () => {
+    const prompts = { password: vi.fn() } as unknown as Prompts
+    const result = await resolveCredentials({
+      cliName: 'my-cli',
+      prompts,
+      resolvers: [
+        {
+          resolver: () => null,
+          source: 'custom' as const,
+        },
+      ],
+    })
+
+    expect(result).toBeNull()
+  })
+
+  it('should handle empty resolvers array', async () => {
+    const prompts = { password: vi.fn() } as unknown as Prompts
+    const result = await resolveCredentials({
+      cliName: 'my-cli',
+      prompts,
+      resolvers: [],
+    })
+
+    expect(result).toBeNull()
   })
 })

@@ -1,0 +1,114 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
+vi.mock(import('@kidd/utils/manifest'), () => ({
+  readManifest: vi.fn(),
+}))
+
+import { readManifest } from '@kidd/utils/manifest'
+
+import { loadCLIManifest } from './manifest.js'
+
+const mockReadManifest = vi.mocked(readManifest)
+
+describe('loadCLIManifest()', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('should return CLIManifest with all required fields', async () => {
+    mockReadManifest.mockResolvedValue([
+      null,
+      {
+        author: undefined,
+        bin: undefined,
+        description: 'A test CLI tool',
+        homepage: undefined,
+        keywords: [],
+        license: undefined,
+        name: 'my-cli',
+        repository: undefined,
+        version: '1.0.0',
+      },
+    ])
+
+    const result = await loadCLIManifest('/project/dist')
+
+    expect(result).toEqual({
+      description: 'A test CLI tool',
+      name: 'my-cli',
+      version: '1.0.0',
+    })
+    expect(mockReadManifest).toHaveBeenCalledWith('/project')
+  })
+
+  it('should throw when readManifest returns error', async () => {
+    mockReadManifest.mockResolvedValue([new Error('read failed'), null])
+
+    await expect(loadCLIManifest('/project/dist')).rejects.toThrow(
+      'Failed to read CLI manifest: read failed'
+    )
+  })
+
+  it('should throw when name is missing', async () => {
+    mockReadManifest.mockResolvedValue([
+      null,
+      {
+        author: undefined,
+        bin: undefined,
+        description: 'A test CLI tool',
+        homepage: undefined,
+        keywords: [],
+        license: undefined,
+        name: undefined,
+        repository: undefined,
+        version: '1.0.0',
+      },
+    ])
+
+    await expect(loadCLIManifest('/project/dist')).rejects.toThrow(
+      'CLI manifest is missing required field: name'
+    )
+  })
+
+  it('should throw when version is missing', async () => {
+    mockReadManifest.mockResolvedValue([
+      null,
+      {
+        author: undefined,
+        bin: undefined,
+        description: 'A test CLI tool',
+        homepage: undefined,
+        keywords: [],
+        license: undefined,
+        name: 'my-cli',
+        repository: undefined,
+        version: undefined,
+      },
+    ])
+
+    await expect(loadCLIManifest('/project/dist')).rejects.toThrow(
+      'CLI manifest is missing required field: version'
+    )
+  })
+
+  it('should throw when description is missing', async () => {
+    mockReadManifest.mockResolvedValue([
+      null,
+      {
+        author: undefined,
+        bin: undefined,
+        description: undefined,
+        homepage: undefined,
+        keywords: [],
+        license: undefined,
+        name: 'my-cli',
+        repository: undefined,
+        version: '1.0.0',
+      },
+    ])
+
+    await expect(loadCLIManifest('/project/dist')).rejects.toThrow(
+      'CLI manifest is missing required field: description'
+    )
+  })
+})

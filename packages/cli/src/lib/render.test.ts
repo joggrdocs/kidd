@@ -16,9 +16,11 @@ vi.mock(import('liquidjs'), async (importOriginal) => {
   const original = await importOriginal()
   return {
     ...original,
-    Liquid: vi.fn().mockImplementation(() => ({
-      parseAndRender: mockParseAndRender,
-    })),
+    Liquid: vi.fn().mockImplementation(function mockLiquid() {
+      return {
+        parseAndRender: mockParseAndRender,
+      }
+    }),
   }
 })
 

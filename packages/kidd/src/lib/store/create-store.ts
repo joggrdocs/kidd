@@ -211,8 +211,8 @@ export function createStore<TData = unknown>(options: StoreOptions<TData>): File
     const filePath = join(dir, filename)
 
     const [writeError] = attempt(() => {
-      mkdirSync(dir, { recursive: true })
-      writeFileSync(filePath, json, 'utf8')
+      mkdirSync(dir, { mode: 0o700, recursive: true })
+      writeFileSync(filePath, json, { encoding: 'utf8', mode: 0o600 })
     })
 
     if (writeError) {

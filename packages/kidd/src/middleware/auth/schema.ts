@@ -4,7 +4,7 @@ import { z } from 'zod'
  * Zod schema for bearer credentials.
  */
 export const bearerCredentialSchema = z.object({
-  token: z.string(),
+  token: z.string().min(1),
   type: z.literal('bearer'),
 })
 
@@ -12,17 +12,17 @@ export const bearerCredentialSchema = z.object({
  * Zod schema for basic auth credentials.
  */
 export const basicCredentialSchema = z.object({
-  password: z.string(),
+  password: z.string().min(1),
   type: z.literal('basic'),
-  username: z.string(),
+  username: z.string().min(1),
 })
 
 /**
  * Zod schema for API key credentials.
  */
 export const apiKeyCredentialSchema = z.object({
-  headerName: z.string(),
-  key: z.string(),
+  headerName: z.string().min(1),
+  key: z.string().min(1),
   type: z.literal('api-key'),
 })
 

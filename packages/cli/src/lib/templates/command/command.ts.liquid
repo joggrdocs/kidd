@@ -1,0 +1,12 @@
+import { command } from 'kidd'
+{% if includeArgs %}import { z } from 'zod'
+{% endif %}
+export default command({
+  description: '{{ description }}',
+{% if includeArgs %}  args: z.object({
+    // Add your args here
+  }),
+{% endif %}  handler: async (ctx) => {
+    // Implement your command here
+  },
+})

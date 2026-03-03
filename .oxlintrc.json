@@ -1,0 +1,117 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "unicorn", "import", "vitest", "promise", "node", "oxc"],
+  "jsPlugins": [
+    "eslint-plugin-security",
+    "eslint-plugin-functional",
+    {
+      "name": "jsdoc-js",
+      "specifier": "eslint-plugin-jsdoc"
+    }
+  ],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "error",
+    "pedantic": "warn",
+    "perf": "error",
+    "style": "warn"
+  },
+  "rules": {
+    "typescript/no-explicit-any": "error",
+    "typescript/no-non-null-assertion": "error",
+    "typescript/no-non-null-asserted-optional-chain": "error",
+    "typescript/consistent-type-imports": "error",
+    "typescript/no-empty-interface": "off",
+    "typescript/consistent-indexed-object-style": "off",
+    "security/detect-child-process": "error",
+    "security/detect-eval-with-expression": "error",
+    "security/detect-non-literal-fs-filename": "off",
+    "security/detect-non-literal-regexp": "error",
+    "security/detect-object-injection": "off",
+    "security/detect-possible-timing-attacks": "warn",
+    "security/detect-unsafe-regex": "error",
+    "prefer-const": "error",
+    "no-var": "error",
+    "no-ternary": "error",
+    "no-console": "off",
+    "no-null": "off",
+    "curly": "error",
+    "eqeqeq": "error",
+    "func-style": "off",
+    "init-declarations": "off",
+    "id-length": "off",
+    "max-lines": "off",
+    "max-lines-per-function": "off",
+    "max-statements": "off",
+    "max-params": "off",
+    "max-classes-per-file": "off",
+    "no-magic-numbers": "off",
+    "no-duplicate-imports": "off",
+    "no-await-in-loop": "off",
+    "require-await": "off",
+    "sort-imports": "off",
+    "functional/no-let": "off",
+    "functional/no-classes": "error",
+    "functional/no-this-expressions": "error",
+    "functional/no-throw-statements": "off",
+    "functional/no-try-statements": "off",
+    "functional/no-loop-statements": "off",
+    "unicorn/no-null": "off",
+    "unicorn/no-useless-undefined": "off",
+    "unicorn/no-array-callback-reference": "off",
+    "unicorn/consistent-function-scoping": "off",
+    "unicorn/prefer-node-protocol": "error",
+    "unicorn/no-unreadable-iife": "error",
+    "unicorn/no-array-for-each": "error",
+    "unicorn/prefer-array-flat-map": "error",
+    "import/no-cycle": "error",
+    "import/no-duplicates": "error",
+    "import/no-named-export": "off",
+    "import/no-nodejs-modules": "off",
+    "import/no-namespace": "off",
+    "import/no-unassigned-import": "off",
+    "import/first": "off",
+    "import/prefer-default-export": "off",
+    "import/exports-last": "off",
+    "import/group-exports": "off",
+    "promise/avoid-new": "off",
+    "promise/prefer-await-to-callbacks": "off",
+    "promise/prefer-await-to-then": "off",
+    "vitest/no-importing-vitest-globals": "off",
+    "vitest/prefer-called-times": "off",
+    "vitest/prefer-called-once": "off",
+    "vitest/prefer-expect-type-of": "off",
+    "oxc/no-optional-chaining": [
+      "error",
+      {
+        "message": "Use explicit null checks (if/else or ts-pattern match) instead of optional chaining."
+      }
+    ],
+    "jsdoc-js/multiline-blocks": [
+      "error",
+      {
+        "noSingleLineBlocks": true
+      }
+    ]
+  },
+  "overrides": [
+    {
+      "files": ["*.test.ts", "*.spec.ts", "**/__tests__/**"],
+      "rules": {
+        "no-unused-vars": "off",
+        "functional/no-classes": "off",
+        "typescript/no-non-null-assertion": "off",
+        "oxc/no-optional-chaining": "off"
+      }
+    }
+  ],
+  "ignorePatterns": [
+    "node_modules",
+    "dist",
+    "build",
+    "coverage",
+    "examples",
+    ".claude",
+    "**/*.d.ts"
+  ]
+}

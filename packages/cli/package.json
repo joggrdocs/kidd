@@ -1,0 +1,43 @@
+{
+  "name": "kidd-cli",
+  "version": "0.0.0",
+  "description": "DX companion CLI for the kidd framework",
+  "keywords": [
+    "cli",
+    "codegen",
+    "kidd",
+    "scaffolding"
+  ],
+  "license": "MIT",
+  "bin": {
+    "kidd": "./dist/index.mjs"
+  },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "scripts": {
+    "build": "tsdown && mkdir -p dist/lib && cp -r src/lib/templates dist/lib/templates",
+    "typecheck": "tsgo --noEmit",
+    "lint": "oxlint --ignore-pattern node_modules",
+    "lint:fix": "oxlint --fix --ignore-pattern node_modules",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@kidd/bundler": "workspace:*",
+    "@kidd/config": "workspace:*",
+    "@kidd/utils": "workspace:*",
+    "fs-extra": "^11.3.3",
+    "kidd": "workspace:*",
+    "liquidjs": "catalog:",
+    "picocolors": "^1.1.1",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "^11.0.4",
+    "tsdown": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

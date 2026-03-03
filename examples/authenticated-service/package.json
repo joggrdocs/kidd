@@ -1,0 +1,23 @@
+{
+  "name": "@examples/authenticated-service",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "tsx api/server.ts & API_PID=$!; kidd dev --cwd cli; kill $API_PID 2>/dev/null",
+    "api": "tsx api/server.ts",
+    "dev": "kidd dev --cwd cli",
+    "build": "kidd build --cwd cli",
+    "typecheck": "tsgo --noEmit"
+  },
+  "dependencies": {
+    "kidd": "workspace:*",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "kidd-cli": "workspace:*",
+    "tsdown": "catalog:",
+    "tsx": "catalog:",
+    "typescript": "catalog:"
+  }
+}

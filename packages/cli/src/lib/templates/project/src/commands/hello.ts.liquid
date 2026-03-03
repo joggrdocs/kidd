@@ -1,0 +1,12 @@
+import { command } from 'kidd'
+import { z } from 'zod'
+
+export default command({
+  description: 'Say hello',
+  args: z.object({
+    name: z.string().describe('Name to greet').default('world'),
+  }),
+  handler: async (ctx) => {
+    ctx.output.raw(`Hello, ${ctx.args.name}!`)
+  },
+})

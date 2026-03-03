@@ -1,0 +1,200 @@
+import { existsSync } from 'node:fs'
+import { join } from 'node:path'
+
+import type { KiddConfig } from '@kidd/config'
+import { loadConfig } from '@kidd/config/loader'
+import type { LoadConfigResult } from '@kidd/config/loader'
+import { autoload, command } from 'kidd'
+import type { Command as KiddCommand, Context } from 'kidd'
+
+/**
+ * A single node in the rendered command tree.
+ */
+interface TreeEntry {
+  readonly name: string
+  readonly description: string
+  readonly children: readonly TreeEntry[]
+}
+
+/**
+ * Display the command tree for a kidd CLI project.
+ *
+ * Loads the project's `kidd.config.ts` to locate the commands directory,
+ * scans it with the autoloader, and prints an ASCII tree of all discovered
+ * commands and subcommands.
+ */
+const commandsCommand: KiddCommand = command({
+  description: 'Display the command tree for a kidd CLI project',
+  handler: async (ctx: Context) => {
+    const cwd = process.cwd()
+
+    const [configError, configResult] = await loadConfig({ cwd })
+    const config = extractConfig(configResult)
+
+    if (configError) {
+      // No config file found — all KiddConfig fields are optional, so defaults apply.
+    }
+
+    const commandsDir = join(cwd, config.commands ?? 'commands')
+
+    if (!existsSync(commandsDir)) {
+      ctx.fail(`Commands directory not found: ${commandsDir}`)
+    }
+
+    ctx.spinner.start('Scanning commands...')
+
+    const commandMap = await autoload({ dir: commandsDir })
+    const tree = await buildTree(commandMap)
+
+    ctx.spinner.stop('Commands')
+
+    if (tree.length === 0) {
+      ctx.output.write('No commands found')
+      return
+    }
+
+    ctx.output.raw(`${renderTree(tree)}\n`)
+  },
+})
+
+export default commandsCommand
+
+// ---------------------------------------------------------------------------
+
+/**
+ * Extract a KiddConfig from a load result, falling back to empty defaults.
+ *
+ * @private
+ * @param result - The result from loadConfig, or null when loading failed.
+ * @returns The loaded config or an empty object (all KiddConfig fields are optional).
+ */
+function extractConfig(result: LoadConfigResult | null): KiddConfig {
+  if (result) {
+    return result.config
+  }
+
+  return {}
+}
+
+/**
+ * Resolve a command's subcommands field, which may be a Promise, a map, or undefined.
+ *
+ * @private
+ * @param commands - The raw subcommands value from a Command object.
+ * @returns The resolved CommandMap, or an empty object when none exist.
+ */
+async function resolveSubcommands(
+  commands: Record<string, KiddCommand> | Promise<Record<string, KiddCommand>> | undefined
+): Promise<Record<string, KiddCommand>> {
+  if (!commands) {
+    return {}
+  }
+
+  if (commands instanceof Promise) {
+    return commands
+  }
+
+  return commands
+}
+
+/**
+ * Recursively build a sorted tree of entries from a CommandMap.
+ *
+ * @private
+ * @param commandMap - The map of command names to Command objects.
+ * @returns A sorted array of TreeEntry nodes.
+ */
+async function buildTree(commandMap: Record<string, KiddCommand>): Promise<readonly TreeEntry[]> {
+  const entries = Object.entries(commandMap).toSorted(([a], [b]) => a.localeCompare(b))
+
+  return Promise.all(
+    entries.map(async ([name, cmd]): Promise<TreeEntry> => {
+      const subMap = await resolveSubcommands(cmd.commands)
+      const children = await buildTree(subMap)
+
+      return {
+        children,
+        description: cmd.description ?? '',
+        name,
+      }
+    })
+  )
+}
+
+/**
+ * Render a tree of entries into an ASCII tree string.
+ *
+ * @private
+ * @param entries - The top-level tree entries to render.
+ * @returns The formatted tree string.
+ */
+function renderTree(entries: readonly TreeEntry[]): string {
+  return renderEntries(entries, '').join('\n')
+}
+
+/**
+ * Recursively render tree entries with proper box-drawing connectors.
+ *
+ * @private
+ * @param entries - The entries at this level.
+ * @param prefix - The prefix string for indentation.
+ * @returns An array of formatted lines.
+ */
+function renderEntries(entries: readonly TreeEntry[], prefix: string): readonly string[] {
+  return entries.flatMap((entry, index) => {
+    const isLast = index === entries.length - 1
+    const connector = resolveConnector(isLast)
+    const childPrefix = resolveChildPrefix(isLast)
+    const label = formatLabel(entry.name, entry.description)
+    const line = `${prefix}${connector}${label}`
+    const childLines = renderEntries(entry.children, `${prefix}${childPrefix}`)
+
+    return [line, ...childLines]
+  })
+}
+
+/**
+ * Get the box-drawing connector for a tree entry.
+ *
+ * @private
+ * @param isLast - Whether this is the last entry at its level.
+ * @returns The connector string.
+ */
+function resolveConnector(isLast: boolean): string {
+  if (isLast) {
+    return '└── '
+  }
+
+  return '├── '
+}
+
+/**
+ * Get the indentation prefix for children of a tree entry.
+ *
+ * @private
+ * @param isLast - Whether the parent is the last entry at its level.
+ * @returns The child prefix string.
+ */
+function resolveChildPrefix(isLast: boolean): string {
+  if (isLast) {
+    return '    '
+  }
+
+  return '│   '
+}
+
+/**
+ * Format a command name and description into a tree label.
+ *
+ * @private
+ * @param name - The command name.
+ * @param description - The command description (may be empty).
+ * @returns The formatted label string.
+ */
+function formatLabel(name: string, description: string): string {
+  if (description) {
+    return `${name} — ${description}`
+  }
+
+  return name
+}

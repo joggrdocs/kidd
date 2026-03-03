@@ -1,0 +1,23 @@
+{
+  "name": "@examples/advanced",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "kidd dev",
+    "build": "kidd build",
+    "compile": "kidd compile",
+    "routes": "kidd routes",
+    "typecheck": "tsgo --noEmit"
+  },
+  "dependencies": {
+    "kidd": "workspace:*",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "kidd-cli": "workspace:*",
+    "tsdown": "catalog:",
+    "tsx": "catalog:",
+    "typescript": "catalog:"
+  }
+}

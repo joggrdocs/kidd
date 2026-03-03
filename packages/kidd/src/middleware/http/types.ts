@@ -1,0 +1,88 @@
+/**
+ * HTTP middleware types.
+ *
+ * Defines the typed HTTP client interface, request/response wrappers,
+ * and configuration options for the {@link http} middleware factory.
+ *
+ * @module
+ */
+
+// ---------------------------------------------------------------------------
+// Response
+// ---------------------------------------------------------------------------
+
+/**
+ * Typed response wrapper returned by all client methods.
+ *
+ * @typeParam TData - The parsed JSON body type.
+ */
+export interface TypedResponse<TData> {
+  readonly data: TData
+  readonly status: number
+  readonly headers: Headers
+  readonly ok: boolean
+  readonly raw: Response
+}
+
+// ---------------------------------------------------------------------------
+// Request
+// ---------------------------------------------------------------------------
+
+/**
+ * Options for individual HTTP requests.
+ *
+ * @typeParam TBody - Constrains the body type for methods that accept a body.
+ */
+export interface RequestOptions<TBody = unknown> {
+  readonly body?: TBody
+  readonly headers?: Readonly<Record<string, string>>
+  readonly params?: Readonly<Record<string, string>>
+  readonly signal?: AbortSignal
+}
+
+// ---------------------------------------------------------------------------
+// Client
+// ---------------------------------------------------------------------------
+
+/**
+ * Typed HTTP client with method-level generics for response and body types.
+ */
+export interface HttpClient {
+  get<TResponse = unknown>(
+    path: string,
+    options?: RequestOptions
+  ): Promise<TypedResponse<TResponse>>
+
+  post<TResponse = unknown, TBody = unknown>(
+    path: string,
+    options?: RequestOptions<TBody>
+  ): Promise<TypedResponse<TResponse>>
+
+  put<TResponse = unknown, TBody = unknown>(
+    path: string,
+    options?: RequestOptions<TBody>
+  ): Promise<TypedResponse<TResponse>>
+
+  patch<TResponse = unknown, TBody = unknown>(
+    path: string,
+    options?: RequestOptions<TBody>
+  ): Promise<TypedResponse<TResponse>>
+
+  delete<TResponse = unknown>(
+    path: string,
+    options?: RequestOptions
+  ): Promise<TypedResponse<TResponse>>
+}
+
+// ---------------------------------------------------------------------------
+// Middleware options
+// ---------------------------------------------------------------------------
+
+/**
+ * Options for the {@link http} middleware factory.
+ */
+export interface HttpOptions {
+  readonly namespace: string
+  readonly baseUrl: string
+  readonly defaultHeaders?: Readonly<Record<string, string>>
+}

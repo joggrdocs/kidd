@@ -1,0 +1,94 @@
+{
+  "name": "kidd",
+  "version": "0.0.0",
+  "description": "An opinionated CLI framework for Node.js",
+  "keywords": [
+    "cli",
+    "command",
+    "framework",
+    "typescript",
+    "yargs",
+    "zod"
+  ],
+  "license": "MIT",
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./prompts": {
+      "types": "./dist/lib/prompts.d.ts",
+      "default": "./dist/lib/prompts.js"
+    },
+    "./logger": {
+      "types": "./dist/lib/logger.d.ts",
+      "default": "./dist/lib/logger.js"
+    },
+    "./output": {
+      "types": "./dist/lib/output.d.ts",
+      "default": "./dist/lib/output.js"
+    },
+    "./config": {
+      "types": "./dist/lib/config.d.ts",
+      "default": "./dist/lib/config.js"
+    },
+    "./store": {
+      "types": "./dist/lib/store.d.ts",
+      "default": "./dist/lib/store.js"
+    },
+    "./project": {
+      "types": "./dist/lib/project.d.ts",
+      "default": "./dist/lib/project.js"
+    },
+    "./auth": {
+      "types": "./dist/middleware/auth.d.ts",
+      "default": "./dist/middleware/auth.js"
+    },
+    "./http": {
+      "types": "./dist/middleware/http.d.ts",
+      "default": "./dist/middleware/http.js"
+    }
+  },
+  "scripts": {
+    "build": "tsdown",
+    "typecheck": "tsgo --noEmit",
+    "lint": "oxlint --ignore-pattern node_modules",
+    "lint:fix": "oxlint --fix --ignore-pattern node_modules",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@clack/prompts": "^1.0.1",
+    "@kidd/config": "workspace:*",
+    "@kidd/utils": "workspace:*",
+    "@pinojs/redact": "^0.4.0",
+    "dotenv": "^17.3.1",
+    "es-toolkit": "catalog:",
+    "jsonc-parser": "^3.3.1",
+    "liquidjs": "catalog:",
+    "picocolors": "^1.1.1",
+    "ts-pattern": "catalog:",
+    "yaml": "^2.8.2",
+    "yargs": "^18.0.0",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "@types/yargs": "^17.0.35",
+    "tsdown": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  },
+  "peerDependencies": {
+    "pino": ">=9.0.0"
+  },
+  "peerDependenciesMeta": {
+    "pino": {
+      "optional": true
+    }
+  }
+}

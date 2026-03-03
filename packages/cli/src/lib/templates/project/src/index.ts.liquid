@@ -1,0 +1,8 @@
+import { cli } from 'kidd'
+
+void cli({
+  name: '{{ name }}',
+  version: '0.0.0',
+  description: '{{ description }}',
+  commands: import.meta.dirname + '/commands',
+})

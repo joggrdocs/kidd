@@ -1,0 +1,58 @@
+{
+  "name": "@kidd/utils",
+  "version": "0.0.0",
+  "description": "Shared utilities for the kidd ecosystem",
+  "license": "MIT",
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./fp": {
+      "types": "./dist/fp.d.ts",
+      "default": "./dist/fp.js"
+    },
+    "./json": {
+      "types": "./dist/json.d.ts",
+      "default": "./dist/json.js"
+    },
+    "./manifest": {
+      "types": "./dist/manifest.d.ts",
+      "default": "./dist/manifest.js"
+    },
+    "./redact": {
+      "types": "./dist/redact.d.ts",
+      "default": "./dist/redact.js"
+    },
+    "./validate": {
+      "types": "./dist/validate.d.ts",
+      "default": "./dist/validate.js"
+    },
+    "./tag": {
+      "types": "./dist/tag.d.ts",
+      "default": "./dist/tag.js"
+    }
+  },
+  "scripts": {
+    "build": "tsdown",
+    "typecheck": "tsgo --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "es-toolkit": "catalog:",
+    "ts-pattern": "catalog:",
+    "type-fest": "^5.4.4",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "tsdown": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

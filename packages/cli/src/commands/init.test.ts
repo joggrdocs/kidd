@@ -1,0 +1,157 @@
+import type { Context } from 'kidd'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
+vi.mock(import('../lib/render.js'), () => ({
+  renderTemplate: vi.fn(),
+}))
+
+vi.mock(import('../lib/write.js'), () => ({
+  writeFiles: vi.fn(),
+}))
+
+const { renderTemplate } = await import('../lib/render.js')
+const { writeFiles } = await import('../lib/write.js')
+const mockedRenderTemplate = vi.mocked(renderTemplate)
+const mockedWriteFiles = vi.mocked(writeFiles)
+
+function makeContext(argOverrides: Record<string, unknown> = {}): Context {
+  return {
+    args: {
+      description: undefined,
+      example: undefined,
+      name: undefined,
+      pm: undefined,
+      ...argOverrides,
+    },
+    config: {},
+    fail: vi.fn((msg: string) => {
+      throw new Error(msg)
+    }) as never,
+    logger: {
+      child: vi.fn(),
+      debug: vi.fn(),
+      error: vi.fn(),
+      fatal: vi.fn(),
+      info: vi.fn(),
+      trace: vi.fn(),
+      warn: vi.fn(),
+    },
+    meta: { command: ['init'], name: 'kidd', version: '0.0.0' },
+    output: { markdown: vi.fn(), raw: vi.fn(), table: vi.fn(), write: vi.fn() },
+    prompts: {
+      confirm: vi.fn(),
+      multiselect: vi.fn(),
+      password: vi.fn(),
+      select: vi.fn(),
+      text: vi.fn(),
+    },
+    spinner: { message: vi.fn(), start: vi.fn(), stop: vi.fn() },
+    store: { clear: vi.fn(), delete: vi.fn(), get: vi.fn(), has: vi.fn(), set: vi.fn() },
+  } as unknown as Context
+}
+
+describe('init command', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('should prompt for missing args', async () => {
+    const ctx = makeContext()
+    vi.mocked(ctx.prompts.text).mockResolvedValueOnce('my-cli').mockResolvedValueOnce('A test CLI')
+    vi.mocked(ctx.prompts.select).mockResolvedValueOnce('pnpm')
+    vi.mocked(ctx.prompts.confirm).mockResolvedValueOnce(true)
+    mockedRenderTemplate.mockResolvedValue([
+      null,
+      [{ content: '{}', relativePath: 'package.json' }],
+    ])
+    mockedWriteFiles.mockResolvedValue([null, { skipped: [], written: ['package.json'] }])
+
+    const mod = await import('./init.js')
+    await mod.default.handler!(ctx)
+
+    expect(ctx.prompts.text).toHaveBeenCalledTimes(2)
+    expect(ctx.prompts.select).toHaveBeenCalledTimes(1)
+    expect(ctx.prompts.confirm).toHaveBeenCalledTimes(1)
+  })
+
+  it('should use provided args without prompting', async () => {
+    const ctx = makeContext({
+      description: 'My CLI',
+      example: false,
+      name: 'my-cli',
+      pm: 'pnpm',
+    })
+    mockedRenderTemplate.mockResolvedValue([
+      null,
+      [{ content: '{}', relativePath: 'package.json' }],
+    ])
+    mockedWriteFiles.mockResolvedValue([null, { skipped: [], written: ['package.json'] }])
+
+    const mod = await import('./init.js')
+    await mod.default.handler!(ctx)
+
+    expect(ctx.prompts.text).not.toHaveBeenCalled()
+    expect(ctx.prompts.select).not.toHaveBeenCalled()
+    expect(ctx.prompts.confirm).not.toHaveBeenCalled()
+  })
+
+  it('should render project templates with correct variables', async () => {
+    const ctx = makeContext({
+      description: 'Test',
+      example: true,
+      name: 'test-cli',
+      pm: 'npm',
+    })
+    mockedRenderTemplate.mockResolvedValue([null, []])
+    mockedWriteFiles.mockResolvedValue([null, { skipped: [], written: [] }])
+
+    const mod = await import('./init.js')
+    await mod.default.handler!(ctx)
+
+    expect(mockedRenderTemplate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        variables: { description: 'Test', name: 'test-cli', packageManager: 'npm' },
+      })
+    )
+  })
+
+  it('should filter out hello command when example is false', async () => {
+    const ctx = makeContext({
+      description: 'Test',
+      example: false,
+      name: 'test-cli',
+      pm: 'pnpm',
+    })
+    mockedRenderTemplate.mockResolvedValue([
+      null,
+      [
+        { content: '{}', relativePath: 'package.json' },
+        { content: 'hello', relativePath: 'src/commands/hello.ts' },
+      ],
+    ])
+    mockedWriteFiles.mockResolvedValue([null, { skipped: [], written: ['package.json'] }])
+
+    const mod = await import('./init.js')
+    await mod.default.handler!(ctx)
+
+    const writtenFiles = mockedWriteFiles.mock.calls[0]![0]!.files
+    expect(writtenFiles).toHaveLength(1)
+    expect(writtenFiles[0]!.relativePath).toBe('package.json')
+  })
+
+  it('should call fail on render error', async () => {
+    const ctx = makeContext({
+      description: 'Test',
+      example: false,
+      name: 'test-cli',
+      pm: 'pnpm',
+    })
+    mockedRenderTemplate.mockResolvedValue([
+      { message: 'bad template', type: 'render_error' },
+      null,
+    ])
+
+    const mod = await import('./init.js')
+    await expect(mod.default.handler!(ctx)).rejects.toThrow('bad template')
+  })
+})

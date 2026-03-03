@@ -1,0 +1,176 @@
+import { existsSync, readFileSync, statSync } from 'node:fs'
+import { dirname, join, resolve } from 'node:path'
+
+import { attempt } from '@kidd/utils/fp'
+
+import type { ProjectRoot } from './types.js'
+
+const MIN_MODULES_PARTS = 2
+
+/**
+ * Walk up the directory tree to find the nearest git project root.
+ *
+ * @param startDir - Directory to start searching from (defaults to cwd).
+ * @returns The project root info, or null if no git root is found.
+ */
+export function findProjectRoot(startDir: string = process.cwd()): ProjectRoot | null {
+  /**
+   * Recursively walk up the directory tree searching for a `.git` marker.
+   *
+   * @private
+   */
+  const findRootRecursive = (currentDir: string, visited: Set<string>): ProjectRoot | null => {
+    if (visited.has(currentDir)) {
+      return null
+    }
+    const nextVisited = new Set([...visited, currentDir])
+
+    const gitPath = join(currentDir, '.git')
+    try {
+      const result = checkGitPath(gitPath, currentDir)
+      if (result) {
+        return result
+      }
+    } catch {
+      // Race condition: file may have been deleted between existsSync and statSync
+    }
+
+    const parent = dirname(currentDir)
+    if (parent === currentDir) {
+      return null
+    }
+    return findRootRecursive(parent, nextVisited)
+  }
+
+  return findRootRecursive(resolve(startDir), new Set())
+}
+
+/**
+ * Check whether the current directory is inside a git submodule.
+ *
+ * @param startDir - Directory to start searching from.
+ * @returns True if the directory is inside a submodule.
+ */
+export function isInSubmodule(startDir?: string): boolean {
+  const projectRoot = findProjectRoot(startDir)
+  if (!projectRoot) {
+    return false
+  }
+  return projectRoot.isSubmodule
+}
+
+/**
+ * Resolve the parent repository root when inside a git submodule.
+ *
+ * @param startDir - Directory to start searching from.
+ * @returns The parent repository root path, or null.
+ */
+export function getParentRepoRoot(startDir?: string): string | null {
+  const projectRoot = findProjectRoot(startDir)
+  if (!projectRoot || !projectRoot.isSubmodule) {
+    return null
+  }
+
+  const gitFilePath = join(projectRoot.path, '.git')
+  const gitFileContent = resolveGitDirFromFile(gitFilePath)
+  if (gitFileContent === null) {
+    return null
+  }
+
+  return resolveParentGitDir(projectRoot, gitFileContent)
+}
+
+// ---------------------------------------------------------------------------
+// Private
+// ---------------------------------------------------------------------------
+
+/**
+ * Resolve a `.git` file reference to determine if this is a submodule.
+ *
+ * @private
+ */
+function resolveGitFileSubmodule(gitPath: string, currentDir: string): ProjectRoot | null {
+  const [readError, gitFileContent] = attempt(() => readFileSync(gitPath, 'utf8').trim())
+  if (readError || gitFileContent === null) {
+    return { isSubmodule: false, path: currentDir }
+  }
+  const gitDirMatch = gitFileContent.match(/^gitdir:\s*(.+)$/)
+  if (gitDirMatch && gitDirMatch[1]) {
+    const gitDir = resolve(currentDir, gitDirMatch[1])
+    const isSubmodule = /[/\\]\.git[/\\]modules[/\\]/.test(gitDir)
+    return { isSubmodule, path: currentDir }
+  }
+  return null
+}
+
+/**
+ * Check whether a `.git` path is a directory or file and resolve accordingly.
+ *
+ * @private
+ */
+function checkGitPath(gitPath: string, currentDir: string): ProjectRoot | null {
+  if (!existsSync(gitPath)) {
+    return null
+  }
+
+  const stats = statSync(gitPath)
+  if (stats.isDirectory()) {
+    return { isSubmodule: false, path: currentDir }
+  }
+
+  if (stats.isFile()) {
+    return resolveGitFileSubmodule(gitPath, currentDir)
+  }
+
+  return null
+}
+
+/**
+ * Read a `.git` file and return its raw content.
+ *
+ * @private
+ */
+function resolveGitDirFromFile(gitFilePath: string): string | null {
+  const [readError, gitFileContent] = attempt(() => readFileSync(gitFilePath, 'utf8').trim())
+  if (readError || gitFileContent === null) {
+    return null
+  }
+  return gitFileContent
+}
+
+/**
+ * Extract the parent repository root from a resolved git modules path.
+ *
+ * @private
+ */
+function resolveParentFromGitDir(resolvedGitDir: string): string | null {
+  const gitDirParts = resolvedGitDir.split('/modules/')
+  if (gitDirParts.length >= MIN_MODULES_PARTS) {
+    const [parentGitDir] = gitDirParts
+    if (parentGitDir && parentGitDir.endsWith('.git')) {
+      return dirname(parentGitDir)
+    }
+  }
+  return null
+}
+
+/**
+ * Resolve the parent repository root from a submodule's gitdir reference.
+ *
+ * @private
+ */
+function resolveParentGitDir(projectRoot: ProjectRoot, gitFileContent: string): string | null {
+  const gitDirMatch = gitFileContent.match(/^gitdir:\s*(.+)$/)
+  if (!gitDirMatch) {
+    return null
+  }
+
+  const gitDir = gitDirMatch[1] ?? ''
+  const resolvedGitDir = resolve(projectRoot.path, gitDir)
+
+  if (process.platform === 'win32') {
+    return null
+  }
+
+  return resolveParentFromGitDir(resolvedGitDir)
+}

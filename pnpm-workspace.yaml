@@ -1,0 +1,15 @@
+packages:
+  - 'packages/*'
+
+catalog:
+  # runtime
+  zod: ^4.3.6
+  es-toolkit: ^1.45.0
+  ts-pattern: ^5.9.0
+  liquidjs: ^10.24.0
+  # dev
+  typescript: ^5.9.3
+  vitest: ^4.0.18
+  tsdown: 0.21.0-beta.2
+  '@types/node': ^25.3.3
+  tsx: ^4.21.0

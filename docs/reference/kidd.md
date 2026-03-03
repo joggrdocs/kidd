@@ -1,0 +1,222 @@
+# kidd
+
+Core CLI framework for Node.js built on yargs and Zod. Provides structured command definitions, middleware pipelines, configuration loading, and utility sub-exports.
+
+## Key Concepts
+
+### Commands
+
+A command definition pairs a description, typed arguments, and a handler function.
+
+```ts
+const deploy = command({
+  description: 'Deploy the application',
+  args: z.object({
+    env: z.enum(['staging', 'production']).describe('Target environment'),
+    dryRun: z.boolean().default(false).describe('Preview without applying'),
+  }),
+  async handler(ctx) {
+    ctx.logger.info(`Deploying to ${ctx.args.env}`)
+  },
+})
+```
+
+#### Yargs-native arg format
+
+As an alternative to Zod, commands accept a yargs-native arg format via `YargsArgDef`. Both produce the same typed `ctx.args` -- the yargs format is converted to Zod internally before parsing.
+
+```ts
+const deploy = command({
+  description: 'Deploy the application',
+  args: {
+    env: { type: 'string', description: 'Target environment', required: true, choices: ['staging', 'production'] },
+    dryRun: { type: 'boolean', description: 'Preview without applying', default: false },
+  },
+  async handler(ctx) {
+    ctx.logger.info(`Deploying to ${ctx.args.env}`)
+  },
+})
+```
+
+| Field         | Type                                         | Description                    |
+| ------------- | -------------------------------------------- | ------------------------------ |
+| `type`        | `'string' \| 'number' \| 'boolean' \| 'array'` | Argument type                  |
+| `description` | `string`                                     | Help text                      |
+| `required`    | `boolean`                                    | Whether the arg is required    |
+| `default`     | `unknown`                                    | Default value                  |
+| `alias`       | `string \| string[]`                         | Short aliases                  |
+| `choices`     | `readonly string[]`                          | Allowed values                 |
+
+### Middleware
+
+Middleware runs before command handlers. It receives the context and a `next` function.
+
+```ts
+const timing = middleware(async (ctx, next) => {
+  const start = Date.now()
+  await next()
+  ctx.logger.info(`Completed in ${Date.now() - start}ms`)
+})
+```
+
+### Autoloading
+
+Dynamic command discovery from a directory at runtime.
+
+```ts
+cli({
+  name: 'my-app',
+  version: '1.0.0',
+  commands: {
+    generate: autoload({ dir: './commands/generate' }),
+  },
+})
+```
+
+## Usage
+
+### Bootstrap
+
+```ts
+cli({
+  name: 'my-app',
+  version: '1.0.0',
+  description: 'My CLI tool',
+  commands: { deploy, migrate },
+  middleware: [timing],
+  config: { schema: MyConfigSchema },
+})
+```
+
+### Configuration
+
+```ts
+import { defineConfig } from 'kidd'
+
+export default defineConfig({
+  build: { out: 'dist' },
+})
+```
+
+The `config` option in `cli()` accepts a `CliConfigOptions` object:
+
+| Field    | Type      | Default             | Description                                      |
+| -------- | --------- | ------------------- | ------------------------------------------------ |
+| `schema` | `ZodType` | --                  | Zod schema to validate the loaded config         |
+| `name`   | `string`  | Derived from `name` | Override the config file name for file discovery  |
+
+## Context
+
+The `Context` object is threaded through every handler and middleware. See [Context](../concepts/context.md) for the full reference.
+
+| Property   | Type       | Description                                                    |
+| ---------- | ---------- | -------------------------------------------------------------- |
+| `args`     | `DeepReadonly<Merge<KiddArgs, TArgs>>` | Parsed and validated command args         |
+| `config`   | `DeepReadonly<Merge<KiddConfig, TConfig>>` | Validated runtime config              |
+| `logger`   | `CliLogger`  | Structured terminal logger (info, success, error, warn, step, message, intro, outro, note, newline, print) |
+| `prompts`  | `Prompts`    | Interactive prompts (confirm, text, select, multiselect, password) |
+| `spinner`  | `Spinner`    | Spinner for long-running operations (start, stop, message)     |
+| `output`   | `Output`     | Structured output (write, table, markdown, raw)                |
+| `store`    | `Store`      | Typed in-memory key-value store (get, set, has, delete, clear) |
+| `fail`     | `(message, options?) => never` | Throw a user-facing error                    |
+| `meta`     | `Meta`       | CLI metadata (name, version, command path)                     |
+| `auth?`    | `AuthContext`  | Auth credential and login (when `kidd/auth` middleware registered) |
+
+### `ctx.fail()`
+
+Throws a `ContextError` with a clean user-facing message (no stack trace in production).
+
+```ts
+ctx.fail('Deployment failed', { code: 'DEPLOY_ERROR', exitCode: 2 })
+```
+
+| Option     | Type     | Default | Description                     |
+| ---------- | -------- | ------- | ------------------------------- |
+| `code`     | `string` | --      | Machine-readable error code     |
+| `exitCode` | `number` | `1`     | Process exit code               |
+
+## Module Augmentation
+
+kidd exposes empty interfaces that consumers extend via TypeScript declaration merging. This adds project-wide type safety to `ctx.args`, `ctx.config`, and `ctx.store` without threading generics.
+
+```ts
+declare module 'kidd' {
+  interface KiddArgs {
+    verbose: boolean
+  }
+
+  interface KiddConfig {
+    apiUrl: string
+  }
+
+  interface KiddStore {
+    token: string
+  }
+}
+```
+
+| Interface    | Affects      | Description                                     |
+| ------------ | ------------ | ----------------------------------------------- |
+| `KiddArgs`   | `ctx.args`   | Global args merged into every command's args     |
+| `KiddConfig` | `ctx.config` | Global config merged into every command's config |
+| `KiddStore`  | `ctx.store`  | Global store keys merged into the store type     |
+| `StoreMap`   | `ctx.store`  | The store's full key-value shape — extend this to register typed keys (merges with `KiddStore`) |
+
+## `decorateContext()`
+
+Add a typed, immutable property to a context instance at runtime. Middleware authors use this to extend `ctx` with custom properties (e.g., `ctx.api`, `ctx.auth`). The property is non-writable and non-configurable after assignment.
+
+```ts
+import { decorateContext, middleware } from 'kidd'
+
+import type { HttpClient } from 'kidd/http'
+
+declare module 'kidd' {
+  interface Context {
+    readonly github: HttpClient
+  }
+}
+
+const github = middleware(async (ctx, next) => {
+  decorateContext(ctx, 'github', createHttpClient({ baseUrl: 'https://api.github.com' }))
+  await next()
+})
+```
+
+Pair with module augmentation on the `Context` interface so downstream handlers see the property at compile time.
+
+| Parameter | Type      | Description                           |
+| --------- | --------- | ------------------------------------- |
+| `ctx`     | `Context` | The context instance (mutated in place) |
+| `key`     | `string`  | The property name                     |
+| `value`   | `unknown` | The property value                    |
+
+Returns the same `ctx` reference with the new property attached.
+
+## Sub-exports
+
+| Export         | Purpose                                                                             |
+| -------------- | ----------------------------------------------------------------------------------- |
+| `kidd/prompts` | Interactive terminal prompts (`createPromptUtils`, `createSpinner`, `prompts`, `spinner`) |
+| `kidd/logger`  | Structured terminal logger (`createCliLogger`, `cliLogger`)                         |
+| `kidd/output`  | JSON serialization, Liquid templates, file writing (`createOutput`, `output`)        |
+| `kidd/config`  | Config loading and validation (`createConfigClient`)                                |
+| `kidd/store`   | File-backed JSON store (`createStore`)                                              |
+| `kidd/project` | Git root resolution, path utilities (`findProjectRoot`, `isInSubmodule`, `getParentRepoRoot`, `resolvePath`, `resolveLocalPath`, `resolveGlobalPath`) |
+| `kidd/auth`    | Auth middleware, credential types, resolvers (`auth`)                                |
+| `kidd/http`    | Typed HTTP client middleware (`http`, `createHttpClient`)                            |
+
+## Resources
+
+- [yargs](https://yargs.js.org)
+- [Zod](https://zod.dev)
+- [@clack/prompts](https://www.clack.cc)
+
+## References
+
+- [Build a CLI](../guides/build-a-cli.md)
+- [Add Authentication](../guides/add-authentication.md)
+- [Context](../concepts/context.md)
+- [Configuration](../concepts/configuration.md)
+- [Authentication](../concepts/authentication.md)
+- [Lifecycle](../concepts/lifecycle.md)

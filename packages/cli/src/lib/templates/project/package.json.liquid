@@ -1,0 +1,29 @@
+{
+  "name": "{{ name }}",
+  "version": "0.0.0",
+  "description": "{{ description }}",
+  "keywords": [],
+  "license": "MIT",
+  "bin": {
+    "{{ name }}": "./dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "scripts": {
+    "build": "tsdown",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "kidd": "^0.0.0",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "tsdown": "^0.21.0",
+    "typescript": "^5.7.0",
+    "vitest": "^4.0.0"
+  }
+}

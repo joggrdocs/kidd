@@ -24,7 +24,7 @@ const greet = command({
   },
 })
 
-cli({
+await cli({
   name: 'my-app',
   version: '1.0.0',
   commands: { greet },
@@ -35,7 +35,7 @@ cli({
 
 ### `cli()`
 
-Bootstrap and run the CLI application. Registers commands, parses arguments, loads config, resolves credentials, runs middleware, and invokes the matched command handler.
+Bootstrap and run the CLI application.
 
 ```ts
 cli({
@@ -53,7 +53,7 @@ cli({
 
 ### `command()`
 
-Create a command definition. Accepts a description, optional args (Zod schema or yargs-style), optional subcommands, and a handler function.
+Create a command definition.
 
 ```ts
 const deploy = command({
@@ -70,7 +70,7 @@ const deploy = command({
 
 ### `middleware()`
 
-Create a middleware that runs before command handlers. Middleware receives the context and a `next` function to continue the chain.
+Create a middleware that runs before command handlers.
 
 ```ts
 const timing = middleware(async (ctx, next) => {
@@ -82,7 +82,7 @@ const timing = middleware(async (ctx, next) => {
 
 ### `autoload()`
 
-Create an autoload marker for dynamic command discovery from a directory.
+Dynamically discover commands from a directory.
 
 ```ts
 cli({
@@ -110,7 +110,7 @@ export default defineConfig({
 
 ### `kidd/prompts`
 
-Interactive terminal prompts backed by `@clack/prompts`. Exports `createPromptUtils()` and `createSpinner()` factories, plus default `prompts` and `spinner` instances.
+Interactive terminal prompts backed by `@clack/prompts`.
 
 ```ts
 import { prompts, spinner } from 'kidd/prompts'
@@ -123,7 +123,7 @@ spinner.stop('Done')
 
 ### `kidd/logger`
 
-Structured terminal logger backed by `@clack/prompts`. Exports `createLogger()` factory and a default `log` instance.
+Structured terminal logger backed by `@clack/prompts`.
 
 ```ts
 import { log } from 'kidd/logger'
@@ -136,7 +136,7 @@ log.outro('Done')
 
 ### `kidd/output`
 
-Structured output utilities for JSON serialization, Liquid template rendering, and file writing. Exports `createOutput()` factory and a default `output` instance.
+Structured output for JSON, templates, and files.
 
 ```ts
 import { output } from 'kidd/output'
@@ -147,7 +147,7 @@ output.write({ path: './out.json', content: output.toJson(data) })
 
 ### `kidd/errors`
 
-Error creation, formatting, and sanitization utilities. Exports `createErrorUtil()` factory plus standalone helpers: `formatError()`, `sanitize()`, `redactObject()`, `SENSITIVE_PATTERNS`, and `REDACT_PATHS`.
+Error creation, formatting, and sanitization utilities.
 
 ```ts
 import { createErrorUtil, sanitize } from 'kidd/errors'
@@ -160,7 +160,7 @@ const clean = sanitize('token=abc123&secret=xyz')
 
 ### `kidd/config`
 
-Typed config client that loads, validates, and writes JSON/JSONC/YAML config files. Exports `createConfigClient()` factory plus error factories `createParseError()` and `createValidationError()`.
+Typed config client for JSON/JSONC/YAML files.
 
 ```ts
 import { createConfigClient } from 'kidd/config'
@@ -171,7 +171,7 @@ const [error, result] = await config.load()
 
 ### `kidd/store`
 
-File-backed JSON store with project-local and global home directory resolution.
+File-backed JSON store with local and global resolution.
 
 ```ts
 import { createStore } from 'kidd/store'
@@ -196,7 +196,7 @@ const [error, value] = validate(
 
 ### `kidd/project`
 
-Git project root resolution, submodule detection, and dotenv loading. Exports `findProjectRoot()`, `isInSubmodule()`, `getParentRepoRoot()`, `createDotEnv()`, and `createCredentialLoader()`.
+Git project root resolution, submodule detection, and dotenv loading.
 
 ```ts
 import { findProjectRoot, createDotEnv, isInSubmodule } from 'kidd/project'

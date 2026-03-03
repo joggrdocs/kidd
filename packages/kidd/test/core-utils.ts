@@ -1,3 +1,5 @@
+import { Writable } from 'node:stream'
+
 import { afterEach, beforeEach, vi } from 'vitest'
 
 import { cli } from '@/cli.js'
@@ -49,4 +51,27 @@ export function setupTestLifecycle(): TestLifecycle {
   return {
     getExitSpy: () => exitSpy,
   }
+}
+
+/**
+ * Return type for {@link createWritableCapture}.
+ */
+export interface WritableCapture {
+  readonly output: () => string
+  readonly stream: NodeJS.WriteStream
+}
+
+/**
+ * Create a writable stream that captures all written data into a string buffer.
+ * Useful for asserting against `ctx.output.*` calls in handler tests.
+ */
+export function createWritableCapture(): WritableCapture {
+  let data = ''
+  const stream = new Writable({
+    write(chunk: Buffer, _encoding: string, callback: () => void): void {
+      data += chunk.toString()
+      callback()
+    },
+  }) as unknown as NodeJS.WriteStream
+  return { output: () => data, stream }
 }

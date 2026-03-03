@@ -119,7 +119,7 @@ describe(readRawPackageJson, () => {
   })
 })
 
-describe(CHECKS, () => {
+describe('CHECKS', () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })

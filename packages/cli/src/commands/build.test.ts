@@ -245,9 +245,10 @@ describe('build command', () => {
 
       const mockNote = ctx.logger.note as ReturnType<typeof vi.fn>
       const binariesNote = mockNote.mock.calls.find(
-        (call: readonly [unknown, unknown]) => call[1] === 'Binaries'
+        (call) => call[1] === 'Binaries'
       )
       expect(binariesNote).toBeDefined()
+      if (!binariesNote) return
       const noteBody = binariesNote[0] as string
       expect(noteBody).toContain('macOS ARM64')
       expect(noteBody).toContain('Linux x64')

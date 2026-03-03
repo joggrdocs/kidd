@@ -68,4 +68,4 @@ kidd compile                            # standalone binary
 
 ## License
 
-Private
+[MIT](LICENSE)

@@ -72,7 +72,10 @@ export function createAuthContext(options: CreateAuthContextOptions): AuthContex
     const resolved = await resolveCredentials({ cliName, prompts, resolvers })
 
     if (resolved === null) {
-      return loginError({ message: 'No credential resolved from any source', type: 'no_credential' })
+      return loginError({
+        message: 'No credential resolved from any source',
+        type: 'no_credential',
+      })
     }
 
     const store = createStore({ dirName: `.${cliName}` })

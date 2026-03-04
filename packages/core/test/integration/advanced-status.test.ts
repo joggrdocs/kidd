@@ -1,9 +1,8 @@
+import { createWritableCapture, setupTestLifecycle } from '@test/core-utils.js'
 import { describe, expect, it, vi } from 'vitest'
 
 import { createContext } from '@/context/index.js'
 import type { Context } from '@/context/types.js'
-
-import { createWritableCapture, setupTestLifecycle } from '@test/core-utils.js'
 
 import statusCommand from '../../../../examples/advanced/src/commands/status.js'
 

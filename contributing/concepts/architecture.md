@@ -16,8 +16,8 @@ packages/
 └── cli/             # CLI entrypoint and DX tooling (init, dev, build, compile)
 ```
 
-| Package     | Purpose                                                       |
-| ----------- | ------------------------------------------------------------- |
+| Package          | Purpose                                                       |
+| ---------------- | ------------------------------------------------------------- |
 | `@kidd-cli/core` | Core framework: `cli()`, `command()`, `middleware()`, context |
 | `@kidd-cli/cli`  | DX companion CLI: scaffolding, dev mode, build, compile       |
 

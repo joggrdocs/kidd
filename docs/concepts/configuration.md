@@ -4,11 +4,11 @@ The configuration system for kidd CLIs. Supports multiple file formats, automati
 
 ## Supported Formats
 
-| Format | Extensions         | Notes                   |
-| ------ | ------------------ | ----------------------- |
-| JSONC  | `.jsonc`           | JSON with comments      |
-| JSON   | `.json`            | Standard JSON           |
-| YAML   | `.yaml`            | YAML format             |
+| Format | Extensions | Notes              |
+| ------ | ---------- | ------------------ |
+| JSONC  | `.jsonc`   | JSON with comments |
+| JSON   | `.json`    | Standard JSON      |
+| YAML   | `.yaml`    | YAML format        |
 
 Config files are named `.<name>.jsonc`, `.<name>.json`, or `.<name>.yaml`, where `<name>` is the CLI name passed to `cli({ name })` or `createConfigClient({ name })`.
 
@@ -51,10 +51,10 @@ cli({
 })
 ```
 
-| Field    | Type      | Default             | Description                                              |
-| -------- | --------- | ------------------- | -------------------------------------------------------- |
+| Field    | Type      | Default             | Description                                                         |
+| -------- | --------- | ------------------- | ------------------------------------------------------------------- |
 | `schema` | `ZodType` | --                  | Zod schema to validate the loaded config. Infers `ctx.config` type. |
-| `name`   | `string`  | Derived from `name` | Override the config file name for file discovery          |
+| `name`   | `string`  | Derived from `name` | Override the config file name for file discovery                    |
 
 ## Config Client
 
@@ -72,11 +72,11 @@ const config = createConfigClient({
 
 ### `ConfigOptions`
 
-| Field         | Type       | Description                                    |
-| ------------- | ---------- | ---------------------------------------------- |
+| Field         | Type       | Description                                                    |
+| ------------- | ---------- | -------------------------------------------------------------- |
 | `name`        | `string`   | Config file name (e.g. `'my-app'` resolves to `.my-app.jsonc`) |
-| `schema`      | `ZodType`  | Zod schema for validation                      |
-| `searchPaths` | `string[]` | Additional directories to search               |
+| `schema`      | `ZodType`  | Zod schema for validation                                      |
+| `searchPaths` | `string[]` | Additional directories to search                               |
 
 ### `config.find(cwd?)`
 
@@ -96,11 +96,11 @@ Load and validate a config file. Returns a Result tuple.
 const result = await config.load()
 ```
 
-| Return value                       | Meaning                              |
-| ---------------------------------- | ------------------------------------ |
-| `[error, null]`                    | Load or validation failed            |
+| Return value                           | Meaning                           |
+| -------------------------------------- | --------------------------------- |
+| `[error, null]`                        | Load or validation failed         |
 | `[null, { config, filePath, format }]` | Successfully loaded and validated |
-| `[null, null]`                     | No config file found                 |
+| `[null, null]`                         | No config file found              |
 
 ### `config.write(data, options?)`
 
@@ -113,11 +113,11 @@ const [error, result] = await config.write(
 )
 ```
 
-| Option     | Type           | Description                              |
-| ---------- | -------------- | ---------------------------------------- |
-| `dir`      | `string`       | Target directory (defaults to cwd)       |
+| Option     | Type           | Description                                   |
+| ---------- | -------------- | --------------------------------------------- |
+| `dir`      | `string`       | Target directory (defaults to cwd)            |
 | `format`   | `ConfigFormat` | Output format (`'jsonc'`, `'json'`, `'yaml'`) |
-| `filePath` | `string`       | Explicit output path (overrides `dir`)   |
+| `filePath` | `string`       | Explicit output path (overrides `dir`)        |
 
 ## Discovery Order
 

@@ -23,7 +23,7 @@ kidd init --name my-cli --pm pnpm --example
 | --------------- | --------------------------- | -------------------------------- |
 | `--name`        | `string`                    | Project name (kebab-case)        |
 | `--description` | `string`                    | Project description              |
-| `--pm`          | `'pnpm' \| 'yarn' \| 'npm'`| Package manager                  |
+| `--pm`          | `'pnpm' \| 'yarn' \| 'npm'` | Package manager                  |
 | `--example`     | `boolean`                   | Include an example hello command |
 
 ### `kidd build`
@@ -36,10 +36,10 @@ kidd build --compile
 kidd build --targets darwin-arm64 linux-x64
 ```
 
-| Flag        | Type       | Description                                           |
-| ----------- | ---------- | ----------------------------------------------------- |
-| `--compile` | `boolean`  | Compile to standalone binaries after bundling          |
-| `--targets` | `string[]` | Cross-compilation targets (implies `--compile`)        |
+| Flag        | Type       | Description                                     |
+| ----------- | ---------- | ----------------------------------------------- |
+| `--compile` | `boolean`  | Compile to standalone binaries after bundling   |
+| `--targets` | `string[]` | Cross-compilation targets (implies `--compile`) |
 
 Supported compile targets: `darwin-arm64`, `darwin-x64`, `linux-x64`, `linux-arm64`, `linux-x64-musl`, `windows-x64`, `windows-arm64`.
 
@@ -82,9 +82,9 @@ kidd doctor
 kidd doctor --fix
 ```
 
-| Flag    | Type      | Description                          |
-| ------- | --------- | ------------------------------------ |
-| `--fix` | `boolean` | Auto-fix issues where possible       |
+| Flag    | Type      | Description                    |
+| ------- | --------- | ------------------------------ |
+| `--fix` | `boolean` | Auto-fix issues where possible |
 
 ### `kidd add command`
 
@@ -95,11 +95,11 @@ kidd add command
 kidd add command --name deploy --description "Deploy the app" --args
 ```
 
-| Flag            | Type      | Description                   |
-| --------------- | --------- | ----------------------------- |
-| `--name`        | `string`  | Command name (kebab-case)     |
-| `--description` | `string`  | Command description           |
-| `--args`        | `boolean` | Include a Zod args schema     |
+| Flag            | Type      | Description               |
+| --------------- | --------- | ------------------------- |
+| `--name`        | `string`  | Command name (kebab-case) |
+| `--description` | `string`  | Command description       |
+| `--args`        | `boolean` | Include a Zod args schema |
 
 ### `kidd add middleware`
 
@@ -110,10 +110,10 @@ kidd add middleware
 kidd add middleware --name auth --description "Require authentication"
 ```
 
-| Flag            | Type     | Description                    |
-| --------------- | -------- | ------------------------------ |
-| `--name`        | `string` | Middleware name (kebab-case)   |
-| `--description` | `string` | Middleware description         |
+| Flag            | Type     | Description                  |
+| --------------- | -------- | ---------------------------- |
+| `--name`        | `string` | Middleware name (kebab-case) |
+| `--description` | `string` | Middleware description       |
 
 ### `kidd commands`
 

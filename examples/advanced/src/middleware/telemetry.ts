@@ -16,5 +16,5 @@ export default middleware(async (ctx, next) => {
 
   await next()
 
-  ctx.logger.trace(`Telemetry: ${JSON.stringify(event)}`)
+  ctx.logger.info(`Telemetry: ${JSON.stringify(event)}`)
 })

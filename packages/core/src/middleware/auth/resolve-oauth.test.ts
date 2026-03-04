@@ -153,7 +153,12 @@ describe('resolveFromOAuth()', () => {
 
     const port = await waitForServer()
     const body = JSON.stringify({ state: KNOWN_STATE, token: 'token' })
-    const response = await postCallback({ body, contentType: 'text/plain', path: '/callback', port })
+    const response = await postCallback({
+      body,
+      contentType: 'text/plain',
+      path: '/callback',
+      port,
+    })
 
     expect(response.status).toBe(400)
 
@@ -241,7 +246,11 @@ describe('resolveFromOAuth()', () => {
     })
 
     const port = await waitForServer()
-    const largeBody = JSON.stringify({ padding: 'x'.repeat(20_000), state: KNOWN_STATE, token: 'token' })
+    const largeBody = JSON.stringify({
+      padding: 'x'.repeat(20_000),
+      state: KNOWN_STATE,
+      token: 'token',
+    })
 
     try {
       await postCallback({ body: largeBody, path: '/callback', port })

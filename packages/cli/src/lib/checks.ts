@@ -451,7 +451,11 @@ async function fixKiddDependency(context: CheckContext): Promise<FixResult> {
   })
 
   if (updateError) {
-    return fixResult({ fixed: false, message: updateError.message, name: '@kidd-cli/core dependency' })
+    return fixResult({
+      fixed: false,
+      message: updateError.message,
+      name: '@kidd-cli/core dependency',
+    })
   }
 
   return fixResult({

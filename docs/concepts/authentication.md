@@ -19,12 +19,12 @@ This split allows commands to work without auth when no credential is found, and
 
 All credentials use a discriminated union on the `type` field:
 
-| Type      | Interface           | HTTP Header                             |
-| --------- | ------------------- | --------------------------------------- |
-| `bearer`  | `BearerCredential`  | `Authorization: Bearer <token>`         |
-| `basic`   | `BasicCredential`   | `Authorization: Basic base64(user:pass)` |
-| `api-key` | `ApiKeyCredential`  | `<headerName>: <key>`                   |
-| `custom`  | `CustomCredential`  | Arbitrary `headers` record              |
+| Type      | Interface          | HTTP Header                              |
+| --------- | ------------------ | ---------------------------------------- |
+| `bearer`  | `BearerCredential` | `Authorization: Bearer <token>`          |
+| `basic`   | `BasicCredential`  | `Authorization: Basic base64(user:pass)` |
+| `api-key` | `ApiKeyCredential` | `<headerName>: <key>`                    |
+| `custom`  | `CustomCredential` | Arbitrary `headers` record               |
 
 ```ts
 interface BearerCredential {
@@ -54,10 +54,10 @@ interface CustomCredential {
 
 Credentials are persisted as JSON files using kidd's file store system.
 
-| Location | Path                            | Resolution order |
-| -------- | ------------------------------- | ---------------- |
-| Local    | `./<cli-name>/auth.json`        | Checked first    |
-| Global   | `~/<cli-name>/auth.json`        | Checked second   |
+| Location | Path                     | Resolution order |
+| -------- | ------------------------ | ---------------- |
+| Local    | `./<cli-name>/auth.json` | Checked first    |
+| Global   | `~/<cli-name>/auth.json` | Checked second   |
 
 The file contains the raw credential object:
 
@@ -80,9 +80,9 @@ Reads a bearer token from `process.env`.
 { source: 'env', tokenVar: 'GITHUB_TOKEN' }
 ```
 
-| Option     | Type     | Default               | Description                     |
-| ---------- | -------- | --------------------- | ------------------------------- |
-| `tokenVar` | `string` | `<CLI_NAME>_TOKEN`    | Environment variable name       |
+| Option     | Type     | Default            | Description               |
+| ---------- | -------- | ------------------ | ------------------------- |
+| `tokenVar` | `string` | `<CLI_NAME>_TOKEN` | Environment variable name |
 
 The default variable name is derived from the CLI name: `my-app` becomes `MY_APP_TOKEN`.
 
@@ -94,10 +94,10 @@ Reads a bearer token from a `.env` file without mutating `process.env`.
 { source: 'dotenv', tokenVar: 'API_TOKEN', path: './.env.local' }
 ```
 
-| Option     | Type     | Default            | Description                     |
-| ---------- | -------- | ------------------ | ------------------------------- |
-| `tokenVar` | `string` | `<CLI_NAME>_TOKEN` | Variable name within the file   |
-| `path`     | `string` | `$CWD/.env`        | Path to the dotenv file         |
+| Option     | Type     | Default            | Description                   |
+| ---------- | -------- | ------------------ | ----------------------------- |
+| `tokenVar` | `string` | `<CLI_NAME>_TOKEN` | Variable name within the file |
+| `path`     | `string` | `$CWD/.env`        | Path to the dotenv file       |
 
 ### `file` -- JSON File
 
@@ -107,10 +107,10 @@ Reads any credential type from a JSON file on disk via kidd's store system.
 { source: 'file', filename: 'auth.json', dirName: '.my-app' }
 ```
 
-| Option     | Type     | Default           | Description                       |
-| ---------- | -------- | ----------------- | --------------------------------- |
-| `filename` | `string` | `'auth.json'`     | Filename within the store dir     |
-| `dirName`  | `string` | `.<cli-name>`     | Store directory name              |
+| Option     | Type     | Default       | Description                   |
+| ---------- | -------- | ------------- | ----------------------------- |
+| `filename` | `string` | `'auth.json'` | Filename within the store dir |
+| `dirName`  | `string` | `.<cli-name>` | Store directory name          |
 
 ### `oauth` -- OAuth Browser Flow
 
@@ -120,12 +120,12 @@ Opens the user's browser to an auth URL, starts a local HTTP server to receive t
 { source: 'oauth', authUrl: 'https://example.com/auth', port: 0, timeout: 120_000 }
 ```
 
-| Option         | Type     | Default        | Description                                  |
-| -------------- | -------- | -------------- | -------------------------------------------- |
-| `authUrl`      | `string` | --             | Authorization URL (required)                 |
-| `port`         | `number` | `0` (random)   | Local server port                            |
-| `callbackPath` | `string` | `'/callback'`  | Callback endpoint path                       |
-| `timeout`      | `number` | `120_000`      | Timeout in milliseconds                      |
+| Option         | Type     | Default       | Description                  |
+| -------------- | -------- | ------------- | ---------------------------- |
+| `authUrl`      | `string` | --            | Authorization URL (required) |
+| `port`         | `number` | `0` (random)  | Local server port            |
+| `callbackPath` | `string` | `'/callback'` | Callback endpoint path       |
+| `timeout`      | `number` | `120_000`     | Timeout in milliseconds      |
 
 The auth URL receives a `callback_url` query parameter pointing to the local server. The OAuth provider must POST a JSON body `{ "token": "<value>" }` to this URL on success.
 
@@ -137,9 +137,9 @@ Prompts the user for a token via a masked password input.
 { source: 'prompt', message: 'Enter your API token:' }
 ```
 
-| Option    | Type     | Default                  | Description           |
-| --------- | -------- | ------------------------ | --------------------- |
-| `message` | `string` | `'Enter your API key'`   | Prompt message        |
+| Option    | Type     | Default                | Description    |
+| --------- | -------- | ---------------------- | -------------- |
+| `message` | `string` | `'Enter your API key'` | Prompt message |
 
 ### `custom` -- User-Provided Function
 
@@ -155,19 +155,19 @@ Calls a user-supplied function that returns a credential or null.
 }
 ```
 
-| Option     | Type                                                     | Description         |
-| ---------- | -------------------------------------------------------- | ------------------- |
+| Option     | Type                                                              | Description       |
+| ---------- | ----------------------------------------------------------------- | ----------------- |
 | `resolver` | `() => Promise<AuthCredential \| null> \| AuthCredential \| null` | Resolver function |
 
 ## AuthContext
 
 The auth middleware decorates `ctx.auth` with an `AuthContext`:
 
-| Property          | Type                                          | Description                                    |
-| ----------------- | --------------------------------------------- | ---------------------------------------------- |
-| `credential()`    | `AuthCredential \| null`                      | Passively resolved credential (file, env)      |
-| `authenticated()` | `boolean`                                     | Whether a passive credential exists            |
-| `authenticate()`  | `AsyncResult<AuthCredential, LoginError>`     | Run interactive resolvers, persist, and return  |
+| Property          | Type                                      | Description                                    |
+| ----------------- | ----------------------------------------- | ---------------------------------------------- |
+| `credential()`    | `AuthCredential \| null`                  | Passively resolved credential (file, env)      |
+| `authenticated()` | `boolean`                                 | Whether a passive credential exists            |
+| `authenticate()`  | `AsyncResult<AuthCredential, LoginError>` | Run interactive resolvers, persist, and return |
 
 ### `ctx.auth.authenticate()`
 
@@ -180,10 +180,10 @@ if (error) {
 }
 ```
 
-| LoginError `type`   | Description                                    |
-| ------------------- | ---------------------------------------------- |
-| `'no_credential'`   | No resolver produced a credential              |
-| `'save_failed'`     | Credential resolved but failed to persist      |
+| LoginError `type` | Description                               |
+| ----------------- | ----------------------------------------- |
+| `'no_credential'` | No resolver produced a credential         |
+| `'save_failed'`   | Credential resolved but failed to persist |
 
 ## HTTP Integration
 

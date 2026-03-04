@@ -1,84 +1,194 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Faux API Dashboard</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: system-ui, -apple-system, sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; }
-    .container { max-width: 720px; margin: 0 auto; padding: 40px 20px; }
-    h1 { font-size: 24px; margin-bottom: 8px; }
-    .subtitle { color: #94a3b8; margin-bottom: 32px; }
-    .card { background: #1e293b; border-radius: 12px; padding: 24px; margin-bottom: 20px; }
-    .card h2 { font-size: 16px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 16px; }
-    label { display: block; font-size: 14px; color: #94a3b8; margin-bottom: 6px; }
-    input, select { width: 100%; padding: 10px 14px; background: #0f172a; border: 1px solid #334155; border-radius: 8px; color: #e2e8f0; font-size: 14px; margin-bottom: 12px; }
-    input:focus, select:focus { outline: none; border-color: #6366f1; }
-    button { padding: 10px 20px; background: #6366f1; color: white; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; transition: background 0.15s; }
-    button:hover { background: #4f46e5; }
-    button:disabled { background: #334155; cursor: not-allowed; }
-    .btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
-    .response { margin-top: 16px; }
-    .response pre { background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 16px; font-size: 13px; overflow-x: auto; line-height: 1.5; }
-    .status { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; margin-bottom: 12px; }
-    .status-ok { background: #065f46; color: #6ee7b7; }
-    .status-err { background: #7f1d1d; color: #fca5a5; }
-    .status-loading { background: #1e3a5f; color: #93c5fd; }
-    .token-display { font-family: monospace; background: #0f172a; padding: 6px 12px; border-radius: 6px; border: 1px solid #334155; font-size: 13px; display: inline-block; margin-bottom: 12px; }
-    .connected { color: #6ee7b7; }
-    .disconnected { color: #fca5a5; }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <h1>Faux API Dashboard</h1>
-    <p class="subtitle">UI companion for the kidd auth + http middleware example</p>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Faux API Dashboard</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family:
+          system-ui,
+          -apple-system,
+          sans-serif;
+        background: #0f172a;
+        color: #e2e8f0;
+        min-height: 100vh;
+      }
+      .container {
+        max-width: 720px;
+        margin: 0 auto;
+        padding: 40px 20px;
+      }
+      h1 {
+        font-size: 24px;
+        margin-bottom: 8px;
+      }
+      .subtitle {
+        color: #94a3b8;
+        margin-bottom: 32px;
+      }
+      .card {
+        background: #1e293b;
+        border-radius: 12px;
+        padding: 24px;
+        margin-bottom: 20px;
+      }
+      .card h2 {
+        font-size: 16px;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 16px;
+      }
+      label {
+        display: block;
+        font-size: 14px;
+        color: #94a3b8;
+        margin-bottom: 6px;
+      }
+      input,
+      select {
+        width: 100%;
+        padding: 10px 14px;
+        background: #0f172a;
+        border: 1px solid #334155;
+        border-radius: 8px;
+        color: #e2e8f0;
+        font-size: 14px;
+        margin-bottom: 12px;
+      }
+      input:focus,
+      select:focus {
+        outline: none;
+        border-color: #6366f1;
+      }
+      button {
+        padding: 10px 20px;
+        background: #6366f1;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 14px;
+        cursor: pointer;
+        transition: background 0.15s;
+      }
+      button:hover {
+        background: #4f46e5;
+      }
+      button:disabled {
+        background: #334155;
+        cursor: not-allowed;
+      }
+      .btn-row {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 4px;
+      }
+      .response {
+        margin-top: 16px;
+      }
+      .response pre {
+        background: #0f172a;
+        border: 1px solid #334155;
+        border-radius: 8px;
+        padding: 16px;
+        font-size: 13px;
+        overflow-x: auto;
+        line-height: 1.5;
+      }
+      .status {
+        display: inline-block;
+        padding: 2px 10px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 600;
+        margin-bottom: 12px;
+      }
+      .status-ok {
+        background: #065f46;
+        color: #6ee7b7;
+      }
+      .status-err {
+        background: #7f1d1d;
+        color: #fca5a5;
+      }
+      .status-loading {
+        background: #1e3a5f;
+        color: #93c5fd;
+      }
+      .token-display {
+        font-family: monospace;
+        background: #0f172a;
+        padding: 6px 12px;
+        border-radius: 6px;
+        border: 1px solid #334155;
+        font-size: 13px;
+        display: inline-block;
+        margin-bottom: 12px;
+      }
+      .connected {
+        color: #6ee7b7;
+      }
+      .disconnected {
+        color: #fca5a5;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Faux API Dashboard</h1>
+      <p class="subtitle">UI companion for the kidd auth + http middleware example</p>
 
-    <!-- Auth card -->
-    <div class="card">
-      <h2>Authentication</h2>
-      <label for="token-select">Select a user token</label>
-      <select id="token-select">
-        <option value="">— Choose a token —</option>
-        <option value="tok_alice_12345">Alice (tok_alice_12345)</option>
-        <option value="tok_bob_67890">Bob (tok_bob_67890)</option>
-      </select>
-      <label for="api-url">API Base URL</label>
-      <input type="text" id="api-url" value="http://localhost:3001" />
-      <div class="btn-row">
-        <button id="btn-connect">Connect</button>
-        <button id="btn-disconnect" disabled>Disconnect</button>
+      <!-- Auth card -->
+      <div class="card">
+        <h2>Authentication</h2>
+        <label for="token-select">Select a user token</label>
+        <select id="token-select">
+          <option value="">— Choose a token —</option>
+          <option value="tok_alice_12345">Alice (tok_alice_12345)</option>
+          <option value="tok_bob_67890">Bob (tok_bob_67890)</option>
+        </select>
+        <label for="api-url">API Base URL</label>
+        <input type="text" id="api-url" value="http://localhost:3001" />
+        <div class="btn-row">
+          <button id="btn-connect">Connect</button>
+          <button id="btn-disconnect" disabled>Disconnect</button>
+        </div>
+        <p style="margin-top: 12px">
+          Status: <span id="conn-status" class="disconnected">Disconnected</span>
+        </p>
       </div>
-      <p style="margin-top: 12px;">
-        Status: <span id="conn-status" class="disconnected">Disconnected</span>
-      </p>
+
+      <!-- Actions card -->
+      <div class="card">
+        <h2>API Actions</h2>
+        <div class="btn-row">
+          <button id="btn-me" disabled>GET /user</button>
+          <button id="btn-repos" disabled>GET /repos</button>
+          <button id="btn-health" disabled>GET /health</button>
+        </div>
+        <div style="margin-top: 16px">
+          <label for="repo-name">New repo name</label>
+          <input type="text" id="repo-name" placeholder="my-awesome-repo" />
+          <button id="btn-create-repo" disabled>POST /repos</button>
+        </div>
+      </div>
+
+      <!-- Response card -->
+      <div class="card">
+        <h2>Response</h2>
+        <div id="response-area">
+          <span class="status status-loading">Waiting for action...</span>
+        </div>
+      </div>
     </div>
 
-    <!-- Actions card -->
-    <div class="card">
-      <h2>API Actions</h2>
-      <div class="btn-row">
-        <button id="btn-me" disabled>GET /user</button>
-        <button id="btn-repos" disabled>GET /repos</button>
-        <button id="btn-health" disabled>GET /health</button>
-      </div>
-      <div style="margin-top: 16px;">
-        <label for="repo-name">New repo name</label>
-        <input type="text" id="repo-name" placeholder="my-awesome-repo" />
-        <button id="btn-create-repo" disabled>POST /repos</button>
-      </div>
-    </div>
-
-    <!-- Response card -->
-    <div class="card">
-      <h2>Response</h2>
-      <div id="response-area">
-        <span class="status status-loading">Waiting for action...</span>
-      </div>
-    </div>
-  </div>
-
-  <script src="app.js"></script>
-</body>
+    <script src="app.js"></script>
+  </body>
 </html>

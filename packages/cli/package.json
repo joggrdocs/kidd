@@ -32,9 +32,9 @@
   "dependencies": {
     "@kidd-cli/bundler": "workspace:*",
     "@kidd-cli/config": "workspace:*",
+    "@kidd-cli/core": "workspace:*",
     "@kidd-cli/utils": "workspace:*",
     "fs-extra": "^11.3.3",
-    "@kidd-cli/core": "workspace:*",
     "liquidjs": "catalog:",
     "picocolors": "^1.1.1",
     "zod": "catalog:"

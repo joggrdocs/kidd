@@ -16,6 +16,7 @@
   },
   "devDependencies": {
     "@kidd-cli/cli": "workspace:*",
+    "@types/node": "catalog:",
     "tsdown": "catalog:",
     "tsx": "catalog:",
     "typescript": "catalog:"

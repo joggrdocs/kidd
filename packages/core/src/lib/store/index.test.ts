@@ -430,10 +430,14 @@ describe('createStore()', () => {
       try {
         const store = createStore({ dirName: DIR_NAME })
 
-        const [error] = store.save('auth.json', {}, {
-          source: 'local',
-          startDir: noGitDir,
-        })
+        const [error] = store.save(
+          'auth.json',
+          {},
+          {
+            source: 'local',
+            startDir: noGitDir,
+          }
+        )
 
         expect(error).toBeTruthy()
       } finally {

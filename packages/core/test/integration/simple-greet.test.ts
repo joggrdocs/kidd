@@ -1,10 +1,9 @@
+import { createWritableCapture, runTestCli, setArgv, setupTestLifecycle } from '@test/core-utils.js'
 import { describe, expect, it, vi } from 'vitest'
 
 import { command } from '@/command.js'
 import type { Context } from '@/context/types.js'
 import type { CommandMap } from '@/types.js'
-
-import { createWritableCapture, runTestCli, setArgv, setupTestLifecycle } from '@test/core-utils.js'
 
 import greetCommand from '../../../../examples/simple/commands/greet.js'
 

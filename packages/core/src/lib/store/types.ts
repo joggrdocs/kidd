@@ -1,4 +1,5 @@
 import type { Result } from '@kidd-cli/utils/fp'
+
 import type { PathSource } from '@/lib/project/types.js'
 
 /**

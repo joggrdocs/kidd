@@ -116,8 +116,6 @@ describe('dev command', () => {
     const mod = await import('./dev.js')
     await mod.default.handler!(ctx)
 
-    expect(mockedWatch).toHaveBeenCalledWith(
-      expect.objectContaining({ config: {} })
-    )
+    expect(mockedWatch).toHaveBeenCalledWith(expect.objectContaining({ config: {} }))
   })
 })

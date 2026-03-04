@@ -41,7 +41,13 @@ const USERS: ReadonlyMap<string, User> = new Map([
 
 const REPOS: Repo[] = [
   { id: 1, name: 'acme-cli', full_name: 'alice/acme-cli', private: false, owner: 'alice' },
-  { id: 2, name: 'secret-project', full_name: 'alice/secret-project', private: true, owner: 'alice' },
+  {
+    id: 2,
+    name: 'secret-project',
+    full_name: 'alice/secret-project',
+    private: true,
+    owner: 'alice',
+  },
   { id: 3, name: 'bob-tools', full_name: 'bob/bob-tools', private: false, owner: 'bob' },
 ]
 
@@ -101,7 +107,7 @@ function handleListRepos(login: string, res: ServerResponse): void {
 async function handleCreateRepo(
   login: string,
   req: IncomingMessage,
-  res: ServerResponse,
+  res: ServerResponse
 ): Promise<void> {
   const raw = await readBody(req)
   try {
@@ -131,17 +137,18 @@ function handleHealth(res: ServerResponse): void {
 // ---------------------------------------------------------------------------
 
 function handleAuthPage(res: ServerResponse, callbackUrl: string | null): void {
-  const postScript = callbackUrl !== null
-    ? [
-        `      fetch('${callbackUrl}', {`,
-        "        method: 'POST',",
-        "        headers: { 'Content-Type': 'application/json' },",
-        '        body: JSON.stringify({ token }),',
-        '      }).then(function() {',
-        "        document.body.innerHTML = '<h1>Authenticated</h1><p>You can close this tab.</p>';",
-        '      });',
-      ].join('\n')
-    : '      document.body.innerHTML = "<h1>Token: " + token + "</h1><p>Copy this token to use with the CLI.</p>";'
+  const postScript =
+    callbackUrl !== null
+      ? [
+          `      fetch('${callbackUrl}', {`,
+          "        method: 'POST',",
+          "        headers: { 'Content-Type': 'application/json' },",
+          '        body: JSON.stringify({ token }),',
+          '      }).then(function() {',
+          "        document.body.innerHTML = '<h1>Authenticated</h1><p>You can close this tab.</p>';",
+          '      });',
+        ].join('\n')
+      : '      document.body.innerHTML = "<h1>Token: " + token + "</h1><p>Copy this token to use with the CLI.</p>";'
 
   const html = [
     '<!DOCTYPE html>',

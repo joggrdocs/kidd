@@ -37,9 +37,9 @@ auth({
 })
 ```
 
-| Option     | Type     | Default            | Description                    |
-| ---------- | -------- | ------------------ | ------------------------------ |
-| `tokenVar` | `string` | `<CLI_NAME>_TOKEN` | Environment variable to read   |
+| Option     | Type     | Default            | Description                  |
+| ---------- | -------- | ------------------ | ---------------------------- |
+| `tokenVar` | `string` | `<CLI_NAME>_TOKEN` | Environment variable to read |
 
 ### dotenv
 
@@ -51,10 +51,10 @@ auth({
 })
 ```
 
-| Option     | Type     | Default            | Description                     |
-| ---------- | -------- | ------------------ | ------------------------------- |
-| `tokenVar` | `string` | `<CLI_NAME>_TOKEN` | Variable name inside the file   |
-| `path`     | `string` | `$CWD/.env`        | Path to the `.env` file         |
+| Option     | Type     | Default            | Description                   |
+| ---------- | -------- | ------------------ | ----------------------------- |
+| `tokenVar` | `string` | `<CLI_NAME>_TOKEN` | Variable name inside the file |
+| `path`     | `string` | `$CWD/.env`        | Path to the `.env` file       |
 
 ### file
 
@@ -66,10 +66,10 @@ auth({
 })
 ```
 
-| Option     | Type     | Default           | Description                        |
-| ---------- | -------- | ----------------- | ---------------------------------- |
-| `filename` | `string` | `auth.json`       | Name of the credentials file       |
-| `dirName`  | `string` | `.<cli-name>`     | Directory containing the file      |
+| Option     | Type     | Default       | Description                   |
+| ---------- | -------- | ------------- | ----------------------------- |
+| `filename` | `string` | `auth.json`   | Name of the credentials file  |
+| `dirName`  | `string` | `.<cli-name>` | Directory containing the file |
 
 The file must contain a valid credential object (see [Credential Types](#credential-types)).
 
@@ -90,12 +90,12 @@ auth({
 })
 ```
 
-| Option         | Type     | Default       | Description                         |
-| -------------- | -------- | ------------- | ----------------------------------- |
-| `authUrl`      | `string` | *required*    | OAuth authorization URL             |
-| `port`         | `number` | `0` (random)  | Local server port                   |
-| `callbackPath` | `string` | `/callback`   | Path the auth server redirects to   |
-| `timeout`      | `number` | `120000`      | Timeout in milliseconds             |
+| Option         | Type     | Default      | Description                       |
+| -------------- | -------- | ------------ | --------------------------------- |
+| `authUrl`      | `string` | _required_   | OAuth authorization URL           |
+| `port`         | `number` | `0` (random) | Local server port                 |
+| `callbackPath` | `string` | `/callback`  | Path the auth server redirects to |
+| `timeout`      | `number` | `120000`     | Timeout in milliseconds           |
 
 ### prompt
 
@@ -107,9 +107,9 @@ auth({
 })
 ```
 
-| Option    | Type     | Default                | Description          |
-| --------- | -------- | ---------------------- | -------------------- |
-| `message` | `string` | `Enter your API key`   | Prompt message text  |
+| Option    | Type     | Default              | Description         |
+| --------- | -------- | -------------------- | ------------------- |
+| `message` | `string` | `Enter your API key` | Prompt message text |
 
 ### custom
 
@@ -132,11 +132,11 @@ auth({
 
 ## Configuration
 
-| Option      | Type               | Default   | Description                                       |
-| ----------- | ------------------ | --------- | ------------------------------------------------- |
-| `resolvers` | `ResolverConfig[]` | *required* | Ordered list of credential sources to try         |
-| `required`  | `boolean`          | `false`   | Fail if no credential is resolved                 |
-| `storeKey`  | `string`           | `'auth'`  | Key used to store the credential in `ctx.store`   |
+| Option      | Type               | Default    | Description                                     |
+| ----------- | ------------------ | ---------- | ----------------------------------------------- |
+| `resolvers` | `ResolverConfig[]` | _required_ | Ordered list of credential sources to try       |
+| `required`  | `boolean`          | `false`    | Fail if no credential is resolved               |
+| `storeKey`  | `string`           | `'auth'`   | Key used to store the credential in `ctx.store` |
 
 ## Multiple Auth Sources
 
@@ -158,12 +158,12 @@ auth({
 
 All resolvers produce one of four credential variants, discriminated by the `type` field:
 
-| Type      | Fields                        | Header Format                              |
-| --------- | ----------------------------- | ------------------------------------------ |
-| `bearer`  | `token`                       | `Authorization: Bearer <token>`            |
-| `basic`   | `username`, `password`        | `Authorization: Basic base64(user:pass)`   |
-| `api-key` | `headerName`, `key`           | `<headerName>: <key>`                      |
-| `custom`  | `headers`                     | Arbitrary headers from the record          |
+| Type      | Fields                 | Header Format                            |
+| --------- | ---------------------- | ---------------------------------------- |
+| `bearer`  | `token`                | `Authorization: Bearer <token>`          |
+| `basic`   | `username`, `password` | `Authorization: Basic base64(user:pass)` |
+| `api-key` | `headerName`, `key`    | `<headerName>: <key>`                    |
+| `custom`  | `headers`              | Arbitrary headers from the record        |
 
 The `env`, `dotenv`, `prompt`, and `oauth` resolvers always produce `bearer` credentials. The `file` and `custom` resolvers can produce any variant.
 

@@ -32,7 +32,7 @@ export default command({
       res.data.map((repo) => ({
         Name: repo.full_name,
         Private: repo.private ? 'yes' : 'no',
-      })),
+      }))
     )
   },
 })

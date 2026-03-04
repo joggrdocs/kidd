@@ -69,7 +69,11 @@ function setupCompileSuccess(): void {
     null,
     {
       binaries: [
-        { label: 'linux-x64', path: '/project/dist/bin/cli-linux-x64', target: 'linux-x64' as const },
+        {
+          label: 'linux-x64',
+          path: '/project/dist/bin/cli-linux-x64',
+          target: 'linux-x64' as const,
+        },
       ],
     },
   ])
@@ -234,8 +238,16 @@ describe('build command', () => {
         null,
         {
           binaries: [
-            { label: 'macOS ARM64', path: '/project/dist/bin/cli-darwin-arm64', target: 'darwin-arm64' as const },
-            { label: 'Linux x64', path: '/project/dist/bin/cli-linux-x64', target: 'linux-x64' as const },
+            {
+              label: 'macOS ARM64',
+              path: '/project/dist/bin/cli-darwin-arm64',
+              target: 'darwin-arm64' as const,
+            },
+            {
+              label: 'Linux x64',
+              path: '/project/dist/bin/cli-linux-x64',
+              target: 'linux-x64' as const,
+            },
           ],
         },
       ])
@@ -244,9 +256,7 @@ describe('build command', () => {
       await mod.default.handler!(ctx)
 
       const mockNote = ctx.logger.note as ReturnType<typeof vi.fn>
-      const binariesNote = mockNote.mock.calls.find(
-        (call) => call[1] === 'Binaries'
-      )
+      const binariesNote = mockNote.mock.calls.find((call) => call[1] === 'Binaries')
       expect(binariesNote).toBeDefined()
       if (!binariesNote) {
         return
@@ -284,9 +294,7 @@ describe('build command', () => {
       const mod = await import('./build.js')
       await mod.default.handler!(ctx)
 
-      expect(mockedBuild).toHaveBeenCalledWith(
-        expect.objectContaining({ config: {} })
-      )
+      expect(mockedBuild).toHaveBeenCalledWith(expect.objectContaining({ config: {} }))
     })
   })
 

@@ -17,12 +17,12 @@ import { readFileSync } from 'node:fs'
 
 import type { Prompts } from '@/context/types.js'
 
+import { resolveCredentials } from './resolve-credentials.js'
 import { resolveFromDotenv } from './resolve-dotenv.js'
 import { resolveFromEnv } from './resolve-env.js'
 import { resolveFromFile } from './resolve-file.js'
 import { resolveFromOAuth } from './resolve-oauth.js'
 import { resolveFromPrompt } from './resolve-prompt.js'
-import { resolveCredentials } from './resolve-credentials.js'
 
 describe('resolveFromEnv()', () => {
   afterEach(() => {
@@ -135,10 +135,7 @@ describe('resolveCredentials()', () => {
     const result = await resolveCredentials({
       cliName: 'my-cli',
       prompts,
-      resolvers: [
-        { source: 'env' },
-        { source: 'prompt' },
-      ],
+      resolvers: [{ source: 'env' }, { source: 'prompt' }],
     })
 
     expect(result).toEqual({ token: 'from-env', type: 'bearer' })
@@ -177,10 +174,7 @@ describe('resolveCredentials()', () => {
     const result = await resolveCredentials({
       cliName: 'my-cli',
       prompts,
-      resolvers: [
-        { source: 'env' },
-        { source: 'prompt' },
-      ],
+      resolvers: [{ source: 'env' }, { source: 'prompt' }],
     })
 
     expect(result).toEqual({ token: 'from-prompt', type: 'bearer' })

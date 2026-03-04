@@ -1,9 +1,8 @@
 import { access, mkdir, readFile, writeFile } from 'node:fs/promises'
 
-import { beforeEach, describe, expect, it, vi } from 'vitest'
-
 import type { LoadConfigResult } from '@kidd-cli/config/loader'
 import type { Manifest } from '@kidd-cli/utils/manifest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { CheckContext, RawPackageJson } from './checks.js'
 import { CHECKS, createCheckContext, readRawPackageJson } from './checks.js'
@@ -360,7 +359,7 @@ describe('fix functions', () => {
       mockedWriteFile.mockResolvedValue(undefined)
       const context = makeContext()
 
-      const {fix} = findCheck('module type')
+      const { fix } = findCheck('module type')
       if (!fix) {
         expect.unreachable('fix should be defined')
       }
@@ -378,7 +377,7 @@ describe('fix functions', () => {
       mockedWriteFile.mockResolvedValue(undefined)
       const context = makeContext()
 
-      const {fix} = findCheck('@kidd-cli/core dependency')
+      const { fix } = findCheck('@kidd-cli/core dependency')
       if (!fix) {
         expect.unreachable('fix should be defined')
       }
@@ -396,7 +395,7 @@ describe('fix functions', () => {
       mockedWriteFile.mockResolvedValue(undefined)
       const context = makeContext()
 
-      const {fix} = findCheck('entry point')
+      const { fix } = findCheck('entry point')
       if (!fix) {
         expect.unreachable('fix should be defined')
       }
@@ -414,7 +413,7 @@ describe('fix functions', () => {
       mockedMkdir.mockResolvedValue(undefined)
       const context = makeContext()
 
-      const {fix} = findCheck('commands directory')
+      const { fix } = findCheck('commands directory')
       if (!fix) {
         expect.unreachable('fix should be defined')
       }

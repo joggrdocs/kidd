@@ -248,7 +248,9 @@ describe('build command', () => {
         (call) => call[1] === 'Binaries'
       )
       expect(binariesNote).toBeDefined()
-      if (!binariesNote) return
+      if (!binariesNote) {
+        return
+      }
       const noteBody = binariesNote[0] as string
       expect(noteBody).toContain('macOS ARM64')
       expect(noteBody).toContain('Linux x64')

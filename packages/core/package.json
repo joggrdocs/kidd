@@ -11,6 +11,11 @@
     "zod"
   ],
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/joggrdocs/kidd.git",
+    "directory": "packages/core"
+  },
   "files": [
     "dist"
   ],

@@ -9,6 +9,11 @@
     "scaffolding"
   ],
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/joggrdocs/kidd.git",
+    "directory": "packages/cli"
+  },
   "bin": {
     "kidd": "./dist/index.mjs"
   },

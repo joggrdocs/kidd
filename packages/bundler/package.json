@@ -3,6 +3,11 @@
   "version": "0.1.0",
   "description": "Programmatic bundler for kidd CLI tools powered by tsdown",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/joggrdocs/kidd.git",
+    "directory": "packages/bundler"
+  },
   "files": [
     "dist"
   ],

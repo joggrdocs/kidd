@@ -7,5 +7,9 @@
   "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
-  "ignore": []
+  "ignore": [
+    "@examples/simple",
+    "@examples/advanced",
+    "@examples/authenticated-service"
+  ]
 }

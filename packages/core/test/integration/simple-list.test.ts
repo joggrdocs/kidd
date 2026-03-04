@@ -1,11 +1,10 @@
+import { createWritableCapture, runTestCli, setArgv, setupTestLifecycle } from '@test/core-utils.js'
 import { describe, expect, it, vi } from 'vitest'
 
 import { command } from '@/command.js'
 import { createContext } from '@/context/index.js'
 import type { Context } from '@/context/types.js'
 import type { CommandMap } from '@/types.js'
-
-import { createWritableCapture, runTestCli, setArgv, setupTestLifecycle } from '@test/core-utils.js'
 
 import listCommand from '../../../../examples/simple/commands/list.js'
 
@@ -44,7 +43,10 @@ describe('examples/simple/commands/list', () => {
   describe('handler', () => {
     it('should render table with all 5 tasks', () => {
       const { stream, output } = createWritableCapture()
-      const ctx = createListContext({ args: { json: false, status: 'all' as const }, output: stream })
+      const ctx = createListContext({
+        args: { json: false, status: 'all' as const },
+        output: stream,
+      })
       listCommand.handler(ctx)
       const result = output()
       expect(result).toContain('Set up CI pipeline')
@@ -86,7 +88,10 @@ describe('examples/simple/commands/list', () => {
 
     it('should output JSON array when --json', () => {
       const { stream, output } = createWritableCapture()
-      const ctx = createListContext({ args: { json: true, status: 'all' as const }, output: stream })
+      const ctx = createListContext({
+        args: { json: true, status: 'all' as const },
+        output: stream,
+      })
       listCommand.handler(ctx)
       const parsed = JSON.parse(output()) as unknown[]
       expect(parsed).toHaveLength(5)

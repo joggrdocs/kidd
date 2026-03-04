@@ -119,11 +119,7 @@ describe('commands command', () => {
     const mod = await import('./commands.js')
     await mod.default.handler!(ctx)
 
-    const expected = [
-      '├── add — Add',
-      '├── build — Build',
-      '└── deploy — Deploy',
-    ].join('\n')
+    const expected = ['├── add — Add', '├── build — Build', '└── deploy — Deploy'].join('\n')
     expect(ctx.output.raw).toHaveBeenCalledWith(`${expected}\n`)
   })
 
@@ -205,11 +201,9 @@ describe('commands command', () => {
     const mod = await import('./commands.js')
     await mod.default.handler!(ctx)
 
-    const expected = [
-      '└── root — Root',
-      '    └── mid — Middle',
-      '        └── leaf — Leaf',
-    ].join('\n')
+    const expected = ['└── root — Root', '    └── mid — Middle', '        └── leaf — Leaf'].join(
+      '\n'
+    )
     expect(ctx.output.raw).toHaveBeenCalledWith(`${expected}\n`)
   })
 
@@ -268,11 +262,7 @@ describe('commands command', () => {
     const mod = await import('./commands.js')
     await mod.default.handler!(ctx)
 
-    const expected = [
-      '├── alpha — Alpha',
-      '│   └── sub — Sub',
-      '└── beta — Beta',
-    ].join('\n')
+    const expected = ['├── alpha — Alpha', '│   └── sub — Sub', '└── beta — Beta'].join('\n')
     expect(ctx.output.raw).toHaveBeenCalledWith(`${expected}\n`)
   })
 })

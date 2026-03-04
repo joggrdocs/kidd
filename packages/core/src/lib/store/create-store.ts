@@ -196,7 +196,11 @@ export function createStore<TData = unknown>(options: StoreOptions<TData>): File
   function save(filename: string, data: unknown, saveOptions: SaveOptions = {}): Result<string> {
     const { source: saveSource = 'global', startDir } = saveOptions
 
-    const dir = resolveSaveDir({ globalDir: getGlobalDir(), localDir: getLocalDir(startDir), source: saveSource })
+    const dir = resolveSaveDir({
+      globalDir: getGlobalDir(),
+      localDir: getLocalDir(startDir),
+      source: saveSource,
+    })
 
     if (dir === null) {
       return err(new Error(`Cannot save to "${saveSource}" — no local project directory found`))

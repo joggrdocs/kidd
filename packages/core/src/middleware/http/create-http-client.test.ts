@@ -5,7 +5,10 @@ import { createHttpClient } from './create-http-client.js'
 const mockFetch = vi.fn()
 vi.stubGlobal('fetch', mockFetch)
 
-function createMockResponse(data: unknown, status = 200): {
+function createMockResponse(
+  data: unknown,
+  status = 200
+): {
   readonly headers: Headers
   readonly json: () => Promise<unknown>
   readonly ok: boolean
@@ -154,9 +157,7 @@ describe('createHttpClient()', () => {
     await client.patch('/d')
     await client.delete('/e')
 
-    const methods = mockFetch.mock.calls.map(
-      (call: [string, RequestInit]) => call[1].method
-    )
+    const methods = mockFetch.mock.calls.map((call: [string, RequestInit]) => call[1].method)
 
     expect(methods).toEqual(['GET', 'POST', 'PUT', 'PATCH', 'DELETE'])
   })

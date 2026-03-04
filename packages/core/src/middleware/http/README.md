@@ -58,48 +58,48 @@ const repos = command({
 
 All methods accept a path (appended to `baseUrl`) and optional `RequestOptions`. Response and body types are parameterized via generics.
 
-| Method   | Signature                                                            |
-| -------- | -------------------------------------------------------------------- |
-| `get`    | `get<TResponse>(path, options?) => Promise<TypedResponse<TResponse>>` |
-| `post`   | `post<TResponse, TBody>(path, options?) => Promise<TypedResponse<TResponse>>` |
-| `put`    | `put<TResponse, TBody>(path, options?) => Promise<TypedResponse<TResponse>>` |
+| Method   | Signature                                                                      |
+| -------- | ------------------------------------------------------------------------------ |
+| `get`    | `get<TResponse>(path, options?) => Promise<TypedResponse<TResponse>>`          |
+| `post`   | `post<TResponse, TBody>(path, options?) => Promise<TypedResponse<TResponse>>`  |
+| `put`    | `put<TResponse, TBody>(path, options?) => Promise<TypedResponse<TResponse>>`   |
 | `patch`  | `patch<TResponse, TBody>(path, options?) => Promise<TypedResponse<TResponse>>` |
-| `delete` | `delete<TResponse>(path, options?) => Promise<TypedResponse<TResponse>>` |
+| `delete` | `delete<TResponse>(path, options?) => Promise<TypedResponse<TResponse>>`       |
 
 ## TypedResponse
 
 Every client method returns a `TypedResponse<TData>`:
 
-| Field     | Type       | Description                      |
-| --------- | ---------- | -------------------------------- |
-| `data`    | `TData`    | Parsed JSON body                 |
-| `status`  | `number`   | HTTP status code                 |
-| `headers` | `Headers`  | Response headers                 |
-| `ok`      | `boolean`  | `true` when status is 200-299    |
-| `raw`     | `Response` | The underlying `fetch` Response  |
+| Field     | Type       | Description                     |
+| --------- | ---------- | ------------------------------- |
+| `data`    | `TData`    | Parsed JSON body                |
+| `status`  | `number`   | HTTP status code                |
+| `headers` | `Headers`  | Response headers                |
+| `ok`      | `boolean`  | `true` when status is 200-299   |
+| `raw`     | `Response` | The underlying `fetch` Response |
 
 ## RequestOptions
 
 Per-request options passed to any client method:
 
-| Field    | Type                      | Description                    |
-| -------- | ------------------------- | ------------------------------ |
-| `body`   | `TBody`                   | JSON-serializable request body |
-| `headers`| `Record<string, string>`  | Per-request headers (highest priority) |
-| `params` | `Record<string, string>`  | URL query parameters           |
-| `signal` | `AbortSignal`             | Abort signal for cancellation  |
+| Field     | Type                     | Description                            |
+| --------- | ------------------------ | -------------------------------------- |
+| `body`    | `TBody`                  | JSON-serializable request body         |
+| `headers` | `Record<string, string>` | Per-request headers (highest priority) |
+| `params`  | `Record<string, string>` | URL query parameters                   |
+| `signal`  | `AbortSignal`            | Abort signal for cancellation          |
 
 Headers are merged in priority order: per-request > default > auth.
 
 ## Configuration
 
-| Option             | Type                     | Default   | Description                                         |
-| ------------------ | ------------------------ | --------- | --------------------------------------------------- |
-| `namespace`        | `string`                 | *required* | Property name on `ctx` (e.g. `'github'`)           |
-| `baseUrl`          | `string`                 | *required* | Base URL for all requests                           |
-| `authStoreKey`     | `string`                 | `'auth'`  | Store key to read auth credentials from             |
-| `clearCredentials` | `boolean`                | `true`    | Remove credentials from the store after reading     |
-| `defaultHeaders`   | `Record<string, string>` | `{}`      | Default headers applied to every request            |
+| Option             | Type                     | Default    | Description                                     |
+| ------------------ | ------------------------ | ---------- | ----------------------------------------------- |
+| `namespace`        | `string`                 | _required_ | Property name on `ctx` (e.g. `'github'`)        |
+| `baseUrl`          | `string`                 | _required_ | Base URL for all requests                       |
+| `authStoreKey`     | `string`                 | `'auth'`   | Store key to read auth credentials from         |
+| `clearCredentials` | `boolean`                | `true`     | Remove credentials from the store after reading |
+| `defaultHeaders`   | `Record<string, string>` | `{}`       | Default headers applied to every request        |
 
 ## Multiple Namespaces
 

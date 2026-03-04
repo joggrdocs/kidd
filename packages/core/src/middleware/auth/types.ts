@@ -188,4 +188,3 @@ declare module '@kidd-cli/core' {
     readonly auth: AuthContext
   }
 }
-

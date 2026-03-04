@@ -94,7 +94,9 @@ async function apiRequest(method, path, body) {
     var data = await res.json()
     showResponse(res.status, data)
   } catch (err) {
-    showError('Network error: ' + err.message + '\n\nMake sure the API server is running:\n  pnpm api')
+    showError(
+      'Network error: ' + err.message + '\n\nMake sure the API server is running:\n  pnpm api'
+    )
   }
 }
 

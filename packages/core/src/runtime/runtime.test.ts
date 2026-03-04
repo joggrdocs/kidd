@@ -76,9 +76,7 @@ describe('createRuntime()', () => {
     const execution = makeExecution()
     await runtime!.execute(execution)
 
-    expect(mockedCreateContext).toHaveBeenCalledWith(
-      expect.objectContaining({ config: {} })
-    )
+    expect(mockedCreateContext).toHaveBeenCalledWith(expect.objectContaining({ config: {} }))
   })
 
   it('should use empty config when config schema is undefined', async () => {
@@ -95,9 +93,7 @@ describe('createRuntime()', () => {
     await runtime!.execute(execution)
 
     expect(mockedCreateConfigClient).not.toHaveBeenCalled()
-    expect(mockedCreateContext).toHaveBeenCalledWith(
-      expect.objectContaining({ config: {} })
-    )
+    expect(mockedCreateContext).toHaveBeenCalledWith(expect.objectContaining({ config: {} }))
   })
 
   it('should use empty config when config client load returns error', async () => {
@@ -119,9 +115,7 @@ describe('createRuntime()', () => {
     await runtime!.execute(execution)
 
     expect(mockedCreateConfigClient).toHaveBeenCalled()
-    expect(mockedCreateContext).toHaveBeenCalledWith(
-      expect.objectContaining({ config: {} })
-    )
+    expect(mockedCreateContext).toHaveBeenCalledWith(expect.objectContaining({ config: {} }))
   })
 
   it('should use loaded config when config client load succeeds', async () => {
@@ -182,7 +176,9 @@ describe('createRuntime()', () => {
       })
     )
 
-    const passedHandler = mockRunnerExecute.mock.calls[0][0].handler as (ctx: Context) => Promise<void>
+    const passedHandler = mockRunnerExecute.mock.calls[0][0].handler as (
+      ctx: Context
+    ) => Promise<void>
     await expect(passedHandler({} as Context)).resolves.toBeUndefined()
   })
 

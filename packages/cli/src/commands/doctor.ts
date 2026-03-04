@@ -1,7 +1,7 @@
 import { loadConfig } from '@kidd-cli/config/loader'
-import { readManifest } from '@kidd-cli/utils/manifest'
 import { command } from '@kidd-cli/core'
 import type { Command, Context } from '@kidd-cli/core'
+import { readManifest } from '@kidd-cli/utils/manifest'
 import pc from 'picocolors'
 import { z } from 'zod'
 

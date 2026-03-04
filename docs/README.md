@@ -51,13 +51,13 @@ flowchart LR
 
 ## Packages
 
-| Package                                  | Purpose                                                  | Runtime  |
-| ---------------------------------------- | -------------------------------------------------------- | -------- |
-| [`@kidd-cli/core`](./reference/kidd.md)  | Core CLI framework (commands, middleware, config, store)  | CLI      |
-| [`@kidd-cli/cli`](./reference/cli.md)   | DX companion CLI (init, build, doctor, add)               | CLI      |
-| `@kidd-cli/config`                           | Configuration loading, validation, and schema (internal)  | Library  |
-| `@kidd-cli/utils`                            | Shared functional utilities (internal)                    | Library  |
-| `@kidd-cli/bundler`                          | tsdown bundling and binary compilation (internal)         | CLI      |
+| Package                                 | Purpose                                                  | Runtime |
+| --------------------------------------- | -------------------------------------------------------- | ------- |
+| [`@kidd-cli/core`](./reference/kidd.md) | Core CLI framework (commands, middleware, config, store) | CLI     |
+| [`@kidd-cli/cli`](./reference/cli.md)   | DX companion CLI (init, build, doctor, add)              | CLI     |
+| `@kidd-cli/config`                      | Configuration loading, validation, and schema (internal) | Library |
+| `@kidd-cli/utils`                       | Shared functional utilities (internal)                   | Library |
+| `@kidd-cli/bundler`                     | tsdown bundling and binary compilation (internal)        | CLI     |
 
 ## Concepts
 

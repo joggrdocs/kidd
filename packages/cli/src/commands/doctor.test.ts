@@ -227,12 +227,8 @@ describe('doctor command', () => {
     await mod.default.handler!(ctx)
 
     expect(fixFn).toHaveBeenCalled()
-    expect(ctx.output.raw).toHaveBeenCalledWith(
-      expect.stringContaining('Added type module')
-    )
-    expect(ctx.output.raw).toHaveBeenCalledWith(
-      expect.stringContaining('fix')
-    )
+    expect(ctx.output.raw).toHaveBeenCalledWith(expect.stringContaining('Added type module'))
+    expect(ctx.output.raw).toHaveBeenCalledWith(expect.stringContaining('fix'))
   })
 
   it('should not apply fixes when --fix is not set', async () => {
@@ -244,7 +240,11 @@ describe('doctor command', () => {
     })
     const fixFn = vi.fn()
 
-    mockedChecks.push({ fix: fixFn, name: 'module type', run: vi.fn().mockResolvedValue(failResult) })
+    mockedChecks.push({
+      fix: fixFn,
+      name: 'module type',
+      run: vi.fn().mockResolvedValue(failResult),
+    })
 
     const context: CheckContext = {
       configError: null,
@@ -318,8 +318,16 @@ describe('doctor command', () => {
     const runB = vi.fn().mockResolvedValueOnce(failB).mockResolvedValueOnce(passB)
 
     mockedChecks.push(
-      { fix: vi.fn().mockResolvedValue(makeFixResult({ fixed: true, name: 'fix-a' })), name: 'fix-a', run: runA },
-      { fix: vi.fn().mockResolvedValue(makeFixResult({ fixed: true, name: 'fix-b' })), name: 'fix-b', run: runB }
+      {
+        fix: vi.fn().mockResolvedValue(makeFixResult({ fixed: true, name: 'fix-a' })),
+        name: 'fix-a',
+        run: runA,
+      },
+      {
+        fix: vi.fn().mockResolvedValue(makeFixResult({ fixed: true, name: 'fix-b' })),
+        name: 'fix-b',
+        run: runB,
+      }
     )
 
     const context: CheckContext = {
@@ -335,8 +343,6 @@ describe('doctor command', () => {
     const mod = await import('./doctor.js')
     await mod.default.handler!(ctx)
 
-    expect(ctx.output.raw).toHaveBeenCalledWith(
-      expect.stringContaining('2 fixed')
-    )
+    expect(ctx.output.raw).toHaveBeenCalledWith(expect.stringContaining('2 fixed'))
   })
 })

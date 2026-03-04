@@ -150,13 +150,13 @@ const loadUser = middleware(async (ctx, next) => {
 
 ## Error Handling
 
-| Origin               | Behavior                                                           |
-| -------------------- | ------------------------------------------------------------------ |
-| Handler throws       | Post-`next()` code skipped, error propagates to CLI boundary       |
-| Middleware throws    | Outer post-`next()` code skipped, error propagates to CLI boundary |
-| `ctx.fail(message)`  | Throws `ContextError` with a specific exit code (default `1`)      |
+| Origin                                  | Behavior                                                           |
+| --------------------------------------- | ------------------------------------------------------------------ |
+| Handler throws                          | Post-`next()` code skipped, error propagates to CLI boundary       |
+| Middleware throws                       | Outer post-`next()` code skipped, error propagates to CLI boundary |
+| `ctx.fail(message)`                     | Throws `ContextError` with a specific exit code (default `1`)      |
 | `ctx.fail(message, { code, exitCode })` | Same as above with a machine-readable `code` and custom `exitCode` |
-| Arg validation fails | Exits before middleware runs                                       |
+| Arg validation fails                    | Exits before middleware runs                                       |
 
 The CLI boundary catches all errors, logs the message, and calls `process.exit` with the appropriate code. Handlers never call `process.exit` directly.
 

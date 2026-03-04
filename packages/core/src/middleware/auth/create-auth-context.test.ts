@@ -12,8 +12,9 @@ vi.mock(import('@/lib/store/create-store.js'), () => ({
   createStore: vi.fn(),
 }))
 
-import { resolveCredentials } from './resolve-credentials.js'
 import { createStore } from '@/lib/store/create-store.js'
+
+import { resolveCredentials } from './resolve-credentials.js'
 
 function createMockPrompts(): Prompts {
   return {

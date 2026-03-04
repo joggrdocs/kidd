@@ -30,7 +30,7 @@
     "eslint-plugin-functional": "^9.0.4",
     "eslint-plugin-jsdoc": "^62.7.1",
     "eslint-plugin-security": "^4.0.0",
-    "laufen": "^1.0.0",
+    "laufen": "^1.1.0",
     "oxfmt": "^0.36.0",
     "oxlint": "^1.51.0",
     "rimraf": "^6.1.3",

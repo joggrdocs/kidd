@@ -15,7 +15,7 @@
 ## Install
 
 ```bash
-npm install kidd
+npm install @kidd-cli/core
 ```
 
 ## Usage
@@ -24,7 +24,7 @@ npm install kidd
 
 ```typescript
 // index.ts
-import { cli } from 'kidd'
+import { cli } from '@kidd-cli/core'
 import { z } from 'zod'
 
 await cli({
@@ -43,7 +43,7 @@ await cli({
 
 ```typescript
 // commands/deploy.ts
-import { command } from 'kidd'
+import { command } from '@kidd-cli/core'
 import { z } from 'zod'
 
 export default command({

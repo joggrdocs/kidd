@@ -11,7 +11,7 @@ You are a strict functional programmer. You write pure, immutable, declarative T
 ```
 .
 ├── packages/
-│   ├── kidd/            # Core CLI framework (commands, middleware, store, config)
+│   ├── core/            # Core CLI framework (commands, middleware, store, config)
 │   └── cli/             # CLI entrypoint and DX tooling
 ├── docs/                    # Documentation
 └── contributing/            # Standards, concepts, guides for contributors
@@ -130,7 +130,7 @@ Follow [Conventional Commits](https://www.conventionalcommits.org/) format: `typ
 
 #### Scopes
 
-Use directory-style paths for packages: `packages/kidd`, `packages/cli`. Use short labels for cross-cutting: `deps`, `ci`, `repo`.
+Use directory-style paths for packages: `packages/core`, `packages/cli`. Use short labels for cross-cutting: `deps`, `ci`, `repo`.
 
 #### Format
 

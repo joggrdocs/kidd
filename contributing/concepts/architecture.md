@@ -12,14 +12,14 @@ The codebase follows a functional, immutable, composition-first design. There ar
 
 ```
 packages/
-├── kidd/            # Core CLI framework (commands, middleware, context, config)
+├── core/            # Core CLI framework (commands, middleware, context, config)
 └── cli/             # CLI entrypoint and DX tooling (init, dev, build, compile)
 ```
 
 | Package     | Purpose                                                       |
 | ----------- | ------------------------------------------------------------- |
-| `kidd`      | Core framework: `cli()`, `command()`, `middleware()`, context |
-| `kidd-cli` | DX companion CLI: scaffolding, dev mode, build, compile       |
+| `@kidd-cli/core` | Core framework: `cli()`, `command()`, `middleware()`, context |
+| `@kidd-cli/cli`  | DX companion CLI: scaffolding, dev mode, build, compile       |
 
 ## Layers
 
@@ -88,11 +88,11 @@ flowchart TB
 
 **Package:** `packages/cli`
 
-The CLI binary entrypoint. Calls `cli()` from `kidd` with the CLI name, version, commands, and middleware. This is the only layer that reads `package.json` for version and calls `process.exit`.
+The CLI binary entrypoint. Calls `cli()` from `@kidd-cli/core` with the CLI name, version, commands, and middleware. This is the only layer that reads `package.json` for version and calls `process.exit`.
 
 ### Core Layer
 
-**Package:** `packages/kidd/src/`
+**Package:** `packages/core/src/`
 
 The framework primitives:
 
@@ -106,7 +106,7 @@ The framework primitives:
 
 ### Lib Layer
 
-**Package:** `packages/kidd/src/lib/`
+**Package:** `packages/core/src/lib/`
 
 Shared utilities consumed by the core and extension layers:
 
@@ -145,7 +145,7 @@ All data properties (`args`, `config`, `meta`) are deeply readonly at the type l
 Consumers extend the context type system via declaration merging without threading generics:
 
 ```ts
-declare module 'kidd' {
+declare module '@kidd-cli/core' {
   interface KiddArgs {
     verbose: boolean
   }

@@ -53,7 +53,7 @@ When the reader should copy the entire block, show everything including imports 
 
 ```ts
 // Full file template - reader copies this
-import { cli, z } from 'kidd'
+import { cli, z } from '@kidd-cli/core'
 
 export default cli({
   description: 'Generate types from the API schema',

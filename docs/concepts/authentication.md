@@ -2,7 +2,7 @@
 
 The auth system for kidd CLIs. Provides credential resolution from multiple sources, an interactive login flow, persistent token storage, and automatic HTTP header injection.
 
-Auth is a sub-export of the `kidd` package (`kidd/auth`), not a separate package. It ships as middleware that decorates `ctx.auth` with a `credential()` reader and an `authenticate()` method.
+Auth is a sub-export of the `@kidd-cli/core` package (`@kidd-cli/core/auth`), not a separate package. It ships as middleware that decorates `ctx.auth` with a `credential()` reader and an `authenticate()` method.
 
 ## Key Concepts
 
@@ -190,8 +190,8 @@ if (error) {
 The `http()` middleware (from `kidd/http`) reads `ctx.auth.credential()` automatically. When both middleware are registered, auth credentials are converted to HTTP headers using exhaustive pattern matching on the credential type.
 
 ```ts
-import { auth } from 'kidd/auth'
-import { http } from 'kidd/http'
+import { auth } from '@kidd-cli/core/auth'
+import { http } from '@kidd-cli/core/http'
 
 cli({
   name: 'my-app',

@@ -306,7 +306,7 @@ async function checkKiddDependency(context: CheckContext): Promise<CheckResult> 
   }
 
   return checkResult({
-    hint: 'Run "pnpm add kidd" or use --fix to add it (fixable with --fix)',
+    hint: 'Run "pnpm add @kidd-cli/core" or use --fix to add it (fixable with --fix)',
     message: 'Not found in dependencies or devDependencies',
     name: '@kidd-cli/core dependency',
     status: 'fail',

@@ -58,7 +58,7 @@ export const DEFAULT_COMPILE_TARGETS: readonly CompileTarget[] = [
 /**
  * Packages that must always be bundled into the output.
  *
- * The `kidd` framework and its internal `@kidd-cli/*` packages must be inlined
+ * The `@kidd-cli/core` framework and its internal `@kidd-cli/*` packages must be inlined
  * so the autoload plugin can intercept and replace the runtime autoloader
  * with a static version for compiled binaries.
  */

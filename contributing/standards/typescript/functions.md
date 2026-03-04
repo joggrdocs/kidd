@@ -39,7 +39,7 @@ export function runScript({ name, workspace, dryRun }: RunScriptParams): RunResu
 }
 
 // Usage is self-documenting
-runScript({ name: 'build', workspace: 'packages/kidd', dryRun: false })
+runScript({ name: 'build', workspace: 'packages/core', dryRun: false })
 ```
 
 ```ts
@@ -67,7 +67,7 @@ function runScript(name: string, workspace: string, dryRun: boolean): RunResult 
 }
 
 // Easy to swap by mistake
-runScript('packages/kidd', 'build', false)
+runScript('packages/core', 'build', false)
 ```
 
 ### Document All Functions with JSDoc

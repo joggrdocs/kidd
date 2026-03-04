@@ -91,7 +91,7 @@ cli({
 ### Configuration
 
 ```ts
-import { defineConfig } from 'kidd'
+import { defineConfig } from '@kidd-cli/core'
 
 export default defineConfig({
   build: { out: 'dist' },
@@ -140,7 +140,7 @@ ctx.fail('Deployment failed', { code: 'DEPLOY_ERROR', exitCode: 2 })
 kidd exposes empty interfaces that consumers extend via TypeScript declaration merging. This adds project-wide type safety to `ctx.args`, `ctx.config`, and `ctx.store` without threading generics.
 
 ```ts
-declare module 'kidd' {
+declare module '@kidd-cli/core' {
   interface KiddArgs {
     verbose: boolean
   }
@@ -167,11 +167,11 @@ declare module 'kidd' {
 Add a typed, immutable property to a context instance at runtime. Middleware authors use this to extend `ctx` with custom properties (e.g., `ctx.api`, `ctx.auth`). The property is non-writable and non-configurable after assignment.
 
 ```ts
-import { decorateContext, middleware } from 'kidd'
+import { decorateContext, middleware } from '@kidd-cli/core'
 
-import type { HttpClient } from 'kidd/http'
+import type { HttpClient } from '@kidd-cli/core/http'
 
-declare module 'kidd' {
+declare module '@kidd-cli/core' {
   interface Context {
     readonly github: HttpClient
   }

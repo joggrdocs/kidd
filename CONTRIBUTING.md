@@ -66,7 +66,7 @@ pnpm test
 Or run tests for a specific package:
 
 ```bash
-cd packages/kidd && pnpm test
+cd packages/core && pnpm test
 ```
 
 See the [Testing Standard](contributing/standards/typescript/testing.md) for test structure, mocking, and coverage expectations.

@@ -53,7 +53,7 @@ describe('resolveScriptPath', () => {
 
 // Async tests
 it('should load config from parent directories', async () => {
-  const config = await loadConfig('/project/packages/kidd')
+  const config = await loadConfig('/project/packages/core')
   expect(config).toMatchObject({
     name: expect.any(String),
   })

@@ -5,7 +5,7 @@ Add credential resolution, interactive login, and authenticated HTTP requests to
 ## Prerequisites
 
 - An existing kidd CLI project
-- `kidd` installed (`pnpm add kidd`)
+- `@kidd-cli/core` installed (`pnpm add @kidd-cli/core`)
 
 ## Steps
 
@@ -14,8 +14,8 @@ Add credential resolution, interactive login, and authenticated HTTP requests to
 Import `auth` from `kidd/auth` and add it to the `middleware` array in `cli()`.
 
 ```ts
-import { cli } from 'kidd'
-import { auth } from 'kidd/auth'
+import { cli } from '@kidd-cli/core'
+import { auth } from '@kidd-cli/core/auth'
 
 cli({
   name: 'my-app',
@@ -39,7 +39,7 @@ The `resolvers` array defines which credential sources to try. Order matters -- 
 Create a command that calls `ctx.auth.authenticate()` to run the interactive resolvers and persist the credential.
 
 ```ts
-import { command } from 'kidd'
+import { command } from '@kidd-cli/core'
 
 export default command({
   description: 'Authenticate with the service',
@@ -60,7 +60,7 @@ export default command({
 Check `ctx.auth.credential()` before making authenticated requests.
 
 ```ts
-import { command } from 'kidd'
+import { command } from '@kidd-cli/core'
 
 export default command({
   description: 'Display the authenticated user',
@@ -79,13 +79,13 @@ export default command({
 For authenticated API requests, register the `http()` middleware after `auth()`. It reads `ctx.auth.credential()` automatically and injects the correct HTTP headers.
 
 ```ts
-import { cli } from 'kidd'
-import { auth } from 'kidd/auth'
-import { http } from 'kidd/http'
+import { cli } from '@kidd-cli/core'
+import { auth } from '@kidd-cli/core/auth'
+import { http } from '@kidd-cli/core/http'
 
-import type { HttpClient } from 'kidd/http'
+import type { HttpClient } from '@kidd-cli/core/http'
 
-declare module 'kidd' {
+declare module '@kidd-cli/core' {
   interface Context {
     readonly api: HttpClient
   }
@@ -117,7 +117,7 @@ The `namespace` option determines the context property name. With `namespace: 'a
 Use the typed HTTP client to make requests. Auth headers are injected automatically.
 
 ```ts
-import { command } from 'kidd'
+import { command } from '@kidd-cli/core'
 import { z } from 'zod'
 
 interface Repo {

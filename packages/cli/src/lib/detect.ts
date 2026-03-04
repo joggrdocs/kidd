@@ -9,7 +9,7 @@ import type { GenerateError, ProjectInfo } from './types.js'
 /**
  * Detect whether the given directory contains a kidd-based CLI project.
  *
- * Looks for a `package.json` with `kidd` listed in `dependencies` or
+ * Looks for a `package.json` with `@kidd-cli/core` listed in `dependencies` or
  * `devDependencies`, and checks for a `src/commands/` directory.
  *
  * @param cwd - The directory to inspect.

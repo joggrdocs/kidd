@@ -1,11 +1,11 @@
-# kidd-cli
+# @kidd-cli/cli
 
 DX companion CLI for kidd projects. Provides scaffolding, building, diagnostics, and code generation commands.
 
 ## Installation
 
 ```bash
-pnpm add -D kidd-cli
+pnpm add -D @kidd-cli/cli
 ```
 
 ## Commands
@@ -46,7 +46,7 @@ Supported compile targets: `darwin-arm64`, `darwin-x64`, `linux-x64`, `linux-arm
 Build options can also be configured in `kidd.config.ts`:
 
 ```ts
-import { defineConfig } from 'kidd'
+import { defineConfig } from '@kidd-cli/core'
 
 export default defineConfig({
   entry: './index.ts',

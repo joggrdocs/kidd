@@ -16,7 +16,7 @@ Create a new file in the commands directory. The filename becomes the command na
 **With Zod args:**
 
 ```ts
-import { command } from 'kidd'
+import { command } from '@kidd-cli/core'
 import { z } from 'zod'
 
 export default command({
@@ -39,7 +39,7 @@ export default command({
 **Without args:**
 
 ```ts
-import { command } from 'kidd'
+import { command } from '@kidd-cli/core'
 
 export default command({
   description: 'List available scripts',
@@ -62,7 +62,7 @@ commands/
 ```
 
 ```ts
-import { command, autoload } from 'kidd'
+import { command, autoload } from '@kidd-cli/core'
 
 export default command({
   description: 'Auth commands',
@@ -82,7 +82,7 @@ No manual registration is needed.
 
 ### 3. Add lib functions if needed
 
-If the command needs new shared logic, add it to `packages/kidd/src/lib/`. Follow existing patterns:
+If the command needs new shared logic, add it to `packages/core/src/lib/`. Follow existing patterns:
 
 - Return `Result` tuples for operations that can fail
 - Use Zod for runtime validation at boundaries
@@ -131,7 +131,7 @@ After completing all steps:
 
 **Issue:** Properties on `ctx` are missing or mistyped.
 
-**Fix:** Verify the command uses `command()` from `kidd` (not a custom wrapper). Check that module augmentation interfaces (`KiddArgs`, `KiddConfig`, `KiddStore`) are correctly declared if using typed store keys or global args.
+**Fix:** Verify the command uses `command()` from `@kidd-cli/core` (not a custom wrapper). Check that module augmentation interfaces (`KiddArgs`, `KiddConfig`, `KiddStore`) are correctly declared if using typed store keys or global args.
 
 ## References
 

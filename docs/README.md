@@ -23,8 +23,8 @@ An opinionated CLI framework for Node.js. Convention over configuration, end-to-
 }}%%
 flowchart LR
     subgraph framework["Framework"]
-        K(["kidd"])
-        CLI(["kidd-cli"])
+        K(["@kidd-cli/core"])
+        CLI(["@kidd-cli/cli"])
     end
 
     subgraph internal["Internal"]
@@ -53,8 +53,8 @@ flowchart LR
 
 | Package                                  | Purpose                                                  | Runtime  |
 | ---------------------------------------- | -------------------------------------------------------- | -------- |
-| [`kidd`](./reference/kidd.md)            | Core CLI framework (commands, middleware, config, store)  | CLI      |
-| [`kidd-cli`](./reference/cli.md)        | DX companion CLI (init, build, doctor, add)               | CLI      |
+| [`@kidd-cli/core`](./reference/kidd.md)  | Core CLI framework (commands, middleware, config, store)  | CLI      |
+| [`@kidd-cli/cli`](./reference/cli.md)   | DX companion CLI (init, build, doctor, add)               | CLI      |
 | `@kidd-cli/config`                           | Configuration loading, validation, and schema (internal)  | Library  |
 | `@kidd-cli/utils`                            | Shared functional utilities (internal)                    | Library  |
 | `@kidd-cli/bundler`                          | tsdown bundling and binary compilation (internal)         | CLI      |
@@ -73,5 +73,5 @@ flowchart LR
 
 ## Reference
 
-- [kidd](./reference/kidd.md) -- core framework API
-- [kidd-cli](./reference/cli.md) -- DX companion CLI commands
+- [@kidd-cli/core](./reference/kidd.md) -- core framework API
+- [@kidd-cli/cli](./reference/cli.md) -- DX companion CLI commands

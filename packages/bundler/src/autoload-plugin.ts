@@ -22,7 +22,7 @@ interface CreateAutoloadPluginParams {
  * Create a rolldown plugin that replaces the runtime autoloader with a static version.
  *
  * Uses a three-hook approach to break the circular dependency between kidd's
- * dist and user command files (which `import { command } from 'kidd'`):
+ * dist and user command files (which `import { command } from '@kidd-cli/core'`):
  *
  * 1. `transform` — detects kidd's pre-bundled dist and replaces the autoloader
  *    region with a dynamic `import()` to a virtual module

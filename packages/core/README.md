@@ -11,7 +11,7 @@ pnpm add kidd
 ## Usage
 
 ```ts
-import { cli, command } from 'kidd'
+import { cli, command } from '@kidd-cli/core'
 import { z } from 'zod'
 
 const greet = command({
@@ -99,7 +99,7 @@ cli({
 Type-safe helper for `kidd.config.ts` files.
 
 ```ts
-import { defineConfig } from 'kidd'
+import { defineConfig } from '@kidd-cli/core'
 
 export default defineConfig({
   build: { out: 'dist' },
@@ -113,7 +113,7 @@ export default defineConfig({
 Interactive terminal prompts backed by `@clack/prompts`.
 
 ```ts
-import { prompts, spinner } from 'kidd/prompts'
+import { prompts, spinner } from '@kidd-cli/core/prompts'
 
 const name = await prompts.text({ message: 'Project name?' })
 
@@ -126,7 +126,7 @@ spinner.stop('Done')
 Structured terminal logger backed by `@clack/prompts`.
 
 ```ts
-import { log } from 'kidd/logger'
+import { log } from '@kidd-cli/core/logger'
 
 log.intro('My CLI')
 log.info('Processing...')
@@ -139,7 +139,7 @@ log.outro('Done')
 Structured output for JSON, templates, and files.
 
 ```ts
-import { output } from 'kidd/output'
+import { output } from '@kidd-cli/core/output'
 
 output.json({ status: 'ok' })
 output.write({ path: './out.json', content: output.toJson(data) })
@@ -150,7 +150,7 @@ output.write({ path: './out.json', content: output.toJson(data) })
 Error creation, formatting, and sanitization utilities.
 
 ```ts
-import { createErrorUtil, sanitize } from 'kidd/errors'
+import { createErrorUtil, sanitize } from '@kidd-cli/core/errors'
 
 const errors = createErrorUtil({ prefix: 'deploy', sanitize: true })
 const err = errors.create('Connection refused')
@@ -163,7 +163,7 @@ const clean = sanitize('token=abc123&secret=xyz')
 Typed config client for JSON/JSONC/YAML files.
 
 ```ts
-import { createConfigClient } from 'kidd/config'
+import { createConfigClient } from '@kidd-cli/core/config'
 
 const config = createConfigClient({ name: 'my-app', schema: MySchema })
 const [error, result] = await config.load()
@@ -174,7 +174,7 @@ const [error, result] = await config.load()
 File-backed JSON store with local and global resolution.
 
 ```ts
-import { createStore } from 'kidd/store'
+import { createStore } from '@kidd-cli/core/store'
 
 const store = createStore({ dirName: '.my-app' })
 const settings = store.load('settings.json')
@@ -185,7 +185,7 @@ const settings = store.load('settings.json')
 Zod-based validation returning Result tuples.
 
 ```ts
-import { validate } from 'kidd/validate'
+import { validate } from '@kidd-cli/core/validate'
 
 const [error, value] = validate(
   MySchema,
@@ -199,7 +199,7 @@ const [error, value] = validate(
 Git project root resolution, submodule detection, and dotenv loading.
 
 ```ts
-import { findProjectRoot, createDotEnv, isInSubmodule } from 'kidd/project'
+import { findProjectRoot, createDotEnv, isInSubmodule } from '@kidd-cli/core/project'
 
 const root = findProjectRoot()
 const env = createDotEnv({ dirName: '.my-app' })

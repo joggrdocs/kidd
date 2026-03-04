@@ -14,10 +14,10 @@ Config files are named `.<name>.jsonc`, `.<name>.json`, or `.<name>.yaml`, where
 
 ## `defineConfig()`
 
-Type-safe helper for `kidd.config.ts`. Used by the `kidd-cli` build system.
+Type-safe helper for `kidd.config.ts`. Used by the `@kidd-cli/cli` build system.
 
 ```ts
-import { defineConfig } from 'kidd'
+import { defineConfig } from '@kidd-cli/core'
 
 export default defineConfig({
   entry: './index.ts',
@@ -61,7 +61,7 @@ cli({
 The `createConfigClient` factory (from `kidd/config`) provides a standalone API for loading, finding, and writing config files outside of the `cli()` bootstrap.
 
 ```ts
-import { createConfigClient } from 'kidd/config'
+import { createConfigClient } from '@kidd-cli/core/config'
 
 const config = createConfigClient({
   name: 'my-app',
@@ -133,4 +133,4 @@ The first matching file wins. Files are checked in extension order: `.jsonc`, `.
 
 - [kidd API Reference](../reference/kidd.md)
 - [Context](./context.md)
-- [kidd-cli Reference](../reference/cli.md)
+- [@kidd-cli/cli Reference](../reference/cli.md)

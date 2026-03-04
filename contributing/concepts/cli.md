@@ -4,7 +4,7 @@ Overview of the CLI system -- commands, middleware, the context object, autoload
 
 ## Overview
 
-kidd uses [yargs](https://yargs.js.org) for command routing and [`@clack/prompts`](https://www.clack.cc) for styled terminal output. The CLI entry point is in `packages/cli/src/`, which registers all commands and attaches middleware. Each command is implemented using the `command()` factory from `kidd`.
+kidd uses [yargs](https://yargs.js.org) for command routing and [`@clack/prompts`](https://www.clack.cc) for styled terminal output. The CLI entry point is in `packages/cli/src/`, which registers all commands and attaches middleware. Each command is implemented using the `command()` factory from `@kidd-cli/core`.
 
 ## Commands
 
@@ -21,7 +21,7 @@ Commands are created with the `command()` factory. Each command defines a descri
 ### With Zod args
 
 ```ts
-import { command } from 'kidd'
+import { command } from '@kidd-cli/core'
 import { z } from 'zod'
 
 export default command({
@@ -39,7 +39,7 @@ export default command({
 ### Without args
 
 ```ts
-import { command } from 'kidd'
+import { command } from '@kidd-cli/core'
 
 export default command({
   description: 'List available scripts',
@@ -52,7 +52,7 @@ export default command({
 ### With subcommands
 
 ```ts
-import { command, autoload } from 'kidd'
+import { command, autoload } from '@kidd-cli/core'
 
 export default command({
   description: 'Auth commands',
@@ -92,7 +92,7 @@ ctx.store.delete('startTime')
 Consumers register typed keys via module augmentation:
 
 ```ts
-declare module 'kidd' {
+declare module '@kidd-cli/core' {
   interface KiddStore {
     auth: AuthState
   }
@@ -151,7 +151,7 @@ Middleware wraps command execution with pre/post logic. Created with the `middle
 Declared on `cli({ middleware: [...] })`. Runs for every command invocation:
 
 ```ts
-import { middleware } from 'kidd'
+import { middleware } from '@kidd-cli/core'
 
 export default middleware(async (ctx, next) => {
   ctx.store.set('startTime', Date.now())
@@ -242,7 +242,7 @@ This design means:
 The `cli()` function wires everything together:
 
 ```ts
-import { cli, autoload } from 'kidd'
+import { cli, autoload } from '@kidd-cli/core'
 
 cli({
   name: 'my-tool',

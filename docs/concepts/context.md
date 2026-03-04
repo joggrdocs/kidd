@@ -206,7 +206,7 @@ See [Authentication](./authentication.md) for the full auth system reference.
 kidd exposes empty interfaces that consumers extend via TypeScript declaration merging. This adds project-wide type safety without threading generics through every handler.
 
 ```ts
-declare module 'kidd' {
+declare module '@kidd-cli/core' {
   interface KiddArgs {
     verbose: boolean
   }

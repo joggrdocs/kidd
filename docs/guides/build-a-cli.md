@@ -5,7 +5,7 @@ Define commands, middleware, configuration, and use kidd's sub-exports to build 
 ## Prerequisites
 
 - Node.js 18+
-- `kidd` installed (`pnpm add kidd`)
+- `@kidd-cli/core` installed (`pnpm add @kidd-cli/core`)
 
 ## Steps
 
@@ -14,7 +14,7 @@ Define commands, middleware, configuration, and use kidd's sub-exports to build 
 Commands accept a description, typed arguments via Zod, and a handler function.
 
 ```ts
-import { command } from 'kidd'
+import { command } from '@kidd-cli/core'
 import { z } from 'zod'
 
 const deploy = command({
@@ -34,7 +34,7 @@ const deploy = command({
 `cli()` registers commands, parses arguments, loads config, runs middleware, and invokes the matched handler.
 
 ```ts
-import { cli } from 'kidd'
+import { cli } from '@kidd-cli/core'
 
 cli({
   name: 'my-app',
@@ -53,7 +53,7 @@ Middleware wraps command execution with pre/post logic. It receives the context 
 **Root middleware** runs for every command:
 
 ```ts
-import { middleware } from 'kidd'
+import { middleware } from '@kidd-cli/core'
 
 const timing = middleware(async (ctx, next) => {
   const start = Date.now()
@@ -109,7 +109,7 @@ const generate = command({
 Dynamically discover commands at runtime:
 
 ```ts
-import { autoload } from 'kidd'
+import { autoload } from '@kidd-cli/core'
 
 cli({
   name: 'my-app',
@@ -125,7 +125,7 @@ cli({
 Create a type-safe `kidd.config.ts`:
 
 ```ts
-import { defineConfig } from 'kidd'
+import { defineConfig } from '@kidd-cli/core'
 
 export default defineConfig({
   build: { out: 'dist' },
@@ -135,7 +135,7 @@ export default defineConfig({
 Load and validate config from within commands using the config client:
 
 ```ts
-import { createConfigClient } from 'kidd/config'
+import { createConfigClient } from '@kidd-cli/core/config'
 
 const config = createConfigClient({ name: 'my-app', schema: MySchema })
 const [error, result] = await config.load()
@@ -148,7 +148,7 @@ kidd exposes focused utilities through sub-exports.
 **Prompts** -- interactive terminal prompts:
 
 ```ts
-import { prompts, spinner } from 'kidd/prompts'
+import { prompts, spinner } from '@kidd-cli/core/prompts'
 
 const result = await prompts.text({ message: 'Project name?' })
 if (prompts.isCancel(result)) {
@@ -164,7 +164,7 @@ The standalone `PromptUtils` from `kidd/prompts` returns raw clack values (which
 **Logger** -- structured terminal output:
 
 ```ts
-import { cliLogger } from 'kidd/logger'
+import { cliLogger } from '@kidd-cli/core/logger'
 
 cliLogger.intro('My CLI')
 cliLogger.info('Processing...')
@@ -175,7 +175,7 @@ cliLogger.outro('Done')
 **Output** -- JSON serialization, Liquid templates, file writing:
 
 ```ts
-import { output } from 'kidd/output'
+import { output } from '@kidd-cli/core/output'
 
 output.json({ status: 'ok' })
 output.print('Deployment complete')
@@ -186,7 +186,7 @@ The standalone `CliOutput` from `kidd/output` is distinct from `ctx.output` on t
 **Store** -- file-backed JSON store for persistent data (separate from the in-memory `ctx.store` used for middleware-to-handler data flow):
 
 ```ts
-import { createStore } from 'kidd/store'
+import { createStore } from '@kidd-cli/core/store'
 
 const store = createStore({ dirName: '.my-app' })
 const settings = store.load('settings.json')
@@ -195,7 +195,7 @@ const settings = store.load('settings.json')
 **Project** -- git root resolution, submodule detection, path utilities:
 
 ```ts
-import { findProjectRoot, isInSubmodule, resolvePath } from 'kidd/project'
+import { findProjectRoot, isInSubmodule, resolvePath } from '@kidd-cli/core/project'
 
 const root = findProjectRoot()
 const inSubmodule = isInSubmodule()

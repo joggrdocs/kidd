@@ -1,11 +1,11 @@
-# kidd-cli
+# @kidd-cli/cli
 
 DX companion CLI for the kidd framework.
 
 ## Installation
 
 ```bash
-pnpm add -g kidd-cli
+pnpm add -g @kidd-cli/cli
 ```
 
 ## Usage

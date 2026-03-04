@@ -1,6 +1,10 @@
 import type { Context } from '@kidd-cli/core'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+vi.mock(import('@kidd-cli/utils/manifest'), () => ({
+  readManifest: vi.fn(),
+}))
+
 vi.mock(import('../lib/render.js'), () => ({
   renderTemplate: vi.fn(),
 }))
@@ -9,8 +13,10 @@ vi.mock(import('../lib/write.js'), () => ({
   writeFiles: vi.fn(),
 }))
 
+const { readManifest } = await import('@kidd-cli/utils/manifest')
 const { renderTemplate } = await import('../lib/render.js')
 const { writeFiles } = await import('../lib/write.js')
+const mockedReadManifest = vi.mocked(readManifest)
 const mockedRenderTemplate = vi.mocked(renderTemplate)
 const mockedWriteFiles = vi.mocked(writeFiles)
 
@@ -53,6 +59,20 @@ function makeContext(argOverrides: Record<string, unknown> = {}): Context {
 describe('init command', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mockedReadManifest.mockResolvedValue([
+      null,
+      {
+        author: undefined,
+        bin: undefined,
+        description: undefined,
+        homepage: undefined,
+        keywords: [],
+        license: undefined,
+        name: undefined,
+        repository: undefined,
+        version: '1.2.3',
+      },
+    ])
   })
 
   it('should prompt for missing args', async () => {
@@ -110,7 +130,13 @@ describe('init command', () => {
 
     expect(mockedRenderTemplate).toHaveBeenCalledWith(
       expect.objectContaining({
-        variables: { description: 'Test', name: 'test-cli', packageManager: 'npm' },
+        variables: {
+          cliVersion: '1.2.3',
+          coreVersion: '1.2.3',
+          description: 'Test',
+          name: 'test-cli',
+          packageManager: 'npm',
+        },
       })
     )
   })

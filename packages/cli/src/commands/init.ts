@@ -1,7 +1,10 @@
-import { join } from 'node:path'
+import { createRequire } from 'node:module'
+import { dirname, join } from 'node:path'
 
 import { command } from '@kidd-cli/core'
 import type { Command, Context } from '@kidd-cli/core'
+import { attempt } from '@kidd-cli/utils/fp'
+import { readManifest } from '@kidd-cli/utils/manifest'
 import { z } from 'zod'
 
 import { renderTemplate } from '../lib/render.js'
@@ -30,10 +33,19 @@ const initCommand = command({
 
     ctx.spinner.start('Scaffolding project...')
 
+    const coreVersion = await resolveDependencyVersion('@kidd-cli/core')
+    const cliVersion = await resolveSelfVersion()
+
     const templateDir = join(import.meta.dirname, '..', 'lib', 'templates', 'project')
     const [renderError, rendered] = await renderTemplate({
       templateDir,
-      variables: { description: projectDescription, name: projectName, packageManager },
+      variables: {
+        cliVersion,
+        coreVersion,
+        description: projectDescription,
+        name: projectName,
+        packageManager,
+      },
     })
 
     if (renderError) {
@@ -201,4 +213,52 @@ function selectFiles(
  */
 function excludeHelloCommand(file: RenderedFile): boolean {
   return !file.relativePath.includes('commands/hello.ts')
+}
+
+const DEFAULT_VERSION = '0.0.0'
+
+/**
+ * Resolve the version of the running CLI package.
+ *
+ * Reads the CLI's own `package.json` by navigating up from the current
+ * command file directory. Returns `'0.0.0'` when the manifest cannot be
+ * read or is missing a version field.
+ *
+ * @returns The CLI package version string, or `'0.0.0'` on failure.
+ * @private
+ */
+async function resolveSelfVersion(): Promise<string> {
+  const packageDir = join(import.meta.dirname, '..', '..')
+  const [error, manifest] = await readManifest(packageDir)
+  if (error || !manifest.version) {
+    return DEFAULT_VERSION
+  }
+  return manifest.version
+}
+
+/**
+ * Resolve the installed version of a dependency package.
+ *
+ * Uses `createRequire` to locate the package entry point, derives the
+ * package root from the resolved path, and reads its `package.json`.
+ * Returns `'0.0.0'` when resolution fails for any reason.
+ *
+ * @param packageName - The npm package name to resolve (e.g. `'@kidd-cli/core'`).
+ * @returns The package version string, or `'0.0.0'` on failure.
+ * @private
+ */
+async function resolveDependencyVersion(packageName: string): Promise<string> {
+  const require = createRequire(import.meta.url)
+  const [resolveError, entryPath] = attempt(() => require.resolve(packageName))
+  if (resolveError || entryPath === null) {
+    return DEFAULT_VERSION
+  }
+
+  const packageDir = join(dirname(entryPath), '..')
+  const [manifestError, manifest] = await readManifest(packageDir)
+  if (manifestError || !manifest.version) {
+    return DEFAULT_VERSION
+  }
+
+  return manifest.version
 }

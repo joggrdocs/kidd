@@ -91,13 +91,13 @@ describe(readRawPackageJson, () => {
 
   it('should return parsed package.json data', async () => {
     mockedReadFile.mockResolvedValue(
-      JSON.stringify({ dependencies: { kidd: '1.0.0' }, type: 'module' })
+      JSON.stringify({ dependencies: { '@kidd-cli/core': '1.0.0' }, type: 'module' })
     )
 
     const [error, result] = await readRawPackageJson('/project')
 
     expect(error).toBeNull()
-    expect(result).toMatchObject({ dependencies: { kidd: '1.0.0' }, type: 'module' })
+    expect(result).toMatchObject({ dependencies: { '@kidd-cli/core': '1.0.0' }, type: 'module' })
   })
 
   it('should return error when file read fails', async () => {
@@ -231,10 +231,10 @@ describe('diagnostic checks', () => {
   describe('kidd dependency', () => {
     it('should pass when kidd is in dependencies', async () => {
       const context = makeContext({
-        rawPackageJson: { dependencies: { kidd: '1.0.0' } },
+        rawPackageJson: { dependencies: { '@kidd-cli/core': '1.0.0' } },
       })
 
-      const result = await findCheck('kidd dependency').run(context)
+      const result = await findCheck('@kidd-cli/core dependency').run(context)
 
       expect(result.status).toBe('pass')
       expect(result.message).toContain('dependencies')
@@ -242,10 +242,10 @@ describe('diagnostic checks', () => {
 
     it('should pass when kidd is in devDependencies', async () => {
       const context = makeContext({
-        rawPackageJson: { devDependencies: { kidd: '^1.0.0' } },
+        rawPackageJson: { devDependencies: { '@kidd-cli/core': '^1.0.0' } },
       })
 
-      const result = await findCheck('kidd dependency').run(context)
+      const result = await findCheck('@kidd-cli/core dependency').run(context)
 
       expect(result.status).toBe('pass')
       expect(result.message).toContain('devDependencies')
@@ -256,7 +256,7 @@ describe('diagnostic checks', () => {
         rawPackageJson: { dependencies: { express: '4.0.0' } },
       })
 
-      const result = await findCheck('kidd dependency').run(context)
+      const result = await findCheck('@kidd-cli/core dependency').run(context)
 
       expect(result.status).toBe('fail')
     })
@@ -264,7 +264,7 @@ describe('diagnostic checks', () => {
     it('should fail when no rawPackageJson', async () => {
       const context = makeContext()
 
-      const result = await findCheck('kidd dependency').run(context)
+      const result = await findCheck('@kidd-cli/core dependency').run(context)
 
       expect(result.status).toBe('fail')
     })
@@ -378,14 +378,14 @@ describe('fix functions', () => {
       mockedWriteFile.mockResolvedValue(undefined)
       const context = makeContext()
 
-      const {fix} = findCheck('kidd dependency')
+      const {fix} = findCheck('@kidd-cli/core dependency')
       if (!fix) {
         expect.unreachable('fix should be defined')
       }
       const result = await fix(context)
 
       expect(result.fixed).toBeTruthy()
-      expect(result.name).toBe('kidd dependency')
+      expect(result.name).toBe('@kidd-cli/core dependency')
       expect(mockedWriteFile).toHaveBeenCalledTimes(1)
     })
   })

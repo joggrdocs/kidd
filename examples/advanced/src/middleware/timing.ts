@@ -1,4 +1,4 @@
-import { middleware } from 'kidd'
+import { middleware } from '@kidd-cli/core'
 
 const MS_PER_SECOND = 1000
 

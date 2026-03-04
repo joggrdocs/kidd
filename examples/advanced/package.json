@@ -11,11 +11,11 @@
     "typecheck": "tsgo --noEmit"
   },
   "dependencies": {
-    "kidd": "workspace:*",
+    "@kidd-cli/core": "workspace:*",
     "zod": "catalog:"
   },
   "devDependencies": {
-    "kidd-cli": "workspace:*",
+    "@kidd-cli/cli": "workspace:*",
     "tsdown": "catalog:",
     "tsx": "catalog:",
     "typescript": "catalog:"

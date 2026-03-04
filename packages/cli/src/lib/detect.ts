@@ -29,7 +29,7 @@ export async function detectProject(cwd: string): AsyncResult<ProjectInfo | null
 
   const deps = pkg.dependencies ?? {}
   const devDeps = pkg.devDependencies ?? {}
-  const hasKiddDep = 'kidd' in deps || 'kidd' in devDeps
+  const hasKiddDep = '@kidd-cli/core' in deps || '@kidd-cli/core' in devDeps
 
   if (!hasKiddDep) {
     return ok(null)

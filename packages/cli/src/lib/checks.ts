@@ -281,7 +281,7 @@ async function checkKiddDependency(context: CheckContext): Promise<CheckResult> 
     return checkResult({
       hint: 'Run "pnpm init" to create a package.json first',
       message: 'No package.json found',
-      name: 'kidd dependency',
+      name: '@kidd-cli/core dependency',
       status: 'fail',
     })
   }
@@ -289,18 +289,18 @@ async function checkKiddDependency(context: CheckContext): Promise<CheckResult> 
   const deps = context.rawPackageJson.dependencies ?? {}
   const devDeps = context.rawPackageJson.devDependencies ?? {}
 
-  if ('kidd' in deps) {
+  if ('@kidd-cli/core' in deps) {
     return checkResult({
       message: 'Found in dependencies',
-      name: 'kidd dependency',
+      name: '@kidd-cli/core dependency',
       status: 'pass',
     })
   }
 
-  if ('kidd' in devDeps) {
+  if ('@kidd-cli/core' in devDeps) {
     return checkResult({
       message: 'Found in devDependencies',
-      name: 'kidd dependency',
+      name: '@kidd-cli/core dependency',
       status: 'pass',
     })
   }
@@ -308,7 +308,7 @@ async function checkKiddDependency(context: CheckContext): Promise<CheckResult> 
   return checkResult({
     hint: 'Run "pnpm add kidd" or use --fix to add it (fixable with --fix)',
     message: 'Not found in dependencies or devDependencies',
-    name: 'kidd dependency',
+    name: '@kidd-cli/core dependency',
     status: 'fail',
   })
 }
@@ -446,18 +446,18 @@ async function fixKiddDependency(context: CheckContext): Promise<FixResult> {
     const deps = pkg.dependencies as Record<string, string> | undefined
     return {
       ...pkg,
-      dependencies: { ...deps, kidd: 'latest' },
+      dependencies: { ...deps, '@kidd-cli/core': 'latest' },
     }
   })
 
   if (updateError) {
-    return fixResult({ fixed: false, message: updateError.message, name: 'kidd dependency' })
+    return fixResult({ fixed: false, message: updateError.message, name: '@kidd-cli/core dependency' })
   }
 
   return fixResult({
     fixed: true,
-    message: 'Added "kidd": "latest" to dependencies',
-    name: 'kidd dependency',
+    message: 'Added "@kidd-cli/core": "latest" to dependencies',
+    name: '@kidd-cli/core dependency',
   })
 }
 
@@ -485,7 +485,7 @@ async function fixEntryPoint(context: CheckContext): Promise<FixResult> {
     })
   }
 
-  const content = `import { create } from 'kidd'\n`
+  const content = `import { create } from '@kidd-cli/core'\n`
   const [writeError] = await attemptAsync<void, Error>(() =>
     writeFile(absolutePath, content, 'utf8')
   )
@@ -537,7 +537,7 @@ export const CHECKS: readonly DiagnosticCheck[] = [
   { name: 'package.json', run: checkPackageJson },
   { name: 'package version', run: checkPackageVersion },
   { fix: fixModuleType, name: 'module type', run: checkModuleType },
-  { fix: fixKiddDependency, name: 'kidd dependency', run: checkKiddDependency },
+  { fix: fixKiddDependency, name: '@kidd-cli/core dependency', run: checkKiddDependency },
   { fix: fixEntryPoint, name: 'entry point', run: checkEntryPoint },
   { fix: fixCommandsDirectory, name: 'commands directory', run: checkCommandsDirectory },
   { name: 'tsconfig.json', run: checkTsconfig },

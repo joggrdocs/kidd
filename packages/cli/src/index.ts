@@ -1,4 +1,4 @@
-import { cli } from 'kidd'
+import { cli } from '@kidd-cli/core'
 
 import { loadCLIManifest } from './manifest.js'
 

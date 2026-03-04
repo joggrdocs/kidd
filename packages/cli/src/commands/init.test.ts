@@ -1,4 +1,4 @@
-import type { Context } from 'kidd'
+import type { Context } from '@kidd-cli/core'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock(import('../lib/render.js'), () => ({

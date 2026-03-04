@@ -1,4 +1,4 @@
-import { command } from 'kidd'
+import { command } from '@kidd-cli/core'
 
 export default command({
   description: 'Authenticate with the service',

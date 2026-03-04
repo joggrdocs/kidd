@@ -5,8 +5,8 @@ import type { CompiledBinary } from '@kidd-cli/bundler'
 import type { CompileTarget, KiddConfig } from '@kidd-cli/config'
 import { loadConfig } from '@kidd-cli/config/loader'
 import type { LoadConfigResult } from '@kidd-cli/config/loader'
-import { command } from 'kidd'
-import type { Command, Context } from 'kidd'
+import { command } from '@kidd-cli/core'
+import type { Command, Context } from '@kidd-cli/core'
 import { z } from 'zod'
 
 const args = z.object({

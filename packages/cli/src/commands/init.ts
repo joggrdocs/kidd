@@ -1,7 +1,7 @@
 import { join } from 'node:path'
 
-import { command } from 'kidd'
-import type { Command, Context } from 'kidd'
+import { command } from '@kidd-cli/core'
+import type { Command, Context } from '@kidd-cli/core'
 import { z } from 'zod'
 
 import { renderTemplate } from '../lib/render.js'

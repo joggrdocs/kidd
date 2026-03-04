@@ -1,4 +1,4 @@
-import type { Context } from 'kidd'
+import type { Context } from '@kidd-cli/core'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock(import('@kidd-cli/bundler'), () => ({
@@ -9,7 +9,7 @@ vi.mock(import('@kidd-cli/config/loader'), () => ({
   loadConfig: vi.fn(),
 }))
 
-vi.mock(import('kidd'), () => ({
+vi.mock(import('@kidd-cli/core'), () => ({
   command: vi.fn((def) => def),
 }))
 

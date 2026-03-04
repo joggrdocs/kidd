@@ -1,4 +1,4 @@
-import { cli } from 'kidd'
+import { cli } from '@kidd-cli/core'
 import { z } from 'zod'
 
 import telemetry from './middleware/telemetry.js'

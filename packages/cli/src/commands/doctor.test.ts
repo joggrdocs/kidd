@@ -1,4 +1,4 @@
-import type { Context } from 'kidd'
+import type { Context } from '@kidd-cli/core'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { CheckContext, CheckResult, DiagnosticCheck, FixResult } from '../lib/checks.js'
@@ -17,7 +17,7 @@ vi.mock(import('../lib/checks.js'), () => ({
   readRawPackageJson: vi.fn(),
 }))
 
-vi.mock(import('kidd'), () => ({
+vi.mock(import('@kidd-cli/core'), () => ({
   command: vi.fn((def) => def),
 }))
 

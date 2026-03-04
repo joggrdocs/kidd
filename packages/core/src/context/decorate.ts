@@ -7,7 +7,7 @@ import type { Context } from './types.js'
  * Pair with module augmentation on Context for type safety:
  *
  * ```ts
- * declare module 'kidd' {
+ * declare module '@kidd-cli/core' {
  *   interface Context {
  *     readonly github: HttpClient
  *   }

@@ -183,7 +183,7 @@ export interface AuthOptions {
  * When a consumer imports `kidd/auth`, this declaration merges `auth`
  * onto `Context` so that `ctx.auth` is typed without manual casting.
  */
-declare module 'kidd' {
+declare module '@kidd-cli/core' {
   interface Context {
     readonly auth: AuthContext
   }

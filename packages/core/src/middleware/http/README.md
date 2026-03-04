@@ -5,9 +5,9 @@ Typed HTTP client middleware that decorates the context with a namespaced `HttpC
 ## Usage
 
 ```ts
-import { cli } from 'kidd'
-import { auth } from 'kidd/auth'
-import { http } from 'kidd/http'
+import { cli } from '@kidd-cli/core'
+import { auth } from '@kidd-cli/core/auth'
+import { http } from '@kidd-cli/core/http'
 
 cli({
   name: 'my-app',
@@ -33,9 +33,9 @@ The middleware reads credentials from `ctx.store` (written by the auth middlewar
 Augment the `Context` interface so TypeScript knows about the namespace property:
 
 ```ts
-import type { HttpClient } from 'kidd/http'
+import type { HttpClient } from '@kidd-cli/core/http'
 
-declare module 'kidd' {
+declare module '@kidd-cli/core' {
   interface Context {
     readonly github: HttpClient
   }
@@ -136,9 +136,9 @@ cli({
 Augment the context for both namespaces:
 
 ```ts
-import type { HttpClient } from 'kidd/http'
+import type { HttpClient } from '@kidd-cli/core/http'
 
-declare module 'kidd' {
+declare module '@kidd-cli/core' {
   interface Context {
     readonly github: HttpClient
     readonly gitlab: HttpClient
@@ -169,7 +169,7 @@ cli({
 Use `createHttpClient` outside the middleware pipeline for scripts or tests:
 
 ```ts
-import { createHttpClient } from 'kidd/http'
+import { createHttpClient } from '@kidd-cli/core/http'
 
 const client = createHttpClient({
   baseUrl: 'https://api.github.com',

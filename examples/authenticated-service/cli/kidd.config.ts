@@ -1,4 +1,4 @@
-import { defineConfig } from 'kidd'
+import { defineConfig } from '@kidd-cli/core'
 
 export default defineConfig({
   commands: './src/commands',

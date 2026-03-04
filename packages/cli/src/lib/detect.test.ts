@@ -44,7 +44,7 @@ describe('detectProject()', () => {
     mockedAccess.mockResolvedValueOnce(undefined).mockResolvedValueOnce(undefined)
     mockedReadFile.mockResolvedValue(
       JSON.stringify({
-        dependencies: { kidd: 'workspace:*' },
+        dependencies: { '@kidd-cli/core': 'workspace:*' },
       })
     )
 
@@ -61,7 +61,7 @@ describe('detectProject()', () => {
     mockedAccess.mockResolvedValueOnce(undefined).mockRejectedValueOnce(new Error('ENOENT'))
     mockedReadFile.mockResolvedValue(
       JSON.stringify({
-        devDependencies: { kidd: '^1.0.0' },
+        devDependencies: { '@kidd-cli/core': '^1.0.0' },
       })
     )
 
@@ -77,7 +77,7 @@ describe('detectProject()', () => {
     mockedAccess.mockResolvedValueOnce(undefined).mockRejectedValueOnce(new Error('ENOENT'))
     mockedReadFile.mockResolvedValue(
       JSON.stringify({
-        dependencies: { kidd: 'workspace:*' },
+        dependencies: { '@kidd-cli/core': 'workspace:*' },
       })
     )
 

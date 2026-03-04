@@ -16,7 +16,7 @@ import type {
  * typed keys without threading generics through every handler:
  *
  * ```ts
- * declare module 'kidd' {
+ * declare module '@kidd-cli/core' {
  *   interface StoreMap { myKey: MyType }
  * }
  * ```

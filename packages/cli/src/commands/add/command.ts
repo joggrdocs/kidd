@@ -2,8 +2,8 @@ import { join } from 'node:path'
 
 import { loadConfig } from '@kidd-cli/config/loader'
 import type { LoadConfigResult } from '@kidd-cli/config/loader'
-import { command } from 'kidd'
-import type { Command, Context } from 'kidd'
+import { command } from '@kidd-cli/core'
+import type { Command, Context } from '@kidd-cli/core'
 import { z } from 'zod'
 
 import { detectProject } from '../../lib/detect.js'

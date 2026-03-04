@@ -1,10 +1,10 @@
-import { cli } from 'kidd'
-import { auth } from 'kidd/auth'
-import { http } from 'kidd/http'
+import { cli } from '@kidd-cli/core'
+import { auth } from '@kidd-cli/core/auth'
+import { http } from '@kidd-cli/core/http'
 
-import type { HttpClient } from 'kidd/http'
+import type { HttpClient } from '@kidd-cli/core/http'
 
-declare module 'kidd' {
+declare module '@kidd-cli/core' {
   interface Context {
     readonly api: HttpClient
   }

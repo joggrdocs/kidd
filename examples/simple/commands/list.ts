@@ -1,4 +1,4 @@
-import { command } from 'kidd'
+import { command } from '@kidd-cli/core'
 import { z } from 'zod'
 
 const args = z.object({

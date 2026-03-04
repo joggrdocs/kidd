@@ -30,7 +30,7 @@ export default defineConfig({
       'packages/bundler',
       'packages/cli',
       'packages/config',
-      'packages/kidd',
+      'packages/core',
       'packages/utils',
     ],
   },

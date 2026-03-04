@@ -1,4 +1,4 @@
-import type { Context } from 'kidd'
+import type { Context } from '@kidd-cli/core'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock(import('node:fs'), () => ({
@@ -9,14 +9,14 @@ vi.mock(import('@kidd-cli/config/loader'), () => ({
   loadConfig: vi.fn(),
 }))
 
-vi.mock(import('kidd'), () => ({
+vi.mock(import('@kidd-cli/core'), () => ({
   autoload: vi.fn(),
   command: vi.fn((def) => def),
 }))
 
 const { existsSync } = await import('node:fs')
 const { loadConfig } = await import('@kidd-cli/config/loader')
-const { autoload } = await import('kidd')
+const { autoload } = await import('@kidd-cli/core')
 const mockedExistsSync = vi.mocked(existsSync)
 const mockedLoadConfig = vi.mocked(loadConfig)
 const mockedAutoload = vi.mocked(autoload)

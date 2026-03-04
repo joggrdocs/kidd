@@ -5,8 +5,8 @@ Resolve credentials from multiple sources and store them in the context for down
 ## Usage
 
 ```ts
-import { cli } from 'kidd'
-import { auth } from 'kidd/auth'
+import { cli } from '@kidd-cli/core'
+import { auth } from '@kidd-cli/core/auth'
 
 cli({
   name: 'my-app',
@@ -172,7 +172,7 @@ The `env`, `dotenv`, `prompt`, and `oauth` resolvers always produce `bearer` cre
 Augment `KiddStore` to get typed access to the credential in `ctx.store`:
 
 ```ts
-declare module 'kidd' {
+declare module '@kidd-cli/core' {
   interface KiddStore {
     auth: AuthCredential
   }

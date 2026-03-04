@@ -12,5 +12,5 @@ export default middleware(async (ctx, next) => {
   const start = Date.now()
   await next()
   const elapsed = (Date.now() - start) / MS_PER_SECOND
-  ctx.logger.debug(`Completed in ${String(elapsed)}s`)
+  ctx.logger.info(`Completed in ${String(elapsed)}s`)
 })

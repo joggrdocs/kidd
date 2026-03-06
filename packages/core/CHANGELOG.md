@@ -1,5 +1,11 @@
 # kidd
 
+## 0.1.2
+
+### Patch Changes
+
+- 5c78d6a: Fix command export default typing by adding explicit `Command` return type to the `command()` factory and removing unsafe `as unknown as Command` casts from all command modules
+
 ## 0.1.1
 
 ### Patch Changes

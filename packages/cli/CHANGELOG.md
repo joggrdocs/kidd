@@ -1,5 +1,13 @@
 # kidd-cli
 
+## 0.1.2
+
+### Patch Changes
+
+- 5c78d6a: Fix command export default typing by adding explicit `Command` return type to the `command()` factory and removing unsafe `as unknown as Command` casts from all command modules
+- Updated dependencies [5c78d6a]
+  - @kidd-cli/core@0.1.2
+
 ## 0.1.1
 
 ### Patch Changes

@@ -11,6 +11,6 @@ import type { ArgsDef, CommandDef, Command as CommandType } from './types.js'
 export function command<
   TArgsDef extends ArgsDef = ArgsDef,
   TConfig extends Record<string, unknown> = Record<string, unknown>,
->(def: CommandDef<TArgsDef, TConfig>): CommandType<TArgsDef, TConfig> {
-  return withTag({ ...def }, 'Command')
+>(def: CommandDef<TArgsDef, TConfig>): CommandType {
+  return withTag({ ...def }, 'Command') as CommandType
 }

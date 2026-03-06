@@ -20,7 +20,7 @@ type DoctorArgs = z.infer<typeof args>
  * Validates config, checks package.json setup, verifies entry points exist,
  * and catches anything that could cause build or runtime failures.
  */
-const doctorCommand = command({
+const doctorCommand: Command = command({
   args,
   description: 'Diagnose common kidd project issues',
   handler: async (ctx: Context<DoctorArgs>) => {
@@ -65,7 +65,7 @@ const doctorCommand = command({
   },
 })
 
-export default doctorCommand as unknown as Command
+export default doctorCommand
 
 // ---------------------------------------------------------------------------
 // Fix orchestration

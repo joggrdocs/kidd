@@ -22,7 +22,7 @@ const args = z.object({
 
 type InitArgs = z.infer<typeof args>
 
-const initCommand = command({
+const initCommand: Command = command({
   args,
   description: 'Scaffold a new kidd CLI project',
   handler: async (ctx: Context<InitArgs>) => {
@@ -78,7 +78,7 @@ const initCommand = command({
   },
 })
 
-export default initCommand as unknown as Command
+export default initCommand
 
 // ---------------------------------------------------------------------------
 // Private helpers

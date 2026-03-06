@@ -289,7 +289,7 @@ export type CliFn = <TSchema extends z.ZodType = z.ZodType>(
  */
 export type CommandFn = <TArgsDef extends ArgsDef = ArgsDef, TConfig extends AnyRecord = AnyRecord>(
   def: CommandDef<TArgsDef, TConfig>
-) => Command<TArgsDef, TConfig>
+) => Command
 
 /**
  * Signature of the `middleware()` factory function.

@@ -17,7 +17,7 @@ const args = z.object({
 
 type AddMiddlewareArgs = z.infer<typeof args>
 
-const addMiddlewareCommand = command({
+const addMiddlewareCommand: Command = command({
   args,
   description: 'Add a new middleware to your project',
   handler: async (ctx: Context<AddMiddlewareArgs>) => {
@@ -65,7 +65,7 @@ const addMiddlewareCommand = command({
   },
 })
 
-export default addMiddlewareCommand as unknown as Command
+export default addMiddlewareCommand
 
 // ---------------------------------------------------------------------------
 // Private helpers

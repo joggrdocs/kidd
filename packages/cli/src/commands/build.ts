@@ -24,7 +24,7 @@ type BuildArgs = z.infer<typeof args>
  * `--targets` is provided (or `compile` is set in config), also compiles
  * to standalone binaries via Bun.
  */
-const buildCommand = command({
+const buildCommand: Command = command({
   args,
   description: 'Build a kidd CLI project for production',
   handler: async (ctx: Context<BuildArgs>) => {
@@ -85,7 +85,7 @@ const buildCommand = command({
   },
 })
 
-export default buildCommand as unknown as Command
+export default buildCommand
 
 // ---------------------------------------------------------------------------
 

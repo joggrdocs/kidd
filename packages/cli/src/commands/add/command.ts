@@ -20,7 +20,7 @@ const args = z.object({
 
 type AddCommandArgs = z.infer<typeof args>
 
-const addCommandCommand = command({
+const addCommandCommand: Command = command({
   args,
   description: 'Add a new command to your project',
   handler: async (ctx: Context<AddCommandArgs>) => {
@@ -77,7 +77,7 @@ const addCommandCommand = command({
   },
 })
 
-export default addCommandCommand as unknown as Command
+export default addCommandCommand
 
 // ---------------------------------------------------------------------------
 // Private helpers

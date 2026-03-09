@@ -126,8 +126,8 @@ export interface DeviceCodeSourceConfig {
 /**
  * Resolve credentials by prompting the user interactively.
  */
-export interface PromptSourceConfig {
-  readonly source: 'prompt'
+export interface TokenSourceConfig {
+  readonly source: 'token'
   readonly message?: string
 }
 
@@ -149,7 +149,7 @@ export type ResolverConfig =
   | FileSourceConfig
   | OAuthSourceConfig
   | DeviceCodeSourceConfig
-  | PromptSourceConfig
+  | TokenSourceConfig
   | CustomSourceConfig
 
 // ---------------------------------------------------------------------------
@@ -219,9 +219,9 @@ export type OAuthResolverOptions = Omit<OAuthSourceConfig, 'source'>
 export type DeviceCodeResolverOptions = Omit<DeviceCodeSourceConfig, 'source'>
 
 /**
- * Options for the `auth.prompt()` builder. Omits the `source` discriminator.
+ * Options for the `auth.token()` builder. Omits the `source` discriminator.
  */
-export type PromptResolverOptions = Omit<PromptSourceConfig, 'source'>
+export type TokenResolverOptions = Omit<TokenSourceConfig, 'source'>
 
 /**
  * Function signature accepted by `auth.custom()`.

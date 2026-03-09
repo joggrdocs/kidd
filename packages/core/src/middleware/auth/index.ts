@@ -18,7 +18,7 @@ export type {
   LoginError,
   OAuthResolverOptions,
   OAuthSourceConfig,
-  PromptResolverOptions,
-  PromptSourceConfig,
   ResolverConfig,
+  TokenResolverOptions,
+  TokenSourceConfig,
 } from './types.js'

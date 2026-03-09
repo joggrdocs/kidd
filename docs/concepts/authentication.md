@@ -99,8 +99,8 @@ auth({
       deviceAuthUrl: 'https://example.com/device/code',
       tokenUrl: 'https://example.com/token',
     }),
-    auth.prompt(),
-    auth.prompt({ message: 'Enter token:' }),
+    auth.token(),
+    auth.token({ message: 'Enter token:' }),
     auth.custom(async () => {
       const token = await fetchTokenFromVault()
       return token ? { type: 'bearer', token } : null
@@ -220,12 +220,12 @@ The device code flow handles RFC 8628 error codes: `authorization_pending` (cont
 
 Supported by GitHub, Azure AD, and Google. Not supported by Clerk.
 
-### `prompt` -- Interactive Password Input
+### `token` -- Interactive Token Input
 
-Prompts the user for a token via a masked password input.
+Prompts the user for a token via a masked password input. Aliased as `auth.apiKey()`.
 
 ```ts
-auth.prompt({ message: 'Enter your API token:' })
+auth.token({ message: 'Enter your API token:' })
 ```
 
 | Option    | Type     | Default                | Description    |

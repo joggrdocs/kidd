@@ -147,7 +147,7 @@ async function dispatchResolver(
         })
     )
     .with(
-      { source: 'prompt' },
+      { source: 'token' },
       (c): Promise<AuthCredential | null> =>
         resolveFromPrompt({
           message: resolveOptionalString(c.message, DEFAULT_PROMPT_MESSAGE),

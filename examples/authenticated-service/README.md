@@ -114,7 +114,7 @@ cli({
           timeout: 60_000,
           tokenUrl: 'http://localhost:3001/token',
         }),
-        auth.prompt({ message: 'Enter your API token (see README for valid tokens):' }),
+        auth.token({ message: 'Enter your API token (see README for valid tokens):' }),
       ],
     }),
   ],
@@ -126,7 +126,7 @@ cli({
 | Resolver        | Description                                                                 |
 | --------------- | --------------------------------------------------------------------------- |
 | `auth.oauth()`  | Opens browser, runs PKCE authorization code flow with local callback server |
-| `auth.prompt()` | Falls back to interactive terminal input                                    |
+| `auth.token()` | Falls back to interactive terminal input                                    |
 
 ### OAuth PKCE flow
 

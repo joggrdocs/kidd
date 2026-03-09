@@ -29,7 +29,7 @@ cli({
           authUrl: 'https://example.com/authorize',
           tokenUrl: 'https://example.com/token',
         },
-        { source: 'prompt', message: 'Enter your API token:' },
+        { source: 'token', message: 'Enter your API token:' },
       ],
     }),
   ],
@@ -108,7 +108,7 @@ cli({
           authUrl: 'https://example.com/authorize',
           tokenUrl: 'https://example.com/token',
         },
-        { source: 'prompt', message: 'Enter your API token:' },
+        { source: 'token', message: 'Enter your API token:' },
       ],
     }),
     http({
@@ -180,12 +180,12 @@ auth({
       authUrl: 'https://example.com/authorize',
       tokenUrl: 'https://example.com/token',
     },
-    { source: 'prompt' },
+    { source: 'token' },
   ],
 })
 ```
 
-Passive resolvers (`env`, `dotenv`, `file`) run automatically on middleware init. Interactive resolvers (`oauth`, `device-code`, `prompt`, `custom`) only run when `ctx.auth.authenticate()` is called.
+Passive resolvers (`env`, `dotenv`, `file`) run automatically on middleware init. Interactive resolvers (`oauth`, `device-code`, `token`, `custom`) only run when `ctx.auth.authenticate()` is called.
 
 ### 7. Use PKCE with Clerk as the Identity Provider
 
@@ -246,7 +246,7 @@ auth({
       deviceAuthUrl: 'https://example.com/device/code',
       tokenUrl: 'https://example.com/token',
     },
-    { source: 'prompt' },
+    { source: 'token' },
   ],
 })
 ```

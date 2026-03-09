@@ -112,7 +112,7 @@ describe('createAuthContext()', () => {
         cliName: 'test-cli',
         prompts: createMockPrompts(),
         resolveCredential: () => null,
-        resolvers: [{ source: 'prompt' }],
+        resolvers: [{ source: 'token' }],
       })
 
       const [error, result] = await ctx.authenticate()
@@ -128,7 +128,7 @@ describe('createAuthContext()', () => {
         cliName: 'test-cli',
         prompts: createMockPrompts(),
         resolveCredential: () => null,
-        resolvers: [{ source: 'prompt' }],
+        resolvers: [{ source: 'token' }],
       })
 
       const [error] = await ctx.authenticate()
@@ -152,7 +152,7 @@ describe('createAuthContext()', () => {
         cliName: 'test-cli',
         prompts: createMockPrompts(),
         resolveCredential: () => null,
-        resolvers: [{ source: 'prompt' }],
+        resolvers: [{ source: 'token' }],
       })
 
       const [error] = await ctx.authenticate()
@@ -163,7 +163,7 @@ describe('createAuthContext()', () => {
     it('should pass resolvers to resolveCredentials', async () => {
       const resolvers = [
         { authUrl: 'http://example.com/auth', source: 'oauth' as const },
-        { source: 'prompt' as const },
+        { source: 'token' as const },
       ]
       vi.mocked(resolveCredentials).mockResolvedValue(null)
 

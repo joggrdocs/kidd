@@ -34,9 +34,9 @@ import type {
   FileSourceConfig,
   OAuthResolverOptions,
   OAuthSourceConfig,
-  PromptResolverOptions,
-  PromptSourceConfig,
   ResolverConfig,
+  TokenResolverOptions,
+  TokenSourceConfig,
 } from './types.js'
 
 /**
@@ -50,7 +50,8 @@ export interface AuthFactory {
   readonly file: (options?: FileResolverOptions) => FileSourceConfig
   readonly oauth: (options: OAuthResolverOptions) => OAuthSourceConfig
   readonly deviceCode: (options: DeviceCodeResolverOptions) => DeviceCodeSourceConfig
-  readonly prompt: (options?: PromptResolverOptions) => PromptSourceConfig
+  readonly token: (options?: TokenResolverOptions) => TokenSourceConfig
+  readonly apiKey: (options?: TokenResolverOptions) => TokenSourceConfig
   readonly custom: (resolver: CustomResolverFn) => CustomSourceConfig
 }
 
@@ -114,13 +115,14 @@ function createAuth(options: AuthOptions): Middleware {
  * resolver configs with a cleaner API.
  */
 export const auth: AuthFactory = Object.assign(createAuth, {
+  apiKey: buildToken,
   custom: buildCustom,
   deviceCode: buildDeviceCode,
   dotenv: buildDotenv,
   env: buildEnv,
   file: buildFile,
   oauth: buildOAuth,
-  prompt: buildPrompt,
+  token: buildToken,
 })
 
 // ---------------------------------------------------------------------------
@@ -183,14 +185,16 @@ function buildDeviceCode(options: DeviceCodeResolverOptions): DeviceCodeSourceCo
 }
 
 /**
- * Build a prompt resolver config.
+ * Build a token resolver config.
+ *
+ * Prompts the user for a token interactively. Aliased as `auth.apiKey()`.
  *
  * @private
- * @param options - Optional prompt resolver options.
- * @returns A PromptSourceConfig with `source: 'prompt'`.
+ * @param options - Optional token resolver options.
+ * @returns A TokenSourceConfig with `source: 'token'`.
  */
-function buildPrompt(options?: PromptResolverOptions): PromptSourceConfig {
-  return { source: 'prompt' as const, ...options }
+function buildToken(options?: TokenResolverOptions): TokenSourceConfig {
+  return { source: 'token' as const, ...options }
 }
 
 /**

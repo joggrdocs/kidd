@@ -25,7 +25,7 @@ cli({
           timeout: 60_000,
           tokenUrl: 'http://localhost:3001/token',
         }),
-        auth.prompt({ message: 'Enter your API token (see README for valid tokens):' }),
+        auth.token({ message: 'Enter your API token (see README for valid tokens):' }),
       ],
     }),
   ],

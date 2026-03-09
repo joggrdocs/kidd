@@ -4,7 +4,7 @@
 
 Add resolver builder functions, HTTP integration to auth middleware, and decouple standalone http() from auth
 
-**Resolver builders:** `auth.env()`, `auth.dotenv()`, `auth.file()`, `auth.oauth()`, `auth.deviceCode()`, `auth.prompt()`, `auth.custom()` provide construction sugar over raw config objects. Raw configs still work.
+**Resolver builders:** `auth.env()`, `auth.dotenv()`, `auth.file()`, `auth.oauth()`, `auth.deviceCode()`, `auth.token()`, `auth.custom()` provide construction sugar over raw config objects. Raw configs still work.
 
 **Auth HTTP integration:** `auth({ http: { baseUrl, namespace } })` creates authenticated HTTP clients with automatic credential header injection. Supports single or multiple clients via an array.
 

@@ -57,7 +57,7 @@ describe('auth()', () => {
 
   it('should decorate ctx.auth with credential() that resolves from env', async () => {
     const ctx = createMockCtx({ envToken: 'my-secret' })
-    const mw = auth({ resolvers: [{ source: 'prompt' }] })
+    const mw = auth({ resolvers: [{ source: 'token' }] })
     const next = vi.fn()
 
     await mw.handler(ctx as never, next)
@@ -73,7 +73,7 @@ describe('auth()', () => {
 
   it('should decorate ctx.auth with credential() returning null when nothing found', async () => {
     const ctx = createMockCtx()
-    const mw = auth({ resolvers: [{ source: 'prompt' }] })
+    const mw = auth({ resolvers: [{ source: 'token' }] })
     const next = vi.fn()
 
     await mw.handler(ctx as never, next)
@@ -89,7 +89,7 @@ describe('auth()', () => {
 
   it('should provide an authenticate function on ctx.auth', async () => {
     const ctx = createMockCtx()
-    const mw = auth({ resolvers: [{ source: 'prompt' }] })
+    const mw = auth({ resolvers: [{ source: 'token' }] })
     const next = vi.fn()
 
     await mw.handler(ctx as never, next)
@@ -105,7 +105,7 @@ describe('auth()', () => {
 
   it('should provide an authenticated function on ctx.auth', async () => {
     const ctx = createMockCtx({ envToken: 'my-secret' })
-    const mw = auth({ resolvers: [{ source: 'prompt' }] })
+    const mw = auth({ resolvers: [{ source: 'token' }] })
     const next = vi.fn()
 
     await mw.handler(ctx as never, next)
@@ -239,17 +239,31 @@ describe('auth.deviceCode()', () => {
   })
 })
 
-describe('auth.prompt()', () => {
-  it('should return a PromptSourceConfig with source: prompt', () => {
-    const config = auth.prompt()
+describe('auth.token()', () => {
+  it('should return a TokenSourceConfig with source: token', () => {
+    const config = auth.token()
 
-    expect(config).toEqual({ source: 'prompt' })
+    expect(config).toEqual({ source: 'token' })
   })
 
   it('should include message when provided', () => {
-    const config = auth.prompt({ message: 'Enter token:' })
+    const config = auth.token({ message: 'Enter token:' })
 
-    expect(config).toEqual({ message: 'Enter token:', source: 'prompt' })
+    expect(config).toEqual({ message: 'Enter token:', source: 'token' })
+  })
+})
+
+describe('auth.apiKey()', () => {
+  it('should return a TokenSourceConfig with source: token (alias)', () => {
+    const config = auth.apiKey()
+
+    expect(config).toEqual({ source: 'token' })
+  })
+
+  it('should include message when provided', () => {
+    const config = auth.apiKey({ message: 'Enter API key:' })
+
+    expect(config).toEqual({ message: 'Enter API key:', source: 'token' })
   })
 })
 

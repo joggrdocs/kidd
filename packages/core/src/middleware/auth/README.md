@@ -34,7 +34,7 @@ auth({
     auth.file(),
     auth.oauth({ clientId: '...', authUrl: '...', tokenUrl: '...' }),
     auth.deviceCode({ clientId: '...', deviceAuthUrl: '...', tokenUrl: '...' }),
-    auth.prompt({ message: 'Enter token:' }),
+    auth.token({ message: 'Enter token:' }),
     auth.custom(async () => fetchToken()),
   ],
 })
@@ -144,13 +144,13 @@ auth({
 
 Supported by GitHub, Azure AD, and Google. Not supported by Clerk.
 
-### prompt
+### token
 
-Interactively prompts the user for a token via `ctx.prompts.password()`. Best placed last in the resolver chain as a fallback.
+Interactively prompts the user for a token via `ctx.prompts.password()`. Best placed last in the resolver chain as a fallback. Aliased as `auth.apiKey()`.
 
 ```ts
 auth({
-  resolvers: [auth.prompt({ message: 'Enter your GitHub token' })],
+  resolvers: [auth.token({ message: 'Enter your GitHub token' })],
 })
 ```
 
@@ -221,7 +221,7 @@ auth({
     auth.env({ tokenVar: 'GITHUB_TOKEN' }),
     auth.dotenv(),
     auth.file(),
-    auth.prompt({ message: 'Enter your GitHub token' }),
+    auth.token({ message: 'Enter your GitHub token' }),
   ],
 })
 ```
@@ -237,7 +237,7 @@ All resolvers produce one of four credential variants, discriminated by the `typ
 | `api-key` | `headerName`, `key`    | `<headerName>: <key>`                    |
 | `custom`  | `headers`              | Arbitrary headers from the record        |
 
-The `env`, `dotenv`, `prompt`, `oauth`, and `device-code` resolvers always produce `bearer` credentials. The `file` and `custom` resolvers can produce any variant.
+The `env`, `dotenv`, `token`, `oauth`, and `device-code` resolvers always produce `bearer` credentials. The `file` and `custom` resolvers can produce any variant.
 
 ## Module Augmentation
 

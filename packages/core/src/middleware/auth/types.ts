@@ -89,13 +89,37 @@ export interface FileSourceConfig {
 }
 
 /**
- * Resolve credentials via an OAuth browser flow.
+ * Resolve credentials via OAuth 2.0 Authorization Code + PKCE (RFC 7636 + RFC 8252).
+ *
+ * Opens the user's browser to the authorization URL, receives an auth code
+ * via GET redirect to a local server, and exchanges it at the token endpoint
+ * with a PKCE code verifier.
  */
 export interface OAuthSourceConfig {
   readonly source: 'oauth'
+  readonly clientId: string
   readonly authUrl: string
+  readonly tokenUrl: string
+  readonly scopes?: readonly string[]
   readonly port?: number
   readonly callbackPath?: string
+  readonly timeout?: number
+}
+
+/**
+ * Resolve credentials via OAuth 2.0 Device Authorization Grant (RFC 8628).
+ *
+ * Requests a device code from the authorization server, displays a
+ * verification URL and user code, and polls the token endpoint until
+ * the user completes authorization.
+ */
+export interface DeviceCodeSourceConfig {
+  readonly source: 'device-code'
+  readonly clientId: string
+  readonly deviceAuthUrl: string
+  readonly tokenUrl: string
+  readonly scopes?: readonly string[]
+  readonly pollInterval?: number
   readonly timeout?: number
 }
 
@@ -124,6 +148,7 @@ export type ResolverConfig =
   | DotenvSourceConfig
   | FileSourceConfig
   | OAuthSourceConfig
+  | DeviceCodeSourceConfig
   | PromptSourceConfig
   | CustomSourceConfig
 

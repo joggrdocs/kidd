@@ -16,10 +16,12 @@ cli({
     auth({
       resolvers: [
         {
-          authUrl: 'http://localhost:3001/auth',
+          authUrl: 'http://localhost:3001/authorize',
+          clientId: 'demo-client',
           port: 0,
           source: 'oauth',
           timeout: 60_000,
+          tokenUrl: 'http://localhost:3001/token',
         },
         { message: 'Enter your API token (see README for valid tokens):', source: 'prompt' },
       ],

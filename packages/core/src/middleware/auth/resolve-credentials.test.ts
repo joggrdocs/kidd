@@ -13,11 +13,16 @@ vi.mock(import('./resolve-oauth.js'), () => ({
   resolveFromOAuth: vi.fn(),
 }))
 
+vi.mock(import('./resolve-device-code.js'), () => ({
+  resolveFromDeviceCode: vi.fn(),
+}))
+
 import { readFileSync } from 'node:fs'
 
 import type { Prompts } from '@/context/types.js'
 
 import { resolveCredentials } from './resolve-credentials.js'
+import { resolveFromDeviceCode } from './resolve-device-code.js'
 import { resolveFromDotenv } from './resolve-dotenv.js'
 import { resolveFromEnv } from './resolve-env.js'
 import { resolveFromFile } from './resolve-file.js'
@@ -231,22 +236,64 @@ describe('resolveCredentials()', () => {
     })
   })
 
-  it('should dispatch to oauth resolver', async () => {
+  it('should dispatch to oauth resolver with PKCE fields', async () => {
     vi.mocked(resolveFromOAuth).mockResolvedValue({ token: 'from-oauth', type: 'bearer' })
 
     const prompts = { password: vi.fn() } as unknown as Prompts
     const result = await resolveCredentials({
       cliName: 'my-cli',
       prompts,
-      resolvers: [{ authUrl: 'https://auth.example.com/login', source: 'oauth' }],
+      resolvers: [
+        {
+          authUrl: 'https://auth.example.com/authorize',
+          clientId: 'my-client',
+          source: 'oauth',
+          tokenUrl: 'https://auth.example.com/token',
+        },
+      ],
     })
 
     expect(result).toEqual({ token: 'from-oauth', type: 'bearer' })
     expect(resolveFromOAuth).toHaveBeenCalledWith({
-      authUrl: 'https://auth.example.com/login',
+      authUrl: 'https://auth.example.com/authorize',
       callbackPath: '/callback',
+      clientId: 'my-client',
       port: 0,
+      scopes: [],
       timeout: 120_000,
+      tokenUrl: 'https://auth.example.com/token',
+    })
+  })
+
+  it('should dispatch to device-code resolver', async () => {
+    vi.mocked(resolveFromDeviceCode).mockResolvedValue({
+      token: 'from-device',
+      type: 'bearer',
+    })
+
+    const prompts = { password: vi.fn() } as unknown as Prompts
+    const result = await resolveCredentials({
+      cliName: 'my-cli',
+      prompts,
+      resolvers: [
+        {
+          clientId: 'my-client',
+          deviceAuthUrl: 'https://auth.example.com/device/code',
+          source: 'device-code',
+          tokenUrl: 'https://auth.example.com/token',
+        },
+      ],
+    })
+
+    expect(result).toEqual({ token: 'from-device', type: 'bearer' })
+    expect(resolveFromDeviceCode).toHaveBeenCalledWith({
+      clientId: 'my-client',
+      deviceAuthUrl: 'https://auth.example.com/device/code',
+      pollInterval: 5000,
+      prompts,
+      scopes: [],
+      timeout: 300_000,
+      tokenUrl: 'https://auth.example.com/token',
     })
   })
 

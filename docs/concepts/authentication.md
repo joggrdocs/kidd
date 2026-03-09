@@ -112,22 +112,73 @@ Reads any credential type from a JSON file on disk via kidd's store system.
 | `filename` | `string` | `'auth.json'` | Filename within the store dir |
 | `dirName`  | `string` | `.<cli-name>` | Store directory name          |
 
-### `oauth` -- OAuth Browser Flow
+### `oauth` -- OAuth Authorization Code + PKCE (RFC 7636)
 
-Opens the user's browser to an auth URL, starts a local HTTP server to receive the callback, and extracts the token from a POST request with a JSON body `{ "token": "<value>" }`. Query-string tokens are not accepted to prevent credential leakage through browser history, server logs, and referrer headers.
+Implements the standard OAuth 2.0 Authorization Code flow with Proof Key for Code Exchange (PKCE) per [RFC 7636](https://tools.ietf.org/html/rfc7636) and [RFC 8252](https://tools.ietf.org/html/rfc8252) for native apps.
+
+The flow:
+
+1. CLI generates a `code_verifier` and derives the `code_challenge` (S256)
+2. CLI starts a local HTTP server on `127.0.0.1` and opens the browser to the authorization URL
+3. User authenticates in the browser; the authorization server redirects back to the local server with an authorization code via GET
+4. CLI exchanges the code at the token endpoint with the `code_verifier`
+5. Token endpoint validates the verifier and returns an access token
 
 ```ts
-{ source: 'oauth', authUrl: 'https://example.com/auth', port: 0, timeout: 120_000 }
+{
+  source: 'oauth',
+  clientId: 'my-client-id',
+  authUrl: 'https://example.com/authorize',
+  tokenUrl: 'https://example.com/token',
+  scopes: ['openid', 'profile'],
+}
 ```
 
-| Option         | Type     | Default       | Description                  |
-| -------------- | -------- | ------------- | ---------------------------- |
-| `authUrl`      | `string` | --            | Authorization URL (required) |
-| `port`         | `number` | `0` (random)  | Local server port            |
-| `callbackPath` | `string` | `'/callback'` | Callback endpoint path       |
-| `timeout`      | `number` | `120_000`     | Timeout in milliseconds      |
+| Option         | Type                | Default       | Description                       |
+| -------------- | ------------------- | ------------- | --------------------------------- |
+| `clientId`     | `string`            | --            | OAuth client ID (required)        |
+| `authUrl`      | `string`            | --            | Authorization endpoint (required) |
+| `tokenUrl`     | `string`            | --            | Token endpoint (required)         |
+| `scopes`       | `readonly string[]` | `[]`          | OAuth scopes to request           |
+| `port`         | `number`            | `0` (random)  | Local callback server port        |
+| `callbackPath` | `string`            | `'/callback'` | Callback endpoint path            |
+| `timeout`      | `number`            | `120_000`     | Timeout in milliseconds           |
 
-The auth URL receives a `callback_url` query parameter pointing to the local server. The OAuth provider must POST a JSON body `{ "token": "<value>" }` to this URL on success.
+Compatible with any OAuth 2.0 provider that supports PKCE with public clients, including Clerk (configured as a public OAuth application).
+
+### `device-code` -- Device Authorization Grant (RFC 8628)
+
+Implements the [OAuth 2.0 Device Authorization Grant](https://tools.ietf.org/html/rfc8628) for headless or browserless environments.
+
+The flow:
+
+1. CLI requests a device code from the authorization server
+2. CLI displays a verification URL and user code for the user to enter in a browser
+3. CLI polls the token endpoint until the user completes authorization
+4. Token endpoint returns an access token on success
+
+```ts
+{
+  source: 'device-code',
+  clientId: 'my-client-id',
+  deviceAuthUrl: 'https://example.com/device/code',
+  tokenUrl: 'https://example.com/token',
+  scopes: ['openid'],
+}
+```
+
+| Option          | Type                | Default   | Description                              |
+| --------------- | ------------------- | --------- | ---------------------------------------- |
+| `clientId`      | `string`            | --        | OAuth client ID (required)               |
+| `deviceAuthUrl` | `string`            | --        | Device authorization endpoint (required) |
+| `tokenUrl`      | `string`            | --        | Token endpoint (required)                |
+| `scopes`        | `readonly string[]` | `[]`      | OAuth scopes to request                  |
+| `pollInterval`  | `number`            | `5_000`   | Poll interval in milliseconds            |
+| `timeout`       | `number`            | `300_000` | Timeout in milliseconds                  |
+
+The device code flow handles RFC 8628 error codes: `authorization_pending` (continue polling), `slow_down` (increase interval), `expired_token` (return null), and `access_denied` (return null).
+
+Supported by GitHub, Azure AD, and Google. Not supported by Clerk.
 
 ### `prompt` -- Interactive Password Input
 
@@ -197,7 +248,16 @@ cli({
   name: 'my-app',
   version: '1.0.0',
   middleware: [
-    auth({ resolvers: [{ source: 'oauth', authUrl: 'https://example.com/auth' }] }),
+    auth({
+      resolvers: [
+        {
+          source: 'oauth',
+          clientId: 'my-client-id',
+          authUrl: 'https://example.com/authorize',
+          tokenUrl: 'https://example.com/token',
+        },
+      ],
+    }),
     http({ baseUrl: 'https://api.example.com', namespace: 'api' }),
   ],
   commands: { login, repos },
@@ -205,6 +265,12 @@ cli({
 ```
 
 Header priority (lowest to highest): auth credential headers, default headers, per-request headers.
+
+## Resources
+
+- [RFC 7636 -- Proof Key for Code Exchange](https://tools.ietf.org/html/rfc7636)
+- [RFC 8252 -- OAuth 2.0 for Native Apps](https://tools.ietf.org/html/rfc8252)
+- [RFC 8628 -- Device Authorization Grant](https://tools.ietf.org/html/rfc8628)
 
 ## References
 

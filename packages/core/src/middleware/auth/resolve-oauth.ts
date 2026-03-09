@@ -1,86 +1,108 @@
-import { execFile } from 'node:child_process'
-import { randomBytes } from 'node:crypto'
-import { createServer } from 'node:http'
-import type { IncomingMessage, Server, ServerResponse } from 'node:http'
-import type { Socket } from 'node:net'
-import { platform } from 'node:os'
+/**
+ * OAuth 2.0 Authorization Code + PKCE resolver (RFC 7636 + RFC 8252).
+ *
+ * Opens the user's browser to the authorization URL with a PKCE challenge,
+ * listens for a GET redirect with an authorization code on a local server,
+ * and exchanges the code at the token endpoint with the code verifier.
+ *
+ * @module
+ */
 
-import { match } from 'ts-pattern'
+import { createHash, randomBytes } from 'node:crypto'
+import type { IncomingMessage, ServerResponse } from 'node:http'
 
+import {
+  createDeferred,
+  createTimeout,
+  destroyServer,
+  openBrowser,
+  sendSuccessPage,
+  startLocalServer,
+} from './oauth-shared.js'
 import type { AuthCredential } from './types.js'
 
 /**
- * Maximum request body size in bytes (16 KB).
+ * Resolve a bearer credential via OAuth 2.0 Authorization Code + PKCE.
  *
- * Limits memory consumption from the local OAuth callback server
- * to prevent resource exhaustion from oversized payloads.
+ * 1. Generates a `code_verifier` and derives the `code_challenge`
+ * 2. Starts a local HTTP server on `127.0.0.1`
+ * 3. Opens the browser to the authorization URL with PKCE params
+ * 4. Receives the authorization code via GET redirect
+ * 5. Exchanges the code at the token endpoint with the verifier
+ * 6. Returns the access token as a bearer credential
  *
- * @private
- */
-const MAX_BODY_BYTES = 16_384
-
-const CLOSE_PAGE_HTML = [
-  '<!DOCTYPE html>',
-  '<html>',
-  '<body><p>Authentication complete. You can close this tab.</p></body>',
-  '</html>',
-].join('\n')
-
-/**
- * Resolve a bearer credential via an OAuth browser flow.
- *
- * Starts a minimal HTTP server on a local port, opens the user's browser
- * to the auth URL with a callback parameter, and waits for the token
- * to arrive via POST body.
- *
- * Only POST requests with a JSON body containing a `token` field are
- * accepted. Query-string tokens are rejected to avoid leaking credentials
- * in server logs, browser history, and referrer headers.
- *
- * @param options - OAuth flow configuration.
- * @returns A bearer credential on success, null on timeout.
+ * @param options - PKCE flow configuration.
+ * @returns A bearer credential on success, null on failure or timeout.
  */
 export async function resolveFromOAuth(options: {
+  readonly clientId: string
   readonly authUrl: string
+  readonly tokenUrl: string
+  readonly scopes: readonly string[]
   readonly port: number
   readonly callbackPath: string
   readonly timeout: number
 }): Promise<AuthCredential | null> {
-  const controller = new AbortController()
+  const codeVerifier = generateCodeVerifier()
+  const codeChallenge = deriveCodeChallenge(codeVerifier)
   const state = randomBytes(32).toString('hex')
 
   const timeout = createTimeout(options.timeout)
+  const codeDeferred = createDeferred<string | null>()
 
-  const tokenPromise = listenForToken({
-    callbackPath: options.callbackPath,
+  const handle = startLocalServer({
+    onRequest: (req, res) => {
+      handleCallback(req, res, options.callbackPath, state, codeDeferred.resolve)
+    },
     port: options.port,
-    signal: controller.signal,
-    state,
   })
 
-  const timeoutPromise = timeout.promise.then((): null => {
-    controller.abort()
-    return null
-  })
-
-  const serverPort = await getServerPort(tokenPromise)
+  const serverPort = await handle.port
 
   if (serverPort === null) {
-    controller.abort()
     timeout.clear()
     return null
   }
 
-  const callbackUrl = `http://127.0.0.1:${String(serverPort)}${options.callbackPath}`
-  const fullAuthUrl = `${options.authUrl}?callback_url=${encodeURIComponent(callbackUrl)}&state=${encodeURIComponent(state)}`
+  const redirectUri = `http://127.0.0.1:${String(serverPort)}${options.callbackPath}`
+
+  const fullAuthUrl = buildAuthUrl({
+    authUrl: options.authUrl,
+    clientId: options.clientId,
+    codeChallenge,
+    redirectUri,
+    scopes: options.scopes,
+    state,
+  })
+
   openBrowser(fullAuthUrl)
 
-  const result = await Promise.race([tokenPromise.result, timeoutPromise])
+  const timeoutPromise = timeout.promise.then((): null => {
+    codeDeferred.resolve(null)
+    destroyServer(handle.server, handle.sockets)
+    return null
+  })
+
+  const code = await Promise.race([codeDeferred.promise, timeoutPromise])
 
   timeout.clear()
-  controller.abort()
 
-  return result
+  if (!code) {
+    destroyServer(handle.server, handle.sockets)
+    return null
+  }
+
+  destroyServer(handle.server, handle.sockets)
+
+  const token = await exchangeCodeForToken({
+    clientId: options.clientId,
+    code,
+    codeVerifier,
+    redirectUri,
+    tokenUrl: options.tokenUrl,
+  })
+
+  return token
 }
 
 // ---------------------------------------------------------------------------
@@ -88,340 +110,179 @@ export async function resolveFromOAuth(options: {
 // ---------------------------------------------------------------------------
 
 /**
- * Token listener result with port information.
+ * Generate a cryptographically random code verifier for PKCE.
  *
  * @private
+ * @returns A base64url-encoded random string.
  */
-interface TokenListener {
-  readonly port: Promise<number | null>
-  readonly result: Promise<AuthCredential | null>
+function generateCodeVerifier(): string {
+  return randomBytes(32).toString('base64url')
 }
 
 /**
- * Start an HTTP server that listens for an OAuth callback token.
- *
- * The server accepts POST requests with a JSON body `{ "token": "..." }`
- * on the configured callback path. All other requests receive a 400.
+ * Derive a S256 code challenge from a code verifier.
  *
  * @private
- * @param options - Listener configuration.
- * @returns A TokenListener with port and result promises.
+ * @param verifier - The code verifier string.
+ * @returns The base64url-encoded SHA-256 hash.
  */
-function listenForToken(options: {
-  readonly callbackPath: string
-  readonly port: number
-  readonly signal: AbortSignal
+function deriveCodeChallenge(verifier: string): string {
+  return createHash('sha256').update(verifier).digest('base64url')
+}
+
+/**
+ * Build the full authorization URL with PKCE query parameters.
+ *
+ * @private
+ * @param options - Authorization URL components.
+ * @returns The complete authorization URL string.
+ */
+function buildAuthUrl(options: {
+  readonly authUrl: string
+  readonly clientId: string
+  readonly redirectUri: string
+  readonly codeChallenge: string
   readonly state: string
-}): TokenListener {
-  const portResolvers = createDeferred<number | null>()
-  const resultResolvers = createDeferred<AuthCredential | null>()
+  readonly scopes: readonly string[]
+}): string {
+  const url = new URL(options.authUrl)
+  url.searchParams.set('response_type', 'code')
+  url.searchParams.set('client_id', options.clientId)
+  url.searchParams.set('redirect_uri', options.redirectUri)
+  url.searchParams.set('code_challenge', options.codeChallenge)
+  url.searchParams.set('code_challenge_method', 'S256')
+  url.searchParams.set('state', options.state)
 
-  // Mutable socket set required for resource cleanup.
-  // Server API is stateful — tracking sockets is the only way to destroy keep-alive connections.
-  const sockets = new Set<Socket>()
-
-  const server = createServer((req, res) => {
-    extractTokenFromBody(req, options.callbackPath, options.state, (token) => {
-      if (!token) {
-        res.writeHead(400)
-        res.end()
-        return
-      }
-
-      sendSuccessPage(res)
-      destroyServer(server, sockets)
-      resultResolvers.resolve({ token, type: 'bearer' })
-    })
-  })
-
-  trackConnections(server, sockets)
-
-  server.on('error', () => {
-    destroyServer(server, sockets)
-    portResolvers.resolve(null)
-    resultResolvers.resolve(null)
-  })
-
-  options.signal.addEventListener('abort', () => {
-    destroyServer(server, sockets)
-    resultResolvers.resolve(null)
-  })
-
-  server.listen(options.port, '127.0.0.1', () => {
-    const addr = server.address()
-
-    if (addr === null || typeof addr === 'string') {
-      destroyServer(server, sockets)
-      portResolvers.resolve(null)
-      resultResolvers.resolve(null)
-      return
-    }
-
-    portResolvers.resolve(addr.port)
-  })
-
-  return {
-    port: portResolvers.promise,
-    result: resultResolvers.promise,
+  if (options.scopes.length > 0) {
+    url.searchParams.set('scope', options.scopes.join(' '))
   }
+
+  return url.toString()
 }
 
 /**
- * Track socket connections on a server so they can be destroyed on close.
+ * Handle an incoming HTTP request on the callback server.
  *
- * Mutates the provided socket set — this is an intentional exception to
- * immutability rules because the HTTP server API is inherently stateful.
- *
- * @private
- * @param server - The HTTP server.
- * @param sockets - The set to track sockets in.
- */
-function trackConnections(server: Server, sockets: Set<Socket>): void {
-  server.on('connection', (socket: Socket) => {
-    sockets.add(socket)
-    socket.on('close', () => {
-      sockets.delete(socket)
-    })
-  })
-}
-
-/**
- * Close a server and destroy all active connections immediately.
- *
- * `server.close()` only stops accepting new connections — existing
- * keep-alive connections hold the event loop open. This helper
- * destroys every tracked socket so the process can exit cleanly.
+ * Accepts GET requests to the callback path with `code` and `state`
+ * query parameters. Validates the state nonce and resolves the
+ * authorization code.
  *
  * @private
- * @param server - The HTTP server to close.
- * @param sockets - The set of tracked sockets.
- */
-function destroyServer(server: Server, sockets: Set<Socket>): void {
-  server.close()
-  Array.from(sockets, (socket) => socket.destroy())
-  sockets.clear()
-}
-
-/**
- * Create a deferred promise with externally accessible resolve.
- *
- * Uses a mutable state container to capture the promise resolver —
- * this is an intentional exception to immutability rules because the
- * Promise constructor API requires synchronous resolver capture.
- *
- * @private
- * @returns A deferred object with promise and resolve.
- */
-function createDeferred<T>(): {
-  readonly promise: Promise<T>
-  readonly resolve: (value: T) => void
-} {
-  const state: { resolve: ((value: T) => void) | null } = { resolve: null }
-
-  const promise = new Promise<T>((resolve) => {
-    state.resolve = resolve
-  })
-
-  return {
-    promise,
-    resolve: (value: T): void => {
-      if (state.resolve) {
-        state.resolve(value)
-      }
-    },
-  }
-}
-
-/**
- * Clearable timeout that does not keep the event loop alive after cancellation.
- *
- * @private
- */
-interface Timeout {
-  readonly promise: Promise<void>
-  readonly clear: () => void
-}
-
-/**
- * Create a clearable timeout.
- *
- * Returns a promise that resolves after `ms` milliseconds and a `clear`
- * function that cancels the timer so it does not hold the event loop open.
- *
- * Uses a mutable state container to capture the timer id — this is an
- * intentional exception to immutability rules because `setTimeout`
- * returns an opaque handle that must be stored for later cancellation.
- *
- * @private
- * @param ms - Duration in milliseconds.
- * @returns A Timeout with `promise` and `clear`.
- */
-function createTimeout(ms: number): Timeout {
-  const state: { id: ReturnType<typeof setTimeout> | null } = { id: null }
-
-  const promise = new Promise<void>((resolve) => {
-    state.id = setTimeout(resolve, ms)
-  })
-
-  return {
-    clear: (): void => {
-      if (state.id !== null) {
-        clearTimeout(state.id)
-        state.id = null
-      }
-    },
-    promise,
-  }
-}
-
-/**
- * Get the server port from a token listener.
- *
- * @private
- * @param listener - The token listener.
- * @returns The port number, or null if the server failed to start.
- */
-async function getServerPort(listener: TokenListener): Promise<number | null> {
-  return listener.port
-}
-
-/**
- * Extract a token from the POST body of an incoming HTTP request.
- *
- * Only POST requests to the callback path with `application/json`
- * Content-Type and a JSON body containing `token` and matching `state`
- * fields are accepted. Query-string tokens are intentionally rejected
- * to prevent credential leakage through browser history, server logs,
- * and referrer headers.
- *
- * The `Content-Type` check prevents CORS-safelisted simple requests
- * (which skip preflight) from delivering forged payloads — `text/plain`
- * is safelisted, but `application/json` is not (Fetch Standard §2.2.2).
- *
- * Body size is capped at {@link MAX_BODY_BYTES} to prevent resource
- * exhaustion from oversized payloads.
- *
- * @private
- * @param req - The incoming request.
+ * @param req - The incoming HTTP request.
+ * @param res - The server response.
  * @param callbackPath - The expected callback path.
- * @param expectedState - The state nonce to validate against.
- * @param callback - Called with the extracted token or null.
+ * @param expectedState - The state nonce to validate.
+ * @param resolve - Callback to deliver the authorization code.
  */
-function extractTokenFromBody(
+function handleCallback(
   req: IncomingMessage,
+  res: ServerResponse,
   callbackPath: string,
   expectedState: string,
-  callback: (token: string | null) => void
+  resolve: (value: string | null) => void
 ): void {
-  const reqUrl = new URL(req.url ?? '/', 'http://localhost')
+  const code = extractCodeFromUrl(req.url, callbackPath, expectedState)
 
-  if (reqUrl.pathname !== callbackPath) {
-    callback(null)
+  if (!code) {
+    res.writeHead(400)
+    res.end()
     return
   }
 
-  if (req.method !== 'POST') {
-    callback(null)
-    return
-  }
-
-  const contentType = req.headers['content-type'] ?? ''
-
-  if (!contentType.startsWith('application/json')) {
-    callback(null)
-    return
-  }
-
-  const chunks: Buffer[] = []
-
-  // Mutable byte counter — streams must be checked incrementally
-  // Before the full payload is buffered to prevent resource exhaustion.
-  const received = { bytes: 0 }
-
-  req.on('data', (chunk: Buffer) => {
-    received.bytes += chunk.length
-
-    if (received.bytes > MAX_BODY_BYTES) {
-      req.destroy()
-      callback(null)
-      return
-    }
-
-    chunks.push(chunk)
-  })
-
-  req.on('end', () => {
-    const body = Buffer.concat(chunks).toString('utf8')
-
-    const token = parseTokenFromJson(body, expectedState)
-    callback(token)
-  })
-
-  req.on('error', () => {
-    callback(null)
-  })
+  sendSuccessPage(res)
+  resolve(code)
 }
 
 /**
- * Parse a token string from a JSON body and validate the state nonce.
+ * Extract an authorization code from a request URL.
  *
- * Expects `{ "token": "<value>", "state": "<value>" }`. Returns null
- * for invalid JSON, missing/empty token fields, or mismatched state.
+ * Validates that the request path matches the callback path,
+ * the `state` parameter matches the expected nonce, and a
+ * `code` parameter is present.
  *
  * @private
- * @param body - The raw request body string.
- * @param expectedState - The state nonce that must match.
- * @returns The token string or null.
+ * @param reqUrl - The raw request URL string.
+ * @param callbackPath - The expected callback path.
+ * @param expectedState - The state nonce to validate.
+ * @returns The authorization code string, or null on validation failure.
  */
-function parseTokenFromJson(body: string, expectedState: string): string | null {
+function extractCodeFromUrl(
+  reqUrl: string | undefined,
+  callbackPath: string,
+  expectedState: string
+): string | null {
+  const url = new URL(reqUrl ?? '/', 'http://localhost')
+
+  if (url.pathname !== callbackPath) {
+    return null
+  }
+
+  const state = url.searchParams.get('state')
+
+  if (state !== expectedState) {
+    return null
+  }
+
+  const code = url.searchParams.get('code')
+
+  if (!code) {
+    return null
+  }
+
+  return code
+}
+
+/**
+ * Exchange an authorization code for an access token at the token endpoint.
+ *
+ * Sends a POST request with `application/x-www-form-urlencoded` body
+ * containing the authorization code, redirect URI, client ID, and
+ * PKCE code verifier.
+ *
+ * @private
+ * @param options - Token exchange parameters.
+ * @returns A bearer credential on success, null on failure.
+ */
+async function exchangeCodeForToken(options: {
+  readonly tokenUrl: string
+  readonly code: string
+  readonly redirectUri: string
+  readonly clientId: string
+  readonly codeVerifier: string
+}): Promise<AuthCredential | null> {
   try {
-    const parsed: unknown = JSON.parse(body)
+    const body = new URLSearchParams({
+      client_id: options.clientId,
+      code: options.code,
+      code_verifier: options.codeVerifier,
+      grant_type: 'authorization_code',
+      redirect_uri: options.redirectUri,
+    })
 
-    if (typeof parsed !== 'object' || parsed === null) {
+    const response = await fetch(options.tokenUrl, {
+      body: body.toString(),
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      method: 'POST',
+    })
+
+    if (!response.ok) {
       return null
     }
 
-    const record = parsed as Record<string, unknown>
+    const data: unknown = await response.json()
 
-    if (typeof record.token !== 'string' || record.token === '') {
+    if (typeof data !== 'object' || data === null) {
       return null
     }
 
-    if (record.state !== expectedState) {
+    const record = data as Record<string, unknown>
+
+    if (typeof record.access_token !== 'string' || record.access_token === '') {
       return null
     }
 
-    return record.token
+    return { token: record.access_token, type: 'bearer' }
   } catch {
     return null
   }
-}
-
-/**
- * Send an HTML success page and end the response.
- *
- * @private
- * @param res - The server response object.
- */
-function sendSuccessPage(res: ServerResponse): void {
-  res.writeHead(200, { 'Content-Type': 'text/html' })
-  res.end(CLOSE_PAGE_HTML)
-}
-
-/**
- * Open a URL in the user's default browser using a platform-specific command.
- *
- * On Windows, `start` is a `cmd.exe` built-in — not a standalone executable —
- * so it must be invoked via `cmd /c start "" <url>`. The empty string argument
- * prevents `cmd` from interpreting the URL as a window title.
- *
- * @private
- * @param url - The URL to open.
- */
-function openBrowser(url: string): void {
-  const { command, args } = match(platform())
-    .with('darwin', () => ({ args: [url], command: 'open' }))
-    .with('win32', () => ({ args: ['/c', 'start', '', url], command: 'cmd' }))
-    .otherwise(() => ({ args: [url], command: 'xdg-open' }))
-  execFile(command, args)
 }

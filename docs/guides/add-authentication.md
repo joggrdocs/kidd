@@ -23,7 +23,12 @@ cli({
   middleware: [
     auth({
       resolvers: [
-        { source: 'oauth', authUrl: 'https://example.com/auth' },
+        {
+          source: 'oauth',
+          clientId: 'my-client-id',
+          authUrl: 'https://example.com/authorize',
+          tokenUrl: 'https://example.com/token',
+        },
         { source: 'prompt', message: 'Enter your API token:' },
       ],
     }),
@@ -97,7 +102,12 @@ cli({
   middleware: [
     auth({
       resolvers: [
-        { source: 'oauth', authUrl: 'https://example.com/auth' },
+        {
+          source: 'oauth',
+          clientId: 'my-client-id',
+          authUrl: 'https://example.com/authorize',
+          tokenUrl: 'https://example.com/token',
+        },
         { source: 'prompt', message: 'Enter your API token:' },
       ],
     }),
@@ -145,12 +155,12 @@ export default command({
       return
     }
 
-    ctx.output.table(
-      res.data.map((repo) => ({
-        Name: repo.name,
-        Private: repo.private ? 'yes' : 'no',
-      }))
-    )
+    const rows = res.data.map((repo) => ({
+      Name: repo.name,
+      Private: repo.private,
+    }))
+
+    ctx.output.table(rows)
   },
 })
 ```
@@ -164,13 +174,82 @@ auth({
   resolvers: [
     { source: 'env', tokenVar: 'MY_APP_TOKEN' },
     { source: 'dotenv' },
-    { source: 'oauth', authUrl: 'https://example.com/auth' },
+    {
+      source: 'oauth',
+      clientId: 'my-client-id',
+      authUrl: 'https://example.com/authorize',
+      tokenUrl: 'https://example.com/token',
+    },
     { source: 'prompt' },
   ],
 })
 ```
 
-Passive resolvers (`env`, `dotenv`, `file`) run automatically on middleware init. Interactive resolvers (`oauth`, `prompt`, `custom`) only run when `ctx.auth.authenticate()` is called.
+Passive resolvers (`env`, `dotenv`, `file`) run automatically on middleware init. Interactive resolvers (`oauth`, `device-code`, `prompt`, `custom`) only run when `ctx.auth.authenticate()` is called.
+
+### 7. Use PKCE with Clerk as the Identity Provider
+
+Configure the OAuth resolver to use Clerk as a public OAuth application with PKCE:
+
+```ts
+auth({
+  resolvers: [
+    {
+      source: 'oauth',
+      clientId: '<clerk-oauth-app-id>',
+      authUrl: 'https://<clerk-domain>/oauth/authorize',
+      tokenUrl: 'https://<clerk-domain>/oauth/token',
+      scopes: ['openid', 'profile', 'email'],
+    },
+  ],
+})
+```
+
+### 8. Use the device code flow for headless environments
+
+For environments without a browser (SSH sessions, remote servers), use the device code flow:
+
+```ts
+auth({
+  resolvers: [
+    {
+      source: 'device-code',
+      clientId: 'my-client-id',
+      deviceAuthUrl: 'https://github.com/login/device/code',
+      tokenUrl: 'https://github.com/login/oauth/access_token',
+      scopes: ['repo', 'read:user'],
+    },
+  ],
+})
+```
+
+The CLI displays a URL and a user code. The user opens the URL in any browser (including on a different device), enters the code, and completes authorization.
+
+### 9. Combine multiple resolvers
+
+Chain resolvers to support multiple authentication strategies:
+
+```ts
+auth({
+  resolvers: [
+    { source: 'env', tokenVar: 'MY_APP_TOKEN' },
+    { source: 'file' },
+    {
+      source: 'oauth',
+      clientId: 'my-client-id',
+      authUrl: 'https://example.com/authorize',
+      tokenUrl: 'https://example.com/token',
+    },
+    {
+      source: 'device-code',
+      clientId: 'my-client-id',
+      deviceAuthUrl: 'https://example.com/device/code',
+      tokenUrl: 'https://example.com/token',
+    },
+    { source: 'prompt' },
+  ],
+})
+```
 
 ## Verification
 
@@ -190,11 +269,23 @@ MY_APP_TOKEN=ghp_abc123 my-app repos
 
 ## Troubleshooting
 
-### OAuth callback never received
+### OAuth redirect not received
 
-**Issue:** The browser opens but the CLI hangs waiting for the callback.
+**Issue:** The browser opens but the CLI hangs waiting for the redirect.
 
-**Fix:** Ensure the auth server sends a POST request to the `callback_url` query parameter with a JSON body `{ "token": "<value>" }`. Query-string tokens are not accepted. Check that no firewall is blocking the local port.
+**Fix:** Ensure the OAuth provider is configured to redirect to `http://127.0.0.1:<port>/callback` with `code` and `state` query parameters. Verify the `clientId` is correct and the application is configured as a public client with PKCE support. Check that no firewall is blocking the local port.
+
+### Token exchange fails
+
+**Issue:** The redirect is received but no credential is returned.
+
+**Fix:** Verify the `tokenUrl` is correct and accepts `application/x-www-form-urlencoded` POST requests. Ensure the OAuth provider accepts the `code_verifier` parameter for PKCE validation.
+
+### Device code flow times out
+
+**Issue:** The CLI polls but never receives a token.
+
+**Fix:** Verify the `deviceAuthUrl` and `tokenUrl` are correct. Ensure the OAuth provider supports the Device Authorization Grant (RFC 8628). Clerk does not support this flow -- use the `oauth` resolver instead.
 
 ### Token not persisted after login
 
@@ -211,6 +302,9 @@ MY_APP_TOKEN=ghp_abc123 my-app repos
 ## Resources
 
 - [@clack/prompts](https://www.clack.cc)
+- [RFC 7636 -- PKCE](https://tools.ietf.org/html/rfc7636)
+- [RFC 8252 -- OAuth for Native Apps](https://tools.ietf.org/html/rfc8252)
+- [RFC 8628 -- Device Authorization Grant](https://tools.ietf.org/html/rfc8628)
 
 ## References
 

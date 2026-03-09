@@ -75,27 +75,59 @@ The file must contain a valid credential object (see [Credential Types](#credent
 
 ### oauth
 
-Opens the user's browser for an OAuth flow. A local HTTP server listens for the callback token.
+OAuth 2.0 Authorization Code + PKCE (RFC 7636 + RFC 8252). Opens the browser, receives an authorization code via GET redirect, and exchanges it at the token endpoint with a PKCE code verifier.
 
 ```ts
 auth({
   resolvers: [
     {
       source: 'oauth',
+      clientId: 'my-client-id',
       authUrl: 'https://example.com/authorize',
-      port: 3000,
-      timeout: 60_000,
+      tokenUrl: 'https://example.com/token',
+      scopes: ['openid', 'profile'],
     },
   ],
 })
 ```
 
-| Option         | Type     | Default      | Description                       |
-| -------------- | -------- | ------------ | --------------------------------- |
-| `authUrl`      | `string` | _required_   | OAuth authorization URL           |
-| `port`         | `number` | `0` (random) | Local server port                 |
-| `callbackPath` | `string` | `/callback`  | Path the auth server redirects to |
-| `timeout`      | `number` | `120000`     | Timeout in milliseconds           |
+| Option         | Type                | Default      | Description                       |
+| -------------- | ------------------- | ------------ | --------------------------------- |
+| `clientId`     | `string`            | _required_   | OAuth client ID                   |
+| `authUrl`      | `string`            | _required_   | Authorization endpoint            |
+| `tokenUrl`     | `string`            | _required_   | Token endpoint                    |
+| `scopes`       | `readonly string[]` | `[]`         | OAuth scopes to request           |
+| `port`         | `number`            | `0` (random) | Local server port                 |
+| `callbackPath` | `string`            | `/callback`  | Path the auth server redirects to |
+| `timeout`      | `number`            | `120000`     | Timeout in milliseconds           |
+
+### device-code
+
+OAuth 2.0 Device Authorization Grant (RFC 8628). Displays a verification URL and user code, then polls the token endpoint until the user completes authorization.
+
+```ts
+auth({
+  resolvers: [
+    {
+      source: 'device-code',
+      clientId: 'my-client-id',
+      deviceAuthUrl: 'https://example.com/device/code',
+      tokenUrl: 'https://example.com/token',
+    },
+  ],
+})
+```
+
+| Option          | Type                | Default    | Description                   |
+| --------------- | ------------------- | ---------- | ----------------------------- |
+| `clientId`      | `string`            | _required_ | OAuth client ID               |
+| `deviceAuthUrl` | `string`            | _required_ | Device authorization endpoint |
+| `tokenUrl`      | `string`            | _required_ | Token endpoint                |
+| `scopes`        | `readonly string[]` | `[]`       | OAuth scopes to request       |
+| `pollInterval`  | `number`            | `5000`     | Poll interval in milliseconds |
+| `timeout`       | `number`            | `300000`   | Timeout in milliseconds       |
+
+Supported by GitHub, Azure AD, and Google. Not supported by Clerk.
 
 ### prompt
 
@@ -165,7 +197,7 @@ All resolvers produce one of four credential variants, discriminated by the `typ
 | `api-key` | `headerName`, `key`    | `<headerName>: <key>`                    |
 | `custom`  | `headers`              | Arbitrary headers from the record        |
 
-The `env`, `dotenv`, `prompt`, and `oauth` resolvers always produce `bearer` credentials. The `file` and `custom` resolvers can produce any variant.
+The `env`, `dotenv`, `prompt`, `oauth`, and `device-code` resolvers always produce `bearer` credentials. The `file` and `custom` resolvers can produce any variant.
 
 ## Module Augmentation
 

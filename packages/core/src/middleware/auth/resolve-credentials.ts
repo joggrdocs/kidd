@@ -4,7 +4,16 @@ import { match } from 'ts-pattern'
 
 import type { Prompts } from '@/context/types.js'
 
-import { DEFAULT_AUTH_FILENAME, deriveTokenVar } from './constants.js'
+import {
+  DEFAULT_AUTH_FILENAME,
+  DEFAULT_DEVICE_CODE_POLL_INTERVAL,
+  DEFAULT_DEVICE_CODE_TIMEOUT,
+  DEFAULT_OAUTH_CALLBACK_PATH,
+  DEFAULT_OAUTH_PORT,
+  DEFAULT_OAUTH_TIMEOUT,
+  deriveTokenVar,
+} from './constants.js'
+import { resolveFromDeviceCode } from './resolve-device-code.js'
 import { resolveFromDotenv } from './resolve-dotenv.js'
 import { resolveFromEnv } from './resolve-env.js'
 import { resolveFromFile } from './resolve-file.js'
@@ -12,9 +21,6 @@ import { resolveFromOAuth } from './resolve-oauth.js'
 import { resolveFromPrompt } from './resolve-prompt.js'
 import type { AuthCredential, ResolverConfig } from './types.js'
 
-const DEFAULT_OAUTH_PORT = 0
-const DEFAULT_OAUTH_CALLBACK_PATH = '/callback'
-const DEFAULT_OAUTH_TIMEOUT = 120_000
 const DEFAULT_PROMPT_MESSAGE = 'Enter your API key'
 
 /**
@@ -120,8 +126,24 @@ async function dispatchResolver(
         resolveFromOAuth({
           authUrl: c.authUrl,
           callbackPath: resolveOptionalString(c.callbackPath, DEFAULT_OAUTH_CALLBACK_PATH),
+          clientId: c.clientId,
           port: resolveOptionalNumber(c.port, DEFAULT_OAUTH_PORT),
+          scopes: resolveOptionalArray(c.scopes, []),
           timeout: resolveOptionalNumber(c.timeout, DEFAULT_OAUTH_TIMEOUT),
+          tokenUrl: c.tokenUrl,
+        })
+    )
+    .with(
+      { source: 'device-code' },
+      (c): Promise<AuthCredential | null> =>
+        resolveFromDeviceCode({
+          clientId: c.clientId,
+          deviceAuthUrl: c.deviceAuthUrl,
+          pollInterval: resolveOptionalNumber(c.pollInterval, DEFAULT_DEVICE_CODE_POLL_INTERVAL),
+          prompts: context.prompts,
+          scopes: resolveOptionalArray(c.scopes, []),
+          timeout: resolveOptionalNumber(c.timeout, DEFAULT_DEVICE_CODE_TIMEOUT),
+          tokenUrl: c.tokenUrl,
         })
     )
     .with(
@@ -162,6 +184,24 @@ function resolveOptionalString(value: string | undefined, fallback: string): str
  * @returns The resolved number.
  */
 function resolveOptionalNumber(value: number | undefined, fallback: number): number {
+  if (value !== undefined) {
+    return value
+  }
+  return fallback
+}
+
+/**
+ * Resolve an optional readonly array value, falling back to a default.
+ *
+ * @private
+ * @param value - The optional value.
+ * @param fallback - The default value.
+ * @returns The resolved array.
+ */
+function resolveOptionalArray<T>(
+  value: readonly T[] | undefined,
+  fallback: readonly T[]
+): readonly T[] {
   if (value !== undefined) {
     return value
   }

@@ -48,7 +48,12 @@ function createTestContext(cliName: string): ReturnType<typeof createContext> {
  */
 async function runMiddlewareChain(
   ctx: ReturnType<typeof createContext>,
-  ...middlewares: readonly { readonly handler: (ctx: ReturnType<typeof createContext>, next: () => Promise<void>) => Promise<void> | void }[]
+  ...middlewares: readonly {
+    readonly handler: (
+      ctx: ReturnType<typeof createContext>,
+      next: () => Promise<void>
+    ) => Promise<void> | void
+  }[]
 ): Promise<void> {
   const run = (index: number): Promise<void> => {
     if (index >= middlewares.length) {
@@ -68,7 +73,7 @@ function createMockResponse(): Response {
   return Response.json({ ok: true }, { status: 200 })
 }
 
-describe('Auth + HTTP Middleware Chain', () => {
+describe('Auth + HTTP Integration via auth({ http })', () => {
   let fetchSpy: ReturnType<typeof vi.spyOn<typeof globalThis, 'fetch'>>
 
   beforeEach(() => {
@@ -80,18 +85,17 @@ describe('Auth + HTTP Middleware Chain', () => {
     vi.unstubAllEnvs()
   })
 
-  it('should propagate bearer credential from env resolver through middleware chain to HTTP Authorization header', async () => {
+  it('should propagate bearer credential from env resolver through auth http integration', async () => {
     vi.stubEnv('TEST_APP_TOKEN', 'env-bearer-token-123')
 
     const ctx = createTestContext('test-app')
 
-    const authMiddleware = auth({ resolvers: [{ source: 'env' }] })
-    const httpMiddleware = http({
-      baseUrl: 'https://api.example.com',
-      namespace: 'api',
+    const authMiddleware = auth({
+      http: { baseUrl: 'https://api.example.com', namespace: 'api' },
+      resolvers: [auth.env()],
     })
 
-    await runMiddlewareChain(ctx, authMiddleware, httpMiddleware)
+    await runMiddlewareChain(ctx, authMiddleware)
 
     const client = (ctx as unknown as Record<string, HttpClient>).api
     await client.get('/test')
@@ -109,13 +113,12 @@ describe('Auth + HTTP Middleware Chain', () => {
   it('should send no Authorization header when no credential is resolved', async () => {
     const ctx = createTestContext('no-auth-app')
 
-    const authMiddleware = auth({ resolvers: [{ source: 'env' }] })
-    const httpMiddleware = http({
-      baseUrl: 'https://api.example.com',
-      namespace: 'api',
+    const authMiddleware = auth({
+      http: { baseUrl: 'https://api.example.com', namespace: 'api' },
+      resolvers: [auth.env()],
     })
 
-    await runMiddlewareChain(ctx, authMiddleware, httpMiddleware)
+    await runMiddlewareChain(ctx, authMiddleware)
 
     const client = (ctx as unknown as Record<string, HttpClient>).api
     await client.get('/test')
@@ -134,14 +137,11 @@ describe('Auth + HTTP Middleware Chain', () => {
     const ctx = createTestContext('my-cli')
 
     const authMiddleware = auth({
-      resolvers: [{ source: 'env', tokenVar: 'CUSTOM_VAR' }],
-    })
-    const httpMiddleware = http({
-      baseUrl: 'https://api.example.com',
-      namespace: 'api',
+      http: { baseUrl: 'https://api.example.com', namespace: 'api' },
+      resolvers: [auth.env({ tokenVar: 'CUSTOM_VAR' })],
     })
 
-    await runMiddlewareChain(ctx, authMiddleware, httpMiddleware)
+    await runMiddlewareChain(ctx, authMiddleware)
 
     const client = (ctx as unknown as Record<string, HttpClient>).api
     await client.get('/test')
@@ -161,11 +161,13 @@ describe('Auth + HTTP Middleware Chain', () => {
 
     const ctx = createTestContext('chain-app')
 
-    const authMiddleware = auth({ resolvers: [{ source: 'env' }] })
+    const authMiddleware = auth({ resolvers: [auth.env()] })
 
     await runMiddlewareChain(ctx, authMiddleware)
 
-    const authCtx = (ctx as unknown as Record<string, { credential: () => unknown; authenticated: () => boolean }>).auth
+    const authCtx = (
+      ctx as unknown as Record<string, { credential: () => unknown; authenticated: () => boolean }>
+    ).auth
 
     expect(authCtx.credential()).toEqual({ token: 'chain-test-token', type: 'bearer' })
     expect(authCtx.authenticated()).toBeTruthy()
@@ -174,29 +176,33 @@ describe('Auth + HTTP Middleware Chain', () => {
   it('should return null credential when env var is not set', async () => {
     const ctx = createTestContext('empty-app')
 
-    const authMiddleware = auth({ resolvers: [{ source: 'env' }] })
+    const authMiddleware = auth({ resolvers: [auth.env()] })
 
     await runMiddlewareChain(ctx, authMiddleware)
 
-    const authCtx = (ctx as unknown as Record<string, { credential: () => unknown; authenticated: () => boolean }>).auth
+    const authCtx = (
+      ctx as unknown as Record<string, { credential: () => unknown; authenticated: () => boolean }>
+    ).auth
 
     expect(authCtx.credential()).toBeNull()
     expect(authCtx.authenticated()).toBeFalsy()
   })
 
-  it('should merge default headers with auth headers from middleware chain', async () => {
+  it('should merge static headers with auth headers via auth http option', async () => {
     vi.stubEnv('MERGE_APP_TOKEN', 'merge-token')
 
     const ctx = createTestContext('merge-app')
 
-    const authMiddleware = auth({ resolvers: [{ source: 'env' }] })
-    const httpMiddleware = http({
-      baseUrl: 'https://api.example.com',
-      defaultHeaders: { 'X-Request-Id': 'req-123' },
-      namespace: 'api',
+    const authMiddleware = auth({
+      http: {
+        baseUrl: 'https://api.example.com',
+        headers: { 'X-Request-Id': 'req-123' },
+        namespace: 'api',
+      },
+      resolvers: [auth.env()],
     })
 
-    await runMiddlewareChain(ctx, authMiddleware, httpMiddleware)
+    await runMiddlewareChain(ctx, authMiddleware)
 
     const client = (ctx as unknown as Record<string, HttpClient>).api
     await client.get('/test')
@@ -212,7 +218,43 @@ describe('Auth + HTTP Middleware Chain', () => {
     )
   })
 
-  it('should work with http middleware when auth middleware is not in the chain', async () => {
+  it('should create multiple HTTP clients via auth http array option', async () => {
+    vi.stubEnv('MULTI_APP_TOKEN', 'multi-token')
+
+    const ctx = createTestContext('multi-app')
+
+    const authMiddleware = auth({
+      http: [
+        { baseUrl: 'https://api.example.com', namespace: 'api' },
+        { baseUrl: 'https://admin.example.com', namespace: 'admin' },
+      ],
+      resolvers: [auth.env()],
+    })
+
+    await runMiddlewareChain(ctx, authMiddleware)
+
+    const apiClient = (ctx as unknown as Record<string, HttpClient>).api
+    const adminClient = (ctx as unknown as Record<string, HttpClient>).admin
+
+    expect(apiClient).toBeDefined()
+    expect(typeof apiClient.get).toBe('function')
+    expect(adminClient).toBeDefined()
+    expect(typeof adminClient.get).toBe('function')
+  })
+})
+
+describe('Standalone http() (decoupled)', () => {
+  let fetchSpy: ReturnType<typeof vi.spyOn<typeof globalThis, 'fetch'>>
+
+  beforeEach(() => {
+    fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(createMockResponse())
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  it('should work standalone with no headers', async () => {
     const ctx = createTestContext('no-auth-middleware')
 
     const httpMiddleware = http({
@@ -229,6 +271,56 @@ describe('Auth + HTTP Middleware Chain', () => {
       'https://api.example.com/test',
       expect.objectContaining({
         headers: {},
+      })
+    )
+  })
+
+  it('should pass static headers to outgoing requests', async () => {
+    const ctx = createTestContext('static-headers-app')
+
+    const httpMiddleware = http({
+      baseUrl: 'https://api.example.com',
+      headers: { 'X-Api-Key': 'abc123' },
+      namespace: 'api',
+    })
+
+    await runMiddlewareChain(ctx, httpMiddleware)
+
+    const client = (ctx as unknown as Record<string, HttpClient>).api
+    await client.get('/test')
+
+    expect(fetchSpy).toHaveBeenCalledWith(
+      'https://api.example.com/test',
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          'X-Api-Key': 'abc123',
+        }),
+      })
+    )
+  })
+
+  it('should resolve headers from a function receiving ctx', async () => {
+    const ctx = createTestContext('fn-headers-app')
+
+    const httpMiddleware = http({
+      baseUrl: 'https://api.example.com',
+      headers: (receivedCtx) => ({
+        'X-App-Name': receivedCtx.meta.name,
+      }),
+      namespace: 'api',
+    })
+
+    await runMiddlewareChain(ctx, httpMiddleware)
+
+    const client = (ctx as unknown as Record<string, HttpClient>).api
+    await client.get('/test')
+
+    expect(fetchSpy).toHaveBeenCalledWith(
+      'https://api.example.com/test',
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          'X-App-Name': 'fn-headers-app',
+        }),
       })
     )
   })

@@ -1,32 +1,53 @@
 # HTTP Middleware
 
-Typed HTTP client middleware that decorates the context with a namespaced `HttpClient`. Integrates with the [auth middleware](../auth/README.md) to automatically attach credentials to outgoing requests.
+Typed HTTP client middleware that decorates the context with a namespaced `HttpClient`.
+
+The standalone `http()` middleware is fully decoupled from auth. For automatic credential header injection, use `auth({ http: { ... } })` from `@kidd-cli/core/auth`.
 
 ## Usage
 
 ```ts
 import { cli } from '@kidd-cli/core'
-import { auth } from '@kidd-cli/core/auth'
 import { http } from '@kidd-cli/core/http'
 
 cli({
   name: 'my-app',
   version: '1.0.0',
   middleware: [
-    auth({
-      resolvers: [{ source: 'env', tokenVar: 'GITHUB_TOKEN' }],
-      required: true,
-    }),
     http({
-      namespace: 'github',
-      baseUrl: 'https://api.github.com',
+      namespace: 'api',
+      baseUrl: 'https://api.example.com',
     }),
   ],
-  commands: { repos },
+  commands: { fetch },
 })
 ```
 
-The middleware reads credentials from `ctx.store` (written by the auth middleware), creates an `HttpClient` bound to the base URL, and attaches it to `ctx[namespace]`. After creating the client, credentials are cleared from the store by default.
+The middleware creates an `HttpClient` bound to the base URL and attaches it to `ctx[namespace]`.
+
+## Headers
+
+The `headers` option accepts a static record or a function that receives `ctx` and returns headers.
+
+```ts
+// Static headers
+http({
+  namespace: 'api',
+  baseUrl: 'https://api.example.com',
+  headers: { 'X-Api-Key': 'abc123' },
+})
+
+// Dynamic headers via function
+http({
+  namespace: 'api',
+  baseUrl: 'https://api.example.com',
+  headers: (ctx) => ({
+    Authorization: `Bearer ${ctx.vault.getToken()}`,
+  }),
+})
+```
+
+Headers are merged in priority order: per-request > `headers` option.
 
 ## Module Augmentation
 
@@ -89,78 +110,34 @@ Per-request options passed to any client method:
 | `params`  | `Record<string, string>` | URL query parameters                   |
 | `signal`  | `AbortSignal`            | Abort signal for cancellation          |
 
-Headers are merged in priority order: per-request > default > auth.
-
 ## Configuration
 
-| Option             | Type                     | Default    | Description                                     |
-| ------------------ | ------------------------ | ---------- | ----------------------------------------------- |
-| `namespace`        | `string`                 | _required_ | Property name on `ctx` (e.g. `'github'`)        |
-| `baseUrl`          | `string`                 | _required_ | Base URL for all requests                       |
-| `authStoreKey`     | `string`                 | `'auth'`   | Store key to read auth credentials from         |
-| `clearCredentials` | `boolean`                | `true`     | Remove credentials from the store after reading |
-| `defaultHeaders`   | `Record<string, string>` | `{}`       | Default headers applied to every request        |
+| Option      | Type                                       | Default    | Description                                 |
+| ----------- | ------------------------------------------ | ---------- | ------------------------------------------- |
+| `namespace` | `string`                                   | _required_ | Property name on `ctx` (e.g. `'github'`)    |
+| `baseUrl`   | `string`                                   | _required_ | Base URL for all requests                   |
+| `headers`   | `Record<string, string>` or `(ctx) => ...` | `{}`       | Static or dynamic headers for every request |
 
-## Multiple Namespaces
+## Authenticated HTTP Clients
 
-Register multiple HTTP clients for different APIs by stacking middleware:
+For automatic credential injection, use the `http` option on `auth()` instead of the standalone `http()` middleware:
 
 ```ts
+import { auth } from '@kidd-cli/core/auth'
+
 cli({
   name: 'my-app',
   version: '1.0.0',
   middleware: [
     auth({
-      resolvers: [{ source: 'env', tokenVar: 'GITHUB_TOKEN' }],
-      storeKey: 'github-auth',
-    }),
-    auth({
-      resolvers: [{ source: 'env', tokenVar: 'GITLAB_TOKEN' }],
-      storeKey: 'gitlab-auth',
-    }),
-    http({
-      namespace: 'github',
-      baseUrl: 'https://api.github.com',
-      authStoreKey: 'github-auth',
-    }),
-    http({
-      namespace: 'gitlab',
-      baseUrl: 'https://gitlab.com/api/v4',
-      authStoreKey: 'gitlab-auth',
+      resolvers: [auth.env({ tokenVar: 'GITHUB_TOKEN' })],
+      http: {
+        namespace: 'github',
+        baseUrl: 'https://api.github.com',
+      },
     }),
   ],
-  commands: { sync },
-})
-```
-
-Augment the context for both namespaces:
-
-```ts
-import type { HttpClient } from '@kidd-cli/core/http'
-
-declare module '@kidd-cli/core' {
-  interface Context {
-    readonly github: HttpClient
-    readonly gitlab: HttpClient
-  }
-}
-```
-
-## Usage Without Auth
-
-For public APIs that do not require authentication, use `http()` without the `auth()` middleware. No credentials are attached when the store key is empty:
-
-```ts
-cli({
-  name: 'my-app',
-  version: '1.0.0',
-  middleware: [
-    http({
-      namespace: 'api',
-      baseUrl: 'https://api.publicdata.example.com',
-    }),
-  ],
-  commands: { fetch },
+  commands: { repos },
 })
 ```
 

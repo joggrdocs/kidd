@@ -13,15 +13,32 @@ cli({
   version: '1.0.0',
   middleware: [
     auth({
-      resolvers: [{ source: 'env' }],
-      required: true,
+      resolvers: [auth.env()],
     }),
   ],
   commands: { deploy },
 })
 ```
 
-The resolved credential is stored in `ctx.store` under the `'auth'` key (configurable via `storeKey`). When `required` is `true`, the middleware fails with `AUTH_REQUIRED` if no resolver produces a credential.
+The middleware decorates `ctx.auth` with `credential()`, `authenticated()`, and `authenticate()` methods.
+
+## Resolver Builders
+
+`auth` doubles as a namespace with builder methods for constructing resolver configs. Each builder returns a `ResolverConfig` with the `source` discriminator pre-filled. Raw config objects (`{ source: 'env' }`) still work.
+
+```ts
+auth({
+  resolvers: [
+    auth.env(),
+    auth.dotenv({ path: '.env.local' }),
+    auth.file(),
+    auth.oauth({ clientId: '...', authUrl: '...', tokenUrl: '...' }),
+    auth.deviceCode({ clientId: '...', deviceAuthUrl: '...', tokenUrl: '...' }),
+    auth.prompt({ message: 'Enter token:' }),
+    auth.custom(async () => fetchToken()),
+  ],
+})
+```
 
 ## Resolvers
 
@@ -33,7 +50,7 @@ Reads a bearer token from `process.env`. The variable name defaults to `<CLI_NAM
 
 ```ts
 auth({
-  resolvers: [{ source: 'env', tokenVar: 'GITHUB_TOKEN' }],
+  resolvers: [auth.env({ tokenVar: 'GITHUB_TOKEN' })],
 })
 ```
 
@@ -47,7 +64,7 @@ Reads a bearer token from a `.env` file without mutating `process.env`.
 
 ```ts
 auth({
-  resolvers: [{ source: 'dotenv', path: '.env.local' }],
+  resolvers: [auth.dotenv({ path: '.env.local' })],
 })
 ```
 
@@ -62,7 +79,7 @@ Reads a credential from a JSON file on disk using local-then-global resolution. 
 
 ```ts
 auth({
-  resolvers: [{ source: 'file', filename: 'credentials.json', dirName: '.my-app' }],
+  resolvers: [auth.file({ filename: 'credentials.json', dirName: '.my-app' })],
 })
 ```
 
@@ -80,13 +97,12 @@ OAuth 2.0 Authorization Code + PKCE (RFC 7636 + RFC 8252). Opens the browser, re
 ```ts
 auth({
   resolvers: [
-    {
-      source: 'oauth',
+    auth.oauth({
       clientId: 'my-client-id',
       authUrl: 'https://example.com/authorize',
       tokenUrl: 'https://example.com/token',
       scopes: ['openid', 'profile'],
-    },
+    }),
   ],
 })
 ```
@@ -108,12 +124,11 @@ OAuth 2.0 Device Authorization Grant (RFC 8628). Displays a verification URL and
 ```ts
 auth({
   resolvers: [
-    {
-      source: 'device-code',
+    auth.deviceCode({
       clientId: 'my-client-id',
       deviceAuthUrl: 'https://example.com/device/code',
       tokenUrl: 'https://example.com/token',
-    },
+    }),
   ],
 })
 ```
@@ -135,7 +150,7 @@ Interactively prompts the user for a token via `ctx.prompts.password()`. Best pl
 
 ```ts
 auth({
-  resolvers: [{ source: 'prompt', message: 'Enter your GitHub token' }],
+  resolvers: [auth.prompt({ message: 'Enter your GitHub token' })],
 })
 ```
 
@@ -145,30 +160,56 @@ auth({
 
 ### custom
 
-Supplies a user-defined resolver function. The function returns a credential or `null`.
+Supplies a user-defined resolver function. The function is passed directly as the argument (not wrapped in an options object). Returns a credential or `null`.
 
 ```ts
 auth({
   resolvers: [
-    {
-      source: 'custom',
-      resolver: async () => {
-        const token = await fetchTokenFromVault()
-        if (!token) return null
-        return { type: 'bearer', token }
-      },
-    },
+    auth.custom(async () => {
+      const token = await fetchTokenFromVault()
+      if (!token) return null
+      return { type: 'bearer', token }
+    }),
   ],
 })
 ```
 
+## HTTP Integration
+
+When `http` is provided on the auth options, the middleware creates HTTP client(s) with automatic credential header injection alongside `ctx.auth`.
+
+```ts
+// Single HTTP client
+auth({
+  resolvers: [auth.env(), auth.oauth({ ... })],
+  http: {
+    baseUrl: 'https://api.example.com',
+    namespace: 'api',
+  },
+})
+
+// Multiple HTTP clients
+auth({
+  resolvers: [auth.env()],
+  http: [
+    { baseUrl: 'https://api.example.com', namespace: 'api' },
+    { baseUrl: 'https://admin.example.com', namespace: 'admin' },
+  ],
+})
+```
+
+| Option      | Type                     | Default    | Description                                |
+| ----------- | ------------------------ | ---------- | ------------------------------------------ |
+| `baseUrl`   | `string`                 | _required_ | Base URL for the HTTP client               |
+| `namespace` | `string`                 | _required_ | Property name on `ctx` (e.g. `'api'`)      |
+| `headers`   | `Record<string, string>` | `{}`       | Additional static headers for all requests |
+
 ## Configuration
 
-| Option      | Type               | Default    | Description                                     |
-| ----------- | ------------------ | ---------- | ----------------------------------------------- |
-| `resolvers` | `ResolverConfig[]` | _required_ | Ordered list of credential sources to try       |
-| `required`  | `boolean`          | `false`    | Fail if no credential is resolved               |
-| `storeKey`  | `string`           | `'auth'`   | Key used to store the credential in `ctx.store` |
+| Option      | Type               | Default    | Description                                            |
+| ----------- | ------------------ | ---------- | ------------------------------------------------------ |
+| `resolvers` | `ResolverConfig[]` | _required_ | Ordered list of credential sources to try              |
+| `http`      | `AuthHttpOptions`  | --         | Optional HTTP client(s) with credential auto-injection |
 
 ## Multiple Auth Sources
 
@@ -177,12 +218,11 @@ Chain resolvers to support multiple credential discovery strategies. The first m
 ```ts
 auth({
   resolvers: [
-    { source: 'env', tokenVar: 'GITHUB_TOKEN' },
-    { source: 'dotenv' },
-    { source: 'file' },
-    { source: 'prompt', message: 'Enter your GitHub token' },
+    auth.env({ tokenVar: 'GITHUB_TOKEN' }),
+    auth.dotenv(),
+    auth.file(),
+    auth.prompt({ message: 'Enter your GitHub token' }),
   ],
-  required: true,
 })
 ```
 
@@ -201,12 +241,12 @@ The `env`, `dotenv`, `prompt`, `oauth`, and `device-code` resolvers always produ
 
 ## Module Augmentation
 
-Augment `KiddStore` to get typed access to the credential in `ctx.store`:
+Augment `Context` to get typed access to `ctx.auth`:
 
 ```ts
 declare module '@kidd-cli/core' {
-  interface KiddStore {
-    auth: AuthCredential
+  interface Context {
+    readonly auth: AuthContext
   }
 }
 ```

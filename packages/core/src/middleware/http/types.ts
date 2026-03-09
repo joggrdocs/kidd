@@ -7,6 +7,8 @@
  * @module
  */
 
+import type { Context } from '@/context/types.js'
+
 // ---------------------------------------------------------------------------
 // Response
 // ---------------------------------------------------------------------------
@@ -80,9 +82,15 @@ export interface HttpClient {
 
 /**
  * Options for the {@link http} middleware factory.
+ *
+ * The standalone `http()` middleware does not read from `ctx.auth`.
+ * Use `auth({ http: { ... } })` for automatic credential injection,
+ * or pass headers directly via the `headers` option.
  */
 export interface HttpOptions {
   readonly namespace: string
   readonly baseUrl: string
-  readonly defaultHeaders?: Readonly<Record<string, string>>
+  readonly headers?:
+    | Readonly<Record<string, string>>
+    | ((ctx: Context) => Readonly<Record<string, string>>)
 }

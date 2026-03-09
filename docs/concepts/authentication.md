@@ -70,6 +70,48 @@ The file contains the raw credential object:
 
 Credentials loaded from disk are validated against a Zod schema. Invalid data is silently ignored (returns null).
 
+## Resolver Builders
+
+The `auth` function doubles as a namespace with builder methods for constructing resolver configs. Each builder returns the same `ResolverConfig` type with the `source` discriminator pre-filled. Raw config objects (`{ source: 'env' }`) still work.
+
+```ts
+import { auth } from '@kidd-cli/core/auth'
+
+auth({
+  resolvers: [
+    // Passive (run automatically)
+    auth.env(),
+    auth.env({ tokenVar: 'GH_TOKEN' }),
+    auth.dotenv(),
+    auth.dotenv({ tokenVar: 'API_TOKEN', path: '.env.local' }),
+    auth.file(),
+    auth.file({ filename: 'creds.json', dirName: '.my-app' }),
+
+    // Interactive (run on ctx.auth.authenticate())
+    auth.oauth({
+      clientId: 'my-client-id',
+      authUrl: 'https://example.com/authorize',
+      tokenUrl: 'https://example.com/token',
+      scopes: ['openid', 'profile'],
+    }),
+    auth.deviceCode({
+      clientId: 'my-client-id',
+      deviceAuthUrl: 'https://example.com/device/code',
+      tokenUrl: 'https://example.com/token',
+    }),
+    auth.prompt(),
+    auth.prompt({ message: 'Enter token:' }),
+    auth.custom(async () => {
+      const token = await fetchTokenFromVault()
+      return token ? { type: 'bearer', token } : null
+    }),
+
+    // Raw config objects still work (backward compatible)
+    { source: 'env', tokenVar: 'LEGACY_TOKEN' },
+  ],
+})
+```
+
 ## Resolvers
 
 ### `env` -- Environment Variable
@@ -77,7 +119,7 @@ Credentials loaded from disk are validated against a Zod schema. Invalid data is
 Reads a bearer token from `process.env`.
 
 ```ts
-{ source: 'env', tokenVar: 'GITHUB_TOKEN' }
+auth.env({ tokenVar: 'GITHUB_TOKEN' })
 ```
 
 | Option     | Type     | Default            | Description               |
@@ -91,7 +133,7 @@ The default variable name is derived from the CLI name: `my-app` becomes `MY_APP
 Reads a bearer token from a `.env` file without mutating `process.env`.
 
 ```ts
-{ source: 'dotenv', tokenVar: 'API_TOKEN', path: './.env.local' }
+auth.dotenv({ tokenVar: 'API_TOKEN', path: './.env.local' })
 ```
 
 | Option     | Type     | Default            | Description                   |
@@ -104,7 +146,7 @@ Reads a bearer token from a `.env` file without mutating `process.env`.
 Reads any credential type from a JSON file on disk via kidd's store system.
 
 ```ts
-{ source: 'file', filename: 'auth.json', dirName: '.my-app' }
+auth.file({ filename: 'auth.json', dirName: '.my-app' })
 ```
 
 | Option     | Type     | Default       | Description                   |
@@ -125,13 +167,12 @@ The flow:
 5. Token endpoint validates the verifier and returns an access token
 
 ```ts
-{
-  source: 'oauth',
+auth.oauth({
   clientId: 'my-client-id',
   authUrl: 'https://example.com/authorize',
   tokenUrl: 'https://example.com/token',
   scopes: ['openid', 'profile'],
-}
+})
 ```
 
 | Option         | Type                | Default       | Description                       |
@@ -158,13 +199,12 @@ The flow:
 4. Token endpoint returns an access token on success
 
 ```ts
-{
-  source: 'device-code',
+auth.deviceCode({
   clientId: 'my-client-id',
   deviceAuthUrl: 'https://example.com/device/code',
   tokenUrl: 'https://example.com/token',
   scopes: ['openid'],
-}
+})
 ```
 
 | Option          | Type                | Default   | Description                              |
@@ -185,7 +225,7 @@ Supported by GitHub, Azure AD, and Google. Not supported by Clerk.
 Prompts the user for a token via a masked password input.
 
 ```ts
-{ source: 'prompt', message: 'Enter your API token:' }
+auth.prompt({ message: 'Enter your API token:' })
 ```
 
 | Option    | Type     | Default                | Description    |
@@ -194,21 +234,14 @@ Prompts the user for a token via a masked password input.
 
 ### `custom` -- User-Provided Function
 
-Calls a user-supplied function that returns a credential or null.
+Calls a user-supplied function that returns a credential or null. The function is passed directly as the argument (not wrapped in an options object).
 
 ```ts
-{
-  source: 'custom',
-  resolver: async () => {
-    const token = await fetchTokenFromVault()
-    return token ? { type: 'bearer', token } : null
-  },
-}
+auth.custom(async () => {
+  const token = await fetchTokenFromVault()
+  return token ? { type: 'bearer', token } : null
+})
 ```
-
-| Option     | Type                                                              | Description       |
-| ---------- | ----------------------------------------------------------------- | ----------------- |
-| `resolver` | `() => Promise<AuthCredential \| null> \| AuthCredential \| null` | Resolver function |
 
 ## AuthContext
 
@@ -238,33 +271,76 @@ if (error) {
 
 ## HTTP Integration
 
-The `http()` middleware (from `kidd/http`) reads `ctx.auth.credential()` automatically. When both middleware are registered, auth credentials are converted to HTTP headers using exhaustive pattern matching on the credential type.
+Auth supports built-in HTTP client creation via the `http` option. When provided, the auth middleware creates HTTP client(s) with automatic credential header injection and decorates them onto `ctx[namespace]`.
 
 ```ts
 import { auth } from '@kidd-cli/core/auth'
-import { http } from '@kidd-cli/core/http'
 
+// Single HTTP client
 cli({
   name: 'my-app',
   version: '1.0.0',
   middleware: [
     auth({
       resolvers: [
-        {
-          source: 'oauth',
+        auth.env(),
+        auth.oauth({
           clientId: 'my-client-id',
           authUrl: 'https://example.com/authorize',
           tokenUrl: 'https://example.com/token',
-        },
+        }),
       ],
+      http: { baseUrl: 'https://api.example.com', namespace: 'api' },
     }),
-    http({ baseUrl: 'https://api.example.com', namespace: 'api' }),
   ],
   commands: { login, repos },
 })
 ```
 
-Header priority (lowest to highest): auth credential headers, default headers, per-request headers.
+```ts
+// Multiple HTTP clients
+auth({
+  resolvers: [auth.env()],
+  http: [
+    { baseUrl: 'https://api.example.com', namespace: 'api' },
+    { baseUrl: 'https://admin.example.com', namespace: 'admin' },
+  ],
+})
+```
+
+Both `ctx.api` and `ctx.admin` get auth credential headers injected automatically. Additional static headers can be passed via `headers` on each entry.
+
+Header priority (lowest to highest): auth credential headers, static headers, per-request headers.
+
+### Standalone `http()` Middleware
+
+The standalone `http()` middleware (from `@kidd-cli/core/http`) does not read from `ctx.auth`. Use it for public APIs or when providing headers explicitly.
+
+```ts
+import { http } from '@kidd-cli/core/http'
+
+// Static headers
+http({
+  baseUrl: 'https://api.example.com',
+  namespace: 'api',
+  headers: { 'X-Api-Key': 'abc123' },
+})
+
+// Dynamic headers via function
+http({
+  baseUrl: 'https://api.example.com',
+  namespace: 'api',
+  headers: (ctx) => ({
+    Authorization: `Bearer ${ctx.vault.getToken()}`,
+  }),
+})
+
+// No headers (public API)
+http({
+  baseUrl: 'https://api.example.com',
+  namespace: 'api',
+})
+```
 
 ## Resources
 

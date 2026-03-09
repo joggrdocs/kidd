@@ -189,13 +189,75 @@ export interface AuthContext {
 // Auth options
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// Resolver builder option types
+// ---------------------------------------------------------------------------
+
+/**
+ * Options for the `auth.env()` builder. Omits the `source` discriminator.
+ */
+export type EnvResolverOptions = Omit<EnvSourceConfig, 'source'>
+
+/**
+ * Options for the `auth.dotenv()` builder. Omits the `source` discriminator.
+ */
+export type DotenvResolverOptions = Omit<DotenvSourceConfig, 'source'>
+
+/**
+ * Options for the `auth.file()` builder. Omits the `source` discriminator.
+ */
+export type FileResolverOptions = Omit<FileSourceConfig, 'source'>
+
+/**
+ * Options for the `auth.oauth()` builder. Omits the `source` discriminator.
+ */
+export type OAuthResolverOptions = Omit<OAuthSourceConfig, 'source'>
+
+/**
+ * Options for the `auth.deviceCode()` builder. Omits the `source` discriminator.
+ */
+export type DeviceCodeResolverOptions = Omit<DeviceCodeSourceConfig, 'source'>
+
+/**
+ * Options for the `auth.prompt()` builder. Omits the `source` discriminator.
+ */
+export type PromptResolverOptions = Omit<PromptSourceConfig, 'source'>
+
+/**
+ * Function signature accepted by `auth.custom()`.
+ */
+export type CustomResolverFn = () => Promise<AuthCredential | null> | AuthCredential | null
+
+// ---------------------------------------------------------------------------
+// Auth HTTP integration
+// ---------------------------------------------------------------------------
+
+/**
+ * Configuration for an HTTP client created by the auth middleware.
+ *
+ * When provided on {@link AuthOptions}, the auth middleware creates an HTTP
+ * client with automatic credential header injection and decorates it onto
+ * `ctx[namespace]`.
+ */
+export interface AuthHttpOptions {
+  readonly baseUrl: string
+  readonly namespace: string
+  readonly headers?: Readonly<Record<string, string>>
+}
+
+// ---------------------------------------------------------------------------
+// Auth options
+// ---------------------------------------------------------------------------
+
 /**
  * Options accepted by the `auth()` middleware factory.
  *
  * @property resolvers - Ordered list of credential sources to try via `authenticate()`.
+ * @property http - Optional HTTP client(s) with automatic credential injection.
  */
 export interface AuthOptions {
   readonly resolvers: readonly ResolverConfig[]
+  readonly http?: AuthHttpOptions | readonly AuthHttpOptions[]
 }
 
 // ---------------------------------------------------------------------------

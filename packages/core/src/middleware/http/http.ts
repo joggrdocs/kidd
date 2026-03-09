@@ -2,7 +2,10 @@
  * HTTP client middleware factory.
  *
  * Creates a middleware that decorates the context with a typed
- * {@link HttpClient} bound to a base URL and optional auth credentials.
+ * {@link HttpClient} bound to a base URL and optional headers.
+ *
+ * This middleware is fully decoupled from auth. For automatic credential
+ * injection, use `auth({ http: { ... } })` instead.
  *
  * @module
  */
@@ -12,7 +15,6 @@ import type { Context } from '@/context/types.js'
 import { middleware } from '@/middleware.js'
 import type { Middleware } from '@/types.js'
 
-import type { AuthCredential } from '../auth/types.js'
 import { createHttpClient } from './create-http-client.js'
 import type { HttpOptions } from './types.js'
 
@@ -20,28 +22,26 @@ import type { HttpOptions } from './types.js'
  * Create an HTTP client middleware that decorates the context
  * with a typed client.
  *
- * Reads auth credentials from `ctx.auth.credential()` (set by the auth
- * middleware), builds a typed {@link HttpClient}, and attaches it to
- * `ctx[namespace]`.
+ * Resolves headers from the `headers` option (static record or function),
+ * builds a typed {@link HttpClient}, and attaches it to `ctx[namespace]`.
  *
  * @param options - HTTP middleware configuration.
  * @returns A Middleware that adds an HttpClient to ctx[namespace].
  */
 export function http(options: HttpOptions): Middleware {
-  const { namespace, baseUrl, defaultHeaders } = options
+  const { namespace, baseUrl, headers } = options
 
-  return middleware(async (ctx, next) => {
-    const credential = resolveCredential(ctx)
+  return middleware((ctx, next) => {
+    const resolvedHeaders = resolveHeaders(ctx, headers)
 
     const client = createHttpClient({
       baseUrl,
-      credential,
-      defaultHeaders,
+      defaultHeaders: resolvedHeaders,
     })
 
     decorateContext(ctx, namespace, client)
 
-    await next()
+    return next()
   })
 }
 
@@ -50,25 +50,27 @@ export function http(options: HttpOptions): Middleware {
 // ---------------------------------------------------------------------------
 
 /**
- * Resolve the auth credential from the context.
+ * Resolve headers from the options value.
  *
- * Calls `ctx.auth.credential()` when the auth middleware has run.
- * Returns undefined when no auth context is available.
+ * Calls the function form with ctx when provided, returns static headers
+ * directly, or returns undefined when no headers are configured.
  *
  * @private
  * @param ctx - The context object.
- * @returns The credential or undefined.
+ * @param headers - The headers option (static, function, or undefined).
+ * @returns The resolved headers record or undefined.
  */
-function resolveCredential(ctx: Context): AuthCredential | undefined {
-  if (ctx.auth === undefined) {
+function resolveHeaders(
+  ctx: Context,
+  headers: HttpOptions['headers']
+): Readonly<Record<string, string>> | undefined {
+  if (headers === undefined) {
     return undefined
   }
 
-  const cred = ctx.auth.credential()
-
-  if (cred === null) {
-    return undefined
+  if (typeof headers === 'function') {
+    return headers(ctx)
   }
 
-  return cred
+  return headers
 }

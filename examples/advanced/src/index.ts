@@ -1,8 +1,16 @@
 import { cli } from '@kidd-cli/core'
+import { http } from '@kidd-cli/core/http'
+import type { HttpClient } from '@kidd-cli/core/http'
 import { z } from 'zod'
 
 import telemetry from './middleware/telemetry.js'
 import timing from './middleware/timing.js'
+
+declare module '@kidd-cli/core' {
+  interface Context {
+    readonly api: HttpClient
+  }
+}
 
 const configSchema = z.object({
   apiUrl: z.string().url(),
@@ -15,7 +23,18 @@ cli({
     schema: configSchema,
   },
   description: 'Acme platform CLI',
-  middleware: [timing, telemetry],
+  middleware: [
+    http({
+      baseUrl: 'https://api.acme.dev',
+      headers: (ctx) => ({
+        'X-Environment': String(ctx.config.defaultEnvironment),
+        'X-Org': String(ctx.config.org),
+      }),
+      namespace: 'api',
+    }),
+    timing,
+    telemetry,
+  ],
   name: 'acme',
   version: '2.0.0',
 })

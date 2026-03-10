@@ -1,5 +1,5 @@
 ---
-'@kidd-cli/core': major
+'@kidd-cli/core': minor
 ---
 
 Redesign auth middleware API

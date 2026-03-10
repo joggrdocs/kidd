@@ -13,13 +13,19 @@ The codebase follows a functional, immutable, composition-first design. There ar
 ```
 packages/
 ├── core/            # Core CLI framework (commands, middleware, context, config)
-└── cli/             # CLI entrypoint and DX tooling (init, dev, build, compile)
+├── cli/             # CLI entrypoint and DX tooling (init, dev, build, compile)
+├── config/          # Configuration loading, validation, and schema (internal)
+├── utils/           # Shared functional utilities (internal)
+└── bundler/         # tsdown bundling and binary compilation (internal)
 ```
 
-| Package          | Purpose                                                       |
-| ---------------- | ------------------------------------------------------------- |
-| `@kidd-cli/core` | Core framework: `cli()`, `command()`, `middleware()`, context |
-| `@kidd-cli/cli`  | DX companion CLI: scaffolding, dev mode, build, compile       |
+| Package              | Purpose                                                       |
+| -------------------- | ------------------------------------------------------------- |
+| `@kidd-cli/core`     | Core framework: `cli()`, `command()`, `middleware()`, context |
+| `@kidd-cli/cli`      | DX companion CLI: scaffolding, dev mode, build, compile       |
+| `@kidd-cli/config`   | Configuration loading, validation, and schema (internal)      |
+| `@kidd-cli/utils`    | Shared functional utilities (internal)                        |
+| `@kidd-cli/bundler`  | tsdown bundling and binary compilation (internal)             |
 
 ## Layers
 
@@ -130,12 +136,12 @@ The `Context` is the central object threaded through every middleware and comman
 | --------- | ----------------------- | ------- | ----------------------------------------------- |
 | `args`    | `DeepReadonly<TArgs>`   | No      | Parsed and validated command arguments          |
 | `config`  | `DeepReadonly<TConfig>` | No      | Loaded and validated config file contents       |
-| `logger`  | `Logger`                | No      | Pino-compatible structured logger               |
+| `logger`  | `CliLogger`             | No      | Structured terminal logger via `@clack/prompts`  |
 | `prompts` | `Prompts`               | No      | Interactive input (confirm, text, select, etc.) |
 | `spinner` | `Spinner`               | No      | Terminal spinner for long-running operations    |
 | `output`  | `Output`                | No      | Structured stdout (write, table, markdown, raw) |
 | `store`   | `Store`                 | Yes     | In-memory key-value store for middleware data   |
-| `errors`  | `Errors`                | No      | Redaction, sanitization, user-facing errors     |
+| `fail`    | `(message, options?) => never` | No | Throw a user-facing error with clean exit       |
 | `meta`    | `DeepReadonly<Meta>`    | No      | CLI name, version, resolved command path        |
 
 All data properties (`args`, `config`, `meta`) are deeply readonly at the type level. The `store` is the only mutable property -- it exists for middleware-to-handler data flow.

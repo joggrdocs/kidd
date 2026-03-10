@@ -33,8 +33,8 @@ For a more detailed walkthrough, see the [Getting Started Guide](contributing/gu
 | `pnpm build`      | Build all packages (via Turborepo) |
 | `pnpm lint`       | Lint with OXLint                   |
 | `pnpm lint:fix`   | Auto-fix lint issues               |
-| `pnpm fmt`        | Format with OXFmt                  |
-| `pnpm fmt:check`  | Check formatting                   |
+| `pnpm format`     | Format with OXFmt                  |
+| `pnpm format:fix` | Auto-fix formatting                |
 | `pnpm typecheck`  | Type check all packages            |
 | `pnpm check`      | Typecheck + lint                   |
 | `pnpm test`       | Run all tests (vitest)             |
@@ -49,7 +49,7 @@ For a more detailed walkthrough, see the [Getting Started Guide](contributing/gu
 2. Make your changes
 3. Run the full check suite before committing:
    ```bash
-   pnpm check && pnpm fmt:check && pnpm test && pnpm build
+   pnpm check && pnpm test && pnpm build
    ```
 4. Commit your changes (see [Commit Messages](#commit-messages))
 
@@ -57,7 +57,7 @@ For a complete walkthrough, see the [Developing a Feature](contributing/guides/d
 
 ## Testing
 
-Tests use [Vitest](https://vitest.dev) and live in `test/**/*.test.ts` within each package. Run all tests from the repo root:
+Tests use [Vitest](https://vitest.dev). Unit tests are colocated as `src/**/*.test.ts` and integration tests live in `test/integration/*.test.ts` within each package. Run all tests from the repo root:
 
 ```bash
 pnpm test
@@ -94,7 +94,7 @@ Not every PR needs a changeset — skip it for docs-only changes, CI tweaks, or 
 
 ## Commit Messages
 
-All commits follow [Conventional Commits](https://www.conventionalcommits.org/) format: `type(scope): description`. A `commitlint` hook enforces this on every commit. See the [Commit Standards](contributing/standards/git-commits.md) for types, scopes, and examples.
+All commits follow [Conventional Commits](https://www.conventionalcommits.org/) format: `type(scope): description`. See the [Commit Standards](contributing/standards/git-commits.md) for types, scopes, and examples.
 
 Write clear, concise descriptions in the imperative mood ("add feature" not "added feature"). A short subject line is usually sufficient; add a body if the **why** isn't obvious from the diff.
 
@@ -102,11 +102,11 @@ Write clear, concise descriptions in the imperative mood ("add feature" not "add
 
 ```
 packages/
-├── kidd/            # Core CLI framework (commands, middleware, store, config)
-├── cli/             # CLI entrypoint
-├── auth/            # Auth middleware, token storage, provider interface
-├── js/              # JWT verification, API key management, sessions
-└── server/          # Ephemeral HTTP server for OAuth callbacks
+├── core/            # Core CLI framework (commands, middleware, store, config)
+├── cli/             # CLI entrypoint and DX tooling
+├── config/          # Configuration loading, validation, and schema (internal)
+├── utils/           # Shared functional utilities (internal)
+└── bundler/         # tsdown bundling and binary compilation (internal)
 ```
 
 For architectural context, see the [Architecture Concept](contributing/concepts/architecture.md) and [CLI Concept](contributing/concepts/cli.md) docs.
@@ -114,7 +114,7 @@ For architectural context, see the [Architecture Concept](contributing/concepts/
 ## Code Style
 
 - TypeScript, strict mode
-- Formatting and linting are handled by [OXC](https://oxc.rs/) (oxfmt + oxlint) — run `pnpm fmt` and `pnpm lint:fix` to auto-fix
+- Formatting and linting are handled by [OXC](https://oxc.rs/) (oxfmt + oxlint) — run `pnpm format:fix` and `pnpm lint:fix` to auto-fix
 - Prefer pure functions and immutable data
 - Avoid classes, `let`, and imperative mutation where possible
 
@@ -130,7 +130,7 @@ For in-depth standards, architecture concepts, and step-by-step guides, see the 
 
 ## Reporting Issues
 
-Use [GitHub Issues](https://github.com/joggr/kidd/issues) to report bugs or suggest features. When filing a bug, include:
+Use [GitHub Issues](https://github.com/joggrdocs/kidd/issues) to report bugs or suggest features. When filing a bug, include:
 
 - Steps to reproduce
 - Expected vs actual behavior

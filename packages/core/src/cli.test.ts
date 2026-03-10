@@ -230,7 +230,7 @@ describe('help', () => {
     expect(handler).not.toHaveBeenCalled()
   })
 
-  it('should display banner above commands in help', async () => {
+  it('should display header above commands on no-command', async () => {
     const handler = vi.fn()
     const commands: CommandMap = {
       deploy: command({ description: 'Deploy the app', handler }),
@@ -239,21 +239,40 @@ describe('help', () => {
     setArgv()
     await runTestCli({
       commands,
-      help: { banner: '*** BANNER ***' },
+      help: { header: '*** HEADER ***' },
       name: 'test-cli',
       version: '1.0.0',
     })
 
     const output = logSpy.mock.calls.map((call) => String(call[0])).join('\n')
-    expect(output).toContain('*** BANNER ***')
+    expect(output).toContain('*** HEADER ***')
     expect(output).toContain('deploy')
 
-    const bannerIndex = output.indexOf('*** BANNER ***')
+    const headerIndex = output.indexOf('*** HEADER ***')
     const deployIndex = output.indexOf('deploy')
-    expect(bannerIndex).toBeLessThan(deployIndex)
+    expect(headerIndex).toBeLessThan(deployIndex)
   })
 
-  it('should show description without banner when banner is not set', async () => {
+  it('should not display header on --help', async () => {
+    const handler = vi.fn()
+    const commands: CommandMap = {
+      deploy: command({ description: 'Deploy the app', handler }),
+    }
+
+    setArgv('--help')
+    await runTestCli({
+      commands,
+      help: { header: '*** HEADER ***' },
+      name: 'test-cli',
+      version: '1.0.0',
+    })
+
+    const output = logSpy.mock.calls.map((call) => String(call[0])).join('\n')
+    expect(output).not.toContain('*** HEADER ***')
+    expect(output).toContain('deploy')
+  })
+
+  it('should show description without header when header is not set', async () => {
     const handler = vi.fn()
     const commands: CommandMap = {
       run: command({ description: 'Run something', handler }),
@@ -271,7 +290,43 @@ describe('help', () => {
     expect(output).toContain('A great CLI tool')
   })
 
-  it('should show both banner and description when both are set', async () => {
+  it('should show footer on all help output', async () => {
+    const handler = vi.fn()
+    const commands: CommandMap = {
+      run: command({ description: 'Run something', handler }),
+    }
+
+    setArgv()
+    await runTestCli({
+      commands,
+      help: { footer: 'Docs: https://example.com' },
+      name: 'test-cli',
+      version: '1.0.0',
+    })
+
+    const output = logSpy.mock.calls.map((call) => String(call[0])).join('\n')
+    expect(output).toContain('Docs: https://example.com')
+  })
+
+  it('should show footer on --help', async () => {
+    const handler = vi.fn()
+    const commands: CommandMap = {
+      run: command({ description: 'Run something', handler }),
+    }
+
+    setArgv('--help')
+    await runTestCli({
+      commands,
+      help: { footer: 'Docs: https://example.com' },
+      name: 'test-cli',
+      version: '1.0.0',
+    })
+
+    const output = logSpy.mock.calls.map((call) => String(call[0])).join('\n')
+    expect(output).toContain('Docs: https://example.com')
+  })
+
+  it('should show both header and description on no-command', async () => {
     const handler = vi.fn()
     const commands: CommandMap = {
       run: command({ description: 'Run something', handler }),
@@ -281,7 +336,7 @@ describe('help', () => {
     await runTestCli({
       commands,
       description: 'A great CLI tool',
-      help: { banner: '=== MY CLI ===' },
+      help: { header: '=== MY CLI ===' },
       name: 'test-cli',
       version: '1.0.0',
     })

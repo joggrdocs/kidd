@@ -40,9 +40,13 @@ export async function cli<TSchema extends z.ZodType = z.ZodType>(
         type: 'string',
       })
 
-    const usageText = buildUsageText({ description: options.description, help: options.help })
-    if (usageText) {
-      program.usage(usageText)
+    if (options.description) {
+      program.usage(options.description)
+    }
+
+    const footer = extractFooter(options.help)
+    if (footer) {
+      program.epilogue(footer)
     }
 
     const resolved: ResolvedRef = { ref: undefined }
@@ -58,7 +62,12 @@ export async function cli<TSchema extends z.ZodType = z.ZodType>(
     applyCwd(argv)
 
     if (!resolved.ref) {
-      if (commands) {
+      if (commands && !argv.help) {
+        const header = extractHeader(options.help)
+        if (header) {
+          console.log(header)
+          console.log()
+        }
         program.showHelp('log')
       }
       return undefined
@@ -166,50 +175,31 @@ function applyCwd(argv: Record<string, unknown>): void {
 }
 
 /**
- * Extract the banner string from help options.
+ * Extract the header string from help options.
  *
  * @private
  * @param help - The help options, possibly undefined.
- * @returns The banner string or undefined.
+ * @returns The header string or undefined.
  */
-function extractBanner(help: CliHelpOptions | undefined): string | undefined {
+function extractHeader(help: CliHelpOptions | undefined): string | undefined {
   if (!help) {
     return undefined
   }
-  return help.banner
+  return help.header
 }
 
 /**
- * Compose the usage text from banner and description.
- *
- * - Banner only → `banner\n\n$0 <command>`
- * - Banner + description → `banner\n\n$0 <command>\n\ndescription`
- * - Description only → `description`
- * - Neither → `undefined`
+ * Extract the footer string from help options.
  *
  * @private
- * @param params - The description and help options.
- * @returns The composed usage text or undefined.
+ * @param help - The help options, possibly undefined.
+ * @returns The footer string or undefined.
  */
-function buildUsageText({
-  description,
-  help,
-}: {
-  readonly description: string | undefined
-  readonly help: CliHelpOptions | undefined
-}): string | undefined {
-  const banner = extractBanner(help)
-
-  if (banner && description) {
-    return `${banner}\n\n$0 <command>\n\n${description}`
+function extractFooter(help: CliHelpOptions | undefined): string | undefined {
+  if (!help) {
+    return undefined
   }
-  if (banner) {
-    return `${banner}\n\n$0 <command>`
-  }
-  if (description) {
-    return description
-  }
-  return undefined
+  return help.footer
 }
 
 /**

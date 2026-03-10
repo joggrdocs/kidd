@@ -43,7 +43,7 @@ cli({
   commands: { deploy, migrate },
   middleware: [timing],
   config: { schema: MyConfigSchema },
-  help: { banner: 'my-app - deploy and migrate with ease' },
+  help: { header: 'my-app - deploy and migrate with ease' },
 })
 ```
 

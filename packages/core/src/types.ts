@@ -326,9 +326,15 @@ export interface CliConfigOptions<TSchema extends z.ZodType = z.ZodType> {
  */
 export interface CliHelpOptions {
   /**
-   * Banner text displayed at the top of help output, above the usage line.
+   * Header text displayed above help output when the CLI is invoked
+   * without a command. Not shown on `--help`.
    */
-  readonly banner?: string
+  readonly header?: string
+  /**
+   * Footer text displayed below help output (e.g., docs URL, bug report link).
+   * Shown on all help output.
+   */
+  readonly footer?: string
 }
 
 /**

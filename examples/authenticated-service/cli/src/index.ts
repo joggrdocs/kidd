@@ -11,7 +11,7 @@ declare module '@kidd-cli/core' {
 cli({
   commands: `${import.meta.dirname}/commands`,
   description: 'Demo CLI for the faux authenticated service',
-  help: { banner: 'demo - authenticated service CLI' },
+  help: { header: 'demo - authenticated service CLI' },
   middleware: [
     auth({
       http: {

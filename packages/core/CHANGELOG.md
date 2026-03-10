@@ -1,5 +1,88 @@
 # kidd
 
+## 0.2.0
+
+### Minor Changes
+
+- f48ad38: Add resolver builder functions, HTTP integration to auth middleware, and decouple standalone http() from auth
+
+  **Resolver builders:** `auth.env()`, `auth.dotenv()`, `auth.file()`, `auth.oauth()`, `auth.deviceCode()`, `auth.token()`, `auth.custom()` provide construction sugar over raw config objects. Raw configs still work.
+
+  **Auth HTTP integration:** `auth({ http: { baseUrl, namespace } })` creates authenticated HTTP clients with automatic credential header injection. Supports single or multiple clients via an array.
+
+  **Breaking changes:**
+
+  - `http()` no longer auto-reads `ctx.auth.credential()`. Use `auth({ http })` for authenticated clients or pass `headers` explicitly.
+  - `HttpOptions.defaultHeaders` renamed to `headers` and now accepts a function `(ctx) => Record<string, string>` in addition to a static record.
+
+  Before:
+
+  ```ts
+  middleware: [
+    auth({ resolvers: [{ source: "env" }] }),
+    http({ baseUrl: "https://api.example.com", namespace: "api" }),
+  ];
+  ```
+
+  After:
+
+  ```ts
+  middleware: [
+    auth({
+      resolvers: [auth.env()],
+      http: { baseUrl: "https://api.example.com", namespace: "api" },
+    }),
+  ];
+  ```
+
+- f48ad38: Replace non-standard OAuth flow with spec-compliant PKCE (RFC 7636) and add Device Authorization Grant (RFC 8628)
+
+  The `oauth` resolver now implements the standard OAuth 2.0 Authorization Code flow with PKCE. The previous non-standard direct-token-POST flow has been removed entirely.
+
+  **Breaking change:** `OAuthSourceConfig` now requires `clientId` and `tokenUrl` in addition to `authUrl`.
+
+  Before:
+
+  ```ts
+  { source: 'oauth', authUrl: 'https://example.com/auth' }
+  ```
+
+  After:
+
+  ```ts
+  { source: 'oauth', clientId: 'my-client-id', authUrl: 'https://example.com/authorize', tokenUrl: 'https://example.com/token' }
+  ```
+
+  New `device-code` resolver added for headless/browserless environments (RFC 8628).
+
+  **Breaking change:** Remove `lib/output` and `lib/prompts` sub-exports. The `Spinner` interface is now inlined in `context/types.ts` and prompts use `@clack/prompts` directly. Consumers importing from `@kidd-cli/core/lib/output` or `@kidd-cli/core/lib/prompts` must update to use `@clack/prompts` directly.
+
+  **Breaking change:** Export `MiddlewareEnv` type from main entry point.
+
+  **Breaking change:** `DeviceCodeSourceConfig` adds `openBrowser` option (defaults to `true`). Set to `false` for headless/CI/SSH environments.
+
+  Include dotenv resolver in passive credential resolution (`ctx.auth.credential()`) alongside file and env resolvers.
+
+  OAuth callback server now detects provider error redirects (e.g. `?error=access_denied`) and resolves immediately instead of waiting for timeout.
+
+  Device-code and OAuth HTTP requests are now protected by `AbortSignal.timeout` to prevent hanging when endpoints are unresponsive.
+
+  Add `signal` parameter to `postFormEncoded()` for timeout/cancellation support.
+
+### Patch Changes
+
+- fd5bfcd: Harden auth middleware against insecure transport and injection
+
+  Enforce HTTPS on OAuth endpoint URLs (authUrl, tokenUrl, deviceAuthUrl) per RFC 8252 §8.3, allowing HTTP only for loopback addresses used during local redirect flows. Resolvers now return null for non-secure URLs.
+
+  Escape `cmd.exe` metacharacters (`&`, `|`, `<`, `>`, `^`) in URLs passed to `cmd /c start` on Windows to prevent command injection via query strings.
+
+  Remove redundant `existsSync` check in `loadFromPath` to eliminate a TOCTOU race condition, matching the pattern already used in the dotenv resolver.
+
+- Updated dependencies [f48ad38]
+  - @kidd-cli/utils@0.1.2
+  - @kidd-cli/config@0.1.2
+
 ## 0.1.2
 
 ### Patch Changes

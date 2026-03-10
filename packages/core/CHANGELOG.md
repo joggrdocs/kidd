@@ -1,5 +1,24 @@
 # kidd
 
+## 0.3.0
+
+### Minor Changes
+
+- 19b8277: Redesign auth middleware API
+
+  Rename `resolvers` to `strategies` across all auth types and functions. Remove bundled `auth({ http })` option in favor of standalone `http()` middleware. Add `login({ strategies })` override for interactive auth. Add `auth.headers()` factory for resolving auth headers from context. Add `auth.require()` enforcement gate middleware. Add `compose()` middleware combinator for merging multiple middleware into one.
+
+### Patch Changes
+
+- 7042b46: Fix coding standards violations across packages
+
+  Replace `as` type assertions with type annotations, type guards, and documented exceptions. Replace `try/catch` blocks with `attempt`/`attemptAsync` from es-toolkit. Replace multi-branch `if/else` chains with `ts-pattern` `match` expressions. Rename `redactPaths` constant to `REDACT_PATHS`. Document intentional mutation and `throw` exceptions with inline comments.
+
+- 6a538bc: upgrade dependencies across all packages
+- Updated dependencies [6a538bc]
+  - @kidd-cli/utils@0.1.3
+  - @kidd-cli/config@0.1.3
+
 ## 0.2.0
 
 ### Minor Changes
@@ -11,6 +30,7 @@
   **Auth HTTP integration:** `auth({ http: { baseUrl, namespace } })` creates authenticated HTTP clients with automatic credential header injection. Supports single or multiple clients via an array.
 
   **Breaking changes:**
+
   - `http()` no longer auto-reads `ctx.auth.credential()`. Use `auth({ http })` for authenticated clients or pass `headers` explicitly.
   - `HttpOptions.defaultHeaders` renamed to `headers` and now accepts a function `(ctx) => Record<string, string>` in addition to a static record.
 
@@ -18,9 +38,9 @@
 
   ```ts
   middleware: [
-    auth({ resolvers: [{ source: 'env' }] }),
-    http({ baseUrl: 'https://api.example.com', namespace: 'api' }),
-  ]
+    auth({ resolvers: [{ source: "env" }] }),
+    http({ baseUrl: "https://api.example.com", namespace: "api" }),
+  ];
   ```
 
   After:
@@ -29,9 +49,9 @@
   middleware: [
     auth({
       resolvers: [auth.env()],
-      http: { baseUrl: 'https://api.example.com', namespace: 'api' },
+      http: { baseUrl: "https://api.example.com", namespace: "api" },
     }),
-  ]
+  ];
   ```
 
 - f48ad38: Replace non-standard OAuth flow with spec-compliant PKCE (RFC 7636) and add Device Authorization Grant (RFC 8628)

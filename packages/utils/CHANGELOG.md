@@ -1,5 +1,11 @@
 # @kidd-cli/utils
 
+## 0.1.3
+
+### Patch Changes
+
+- 6a538bc: upgrade dependencies across all packages
+
 ## 0.1.2
 
 ### Patch Changes

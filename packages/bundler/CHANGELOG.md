@@ -1,5 +1,14 @@
 # @kidd-cli/bundler
 
+## 0.1.3
+
+### Patch Changes
+
+- 6a538bc: upgrade dependencies across all packages
+- Updated dependencies [6a538bc]
+  - @kidd-cli/utils@0.1.3
+  - @kidd-cli/config@0.1.3
+
 ## 0.1.2
 
 ### Patch Changes

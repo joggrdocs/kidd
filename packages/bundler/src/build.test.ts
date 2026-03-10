@@ -29,13 +29,14 @@ describe('build operation', () => {
   })
 
   it('should return err with Error on tsdown failure', async () => {
-    vi.spyOn(console, 'error').mockImplementation(function noop() {})
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(function noop() {})
     mockTsdownBuild.mockRejectedValueOnce(new Error('tsdown crashed'))
     const [error, output] = await build({ config: {}, cwd: '/project' })
 
     expect(output).toBeNull()
     expect(error).toBeInstanceOf(Error)
     expect(error).toMatchObject({ message: expect.stringContaining('tsdown build failed') })
+    expect(errorSpy).toHaveBeenCalled()
   })
 
   it('should return err when no entry file is produced', async () => {

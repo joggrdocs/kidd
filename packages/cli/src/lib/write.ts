@@ -1,8 +1,9 @@
-import { access, mkdir, writeFile } from 'node:fs/promises'
+import { mkdir, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 
-import { attemptAsync, ok, toErrorMessage } from '@kidd-cli/utils/fp'
+import { ok, toErrorMessage } from '@kidd-cli/utils/fp'
 import type { AsyncResult } from '@kidd-cli/utils/fp'
+import { fileExists } from '@kidd-cli/utils/fs'
 
 import type { GenerateError, RenderedFile, WriteFilesParams, WriteResult } from './types.js'
 
@@ -19,9 +20,6 @@ import type { GenerateError, RenderedFile, WriteFilesParams, WriteResult } from 
 export async function writeFiles(
   params: WriteFilesParams
 ): AsyncResult<WriteResult, GenerateError> {
-  const written: string[] = []
-  const skipped: string[] = []
-
   const results = await Promise.all(
     params.files.map((file) => writeSingleFile(file, params.outputDir, params.overwrite))
   )
@@ -33,16 +31,13 @@ export async function writeFiles(
 
   const validStatuses = results.filter((r): r is readonly [null, FileWriteStatus] => r[1] !== null)
 
-  const writtenPaths = validStatuses
+  const written = validStatuses
     .filter(([, status]) => status.action === 'written')
     .map(([, status]) => status.path)
 
-  const skippedPaths = validStatuses
+  const skipped = validStatuses
     .filter(([, status]) => status.action === 'skipped')
     .map(([, status]) => status.path)
-
-  writtenPaths.map((p) => written.push(p))
-  skippedPaths.map((p) => skipped.push(p))
 
   return ok({ skipped, written })
 }
@@ -98,14 +93,3 @@ async function writeSingleFile(
   }
 }
 
-/**
- * Check whether a path exists on disk.
- *
- * @param filePath - The path to check.
- * @returns True when the path is accessible, false otherwise.
- * @private
- */
-async function fileExists(filePath: string): Promise<boolean> {
-  const [err] = await attemptAsync(() => access(filePath))
-  return err === null
-}

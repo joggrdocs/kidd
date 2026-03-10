@@ -8,7 +8,6 @@ const RESOLVED_VIRTUAL_ID = `\0${VIRTUAL_MODULE_ID}`
 
 const AUTOLOADER_REGION_START = '//#region src/autoloader.ts'
 const AUTOLOADER_REGION_END = '//#endregion'
-const KIDD_DIST_PATTERN = /\/kidd\/dist\/index\.js$/
 
 /**
  * Parameters for creating the autoload plugin.
@@ -59,11 +58,7 @@ export function createAutoloadPlugin(params: CreateAutoloadPluginParams): Rolldo
 
       return null
     },
-    transform(code, id) {
-      if (!KIDD_DIST_PATTERN.test(id)) {
-        return null
-      }
-
+    transform(code, _id) {
       const regionStart = code.indexOf(AUTOLOADER_REGION_START)
       if (regionStart === -1) {
         return null

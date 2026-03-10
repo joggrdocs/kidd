@@ -3,7 +3,8 @@ import { readFileSync } from 'node:fs'
 import { parse } from 'dotenv'
 import { attempt } from 'es-toolkit'
 
-import type { AuthCredential } from './types.js'
+import { createBearerCredential, isValidToken } from '../credential.js'
+import type { AuthCredential } from '../types.js'
 
 /**
  * Resolve a bearer credential from a `.env` file without mutating `process.env`.
@@ -30,9 +31,9 @@ export function resolveFromDotenv(options: {
   const parsed = parse(content)
   const token = parsed[options.tokenVar]
 
-  if (!token) {
+  if (!isValidToken(token)) {
     return null
   }
 
-  return { token, type: 'bearer' }
+  return createBearerCredential(token)
 }

@@ -1,6 +1,8 @@
 import { command } from '@kidd-cli/core'
 import { z } from 'zod'
 
+import requireAuth from '../middleware/require-auth.js'
+
 const args = z.object({
   json: z.boolean().default(false).describe('Output as JSON'),
 })
@@ -13,9 +15,19 @@ interface Repo {
   readonly owner: string
 }
 
+/** @private */
+function formatPrivate(isPrivate: boolean): string {
+  if (isPrivate) {
+    return 'yes'
+  }
+
+  return 'no'
+}
+
 export default command({
   args,
-  description: 'List repositories for the authenticated user',
+  description: '[auth] List repositories for the authenticated user',
+  middleware: [requireAuth],
   handler: async (ctx) => {
     ctx.spinner.start('Fetching repos...')
 
@@ -31,7 +43,7 @@ export default command({
     ctx.output.table(
       res.data.map((repo) => ({
         Name: repo.full_name,
-        Private: repo.private ? 'yes' : 'no',
+        Private: formatPrivate(repo.private),
       }))
     )
   },

@@ -8,9 +8,8 @@ import { z } from 'zod'
 
 import { detectProject } from '../../lib/detect.js'
 import { renderTemplate } from '../../lib/render.js'
+import { isKebabCase } from '../../lib/validate.js'
 import { writeFiles } from '../../lib/write.js'
-
-const KEBAB_CASE_CHARS_RE = /^[a-z][\da-z-]*$/
 
 const args = z.object({
   args: z.boolean().describe('Include args schema').optional(),
@@ -34,11 +33,7 @@ const addCommandCommand: Command = command({
       return ctx.fail('Not in a kidd project. Run `kidd init` first.')
     }
 
-    const [configError, configResult] = await loadConfig({ cwd: project.rootDir })
-
-    if (configError) {
-      // No config file found — all KiddConfig fields are optional, so defaults apply.
-    }
+    const [, configResult] = await loadConfig({ cwd: project.rootDir })
 
     const commandName = await resolveCommandName(ctx)
     const commandDescription = await resolveDescription(ctx)
@@ -72,8 +67,14 @@ const addCommandCommand: Command = command({
 
     ctx.spinner.stop('Command created!')
 
-    result.written.map((file) => ctx.output.raw(`  created ${file}`))
-    result.skipped.map((file) => ctx.output.raw(`  skipped ${file} (already exists)`))
+    const lines = [
+      ...result.written.map((file) => `  created ${file}`),
+      ...result.skipped.map((file) => `  skipped ${file} (already exists)`),
+    ]
+    const summary = lines.join('\n')
+    if (summary.length > 0) {
+      ctx.output.raw(summary)
+    }
   },
 })
 
@@ -82,26 +83,6 @@ export default addCommandCommand
 // ---------------------------------------------------------------------------
 // Private helpers
 // ---------------------------------------------------------------------------
-
-/**
- * Check whether a string is valid kebab-case.
- *
- * @param value - The string to validate.
- * @returns True when the string is kebab-case.
- * @private
- */
-function isKebabCase(value: string): boolean {
-  if (!KEBAB_CASE_CHARS_RE.test(value)) {
-    return false
-  }
-  if (value.endsWith('-')) {
-    return false
-  }
-  if (value.includes('--')) {
-    return false
-  }
-  return true
-}
 
 /**
  * Resolve the command name from args or prompt.
@@ -155,7 +136,7 @@ async function resolveDescription(ctx: Context<AddCommandArgs>): Promise<string>
  * @private
  */
 async function resolveIncludeArgs(ctx: Context<AddCommandArgs>): Promise<boolean> {
-  if (ctx.args.args !== undefined && ctx.args.args !== null) {
+  if (ctx.args.args !== undefined) {
     return ctx.args.args
   }
   return ctx.prompts.confirm({

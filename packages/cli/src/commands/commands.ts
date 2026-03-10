@@ -1,11 +1,11 @@
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
 
-import type { KiddConfig } from '@kidd-cli/config'
 import { loadConfig } from '@kidd-cli/config/loader'
-import type { LoadConfigResult } from '@kidd-cli/config/loader'
 import { autoload, command } from '@kidd-cli/core'
 import type { Command as KiddCommand, Context } from '@kidd-cli/core'
+
+import { extractConfig } from '../lib/config-helpers.js'
 
 /**
  * A single node in the rendered command tree.
@@ -28,12 +28,8 @@ const commandsCommand: KiddCommand = command({
   handler: async (ctx: Context) => {
     const cwd = process.cwd()
 
-    const [configError, configResult] = await loadConfig({ cwd })
+    const [, configResult] = await loadConfig({ cwd })
     const config = extractConfig(configResult)
-
-    if (configError) {
-      // No config file found — all KiddConfig fields are optional, so defaults apply.
-    }
 
     const commandsDir = join(cwd, config.commands ?? 'commands')
 
@@ -60,21 +56,6 @@ const commandsCommand: KiddCommand = command({
 export default commandsCommand
 
 // ---------------------------------------------------------------------------
-
-/**
- * Extract a KiddConfig from a load result, falling back to empty defaults.
- *
- * @private
- * @param result - The result from loadConfig, or null when loading failed.
- * @returns The loaded config or an empty object (all KiddConfig fields are optional).
- */
-function extractConfig(result: LoadConfigResult | null): KiddConfig {
-  if (result) {
-    return result.config
-  }
-
-  return {}
-}
 
 /**
  * Resolve a command's subcommands field, which may be a Promise, a map, or undefined.

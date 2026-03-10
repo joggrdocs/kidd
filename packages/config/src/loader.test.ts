@@ -21,11 +21,10 @@ describe(loadConfig, () => {
     const [error, result] = await loadConfig()
 
     expect(error).toBeNull()
-    if (result) {
-      expect(result.config.entry).toBe('./src/index.ts')
-      expect(result.config[TAG]).toBe('KiddConfig')
-      expect(result.configFile).toBe('/project/kidd.config.ts')
-    }
+    expect(result).not.toBeNull()
+    expect(result!.config.entry).toBe('./src/index.ts')
+    expect(result!.config[TAG]).toBe('KiddConfig')
+    expect(result!.configFile).toBe('/project/kidd.config.ts')
   })
 
   it('should pass cwd, defaults, and overrides to c12', async () => {
@@ -56,10 +55,8 @@ describe(loadConfig, () => {
     const [error, result] = await loadConfig()
 
     expect(error).toBeInstanceOf(Error)
-    if (error) {
-      expect(error.message).toContain('Failed to load kidd config')
-      expect(error.message).toContain('file not found')
-    }
+    expect(error!.message).toContain('Failed to load kidd config')
+    expect(error!.message).toContain('file not found')
     expect(result).toBeNull()
   })
 
@@ -74,9 +71,7 @@ describe(loadConfig, () => {
     const [error, result] = await loadConfig()
 
     expect(error).toBeInstanceOf(Error)
-    if (error) {
-      expect(error.message).toContain('Invalid kidd config')
-    }
+    expect(error!.message).toContain('Invalid kidd config')
     expect(result).toBeNull()
   })
 
@@ -91,8 +86,7 @@ describe(loadConfig, () => {
     const [error, result] = await loadConfig()
 
     expect(error).toBeNull()
-    if (result) {
-      expect(result.configFile).toBeUndefined()
-    }
+    expect(result).not.toBeNull()
+    expect(result!.configFile).toBeUndefined()
   })
 })

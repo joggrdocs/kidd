@@ -172,34 +172,38 @@ function displayResults(
   results: readonly CheckResult[],
   fixResults: readonly FixResult[]
 ): void {
-  results.map((result) => formatResultLine(ctx, result, fixResults))
+  const lines = results.map((result) => formatResultLine(result, fixResults))
+  const output = lines.join('')
+  if (output.length > 0) {
+    ctx.output.raw(output)
+  }
 }
 
 /**
- * Format and display a single check result line with optional hint.
+ * Format a single check result line with optional hint.
  *
  * @private
- * @param ctx - The command context.
- * @param result - The check result to display.
+ * @param result - The check result to format.
  * @param fixResults - The fix results to check for applied fixes.
+ * @returns The formatted result line string.
  */
 function formatResultLine(
-  ctx: Context<DoctorArgs>,
   result: CheckResult,
   fixResults: readonly FixResult[]
-): void {
+): string {
   const appliedFix = fixResults.find((f) => f.name === result.name && f.fixed)
 
   if (appliedFix) {
-    ctx.output.raw(`  ${formatDisplayStatus('fix')}  ${result.name} - ${appliedFix.message}\n`)
-    return
+    return `  ${formatDisplayStatus('fix')}  ${result.name} - ${appliedFix.message}\n`
   }
 
-  ctx.output.raw(`  ${formatDisplayStatus(result.status)}  ${result.name} - ${result.message}\n`)
+  const line = `  ${formatDisplayStatus(result.status)}  ${result.name} - ${result.message}\n`
 
   if (result.hint && result.status !== 'pass') {
-    ctx.output.raw(`        ${pc.dim(`→ ${result.hint}`)}\n`)
+    return `${line}        ${pc.dim(`→ ${result.hint}`)}\n`
   }
+
+  return line
 }
 
 /**

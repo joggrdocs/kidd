@@ -25,67 +25,6 @@ export function getFormat(filePath: string): ConfigFormat {
 }
 
 /**
- * Parse a JSON string and return the result as a ConfigOperationResult.
- *
- * @param content - The raw JSON string to parse.
- * @param filePath - The file path used in error messages.
- * @returns A ConfigOperationResult with the parsed data or a parse error.
- */
-export function parseJson(content: string, filePath: string): ConfigOperationResult<unknown> {
-  const [error, result] = jsonParse(content)
-  if (error) {
-    return err(`Failed to parse JSON in ${filePath}: ${error.message}`)
-  }
-  return [null, result]
-}
-
-/**
- * Parse a JSONC (JSON with comments) string and return the result as a ConfigOperationResult.
- *
- * @param content - The raw JSONC string to parse.
- * @param filePath - The file path used in error messages.
- * @returns A ConfigOperationResult with the parsed data or a parse error.
- */
-export function parseJsoncContent(
-  content: string,
-  filePath: string
-): ConfigOperationResult<unknown> {
-  const errors: ParseError[] = []
-  const result = parseJsonc(content, errors, {
-    allowEmptyContent: false,
-    allowTrailingComma: true,
-  })
-  if (errors.length > EMPTY_LENGTH) {
-    const errorMessages = errors
-      .map(
-        (parseError) =>
-          `  - ${printParseErrorCode(parseError.error)} at offset ${parseError.offset}`
-      )
-      .join('\n')
-    return err(`Failed to parse JSONC in ${filePath}:\n${errorMessages}`)
-  }
-  return [null, result]
-}
-
-/**
- * Parse a YAML string and return the result as a ConfigOperationResult.
- *
- * @param content - The raw YAML string to parse.
- * @param filePath - The file path used in error messages.
- * @returns A ConfigOperationResult with the parsed data or a parse error.
- */
-export function parseYamlContent(
-  content: string,
-  filePath: string
-): ConfigOperationResult<unknown> {
-  const [error, result] = attempt(() => parseYaml(content))
-  if (error) {
-    return err(`Failed to parse YAML in ${filePath}: ${String(error)}`)
-  }
-  return [null, result]
-}
-
-/**
  * Options for parsing config file content.
  */
 export interface ParseContentOptions {
@@ -142,4 +81,72 @@ export function getExtension(format: ConfigFormat): string {
     .with('jsonc', () => '.jsonc')
     .with('yaml', () => '.yaml')
     .exhaustive()
+}
+
+// ---------------------------------------------------------------------------
+// Private helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Parse a JSON string and return the result as a ConfigOperationResult.
+ *
+ * @param content - The raw JSON string to parse.
+ * @param filePath - The file path used in error messages.
+ * @returns A ConfigOperationResult with the parsed data or a parse error.
+ * @private
+ */
+function parseJson(content: string, filePath: string): ConfigOperationResult<unknown> {
+  const [error, result] = jsonParse(content)
+  if (error) {
+    return err(`Failed to parse JSON in ${filePath}: ${error.message}`)
+  }
+  return [null, result]
+}
+
+/**
+ * Parse a JSONC (JSON with comments) string and return the result as a ConfigOperationResult.
+ *
+ * @param content - The raw JSONC string to parse.
+ * @param filePath - The file path used in error messages.
+ * @returns A ConfigOperationResult with the parsed data or a parse error.
+ * @private
+ */
+function parseJsoncContent(
+  content: string,
+  filePath: string
+): ConfigOperationResult<unknown> {
+  const errors: ParseError[] = []
+  const result = parseJsonc(content, errors, {
+    allowEmptyContent: false,
+    allowTrailingComma: true,
+  })
+  if (errors.length > EMPTY_LENGTH) {
+    const errorMessages = errors
+      .map(
+        (parseError) =>
+          `  - ${printParseErrorCode(parseError.error)} at offset ${parseError.offset}`
+      )
+      .join('\n')
+    return err(`Failed to parse JSONC in ${filePath}:\n${errorMessages}`)
+  }
+  return [null, result]
+}
+
+/**
+ * Parse a YAML string and return the result as a ConfigOperationResult.
+ *
+ * @param content - The raw YAML string to parse.
+ * @param filePath - The file path used in error messages.
+ * @returns A ConfigOperationResult with the parsed data or a parse error.
+ * @private
+ */
+function parseYamlContent(
+  content: string,
+  filePath: string
+): ConfigOperationResult<unknown> {
+  const [error, result] = attempt(() => parseYaml(content))
+  if (error) {
+    return err(`Failed to parse YAML in ${filePath}: ${String(error)}`)
+  }
+  return [null, result]
 }

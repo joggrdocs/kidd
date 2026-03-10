@@ -21,6 +21,10 @@
       "types": "./dist/fp.d.ts",
       "default": "./dist/fp.js"
     },
+    "./fs": {
+      "types": "./dist/fs.d.ts",
+      "default": "./dist/fs.js"
+    },
     "./json": {
       "types": "./dist/json.d.ts",
       "default": "./dist/json.js"
@@ -46,6 +50,7 @@
     "build": "tsdown",
     "typecheck": "tsgo --noEmit",
     "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "test:watch": "vitest"
   },
   "dependencies": {

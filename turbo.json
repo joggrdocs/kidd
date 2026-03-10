@@ -1,5 +1,6 @@
 {
-  "$schema": "https://turbo.build/schema.json",
+  "$schema": "https://raw.githubusercontent.com/vercel/turborepo/main/packages/turbo-types/schemas/schema.json",
+  "ui": "tui",
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
@@ -9,6 +10,9 @@
       "dependsOn": ["^build"]
     },
     "test": {
+      "dependsOn": ["build"]
+    },
+    "test:coverage": {
       "dependsOn": ["build"]
     },
     "dev": {

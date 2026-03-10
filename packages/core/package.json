@@ -25,17 +25,9 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
-    "./prompts": {
-      "types": "./dist/lib/prompts.d.ts",
-      "default": "./dist/lib/prompts.js"
-    },
     "./logger": {
       "types": "./dist/lib/logger.d.ts",
       "default": "./dist/lib/logger.js"
-    },
-    "./output": {
-      "types": "./dist/lib/output.d.ts",
-      "default": "./dist/lib/output.js"
     },
     "./config": {
       "types": "./dist/lib/config.d.ts",
@@ -64,6 +56,7 @@
     "lint": "oxlint --ignore-pattern node_modules",
     "lint:fix": "oxlint --fix --ignore-pattern node_modules",
     "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "test:watch": "vitest"
   },
   "dependencies": {

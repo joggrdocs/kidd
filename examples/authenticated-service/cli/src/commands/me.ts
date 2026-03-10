@@ -1,6 +1,8 @@
 import { command } from '@kidd-cli/core'
 import { z } from 'zod'
 
+import requireAuth from '../middleware/require-auth.js'
+
 const args = z.object({
   json: z.boolean().default(false).describe('Output as JSON'),
 })
@@ -14,12 +16,9 @@ interface User {
 
 export default command({
   args,
-  description: 'Display the authenticated user',
+  description: '[auth] Display the authenticated user',
+  middleware: [requireAuth],
   handler: async (ctx) => {
-    if (!ctx.auth.authenticated()) {
-      return ctx.fail('Not authenticated. Run `demo login` first.')
-    }
-
     ctx.spinner.start('Fetching user...')
 
     const res = await ctx.api.get<User>('/user')

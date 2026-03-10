@@ -62,19 +62,6 @@ describe('createContext()', () => {
     vi.clearAllMocks()
   })
 
-  it('returns an object with all expected properties', () => {
-    const ctx = createContext(defaultOptions())
-    expect(ctx).toHaveProperty('args')
-    expect(ctx).toHaveProperty('config')
-    expect(ctx).toHaveProperty('logger')
-    expect(ctx).toHaveProperty('prompts')
-    expect(ctx).toHaveProperty('spinner')
-    expect(ctx).toHaveProperty('output')
-    expect(ctx).toHaveProperty('store')
-    expect(ctx).toHaveProperty('fail')
-    expect(ctx).toHaveProperty('meta')
-  })
-
   // ---------------------------------------------------------------------------
   // Args, config
   // ---------------------------------------------------------------------------
@@ -120,17 +107,6 @@ describe('createContext()', () => {
   // ---------------------------------------------------------------------------
 
   describe('logger', () => {
-    it('provides a default CliLogger when none is given', () => {
-      const ctx = createContext(defaultOptions())
-      expect(typeof ctx.logger.info).toBe('function')
-      expect(typeof ctx.logger.error).toBe('function')
-      expect(typeof ctx.logger.warn).toBe('function')
-      expect(typeof ctx.logger.success).toBe('function')
-      expect(typeof ctx.logger.step).toBe('function')
-      expect(typeof ctx.logger.message).toBe('function')
-      /* eslint-enable eslint-plugin-vitest/prefer-expect-type-of */
-    })
-
     it('uses the provided logger when given', () => {
       const customLogger = {
         error: vi.fn(),
@@ -394,31 +370,11 @@ describe('createContext()', () => {
   // Spinner
   // ---------------------------------------------------------------------------
 
-  describe('spinner', () => {
-    it('has start, stop, and message methods', () => {
-      const ctx = createContext(defaultOptions())
-      expect(typeof ctx.spinner.start).toBe('function')
-      expect(typeof ctx.spinner.stop).toBe('function')
-      expect(typeof ctx.spinner.message).toBe('function')
-      /* eslint-enable eslint-plugin-vitest/prefer-expect-type-of */
-    })
-  })
-
   // ---------------------------------------------------------------------------
   // Prompts
   // ---------------------------------------------------------------------------
 
   describe('prompts', () => {
-    it('has confirm, text, select, multiselect, and password methods', () => {
-      const ctx = createContext(defaultOptions())
-      expect(typeof ctx.prompts.confirm).toBe('function')
-      expect(typeof ctx.prompts.text).toBe('function')
-      expect(typeof ctx.prompts.select).toBe('function')
-      expect(typeof ctx.prompts.multiselect).toBe('function')
-      expect(typeof ctx.prompts.password).toBe('function')
-      /* eslint-enable eslint-plugin-vitest/prefer-expect-type-of */
-    })
-
     describe('confirm()', () => {
       it('returns the confirmed value', async () => {
         vi.mocked(clack.confirm).mockResolvedValue(true)

@@ -289,6 +289,7 @@ describe('runStrategyChain()', () => {
     expect(resolveFromDeviceCode).toHaveBeenCalledWith({
       clientId: 'my-client',
       deviceAuthUrl: 'https://auth.example.com/device/code',
+      openBrowserOnStart: true,
       pollInterval: 5000,
       prompts,
       scopes: [],

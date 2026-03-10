@@ -202,6 +202,19 @@ function handleAuthPage(res: ServerResponse, callbackUrl: string | null): void {
 }
 
 // ---------------------------------------------------------------------------
+// HTML escaping
+// ---------------------------------------------------------------------------
+
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
+// ---------------------------------------------------------------------------
 // PKCE OAuth endpoints
 // ---------------------------------------------------------------------------
 
@@ -214,7 +227,10 @@ function handleAuthorizePage(
     readonly state: string
   }
 ): void {
-  const { clientId, redirectUri, codeChallenge, state } = params
+  const safeClientId = escapeHtml(params.clientId)
+  const safeRedirectUri = escapeHtml(params.redirectUri)
+  const safeCodeChallenge = escapeHtml(params.codeChallenge)
+  const safeState = escapeHtml(params.state)
 
   const html = [
     '<!DOCTYPE html>',
@@ -227,13 +243,14 @@ function handleAuthorizePage(
     '</style></head>',
     '<body>',
     '  <h1>Authorize Application</h1>',
-    `  <p><strong>${clientId}</strong> is requesting access.</p>`,
+    `  <p><strong>${safeClientId}</strong> is requesting access.</p>`,
     '  <p>Select a user to authorize as:</p>',
     '  <div class="user-list">',
     `    <button onclick="authorize('tok_alice_12345')">Login as Alice</button>`,
     `    <button onclick="authorize('tok_bob_67890')">Login as Bob</button>`,
     '  </div>',
     '  <script>',
+    `    var authParams = ${JSON.stringify({ clientId: params.clientId, codeChallenge: params.codeChallenge, redirectUri: params.redirectUri, state: params.state })};`,
     '    function authorize(token) {',
     '      var code = crypto.randomUUID();',
     '      fetch("/authorize/grant", {',
@@ -242,12 +259,12 @@ function handleAuthorizePage(
     '        body: JSON.stringify({',
     '          code: code,',
     '          token: token,',
-    `          codeChallenge: "${codeChallenge}",`,
-    `          redirectUri: "${redirectUri}",`,
-    `          clientId: "${clientId}"`,
+    '          codeChallenge: authParams.codeChallenge,',
+    '          redirectUri: authParams.redirectUri,',
+    '          clientId: authParams.clientId',
     '        })',
     '      }).then(function() {',
-    `        window.location.href = "${redirectUri}?code=" + encodeURIComponent(code) + "&state=${state}";`,
+    '        window.location.href = authParams.redirectUri + "?code=" + encodeURIComponent(code) + "&state=" + encodeURIComponent(authParams.state);',
     '      });',
     '    }',
     '  </script>',

@@ -28,11 +28,22 @@ const KNOWN_CHALLENGE = createHash('sha256').update(KNOWN_VERIFIER).digest('base
 const originalFetch = globalThis.fetch
 
 /**
+ * Extract the URL string from an execFile mock call.
+ *
+ * The URL is always the last element of the args array regardless of
+ * platform (macOS: `['url']`, Linux: `['url']`, Windows: `['/c', 'start', '', 'url']`).
+ */
+function extractBrowserUrl(): string {
+  const [call] = vi.mocked(execFile).mock.calls
+  const args = call[1]
+  return args[args.length - 1]
+}
+
+/**
  * Extract the server port from the URL passed to execFile (openBrowser).
  */
 function extractPort(): number {
-  const [call] = vi.mocked(execFile).mock.calls
-  const url = new URL(call[1][0])
+  const url = new URL(extractBrowserUrl())
   const redirectRaw = url.searchParams.get('redirect_uri')
 
   if (redirectRaw === null) {
@@ -80,8 +91,7 @@ async function sendCallback(options: {
  * Extract the authorization URL from the execFile mock call.
  */
 function extractAuthUrl(): URL {
-  const [call] = vi.mocked(execFile).mock.calls
-  return new URL(call[1][0])
+  return new URL(extractBrowserUrl())
 }
 
 /**

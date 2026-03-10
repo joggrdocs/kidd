@@ -17,6 +17,7 @@ export interface MockOAuthServerOptions {
   readonly clientId: string
   readonly validCode?: string
   readonly accessToken?: string
+  readonly expectedVerifier?: string
   readonly deviceCode?: string
   readonly userCode?: string
   readonly verificationUri?: string
@@ -204,6 +205,14 @@ function handleAuthorizationCodeGrant(
     return
   }
 
+  if (
+    options.expectedVerifier !== undefined &&
+    codeVerifier !== options.expectedVerifier
+  ) {
+    sendJsonResponse(res, 400, { error: 'invalid_grant' })
+    return
+  }
+
   sendJsonResponse(res, 200, {
     access_token: options.accessToken ?? 'mock-access-token',
     token_type: 'bearer',
@@ -216,6 +225,13 @@ function handleDeviceCodeGrant(
   options: MockOAuthServerOptions,
   state: { pollIndex: number }
 ): void {
+  const clientId = params.get('client_id')
+
+  if (clientId !== options.clientId) {
+    sendJsonResponse(res, 400, { error: 'invalid_client' })
+    return
+  }
+
   const deviceCode = params.get('device_code')
 
   if (deviceCode !== options.deviceCode) {

@@ -121,6 +121,7 @@ export interface DeviceCodeSourceConfig {
   readonly scopes?: readonly string[]
   readonly pollInterval?: number
   readonly timeout?: number
+  readonly openBrowser?: boolean
 }
 
 /**

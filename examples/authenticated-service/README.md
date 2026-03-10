@@ -4,7 +4,7 @@ Demonstrates the kidd `auth` middleware with an integrated HTTP client by buildi
 
 ## Structure
 
-```
+```text
 authenticated-service/
   api/          # Faux API server (bearer token validation, PKCE OAuth)
   cli/          # kidd CLI with auth middleware (includes HTTP client)

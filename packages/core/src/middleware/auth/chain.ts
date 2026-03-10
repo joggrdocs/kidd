@@ -153,6 +153,7 @@ async function dispatchResolver(
         resolveFromDeviceCode({
           clientId: c.clientId,
           deviceAuthUrl: c.deviceAuthUrl,
+          openBrowserOnStart: withDefault(c.openBrowser, true),
           pollInterval: withDefault(c.pollInterval, DEFAULT_DEVICE_CODE_POLL_INTERVAL),
           prompts: context.prompts,
           scopes: withDefault(c.scopes, []),

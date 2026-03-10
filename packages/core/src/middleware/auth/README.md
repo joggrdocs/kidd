@@ -133,16 +133,17 @@ auth({
 })
 ```
 
-| Option          | Type                | Default    | Description                   |
-| --------------- | ------------------- | ---------- | ----------------------------- |
-| `clientId`      | `string`            | _required_ | OAuth client ID               |
-| `deviceAuthUrl` | `string`            | _required_ | Device authorization endpoint |
-| `tokenUrl`      | `string`            | _required_ | Token endpoint                |
-| `scopes`        | `readonly string[]` | `[]`       | OAuth scopes to request       |
-| `pollInterval`  | `number`            | `5000`     | Poll interval in milliseconds |
-| `timeout`       | `number`            | `300000`   | Timeout in milliseconds       |
+| Option          | Type                | Default    | Description                                  |
+| --------------- | ------------------- | ---------- | -------------------------------------------- |
+| `clientId`      | `string`            | _required_ | OAuth client ID                              |
+| `deviceAuthUrl` | `string`            | _required_ | Device authorization endpoint                |
+| `tokenUrl`      | `string`            | _required_ | Token endpoint                               |
+| `scopes`        | `readonly string[]` | `[]`       | OAuth scopes to request                      |
+| `pollInterval`  | `number`            | `5000`     | Poll interval in milliseconds                |
+| `timeout`       | `number`            | `300000`   | Timeout in milliseconds                      |
+| `openBrowser`   | `boolean`           | `true`     | Open verification URL in browser on start    |
 
-Supported by GitHub, Azure AD, and Google. Not supported by Clerk.
+Works with providers that implement RFC 8628, including GitHub, Azure AD, Google, Auth0, and Okta. Clerk does not currently expose a device authorization endpoint.
 
 ### token
 

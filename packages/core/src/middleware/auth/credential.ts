@@ -41,17 +41,20 @@ export function createBearerCredential(token: string): BearerCredential {
  *
  * @param url - The endpoint URL.
  * @param params - The URL-encoded form parameters.
+ * @param signal - Optional AbortSignal for timeout/cancellation.
  * @returns The fetch Response on success, null on failure.
  */
 export async function postFormEncoded(
   url: string,
-  params: URLSearchParams
+  params: URLSearchParams,
+  signal?: AbortSignal
 ): Promise<Response | null> {
   try {
     return await fetch(url, {
       body: params.toString(),
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       method: 'POST',
+      signal,
     })
   } catch {
     return null

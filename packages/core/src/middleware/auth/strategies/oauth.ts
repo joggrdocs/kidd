@@ -182,55 +182,77 @@ function handleCallback(
   expectedState: string,
   resolve: (value: string | null) => void
 ): void {
-  const code = extractCodeFromUrl(req.url, callbackPath, expectedState)
+  const result = extractCodeFromUrl(req.url, callbackPath, expectedState)
 
-  if (!code) {
+  if (!result.ok) {
     res.writeHead(400)
     res.end()
+
+    if (result.isOAuthError) {
+      resolve(null)
+    }
+
     return
   }
 
   sendSuccessPage(res)
-  resolve(code)
+  resolve(result.code)
 }
+
+/**
+ * Result of extracting an authorization code from a callback URL.
+ *
+ * @private
+ */
+type ExtractCodeResult =
+  | { readonly ok: true; readonly code: string }
+  | { readonly ok: false; readonly isOAuthError: boolean }
 
 /**
  * Extract an authorization code from a request URL.
  *
  * Validates that the request path matches the callback path,
  * the `state` parameter matches the expected nonce, and a
- * `code` parameter is present.
+ * `code` parameter is present. Detects OAuth error responses
+ * (e.g. `?error=access_denied`) and flags them so the caller
+ * can resolve immediately instead of waiting for the timeout.
  *
  * @private
  * @param reqUrl - The raw request URL string.
  * @param callbackPath - The expected callback path.
  * @param expectedState - The state nonce to validate.
- * @returns The authorization code string, or null on validation failure.
+ * @returns An extraction result with the code or error flag.
  */
 function extractCodeFromUrl(
   reqUrl: string | undefined,
   callbackPath: string,
   expectedState: string
-): string | null {
+): ExtractCodeResult {
   const url = new URL(reqUrl ?? '/', 'http://localhost')
 
   if (url.pathname !== callbackPath) {
-    return null
+    return { isOAuthError: false, ok: false }
   }
 
   const state = url.searchParams.get('state')
 
   if (state !== expectedState) {
-    return null
+    return { isOAuthError: false, ok: false }
+  }
+
+  const error = url.searchParams.get('error')
+
+  if (error) {
+    return { isOAuthError: true, ok: false }
   }
 
   const code = url.searchParams.get('code')
 
   if (!code) {
-    return null
+    return { isOAuthError: false, ok: false }
   }
 
-  return code
+  return { code, ok: true }
 }
 
 /**

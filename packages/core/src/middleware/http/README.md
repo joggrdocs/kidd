@@ -42,7 +42,7 @@ http({
   namespace: 'api',
   baseUrl: 'https://api.example.com',
   headers: (ctx) => ({
-    Authorization: `Bearer ${ctx.vault.getToken()}`,
+    'X-Request-Id': ctx.meta.name,
   }),
 })
 ```

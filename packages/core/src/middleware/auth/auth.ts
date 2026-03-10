@@ -8,6 +8,8 @@
  * @module
  */
 
+import { join } from 'node:path'
+
 import { decorateContext } from '@/context/decorate.js'
 import { middleware } from '@/middleware.js'
 import type { Middleware } from '@/types.js'
@@ -17,6 +19,7 @@ import { createHttpClient } from '../http/create-http-client.js'
 import { withDefault } from './chain.js'
 import { DEFAULT_AUTH_FILENAME, deriveTokenVar } from './constants.js'
 import { createAuthContext } from './context.js'
+import { resolveFromDotenv } from './strategies/dotenv.js'
 import { resolveFromEnv } from './strategies/env.js'
 import { resolveFromFile } from './strategies/file.js'
 import type {
@@ -60,9 +63,10 @@ export interface AuthFactory {
  * Create an auth middleware that decorates `ctx.auth`.
  *
  * No credential data is stored on the context. `ctx.auth.credential()`
- * resolves passively from two sources on every call:
+ * resolves passively from three sources on every call:
  * 1. File — `~/.cli-name/auth.json`
- * 2. Env — `CLI_NAME_TOKEN`
+ * 2. Dotenv — `.env` file (when configured)
+ * 3. Env — `CLI_NAME_TOKEN`
  *
  * Interactive resolvers (OAuth, prompt, custom) only run when the
  * command handler explicitly calls `ctx.auth.login()`.
@@ -250,9 +254,10 @@ function credentialToHeaders(
 /**
  * Attempt to resolve a credential from stored (non-interactive) sources.
  *
- * Checks the file store first, then falls back to the environment variable.
- * Scans the resolver list for `env` and `file` source configs to respect
- * user-configured overrides (e.g. a custom `tokenVar` or `dirName`).
+ * Checks the file store first, then dotenv, then falls back to the
+ * environment variable. Scans the resolver list for `file`, `dotenv`,
+ * and `env` source configs to respect user-configured overrides
+ * (e.g. a custom `tokenVar`, `dirName`, or dotenv `path`).
  *
  * @private
  * @param cliName - The CLI name, used to derive paths and env var names.
@@ -264,7 +269,9 @@ function resolveStoredCredential(
   resolvers: readonly ResolverConfig[]
 ): AuthCredential | null {
   const fileConfig = findResolverBySource(resolvers, 'file')
+  const dotenvConfig = findResolverBySource(resolvers, 'dotenv')
   const envConfig = findResolverBySource(resolvers, 'env')
+  const defaultTokenVar = deriveTokenVar(cliName)
 
   const fromFile = resolveFromFile({
     dirName: withDefault(extractProp(fileConfig, 'dirName'), `.${cliName}`),
@@ -275,8 +282,19 @@ function resolveStoredCredential(
     return fromFile
   }
 
+  if (dotenvConfig !== undefined) {
+    const fromDotenv = resolveFromDotenv({
+      path: withDefault(extractProp(dotenvConfig, 'path'), join(process.cwd(), '.env')),
+      tokenVar: withDefault(extractProp(dotenvConfig, 'tokenVar'), defaultTokenVar),
+    })
+
+    if (fromDotenv) {
+      return fromDotenv
+    }
+  }
+
   return resolveFromEnv({
-    tokenVar: withDefault(extractProp(envConfig, 'tokenVar'), deriveTokenVar(cliName)),
+    tokenVar: withDefault(extractProp(envConfig, 'tokenVar'), defaultTokenVar),
   })
 }
 

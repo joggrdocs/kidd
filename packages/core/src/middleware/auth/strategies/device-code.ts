@@ -45,11 +45,16 @@ export async function resolveFromDeviceCode(options: {
   readonly pollInterval: number
   readonly timeout: number
   readonly prompts: Prompts
+  readonly openBrowserOnStart?: boolean
 }): Promise<AuthCredential | null> {
+  const deadline = Date.now() + options.timeout
+  const signal = AbortSignal.timeout(options.timeout)
+
   const authResponse = await requestDeviceAuth({
     clientId: options.clientId,
     deviceAuthUrl: options.deviceAuthUrl,
     scopes: options.scopes,
+    signal,
   })
 
   if (!authResponse) {
@@ -57,16 +62,19 @@ export async function resolveFromDeviceCode(options: {
   }
 
   await displayUserCode(options.prompts, authResponse.verificationUri, authResponse.userCode)
-  openBrowser(authResponse.verificationUri)
+
+  if (options.openBrowserOnStart !== false) {
+    openBrowser(authResponse.verificationUri)
+  }
 
   const interval = resolveInterval(authResponse.interval, options.pollInterval)
-  const deadline = Date.now() + options.timeout
 
   return pollForToken({
     clientId: options.clientId,
     deadline,
     deviceCode: authResponse.deviceCode,
     interval,
+    signal,
     tokenUrl: options.tokenUrl,
   })
 }
@@ -102,6 +110,7 @@ async function requestDeviceAuth(options: {
   readonly clientId: string
   readonly deviceAuthUrl: string
   readonly scopes: readonly string[]
+  readonly signal?: AbortSignal
 }): Promise<DeviceAuthResponse | null> {
   const body = new URLSearchParams({ client_id: options.clientId })
 
@@ -109,7 +118,7 @@ async function requestDeviceAuth(options: {
     body.set('scope', options.scopes.join(' '))
   }
 
-  const response = await postFormEncoded(options.deviceAuthUrl, body)
+  const response = await postFormEncoded(options.deviceAuthUrl, body, options.signal)
 
   if (!response) {
     return null
@@ -225,6 +234,7 @@ async function pollForToken(options: {
   readonly clientId: string
   readonly interval: number
   readonly deadline: number
+  readonly signal?: AbortSignal
 }): Promise<AuthCredential | null> {
   if (Date.now() >= options.deadline) {
     return null
@@ -239,6 +249,7 @@ async function pollForToken(options: {
   const result = await requestToken({
     clientId: options.clientId,
     deviceCode: options.deviceCode,
+    signal: options.signal,
     tokenUrl: options.tokenUrl,
   })
 
@@ -313,6 +324,7 @@ async function requestToken(options: {
   readonly tokenUrl: string
   readonly deviceCode: string
   readonly clientId: string
+  readonly signal?: AbortSignal
 }): Promise<TokenRequestResult> {
   const body = new URLSearchParams({
     client_id: options.clientId,
@@ -320,7 +332,7 @@ async function requestToken(options: {
     grant_type: DEVICE_CODE_GRANT_TYPE,
   })
 
-  const response = await postFormEncoded(options.tokenUrl, body)
+  const response = await postFormEncoded(options.tokenUrl, body, options.signal)
 
   if (!response) {
     return { status: 'error' }

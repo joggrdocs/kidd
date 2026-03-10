@@ -28,8 +28,8 @@ export function isCommand(value: unknown): value is Command {
  */
 export function registerCommands(options: RegisterCommandsOptions): void {
   const { instance, commands, resolved, parentPath } = options
-  const commandEntries = Object.entries(commands).filter(
-    (pair): pair is [string, Command] => isCommand(pair[1])
+  const commandEntries = Object.entries(commands).filter((pair): pair is [string, Command] =>
+    isCommand(pair[1])
   )
 
   for (const [name, entry] of commandEntries) {
@@ -87,8 +87,8 @@ function registerResolvedCommand(options: RegisterResolvedCommandOptions): void 
       registerCommandArgs(builder, cmd.args)
 
       if (cmd.commands) {
-        const subCommands = Object.entries(cmd.commands).filter(
-          (pair): pair is [string, Command] => isCommand(pair[1])
+        const subCommands = Object.entries(cmd.commands).filter((pair): pair is [string, Command] =>
+          isCommand(pair[1])
         )
 
         for (const [subName, subEntry] of subCommands) {

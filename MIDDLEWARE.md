@@ -148,8 +148,8 @@ const loadUser = middleware<{ Variables: { user: User } }>(async (ctx, next) => 
 export default command({
   middleware: [loadUser],
   handler: async (ctx) => {
-    ctx.user        // User -- type-safe, scoped to this command
-    ctx.user.role   // 'admin' | 'user'
+    ctx.user // User -- type-safe, scoped to this command
+    ctx.user.role // 'admin' | 'user'
   },
 })
 ```
@@ -226,10 +226,7 @@ http({
 ```ts
 function compose(...middlewares: readonly Middleware[]): Middleware {
   return middleware(async (ctx, next) => {
-    const chain = middlewares.reduceRight(
-      (nextFn, mw) => () => mw.handler(ctx, nextFn),
-      next,
-    )
+    const chain = middlewares.reduceRight((nextFn, mw) => () => mw.handler(ctx, nextFn), next)
     await chain()
   })
 }
@@ -252,7 +249,7 @@ auth({
 })
 
 // After -- root middleware
-auth({
+;(auth({
   strategies: [
     auth.env(),
     auth.file(),
@@ -260,39 +257,38 @@ auth({
     auth.token(),
   ],
 }),
-http({
-  baseUrl: 'https://api.example.com',
-  namespace: 'api',
-  headers: auth.headers(),
-}),
-
-// After -- login command (no change for simple case)
-await ctx.auth.login()
+  http({
+    baseUrl: 'https://api.example.com',
+    namespace: 'api',
+    headers: auth.headers(),
+  }),
+  // After -- login command (no change for simple case)
+  await ctx.auth.login())
 ```
 
-| Concern | Current | Proposed |
-| ------- | ------- | -------- |
-| Passive resolution | `auth({ resolvers: [env, file, ...interactive] })` | `auth({ strategies: [env, file, ...interactive] })` |
-| Interactive login | `ctx.auth.login()` walks global resolvers | `ctx.auth.login()` (same), or override with `{ strategies }` |
-| Auth enforcement | User writes custom middleware | `auth.require()` built-in |
-| HTTP + auth wiring | `auth({ http: { ... } })` bundled, implicit | `http({ headers: auth.headers() })` explicit |
-| Targeted strategy | Not possible | `ctx.auth.login({ strategies: [auth.token()] })` |
-| Bundle middleware | Not possible | `compose(mw1, mw2, mw3)` |
-| Context type safety | Global module augmentation | `middleware<{ Variables: { ... } }>()` per-middleware |
+| Concern             | Current                                            | Proposed                                                     |
+| ------------------- | -------------------------------------------------- | ------------------------------------------------------------ |
+| Passive resolution  | `auth({ resolvers: [env, file, ...interactive] })` | `auth({ strategies: [env, file, ...interactive] })`          |
+| Interactive login   | `ctx.auth.login()` walks global resolvers          | `ctx.auth.login()` (same), or override with `{ strategies }` |
+| Auth enforcement    | User writes custom middleware                      | `auth.require()` built-in                                    |
+| HTTP + auth wiring  | `auth({ http: { ... } })` bundled, implicit        | `http({ headers: auth.headers() })` explicit                 |
+| Targeted strategy   | Not possible                                       | `ctx.auth.login({ strategies: [auth.token()] })`             |
+| Bundle middleware   | Not possible                                       | `compose(mw1, mw2, mw3)`                                     |
+| Context type safety | Global module augmentation                         | `middleware<{ Variables: { ... } }>()` per-middleware        |
 
 ---
 
 ## Build Readiness
 
-| Component | Status | Notes |
-| --------- | ------ | ----- |
-| `http()` with explicit `headers` | **Ready to build** | Add `auth: false` default, remove `ctx.auth` magic. Already supports `headers: (ctx) => ...`. |
-| `auth.headers()` | **Ready to build** | Small factory function. Uses existing `buildAuthHeaders()`. |
-| `auth.require()` | **Ready to build** | Already documented as a pattern. Move into the `auth` namespace. |
-| `compose()` | **Ready to build** | ~10 lines. `reduceRight` over middleware handlers. |
-| `login({ strategies })` | Design finalized | Optional override. Requires refactoring `runStrategyChain` to accept filtered list. |
-| `resolvers` → `strategies` rename | Design finalized | Non-breaking if old key is kept as alias during migration. |
-| Remove `auth({ http })` option | Design finalized | Deprecate, then remove. Replaced by standalone `http()` + `auth.headers()`. |
+| Component                            | Status             | Notes                                                                                                                                 |
+| ------------------------------------ | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `http()` with explicit `headers`     | **Ready to build** | Add `auth: false` default, remove `ctx.auth` magic. Already supports `headers: (ctx) => ...`.                                         |
+| `auth.headers()`                     | **Ready to build** | Small factory function. Uses existing `buildAuthHeaders()`.                                                                           |
+| `auth.require()`                     | **Ready to build** | Already documented as a pattern. Move into the `auth` namespace.                                                                      |
+| `compose()`                          | **Ready to build** | ~10 lines. `reduceRight` over middleware handlers.                                                                                    |
+| `login({ strategies })`              | Design finalized   | Optional override. Requires refactoring `runStrategyChain` to accept filtered list.                                                   |
+| `resolvers` → `strategies` rename    | Design finalized   | Non-breaking if old key is kept as alias during migration.                                                                            |
+| Remove `auth({ http })` option       | Design finalized   | Deprecate, then remove. Replaced by standalone `http()` + `auth.headers()`.                                                           |
 | Typed middleware (`middleware<E>()`) | **Ready to build** | Pure type-level change. Uses `decorateContext` for runtime, generics + `InferVariables` for type inference. No `ctx.set()`/`ctx.var`. |
 
 ---
@@ -338,7 +334,9 @@ Onion model -- root wraps command, command wraps handler. Short-circuit by not c
 decorateContext(ctx, 'api', httpClient)
 
 declare module '@kidd-cli/core' {
-  interface Context { readonly api: HttpClient }
+  interface Context {
+    readonly api: HttpClient
+  }
 }
 ```
 
@@ -377,8 +375,8 @@ jwt({ secret: '...', alg: 'HS256' })                         // auto-decorates c
 Lifecycle hooks, not middleware chain. Auth uses separate focused plugins composed via `@fastify/auth`:
 
 ```ts
-fastify.auth([fastify.verifyJWT, fastify.verifyApiKey], { relation: 'or' })   // OR composition
-fastify.auth([fastify.verifyJWT, fastify.verifyAdmin], { relation: 'and' })   // AND composition
+fastify.auth([fastify.verifyJWT, fastify.verifyApiKey], { relation: 'or' }) // OR composition
+fastify.auth([fastify.verifyJWT, fastify.verifyAdmin], { relation: 'and' }) // AND composition
 ```
 
 Each plugin (`@fastify/bearer-auth`, `@fastify/basic-auth`, `@fastify/jwt`, `@fastify/oauth2`) decorates the instance with a verification function. Request decoration is each strategy's responsibility. `@fastify/jwt` supports namespaces for multiple configs (`request.accessVerify()` vs `request.refreshVerify()`). Context typing uses module augmentation (global).

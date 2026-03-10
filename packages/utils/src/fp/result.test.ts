@@ -128,4 +128,3 @@ describe('AsyncResult type', () => {
     expect(value).toBeNull()
   })
 })
-

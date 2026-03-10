@@ -92,4 +92,3 @@ async function writeSingleFile(
     ]
   }
 }
-

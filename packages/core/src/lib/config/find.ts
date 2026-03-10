@@ -77,10 +77,7 @@ export async function findConfig(options: {
  * @returns The full path to the first matching config file, or null if none found.
  * @private
  */
-async function findConfigFile(
-  dir: string,
-  fileNames: readonly string[]
-): Promise<string | null> {
+async function findConfigFile(dir: string, fileNames: readonly string[]): Promise<string | null> {
   const results = await Promise.all(
     fileNames.map(async (fileName) => {
       const filePath = join(dir, fileName)

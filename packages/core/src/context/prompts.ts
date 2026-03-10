@@ -25,9 +25,7 @@ export function createContextPrompts(): Prompts {
       return unwrapCancelSignal(result)
     },
     async select<Type>(opts: Parameters<Prompts['select']>[0]): Promise<Type> {
-      const result = await clack.select<Type>(
-        opts as Parameters<typeof clack.select<Type>>[0]
-      )
+      const result = await clack.select<Type>(opts as Parameters<typeof clack.select<Type>>[0])
       return unwrapCancelSignal(result)
     },
     async text(opts): Promise<string> {

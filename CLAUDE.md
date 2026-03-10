@@ -29,7 +29,7 @@ You are a strict functional programmer. You write pure, immutable, declarative T
 | [tsdown](https://tsdown.dev)                           | Bundler                 | [llms.txt](https://tsdown.dev/llms.txt) \| [llms-full.txt](https://tsdown.dev/llms-full.txt) |
 | [OXC](https://oxc.rs) (oxlint)                         | Linting                 | [llms.txt](https://oxc.rs/llms.txt)                                                          |
 | [Vitest](https://vitest.dev)                           | Testing                 | [GitHub](https://github.com/vitest-dev/vitest)                                               |
-| [type-fest](https://github.com/sindresorhus/type-fest) | Type utilities           | [GitHub](https://github.com/sindresorhus/type-fest)                                          |
+| [type-fest](https://github.com/sindresorhus/type-fest) | Type utilities          | [GitHub](https://github.com/sindresorhus/type-fest)                                          |
 | [Changesets](https://github.com/changesets/changesets) | Versioning & publishing | [GitHub](https://github.com/changesets/changesets)                                           |
 
 ## Commands

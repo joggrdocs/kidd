@@ -19,28 +19,28 @@ import { resolveFromEnv } from './strategies/env.js'
 import { resolveFromFile } from './strategies/file.js'
 import { resolveFromOAuth } from './strategies/oauth.js'
 import { resolveFromToken } from './strategies/token.js'
-import type { AuthCredential, ResolverConfig } from './types.js'
+import type { AuthCredential, StrategyConfig } from './types.js'
 
 const DEFAULT_PROMPT_MESSAGE = 'Enter your API key'
 
 /**
- * Chain credential resolvers, returning the first non-null result.
+ * Chain credential strategies, returning the first non-null result.
  *
- * Walks the resolver list in order, dispatching each config to the
- * appropriate resolver function via pattern matching. Short-circuits
+ * Walks the strategy list in order, dispatching each config to the
+ * appropriate strategy function via pattern matching. Short-circuits
  * on the first successful resolution.
  *
- * @param options - Options with resolvers, CLI name, and prompts instance.
- * @returns The first resolved credential, or null if all resolvers fail.
+ * @param options - Options with strategies, CLI name, and prompts instance.
+ * @returns The first resolved credential, or null if all strategies fail.
  */
 export async function runStrategyChain(options: {
-  readonly resolvers: readonly ResolverConfig[]
+  readonly strategies: readonly StrategyConfig[]
   readonly cliName: string
   readonly prompts: Prompts
 }): Promise<AuthCredential | null> {
   const defaultTokenVar = deriveTokenVar(options.cliName)
 
-  return tryResolvers(options.resolvers, 0, defaultTokenVar, options)
+  return tryStrategies(options.strategies, 0, defaultTokenVar, options)
 }
 
 /**
@@ -62,17 +62,17 @@ export function withDefault<T>(value: T | undefined, fallback: T): T {
 // ---------------------------------------------------------------------------
 
 /**
- * Recursively try resolvers until one returns a credential or the list is exhausted.
+ * Recursively try strategies until one returns a credential or the list is exhausted.
  *
  * @private
- * @param configs - The resolver configs.
+ * @param configs - The strategy configs.
  * @param index - The current index.
  * @param defaultTokenVar - The derived default token env var name.
  * @param context - The resolve options for prompts access.
  * @returns The first resolved credential, or null.
  */
-async function tryResolvers(
-  configs: readonly ResolverConfig[],
+async function tryStrategies(
+  configs: readonly StrategyConfig[],
   index: number,
   defaultTokenVar: string,
   context: {
@@ -90,26 +90,26 @@ async function tryResolvers(
     return null
   }
 
-  const credential = await dispatchResolver(config, defaultTokenVar, context)
+  const credential = await dispatchStrategy(config, defaultTokenVar, context)
 
   if (credential) {
     return credential
   }
 
-  return tryResolvers(configs, index + 1, defaultTokenVar, context)
+  return tryStrategies(configs, index + 1, defaultTokenVar, context)
 }
 
 /**
- * Dispatch a single resolver config to its implementation.
+ * Dispatch a single strategy config to its implementation.
  *
  * @private
- * @param config - The resolver config to dispatch.
+ * @param config - The strategy config to dispatch.
  * @param defaultTokenVar - The derived default token env var name.
  * @param context - The resolve options for prompts access.
  * @returns The resolved credential, or null.
  */
-async function dispatchResolver(
-  config: ResolverConfig,
+async function dispatchStrategy(
+  config: StrategyConfig,
   defaultTokenVar: string,
   context: {
     readonly cliName: string

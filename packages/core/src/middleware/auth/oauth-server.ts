@@ -180,11 +180,38 @@ export function openBrowser(url: string): void {
 
   const { command, args } = match(platform())
     .with('darwin', () => ({ args: [url], command: 'open' }))
-    .with('win32', () => ({ args: ['/c', 'start', '', url], command: 'cmd' }))
+    .with('win32', () => ({ args: ['/c', 'start', '', escapeCmdMeta(url)], command: 'cmd' }))
     .otherwise(() => ({ args: [url], command: 'xdg-open' }))
 
   const child = execFile(command, args)
   child.on('error', () => undefined)
+}
+
+/**
+ * Check whether a URL is safe for use as an OAuth endpoint.
+ *
+ * Requires HTTPS for all URLs except loopback addresses, where
+ * HTTP is permitted per RFC 8252 §8.3 (native app redirect URIs).
+ *
+ * @param url - The URL string to validate.
+ * @returns True when the URL uses HTTPS or HTTP on a loopback address.
+ */
+export function isSecureAuthUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url)
+
+    if (parsed.protocol === 'https:') {
+      return true
+    }
+
+    if (parsed.protocol !== 'http:') {
+      return false
+    }
+
+    return isLoopbackHost(parsed.hostname)
+  } catch {
+    return false
+  }
 }
 
 /**
@@ -255,4 +282,33 @@ function isHttpUrl(url: string): boolean {
   } catch {
     return false
   }
+}
+
+/**
+ * Check whether a hostname is a loopback address.
+ *
+ * RFC 8252 §8.3 permits HTTP for loopback interfaces during
+ * native app authorization flows.
+ *
+ * @private
+ * @param hostname - The hostname to check.
+ * @returns True when the hostname is a loopback address.
+ */
+function isLoopbackHost(hostname: string): boolean {
+  return hostname === '127.0.0.1' || hostname === '[::1]' || hostname === 'localhost'
+}
+
+/**
+ * Escape `cmd.exe` metacharacters in a URL string.
+ *
+ * Characters like `&`, `|`, `<`, `>`, and `^` are interpreted as
+ * command separators or redirectors by `cmd.exe`. Prefixing each
+ * with `^` neutralises the special meaning.
+ *
+ * @private
+ * @param url - The URL to escape.
+ * @returns The escaped URL string.
+ */
+function escapeCmdMeta(url: string): string {
+  return url.replaceAll(/[&|<>^]/g, '^$&')
 }

@@ -13,7 +13,7 @@ import { match } from 'ts-pattern'
 import type { Prompts } from '@/context/types.js'
 
 import { createBearerCredential, postFormEncoded } from '../credential.js'
-import { openBrowser } from '../oauth-server.js'
+import { isSecureAuthUrl, openBrowser } from '../oauth-server.js'
 import type { AuthCredential } from '../types.js'
 
 /**
@@ -47,6 +47,14 @@ export async function resolveFromDeviceCode(options: {
   readonly prompts: Prompts
   readonly openBrowserOnStart?: boolean
 }): Promise<AuthCredential | null> {
+  if (!isSecureAuthUrl(options.deviceAuthUrl)) {
+    return null
+  }
+
+  if (!isSecureAuthUrl(options.tokenUrl)) {
+    return null
+  }
+
   const deadline = Date.now() + options.timeout
   const signal = AbortSignal.timeout(options.timeout)
 

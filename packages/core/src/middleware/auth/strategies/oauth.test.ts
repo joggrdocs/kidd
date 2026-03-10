@@ -114,6 +114,34 @@ describe('resolveFromOAuth()', () => {
     vi.restoreAllMocks()
   })
 
+  it('should return null when authUrl uses HTTP', async () => {
+    const result = await resolveFromOAuth({
+      authUrl: 'http://auth.example.com/authorize',
+      callbackPath: '/callback',
+      clientId: 'test-client',
+      port: 0,
+      scopes: [],
+      timeout: 5000,
+      tokenUrl: 'https://auth.example.com/token',
+    })
+
+    expect(result).toBeNull()
+  })
+
+  it('should return null when tokenUrl uses HTTP', async () => {
+    const result = await resolveFromOAuth({
+      authUrl: 'https://auth.example.com/authorize',
+      callbackPath: '/callback',
+      clientId: 'test-client',
+      port: 0,
+      scopes: [],
+      timeout: 5000,
+      tokenUrl: 'http://auth.example.com/token',
+    })
+
+    expect(result).toBeNull()
+  })
+
   it('should return null when the timeout fires before a code arrives', async () => {
     const fetchSpy = vi.spyOn(globalThis, 'fetch')
 

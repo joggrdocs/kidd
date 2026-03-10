@@ -49,13 +49,12 @@ export function createStore<TData = unknown>(options: StoreOptions<TData>): File
    * @returns The file content, or null if the file does not exist or cannot be read.
    */
   function loadFromPath(filePath: string): string | null {
-    if (!existsSync(filePath)) {
-      return null
-    }
     const [error, content] = attempt(() => readFileSync(filePath, 'utf8'))
+
     if (error) {
       return null
     }
+
     return content
   }
 

@@ -7,7 +7,7 @@ enable_free_tier: true
 tone_instructions: "Be direct and technical. Flag bugs, security issues, and standard violations. Skip style, subjective suggestions, and pre-existing issues."
 
 reviews:
-  profile: strict
+  profile: assertive
   request_changes_workflow: true
   high_level_summary: false
   high_level_summary_placeholder: "@coderabbitai summary"

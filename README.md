@@ -8,7 +8,7 @@
 
   <br />
 
-  <a href="https://kidd.dev">Documentation</a>
+  <a href="https://kidd.dev">Documentation</a> · <a href="https://github.com/joggrdocs/kidd/issues">Issues</a>
 </div>
 
 ## Features

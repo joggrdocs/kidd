@@ -41,9 +41,9 @@ interface ComposedEnv<TMiddleware extends readonly Middleware<MiddlewareEnv>[]> 
 export function compose<const TMiddleware extends readonly Middleware<MiddlewareEnv>[]>(
   middlewares: TMiddleware
 ): Middleware<ComposedEnv<TMiddleware>> {
-  return middleware(
-    (ctx, next) => executeChain(middlewares, 0, ctx, next)
-  ) as Middleware<ComposedEnv<TMiddleware>>
+  return middleware((ctx, next) => executeChain(middlewares, 0, ctx, next)) as Middleware<
+    ComposedEnv<TMiddleware>
+  >
 }
 
 // ---------------------------------------------------------------------------

@@ -168,26 +168,8 @@ describe('createCliLogger()', () => {
 })
 
 describe('cliLogger (default export)', () => {
-  it('is a CliLogger instance created with default options', () => {
-    expect(cliLogger).toBeDefined()
-  })
-
-  it('has all log-level methods', () => {
-    expect(typeof cliLogger.info).toBe('function')
-    expect(typeof cliLogger.success).toBe('function')
-    expect(typeof cliLogger.error).toBe('function')
-    expect(typeof cliLogger.warn).toBe('function')
-    expect(typeof cliLogger.step).toBe('function')
-    expect(typeof cliLogger.message).toBe('function')
-    /* eslint-enable eslint-plugin-vitest/prefer-expect-type-of */
-  })
-
-  it('has all lifecycle and output methods', () => {
-    expect(typeof cliLogger.intro).toBe('function')
-    expect(typeof cliLogger.outro).toBe('function')
-    expect(typeof cliLogger.note).toBe('function')
-    expect(typeof cliLogger.newline).toBe('function')
-    expect(typeof cliLogger.print).toBe('function')
-    /* eslint-enable eslint-plugin-vitest/prefer-expect-type-of */
+  it('should delegate info through the default instance', () => {
+    cliLogger.info('default info')
+    expect(clack.log.info).toHaveBeenCalledWith('default info')
   })
 })

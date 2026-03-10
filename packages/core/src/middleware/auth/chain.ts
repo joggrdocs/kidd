@@ -43,24 +43,23 @@ export async function runStrategyChain(options: {
   return tryResolvers(options.resolvers, 0, defaultTokenVar, options)
 }
 
-// ---------------------------------------------------------------------------
-// Private helpers
-// ---------------------------------------------------------------------------
-
 /**
  * Return the given value when defined, otherwise the fallback.
  *
- * @private
  * @param value - The optional value.
  * @param fallback - The default value.
  * @returns The resolved value.
  */
-function withDefault<T>(value: T | undefined, fallback: T): T {
+export function withDefault<T>(value: T | undefined, fallback: T): T {
   if (value !== undefined) {
     return value
   }
   return fallback
 }
+
+// ---------------------------------------------------------------------------
+// Private helpers
+// ---------------------------------------------------------------------------
 
 /**
  * Recursively try resolvers until one returns a credential or the list is exhausted.

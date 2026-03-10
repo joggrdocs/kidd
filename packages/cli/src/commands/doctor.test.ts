@@ -104,7 +104,7 @@ function setupMocks(context: CheckContext): void {
 describe('doctor command', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    mockedChecks.length = 0
+    mockedChecks.splice(0)
   })
 
   it('should display results for all passing checks', async () => {

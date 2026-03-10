@@ -27,6 +27,7 @@
     "lint": "oxlint --ignore-pattern node_modules",
     "lint:fix": "oxlint --fix --ignore-pattern node_modules",
     "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "test:watch": "vitest"
   },
   "dependencies": {

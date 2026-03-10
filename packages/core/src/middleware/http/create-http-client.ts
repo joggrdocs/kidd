@@ -109,52 +109,21 @@ function mergeHeaders(
 }
 
 /**
- * Extract the params field from request options if present.
+ * Normalize optional request options into a concrete object with safe defaults.
+ *
+ * When `options` is `undefined`, returns an empty object so callers can use
+ * direct property access without additional nil checks.
  *
  * @private
  * @param options - Optional per-request options.
- * @returns The params record or undefined.
+ * @returns The resolved options object.
  */
-function extractParams(
-  options: RequestOptions | undefined
-): Readonly<Record<string, string>> | undefined {
+function resolveRequestOptions(options: RequestOptions | undefined): RequestOptions {
   if (options !== undefined) {
-    return options.params
+    return options
   }
 
-  return undefined
-}
-
-/**
- * Extract the headers field from request options if present.
- *
- * @private
- * @param options - Optional per-request options.
- * @returns The headers record or undefined.
- */
-function extractHeaders(
-  options: RequestOptions | undefined
-): Readonly<Record<string, string>> | undefined {
-  if (options !== undefined) {
-    return options.headers
-  }
-
-  return undefined
-}
-
-/**
- * Extract the signal field from request options if present.
- *
- * @private
- * @param options - Optional per-request options.
- * @returns The AbortSignal or undefined.
- */
-function extractSignal(options: RequestOptions | undefined): AbortSignal | undefined {
-  if (options !== undefined) {
-    return options.signal
-  }
-
-  return undefined
+  return {}
 }
 
 /**
@@ -241,12 +210,12 @@ async function executeRequest<TResponse>(
   resolveHeaders: (() => Readonly<Record<string, string>>) | undefined,
   options: RequestOptions | undefined
 ): Promise<TypedResponse<TResponse>> {
-  const url = buildUrl(baseUrl, path, extractParams(options))
+  const resolved = resolveRequestOptions(options)
+  const url = buildUrl(baseUrl, path, resolved.params)
   const dynamicHeaders = resolveDynamicHeaders(resolveHeaders)
-  const headers = mergeHeaders(defaultHeaders, dynamicHeaders, extractHeaders(options))
+  const headers = mergeHeaders(defaultHeaders, dynamicHeaders, resolved.headers)
   const body = resolveBody(options)
-  const signal = extractSignal(options)
-  const init = buildFetchInit(method, headers, body, signal)
+  const init = buildFetchInit(method, headers, body, resolved.signal)
 
   const response = await fetch(url, init)
   const data = await parseResponseBody<TResponse>(response)

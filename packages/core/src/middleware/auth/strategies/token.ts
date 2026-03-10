@@ -1,5 +1,6 @@
 import type { Prompts } from '@/context/types.js'
 
+import { createBearerCredential, isValidToken } from '../credential.js'
 import type { AuthCredential } from '../types.js'
 
 /**
@@ -20,11 +21,11 @@ export async function resolveFromToken(options: {
   try {
     const token = await options.prompts.password({ message: options.message })
 
-    if (!token || token.trim() === '') {
+    if (!isValidToken(token)) {
       return null
     }
 
-    return { token, type: 'bearer' }
+    return createBearerCredential(token)
   } catch {
     return null
   }

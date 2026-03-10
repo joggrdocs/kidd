@@ -1,5 +1,5 @@
 import { hasTag } from '@kidd-cli/utils/tag'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { http } from './http.js'
 
@@ -40,7 +40,21 @@ function createMockCtx() {
   }
 }
 
+function createMockResponse(): Response {
+  return Response.json({ ok: true }, { status: 200 })
+}
+
 describe('http()', () => {
+  let fetchSpy: ReturnType<typeof vi.spyOn<typeof globalThis, 'fetch'>>
+
+  beforeEach(() => {
+    fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(createMockResponse())
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
   it('should return a Middleware tagged object', () => {
     const mw = http({ baseUrl: 'https://api.example.com', namespace: 'api' })
 
@@ -88,9 +102,17 @@ describe('http()', () => {
 
     await mw.handler(ctx as never, next)
 
-    const client = (ctx as Record<string, unknown>)['api']
+    const client = (ctx as Record<string, unknown>)['api'] as {
+      get: (path: string) => Promise<unknown>
+    }
+    await client.get('/test')
 
-    expect(client).toBeDefined()
+    expect(fetchSpy).toHaveBeenCalledWith(
+      'https://api.example.com/test',
+      expect.objectContaining({
+        headers: expect.objectContaining({ 'X-Api-Key': 'abc123' }),
+      })
+    )
     expect(next).toHaveBeenCalled()
   })
 
@@ -108,9 +130,17 @@ describe('http()', () => {
 
     expect(headersFn).toHaveBeenCalledWith(ctx)
 
-    const client = (ctx as Record<string, unknown>)['api']
+    const client = (ctx as Record<string, unknown>)['api'] as {
+      get: (path: string) => Promise<unknown>
+    }
+    await client.get('/test')
 
-    expect(client).toBeDefined()
+    expect(fetchSpy).toHaveBeenCalledWith(
+      'https://api.example.com/test',
+      expect.objectContaining({
+        headers: expect.objectContaining({ 'X-Custom': 'dynamic-value' }),
+      })
+    )
     expect(next).toHaveBeenCalled()
   })
 

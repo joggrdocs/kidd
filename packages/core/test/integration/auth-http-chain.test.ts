@@ -236,10 +236,25 @@ describe('Auth + HTTP Integration via auth({ http })', () => {
     const apiClient = (ctx as unknown as Record<string, HttpClient>).api
     const adminClient = (ctx as unknown as Record<string, HttpClient>).admin
 
-    expect(apiClient).toBeDefined()
-    expect(typeof apiClient.get).toBe('function')
-    expect(adminClient).toBeDefined()
-    expect(typeof adminClient.get).toBe('function')
+    await apiClient.get('/test')
+    expect(fetchSpy).toHaveBeenCalledWith(
+      'https://api.example.com/test',
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          Authorization: 'Bearer multi-token',
+        }),
+      })
+    )
+
+    await adminClient.get('/admin-test')
+    expect(fetchSpy).toHaveBeenCalledWith(
+      'https://admin.example.com/admin-test',
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          Authorization: 'Bearer multi-token',
+        }),
+      })
+    )
   })
 })
 

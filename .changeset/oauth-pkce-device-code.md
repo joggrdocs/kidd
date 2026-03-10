@@ -21,3 +21,7 @@ After:
 ```
 
 New `device-code` resolver added for headless/browserless environments (RFC 8628).
+
+**Breaking change:** Remove `lib/output` and `lib/prompts` sub-exports. The `Spinner` interface is now inlined in `context/types.ts` and prompts use `@clack/prompts` directly. Consumers importing from `@kidd-cli/core/lib/output` or `@kidd-cli/core/lib/prompts` must update to use `@clack/prompts` directly.
+
+**Breaking change:** Export `MiddlewareEnv` type from main entry point.

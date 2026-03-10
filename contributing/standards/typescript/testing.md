@@ -26,8 +26,9 @@ src/
 ├── runtime/
 │   ├── executor.ts
 │   └── executor.test.ts
-└── __tests__/
-    └── integration.test.ts
+test/
+└── integration/
+    └── auth-oauth-pkce.test.ts
 ```
 
 ### Write Clear Test Cases

@@ -11,6 +11,7 @@
 import { createHash, randomBytes } from 'node:crypto'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 
+import { createBearerCredential, postFormEncoded } from '../credential.js'
 import {
   createDeferred,
   createTimeout,
@@ -250,25 +251,25 @@ async function exchangeCodeForToken(options: {
   readonly clientId: string
   readonly codeVerifier: string
 }): Promise<AuthCredential | null> {
+  const body = new URLSearchParams({
+    client_id: options.clientId,
+    code: options.code,
+    code_verifier: options.codeVerifier,
+    grant_type: 'authorization_code',
+    redirect_uri: options.redirectUri,
+  })
+
+  const response = await postFormEncoded(options.tokenUrl, body)
+
+  if (!response) {
+    return null
+  }
+
+  if (!response.ok) {
+    return null
+  }
+
   try {
-    const body = new URLSearchParams({
-      client_id: options.clientId,
-      code: options.code,
-      code_verifier: options.codeVerifier,
-      grant_type: 'authorization_code',
-      redirect_uri: options.redirectUri,
-    })
-
-    const response = await fetch(options.tokenUrl, {
-      body: body.toString(),
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      method: 'POST',
-    })
-
-    if (!response.ok) {
-      return null
-    }
-
     const data: unknown = await response.json()
 
     if (typeof data !== 'object' || data === null) {
@@ -285,7 +286,7 @@ async function exchangeCodeForToken(options: {
       return null
     }
 
-    return { token: record.access_token, type: 'bearer' }
+    return createBearerCredential(record.access_token)
   } catch {
     return null
   }

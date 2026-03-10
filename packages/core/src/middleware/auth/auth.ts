@@ -14,6 +14,7 @@ import type { Middleware } from '@/types.js'
 
 import { buildAuthHeaders } from '../http/build-auth-headers.js'
 import { createHttpClient } from '../http/create-http-client.js'
+import { withDefault } from './chain.js'
 import { DEFAULT_AUTH_FILENAME, deriveTokenVar } from './constants.js'
 import { createAuthContext } from './context.js'
 import { resolveFromEnv } from './strategies/env.js'
@@ -247,27 +248,6 @@ function credentialToHeaders(
 }
 
 /**
- * Extract a property from an optional config object, falling back to a default.
- *
- * @private
- * @param config - The config object, or undefined.
- * @param key - The property key to extract.
- * @param fallback - The default value when the config or property is undefined.
- * @returns The config property value or the fallback.
- */
-function configPropOrDefault<TConfig extends object, TKey extends keyof TConfig>(
-  config: TConfig | undefined,
-  key: TKey,
-  fallback: NonNullable<TConfig[TKey]>
-): NonNullable<TConfig[TKey]> {
-  if (config !== undefined && config[key] !== undefined) {
-    return config[key] as NonNullable<TConfig[TKey]>
-  }
-
-  return fallback
-}
-
-/**
  * Attempt to resolve a credential from stored (non-interactive) sources.
  *
  * Checks the file store first, then falls back to the environment variable.
@@ -287,8 +267,8 @@ function resolveStoredCredential(
   const envConfig = findResolverBySource(resolvers, 'env')
 
   const fromFile = resolveFromFile({
-    dirName: configPropOrDefault(fileConfig, 'dirName', `.${cliName}`),
-    filename: configPropOrDefault(fileConfig, 'filename', DEFAULT_AUTH_FILENAME),
+    dirName: withDefault(extractProp(fileConfig, 'dirName'), `.${cliName}`),
+    filename: withDefault(extractProp(fileConfig, 'filename'), DEFAULT_AUTH_FILENAME),
   })
 
   if (fromFile) {
@@ -296,7 +276,7 @@ function resolveStoredCredential(
   }
 
   return resolveFromEnv({
-    tokenVar: configPropOrDefault(envConfig, 'tokenVar', deriveTokenVar(cliName)),
+    tokenVar: withDefault(extractProp(envConfig, 'tokenVar'), deriveTokenVar(cliName)),
   })
 }
 
@@ -315,4 +295,26 @@ function findResolverBySource<TSource extends ResolverConfig['source']>(
   return resolvers.find(
     (r): r is Extract<ResolverConfig, { readonly source: TSource }> => r.source === source
   )
+}
+
+/**
+ * Safely extract a property from an optional config object.
+ *
+ * Returns the property value when the config is defined, or undefined
+ * when the config itself is undefined.
+ *
+ * @private
+ * @param config - The config object, or undefined.
+ * @param key - The property key to extract.
+ * @returns The property value, or undefined.
+ */
+function extractProp<TConfig extends object, TKey extends keyof TConfig>(
+  config: TConfig | undefined,
+  key: TKey
+): TConfig[TKey] | undefined {
+  if (config === undefined) {
+    return undefined
+  }
+
+  return config[key]
 }

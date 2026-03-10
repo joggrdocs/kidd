@@ -226,7 +226,7 @@ describe('OAuth PKCE E2E (resolveFromOAuth with real mock server)', () => {
     const authUrl = extractAuthUrl()
     expect(authUrl.searchParams.get('response_type')).toBe('code')
     expect(authUrl.searchParams.get('client_id')).toBe('pkce-client')
-    expect(authUrl.searchParams.get('redirect_uri')).toBeTruthy()
+    expect(authUrl.searchParams.get('redirect_uri')).toContain('127.0.0.1')
     expect(authUrl.searchParams.get('code_challenge')).toBe(KNOWN_CHALLENGE)
     expect(authUrl.searchParams.get('code_challenge_method')).toBe('S256')
     expect(authUrl.searchParams.get('state')).toBe(KNOWN_STATE)

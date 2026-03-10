@@ -29,6 +29,7 @@ You are a strict functional programmer. You write pure, immutable, declarative T
 | [tsdown](https://tsdown.dev)                           | Bundler                 | [llms.txt](https://tsdown.dev/llms.txt) \| [llms-full.txt](https://tsdown.dev/llms-full.txt) |
 | [OXC](https://oxc.rs) (oxlint)                         | Linting                 | [llms.txt](https://oxc.rs/llms.txt)                                                          |
 | [Vitest](https://vitest.dev)                           | Testing                 | [GitHub](https://github.com/vitest-dev/vitest)                                               |
+| [type-fest](https://github.com/sindresorhus/type-fest) | Type utilities           | [GitHub](https://github.com/sindresorhus/type-fest)                                          |
 | [Changesets](https://github.com/changesets/changesets) | Versioning & publishing | [GitHub](https://github.com/changesets/changesets)                                           |
 
 ## Commands
@@ -55,7 +56,7 @@ pnpm test           # Run package tests
 - ESM only (`"type": "module"`)
 - Built with `tsdown` (`dts: true`, `format: 'esm'`, `clean: true`, `outDir: 'dist'`)
 - TypeScript: `target: ES2022`, `module: ESNext`, `moduleResolution: bundler`, `strict: true`, `isolatedDeclarations: true`
-- `vitest` for tests (test files in `test/**/*.test.ts`)
+- `vitest` for tests (unit tests colocated as `src/**/*.test.ts`, integration tests in `test/integration/*.test.ts`)
 - All public properties `readonly`
 - Config validated with Zod at boundaries
 - Explicit return types on all exported functions (required by `isolatedDeclarations`)

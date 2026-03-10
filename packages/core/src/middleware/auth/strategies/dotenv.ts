@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs'
 import { parse } from 'dotenv'
 import { attempt } from 'es-toolkit'
 
+import { createBearerCredential, isValidToken } from '../credential.js'
 import type { AuthCredential } from '../types.js'
 
 /**
@@ -30,9 +31,9 @@ export function resolveFromDotenv(options: {
   const parsed = parse(content)
   const token = parsed[options.tokenVar]
 
-  if (!token || token.trim() === '') {
+  if (!isValidToken(token)) {
     return null
   }
 
-  return { token, type: 'bearer' }
+  return createBearerCredential(token)
 }

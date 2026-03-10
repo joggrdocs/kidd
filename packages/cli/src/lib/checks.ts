@@ -1,9 +1,10 @@
-import { access, mkdir, readFile, writeFile } from 'node:fs/promises'
+import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { dirname, join, relative } from 'node:path'
 
 import type { LoadConfigResult } from '@kidd-cli/config/loader'
 import { attemptAsync, err, ok } from '@kidd-cli/utils/fp'
 import type { AsyncResult } from '@kidd-cli/utils/fp'
+import { fileExists } from '@kidd-cli/utils/fs'
 import { jsonParse, jsonStringify } from '@kidd-cli/utils/json'
 import type { Manifest } from '@kidd-cli/utils/manifest'
 
@@ -579,18 +580,6 @@ export async function readRawPackageJson(cwd: string): AsyncResult<RawPackageJso
 // ---------------------------------------------------------------------------
 // Private helpers
 // ---------------------------------------------------------------------------
-
-/**
- * Check whether a path exists on disk.
- *
- * @private
- * @param filePath - The path to check.
- * @returns True when the path is accessible, false otherwise.
- */
-async function fileExists(filePath: string): Promise<boolean> {
-  const [accessError] = await attemptAsync(() => access(filePath))
-  return accessError === null
-}
 
 /**
  * Extract a KiddConfig from a load result, returning null when absent.

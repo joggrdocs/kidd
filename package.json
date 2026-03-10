@@ -14,7 +14,7 @@
     "build": "turbo run build --filter='./packages/*'",
     "dev": "turbo run dev",
     "test": "turbo run test --filter='./packages/*'",
-    "test:coverage": "turbo run build --filter='./packages/*' && vitest run --coverage",
+    "test:coverage": "turbo run test:coverage --filter='./packages/*'",
     "test:watch": "turbo run build --filter='./packages/*' && vitest",
     "typecheck": "turbo run typecheck --filter='./packages/*'",
     "check": "turbo run typecheck --filter='./packages/*' && pnpm lint && pnpm format",

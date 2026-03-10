@@ -1,6 +1,7 @@
+import * as clack from '@clack/prompts'
+
 import { createCliLogger } from '@/lib/logger.js'
 import type { CliLogger } from '@/lib/logger.js'
-import { createSpinner } from '@/lib/prompts/index.js'
 import type { AnyRecord, KiddStore, Merge } from '@/types.js'
 
 import { createContextError } from './error.js'
@@ -39,7 +40,7 @@ export function createContext<TArgs extends AnyRecord, TConfig extends AnyRecord
   options: CreateContextOptions<TArgs, TConfig>
 ): Context<TArgs, TConfig> {
   const ctxLogger: CliLogger = options.logger ?? createCliLogger()
-  const ctxSpinner: Spinner = createSpinner()
+  const ctxSpinner: Spinner = clack.spinner()
   const ctxOutput: Output = createContextOutput(options.output ?? process.stdout)
   const ctxStore: Store<Merge<KiddStore, StoreMap>> = createMemoryStore()
   const ctxPrompts: Prompts = createContextPrompts()

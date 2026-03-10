@@ -110,8 +110,14 @@ export interface Prompts {
   password(opts: TextOptions): Promise<string>
 }
 
-import type { Spinner } from '@/lib/prompts/types.js'
-export type { Spinner }
+/**
+ * Terminal spinner for indicating long-running operations.
+ */
+export interface Spinner {
+  start(message?: string): void
+  stop(message?: string): void
+  message(message: string): void
+}
 
 /**
  * Formatting options for structured output methods.

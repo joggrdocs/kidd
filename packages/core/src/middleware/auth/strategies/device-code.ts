@@ -12,6 +12,7 @@ import { match } from 'ts-pattern'
 
 import type { Prompts } from '@/context/types.js'
 
+import { createBearerCredential, postFormEncoded } from '../credential.js'
 import { openBrowser } from '../oauth-server.js'
 import type { AuthCredential } from '../types.js'
 
@@ -102,23 +103,23 @@ async function requestDeviceAuth(options: {
   readonly deviceAuthUrl: string
   readonly scopes: readonly string[]
 }): Promise<DeviceAuthResponse | null> {
+  const body = new URLSearchParams({ client_id: options.clientId })
+
+  if (options.scopes.length > 0) {
+    body.set('scope', options.scopes.join(' '))
+  }
+
+  const response = await postFormEncoded(options.deviceAuthUrl, body)
+
+  if (!response) {
+    return null
+  }
+
+  if (!response.ok) {
+    return null
+  }
+
   try {
-    const body = new URLSearchParams({ client_id: options.clientId })
-
-    if (options.scopes.length > 0) {
-      body.set('scope', options.scopes.join(' '))
-    }
-
-    const response = await fetch(options.deviceAuthUrl, {
-      body: body.toString(),
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      method: 'POST',
-    })
-
-    if (!response.ok) {
-      return null
-    }
-
     const data: unknown = await response.json()
 
     return parseDeviceAuthResponse(data)
@@ -313,19 +314,19 @@ async function requestToken(options: {
   readonly deviceCode: string
   readonly clientId: string
 }): Promise<TokenRequestResult> {
+  const body = new URLSearchParams({
+    client_id: options.clientId,
+    device_code: options.deviceCode,
+    grant_type: DEVICE_CODE_GRANT_TYPE,
+  })
+
+  const response = await postFormEncoded(options.tokenUrl, body)
+
+  if (!response) {
+    return { status: 'error' }
+  }
+
   try {
-    const body = new URLSearchParams({
-      client_id: options.clientId,
-      device_code: options.deviceCode,
-      grant_type: DEVICE_CODE_GRANT_TYPE,
-    })
-
-    const response = await fetch(options.tokenUrl, {
-      body: body.toString(),
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      method: 'POST',
-    })
-
     const data: unknown = await response.json()
 
     if (typeof data !== 'object' || data === null) {
@@ -339,7 +340,7 @@ async function requestToken(options: {
         return { status: 'error' }
       }
 
-      return { credential: { token: record.access_token, type: 'bearer' }, status: 'success' }
+      return { credential: createBearerCredential(record.access_token), status: 'success' }
     }
 
     if (typeof record.error !== 'string') {

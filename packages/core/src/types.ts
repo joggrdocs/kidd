@@ -370,7 +370,7 @@ export interface CliOptions<TSchema extends z.ZodType = z.ZodType> {
    */
   commands?: string | CommandMap | Promise<CommandMap>
   /**
-   * Help output customization (banner, etc.).
+   * Help output customization (header, footer).
    */
   help?: CliHelpOptions
 }

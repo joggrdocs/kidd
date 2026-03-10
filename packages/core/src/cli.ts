@@ -3,6 +3,7 @@ import { resolve } from 'node:path'
 import { loadConfig } from '@kidd-cli/config/loader'
 import { P, attemptAsync, isPlainObject, isString, match } from '@kidd-cli/utils/fp'
 import yargs from 'yargs'
+import type { Argv } from 'yargs'
 import type { z } from 'zod'
 
 import { DEFAULT_EXIT_CODE, isContextError } from '@/context/index.js'
@@ -62,14 +63,7 @@ export async function cli<TSchema extends z.ZodType = z.ZodType>(
     applyCwd(argv)
 
     if (!resolved.ref) {
-      if (commands && !argv.help) {
-        const header = extractHeader(options.help)
-        if (header) {
-          console.log(header)
-          console.log()
-        }
-        program.showHelp('log')
-      }
+      showNoCommandHelp({ argv, commands, help: options.help, program })
       return undefined
     }
 
@@ -172,6 +166,41 @@ function applyCwd(argv: Record<string, unknown>): void {
   if (isString(argv.cwd)) {
     process.chdir(resolve(argv.cwd))
   }
+}
+
+/**
+ * Show help output when no command was matched.
+ *
+ * Prints the header (if configured) above the yargs help text. Skipped when
+ * `--help` was explicitly passed, since yargs already handles that case.
+ *
+ * @private
+ * @param params - The argv, commands, help options, and yargs program instance.
+ */
+function showNoCommandHelp({
+  argv,
+  commands,
+  help,
+  program,
+}: {
+  readonly argv: Record<string, unknown>
+  readonly commands: CommandMap | undefined
+  readonly help: CliHelpOptions | undefined
+  readonly program: Argv
+}): void {
+  if (!commands) {
+    return
+  }
+  if (argv.help) {
+    return
+  }
+
+  const header = extractHeader(help)
+  if (header) {
+    console.log(header)
+    console.log()
+  }
+  program.showHelp('log')
 }
 
 /**

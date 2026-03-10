@@ -2,7 +2,7 @@
 
 The auth system for kidd CLIs. Provides credential resolution from multiple sources, an interactive login flow, persistent token storage, and automatic HTTP header injection.
 
-Auth is a sub-export of the `@kidd-cli/core` package (`@kidd-cli/core/auth`), not a separate package. It ships as middleware that decorates `ctx.auth` with a `credential()` reader and an `authenticate()` method.
+Auth is a sub-export of the `@kidd-cli/core` package (`@kidd-cli/core/auth`), not a separate package. It ships as middleware that decorates `ctx.auth` with a `credential()` reader, a `login()` method, and a `logout()` method.
 
 ## Key Concepts
 
@@ -11,7 +11,7 @@ Auth is a sub-export of the `@kidd-cli/core` package (`@kidd-cli/core/auth`), no
 Auth resolvers are split into two categories:
 
 - **Passive** resolvers run automatically when the middleware initializes. They check non-interactive sources (file store, environment variables) without prompting the user. The first match wins.
-- **Interactive** resolvers run only when the handler explicitly calls `ctx.auth.authenticate()`. They prompt the user (OAuth browser flow, password input) or call a custom function.
+- **Interactive** resolvers run only when the handler explicitly calls `ctx.auth.login()`. They prompt the user (OAuth browser flow, password input) or call a custom function.
 
 This split allows commands to work without auth when no credential is found, and only prompt when a command actually needs authentication.
 
@@ -87,7 +87,7 @@ auth({
     auth.file(),
     auth.file({ filename: 'creds.json', dirName: '.my-app' }),
 
-    // Interactive (run on ctx.auth.authenticate())
+    // Interactive (run on ctx.auth.login())
     auth.oauth({
       clientId: 'my-client-id',
       authUrl: 'https://example.com/authorize',
@@ -247,27 +247,98 @@ auth.custom(async () => {
 
 The auth middleware decorates `ctx.auth` with an `AuthContext`:
 
-| Property          | Type                                      | Description                                    |
-| ----------------- | ----------------------------------------- | ---------------------------------------------- |
-| `credential()`    | `AuthCredential \| null`                  | Passively resolved credential (file, env)      |
-| `authenticated()` | `boolean`                                 | Whether a passive credential exists            |
-| `authenticate()`  | `AsyncResult<AuthCredential, LoginError>` | Run interactive resolvers, persist, and return |
+| Property          | Type                                     | Description                                    |
+| ----------------- | ---------------------------------------- | ---------------------------------------------- |
+| `credential()`    | `AuthCredential \| null`                 | Passively resolved credential (file, env)      |
+| `authenticated()` | `boolean`                                | Whether a passive credential exists            |
+| `login()`         | `AsyncResult<AuthCredential, AuthError>` | Run interactive resolvers, persist, and return |
+| `logout()`        | `AsyncResult<string, AuthError>`         | Remove stored credential from disk             |
 
-### `ctx.auth.authenticate()`
+### `ctx.auth.login()`
 
 Walks the configured resolvers in order, runs each interactive resolver, and persists the first successful credential to the global file store.
 
 ```ts
-const [error, credential] = await ctx.auth.authenticate()
+const [error, credential] = await ctx.auth.login()
 if (error) {
   ctx.fail(error.message)
 }
 ```
 
-| LoginError `type` | Description                               |
-| ----------------- | ----------------------------------------- |
-| `'no_credential'` | No resolver produced a credential         |
-| `'save_failed'`   | Credential resolved but failed to persist |
+### `ctx.auth.logout()`
+
+Removes the stored credential file from the global file store. Returns `ok(filePath)` on success, including when the file did not exist (idempotent).
+
+```ts
+const [error] = await ctx.auth.logout()
+if (error) {
+  ctx.fail(error.message)
+}
+```
+
+### AuthError
+
+| AuthError `type`   | Description                               |
+| ------------------ | ----------------------------------------- |
+| `'no_credential'`  | No resolver produced a credential         |
+| `'save_failed'`    | Credential resolved but failed to persist |
+| `'remove_failed'`  | Failed to remove the credential file      |
+
+## Requiring Authentication
+
+Auth is opt-in by default. The `auth()` middleware decorates `ctx.auth` with credential readers but never blocks command execution. Commands that run without a credential (public commands, the login command itself) work without any extra configuration.
+
+To enforce authentication, write a custom middleware that checks `ctx.auth.authenticated()` and calls `ctx.fail()` to short-circuit before the handler runs:
+
+```ts
+import { middleware } from '@kidd-cli/core'
+
+const requireAuth = middleware((ctx, next) => {
+  if (!ctx.auth.authenticated()) {
+    return ctx.fail('Not authenticated. Run `my-app login` first.')
+  }
+
+  return next()
+})
+```
+
+### Command-level enforcement
+
+Apply the middleware to individual commands via the `middleware` array. This is the recommended approach when only some commands require authentication (login, help, and version remain open).
+
+```ts
+import { command } from '@kidd-cli/core'
+import requireAuth from '../middleware/require-auth.js'
+
+export default command({
+  description: 'List repositories',
+  middleware: [requireAuth],
+  handler: async (ctx) => {
+    const res = await ctx.api.get('/repos')
+    ctx.output.table(res.data)
+  },
+})
+```
+
+### Global enforcement
+
+Apply the middleware to the root `middleware` array to enforce authentication on every command. Place it after `auth()` since it depends on `ctx.auth`.
+
+```ts
+cli({
+  name: 'my-app',
+  version: '1.0.0',
+  middleware: [
+    auth({ resolvers: [auth.env(), auth.token()] }),
+    requireAuth,
+  ],
+  commands: `${import.meta.dirname}/commands`,
+})
+```
+
+When applied globally, all commands -- including login -- must pass the check. Use command-level enforcement when some commands need to run unauthenticated.
+
+See the [Add Authentication guide](../guides/add-authentication.md#3-guard-commands-that-require-auth) for step-by-step instructions.
 
 ## HTTP Integration
 

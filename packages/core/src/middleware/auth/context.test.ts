@@ -2,10 +2,10 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import type { Prompts } from '@/context/types.js'
 
-import { createAuthContext } from './create-auth-context.js'
+import { createAuthContext } from './context.js'
 
-vi.mock(import('./resolve-credentials.js'), () => ({
-  resolveCredentials: vi.fn(),
+vi.mock(import('./chain.js'), () => ({
+  runStrategyChain: vi.fn(),
 }))
 
 vi.mock(import('@/lib/store/create-store.js'), () => ({
@@ -14,7 +14,7 @@ vi.mock(import('@/lib/store/create-store.js'), () => ({
 
 import { createStore } from '@/lib/store/create-store.js'
 
-import { resolveCredentials } from './resolve-credentials.js'
+import { runStrategyChain } from './chain.js'
 
 function createMockPrompts(): Prompts {
   return {
@@ -95,16 +95,17 @@ describe('createAuthContext()', () => {
     })
   })
 
-  describe('authenticate()', () => {
+  describe('login()', () => {
     it('should return credential on success', async () => {
       const credential = { token: 'new-token', type: 'bearer' as const }
-      vi.mocked(resolveCredentials).mockResolvedValue(credential)
+      vi.mocked(runStrategyChain).mockResolvedValue(credential)
       vi.mocked(createStore).mockReturnValue({
         getFilePath: vi.fn(),
         getGlobalDir: vi.fn(),
         getLocalDir: vi.fn(),
         load: vi.fn(),
         loadRaw: vi.fn(),
+        remove: vi.fn(),
         save: vi.fn().mockReturnValue([null, '/home/.test-cli/auth.json']),
       })
 
@@ -115,14 +116,14 @@ describe('createAuthContext()', () => {
         resolvers: [{ source: 'token' }],
       })
 
-      const [error, result] = await ctx.authenticate()
+      const [error, result] = await ctx.login()
 
       expect(error).toBeNull()
       expect(result).toEqual(credential)
     })
 
     it('should return no_credential error when no resolver produces a credential', async () => {
-      vi.mocked(resolveCredentials).mockResolvedValue(null)
+      vi.mocked(runStrategyChain).mockResolvedValue(null)
 
       const ctx = createAuthContext({
         cliName: 'test-cli',
@@ -131,20 +132,21 @@ describe('createAuthContext()', () => {
         resolvers: [{ source: 'token' }],
       })
 
-      const [error] = await ctx.authenticate()
+      const [error] = await ctx.login()
 
       expect(error).toMatchObject({ type: 'no_credential' })
     })
 
     it('should return save_failed error when store.save fails', async () => {
       const credential = { token: 'new-token', type: 'bearer' as const }
-      vi.mocked(resolveCredentials).mockResolvedValue(credential)
+      vi.mocked(runStrategyChain).mockResolvedValue(credential)
       vi.mocked(createStore).mockReturnValue({
         getFilePath: vi.fn(),
         getGlobalDir: vi.fn(),
         getLocalDir: vi.fn(),
         load: vi.fn(),
         loadRaw: vi.fn(),
+        remove: vi.fn(),
         save: vi.fn().mockReturnValue([new Error('disk full'), null]),
       })
 
@@ -155,17 +157,17 @@ describe('createAuthContext()', () => {
         resolvers: [{ source: 'token' }],
       })
 
-      const [error] = await ctx.authenticate()
+      const [error] = await ctx.login()
 
       expect(error).toMatchObject({ type: 'save_failed' })
     })
 
-    it('should pass resolvers to resolveCredentials', async () => {
+    it('should pass resolvers to runStrategyChain', async () => {
       const resolvers = [
         { authUrl: 'http://example.com/auth', source: 'oauth' as const },
         { source: 'token' as const },
       ]
-      vi.mocked(resolveCredentials).mockResolvedValue(null)
+      vi.mocked(runStrategyChain).mockResolvedValue(null)
 
       const prompts = createMockPrompts()
       const ctx = createAuthContext({
@@ -175,13 +177,62 @@ describe('createAuthContext()', () => {
         resolvers,
       })
 
-      await ctx.authenticate()
+      await ctx.login()
 
-      expect(resolveCredentials).toHaveBeenCalledWith({
+      expect(runStrategyChain).toHaveBeenCalledWith({
         cliName: 'my-app',
         prompts,
         resolvers,
       })
+    })
+  })
+
+  describe('logout()', () => {
+    it('should remove the credential file and return ok', async () => {
+      vi.mocked(createStore).mockReturnValue({
+        getFilePath: vi.fn(),
+        getGlobalDir: vi.fn(),
+        getLocalDir: vi.fn(),
+        load: vi.fn(),
+        loadRaw: vi.fn(),
+        remove: vi.fn().mockReturnValue([null, '/home/.test-cli/auth.json']),
+        save: vi.fn(),
+      })
+
+      const ctx = createAuthContext({
+        cliName: 'test-cli',
+        prompts: createMockPrompts(),
+        resolveCredential: () => null,
+        resolvers: [],
+      })
+
+      const [error, filePath] = await ctx.logout()
+
+      expect(error).toBeNull()
+      expect(filePath).toBe('/home/.test-cli/auth.json')
+    })
+
+    it('should return remove_failed error when store.remove fails', async () => {
+      vi.mocked(createStore).mockReturnValue({
+        getFilePath: vi.fn(),
+        getGlobalDir: vi.fn(),
+        getLocalDir: vi.fn(),
+        load: vi.fn(),
+        loadRaw: vi.fn(),
+        remove: vi.fn().mockReturnValue([new Error('permission denied'), null]),
+        save: vi.fn(),
+      })
+
+      const ctx = createAuthContext({
+        cliName: 'test-cli',
+        prompts: createMockPrompts(),
+        resolveCredential: () => null,
+        resolvers: [],
+      })
+
+      const [error] = await ctx.logout()
+
+      expect(error).toMatchObject({ type: 'remove_failed' })
     })
   })
 })

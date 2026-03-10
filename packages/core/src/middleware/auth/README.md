@@ -20,7 +20,7 @@ cli({
 })
 ```
 
-The middleware decorates `ctx.auth` with `credential()`, `authenticated()`, and `authenticate()` methods.
+The middleware decorates `ctx.auth` with `credential()`, `authenticated()`, `login()`, and `logout()` methods.
 
 ## Resolver Builders
 

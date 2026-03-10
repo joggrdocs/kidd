@@ -7,7 +7,7 @@ import { jsonStringify } from '@kidd-cli/utils/json'
 
 import { redactObject } from '@/context/redact.js'
 
-import { resolveRenderError } from './renderer.js'
+import { resolveRenderError } from './co.js'
 import type { JsonOutputOptions, WriteParams } from './types.js'
 
 /**

@@ -153,14 +153,15 @@ export type ResolverConfig =
   | CustomSourceConfig
 
 // ---------------------------------------------------------------------------
-// Login error
+// Auth error
 // ---------------------------------------------------------------------------
 
 /**
- * Error returned by {@link AuthContext.authenticate} when interactive auth fails.
+ * Error returned by {@link AuthContext.login} or {@link AuthContext.logout}
+ * when the operation fails.
  */
-export interface LoginError {
-  readonly type: 'no_credential' | 'save_failed'
+export interface AuthError {
+  readonly type: 'no_credential' | 'save_failed' | 'remove_failed'
   readonly message: string
 }
 
@@ -175,19 +176,18 @@ export interface LoginError {
  * use `credential()` to read saved credentials on demand and
  * `authenticated()` to check whether a credential exists without exposing it.
  *
- * `authenticate()` runs the configured interactive resolvers (OAuth, prompt,
+ * `login()` runs the configured interactive resolvers (OAuth, prompt,
  * etc.), persists the resulting credential to disk, and returns a
  * {@link AsyncResult}.
+ *
+ * `logout()` removes the stored credential from disk.
  */
 export interface AuthContext {
   readonly credential: () => AuthCredential | null
   readonly authenticated: () => boolean
-  readonly authenticate: () => AsyncResult<AuthCredential, LoginError>
+  readonly login: () => AsyncResult<AuthCredential, AuthError>
+  readonly logout: () => AsyncResult<string, AuthError>
 }
-
-// ---------------------------------------------------------------------------
-// Auth options
-// ---------------------------------------------------------------------------
 
 // ---------------------------------------------------------------------------
 // Resolver builder option types
@@ -252,7 +252,7 @@ export interface AuthHttpOptions {
 /**
  * Options accepted by the `auth()` middleware factory.
  *
- * @property resolvers - Ordered list of credential sources to try via `authenticate()`.
+ * @property resolvers - Ordered list of credential sources to try via `login()`.
  * @property http - Optional HTTP client(s) with automatic credential injection.
  */
 export interface AuthOptions {

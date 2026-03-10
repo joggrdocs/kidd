@@ -1,6 +1,6 @@
 import type { Prompts } from '@/context/types.js'
 
-import type { AuthCredential } from './types.js'
+import type { AuthCredential } from '../types.js'
 
 /**
  * Resolve a bearer credential by interactively prompting the user.
@@ -13,14 +13,14 @@ import type { AuthCredential } from './types.js'
  * @param options - Options with the prompt message and prompts instance.
  * @returns A bearer credential on input, null on cancellation.
  */
-export async function resolveFromPrompt(options: {
+export async function resolveFromToken(options: {
   readonly message: string
   readonly prompts: Prompts
 }): Promise<AuthCredential | null> {
   try {
     const token = await options.prompts.password({ message: options.message })
 
-    if (!token) {
+    if (!token || token.trim() === '') {
       return null
     }
 

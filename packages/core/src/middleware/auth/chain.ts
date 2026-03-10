@@ -13,12 +13,12 @@ import {
   DEFAULT_OAUTH_TIMEOUT,
   deriveTokenVar,
 } from './constants.js'
-import { resolveFromDeviceCode } from './resolve-device-code.js'
-import { resolveFromDotenv } from './resolve-dotenv.js'
-import { resolveFromEnv } from './resolve-env.js'
-import { resolveFromFile } from './resolve-file.js'
-import { resolveFromOAuth } from './resolve-oauth.js'
-import { resolveFromPrompt } from './resolve-prompt.js'
+import { resolveFromDeviceCode } from './strategies/device-code.js'
+import { resolveFromDotenv } from './strategies/dotenv.js'
+import { resolveFromEnv } from './strategies/env.js'
+import { resolveFromFile } from './strategies/file.js'
+import { resolveFromOAuth } from './strategies/oauth.js'
+import { resolveFromToken } from './strategies/token.js'
 import type { AuthCredential, ResolverConfig } from './types.js'
 
 const DEFAULT_PROMPT_MESSAGE = 'Enter your API key'
@@ -33,7 +33,7 @@ const DEFAULT_PROMPT_MESSAGE = 'Enter your API key'
  * @param options - Options with resolvers, CLI name, and prompts instance.
  * @returns The first resolved credential, or null if all resolvers fail.
  */
-export async function resolveCredentials(options: {
+export async function runStrategyChain(options: {
   readonly resolvers: readonly ResolverConfig[]
   readonly cliName: string
   readonly prompts: Prompts
@@ -46,6 +46,21 @@ export async function resolveCredentials(options: {
 // ---------------------------------------------------------------------------
 // Private helpers
 // ---------------------------------------------------------------------------
+
+/**
+ * Return the given value when defined, otherwise the fallback.
+ *
+ * @private
+ * @param value - The optional value.
+ * @param fallback - The default value.
+ * @returns The resolved value.
+ */
+function withDefault<T>(value: T | undefined, fallback: T): T {
+  if (value !== undefined) {
+    return value
+  }
+  return fallback
+}
 
 /**
  * Recursively try resolvers until one returns a credential or the list is exhausted.
@@ -105,19 +120,19 @@ async function dispatchResolver(
   return match(config)
     .with({ source: 'env' }, (c): AuthCredential | null =>
       resolveFromEnv({
-        tokenVar: resolveOptionalString(c.tokenVar, defaultTokenVar),
+        tokenVar: withDefault(c.tokenVar, defaultTokenVar),
       })
     )
     .with({ source: 'dotenv' }, (c): AuthCredential | null =>
       resolveFromDotenv({
-        path: resolveOptionalString(c.path, join(process.cwd(), '.env')),
-        tokenVar: resolveOptionalString(c.tokenVar, defaultTokenVar),
+        path: withDefault(c.path, join(process.cwd(), '.env')),
+        tokenVar: withDefault(c.tokenVar, defaultTokenVar),
       })
     )
     .with({ source: 'file' }, (c): AuthCredential | null =>
       resolveFromFile({
-        dirName: resolveOptionalString(c.dirName, `.${context.cliName}`),
-        filename: resolveOptionalString(c.filename, DEFAULT_AUTH_FILENAME),
+        dirName: withDefault(c.dirName, `.${context.cliName}`),
+        filename: withDefault(c.filename, DEFAULT_AUTH_FILENAME),
       })
     )
     .with(
@@ -125,11 +140,11 @@ async function dispatchResolver(
       (c): Promise<AuthCredential | null> =>
         resolveFromOAuth({
           authUrl: c.authUrl,
-          callbackPath: resolveOptionalString(c.callbackPath, DEFAULT_OAUTH_CALLBACK_PATH),
+          callbackPath: withDefault(c.callbackPath, DEFAULT_OAUTH_CALLBACK_PATH),
           clientId: c.clientId,
-          port: resolveOptionalNumber(c.port, DEFAULT_OAUTH_PORT),
-          scopes: resolveOptionalArray(c.scopes, []),
-          timeout: resolveOptionalNumber(c.timeout, DEFAULT_OAUTH_TIMEOUT),
+          port: withDefault(c.port, DEFAULT_OAUTH_PORT),
+          scopes: withDefault(c.scopes, []),
+          timeout: withDefault(c.timeout, DEFAULT_OAUTH_TIMEOUT),
           tokenUrl: c.tokenUrl,
         })
     )
@@ -139,18 +154,18 @@ async function dispatchResolver(
         resolveFromDeviceCode({
           clientId: c.clientId,
           deviceAuthUrl: c.deviceAuthUrl,
-          pollInterval: resolveOptionalNumber(c.pollInterval, DEFAULT_DEVICE_CODE_POLL_INTERVAL),
+          pollInterval: withDefault(c.pollInterval, DEFAULT_DEVICE_CODE_POLL_INTERVAL),
           prompts: context.prompts,
-          scopes: resolveOptionalArray(c.scopes, []),
-          timeout: resolveOptionalNumber(c.timeout, DEFAULT_DEVICE_CODE_TIMEOUT),
+          scopes: withDefault(c.scopes, []),
+          timeout: withDefault(c.timeout, DEFAULT_DEVICE_CODE_TIMEOUT),
           tokenUrl: c.tokenUrl,
         })
     )
     .with(
       { source: 'token' },
       (c): Promise<AuthCredential | null> =>
-        resolveFromPrompt({
-          message: resolveOptionalString(c.message, DEFAULT_PROMPT_MESSAGE),
+        resolveFromToken({
+          message: withDefault(c.message, DEFAULT_PROMPT_MESSAGE),
           prompts: context.prompts,
         })
     )
@@ -158,52 +173,4 @@ async function dispatchResolver(
       c.resolver()
     )
     .exhaustive()
-}
-
-/**
- * Resolve an optional string value, falling back to a default.
- *
- * @private
- * @param value - The optional value.
- * @param fallback - The default value.
- * @returns The resolved string.
- */
-function resolveOptionalString(value: string | undefined, fallback: string): string {
-  if (value !== undefined) {
-    return value
-  }
-  return fallback
-}
-
-/**
- * Resolve an optional number value, falling back to a default.
- *
- * @private
- * @param value - The optional value.
- * @param fallback - The default value.
- * @returns The resolved number.
- */
-function resolveOptionalNumber(value: number | undefined, fallback: number): number {
-  if (value !== undefined) {
-    return value
-  }
-  return fallback
-}
-
-/**
- * Resolve an optional readonly array value, falling back to a default.
- *
- * @private
- * @param value - The optional value.
- * @param fallback - The default value.
- * @returns The resolved array.
- */
-function resolveOptionalArray<T>(
-  value: readonly T[] | undefined,
-  fallback: readonly T[]
-): readonly T[] {
-  if (value !== undefined) {
-    return value
-  }
-  return fallback
 }

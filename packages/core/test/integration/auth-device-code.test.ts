@@ -1,11 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock(import('node:child_process'), () => ({
-  execFile: vi.fn(),
+  execFile: vi.fn().mockReturnValue({ on: vi.fn() }),
 }))
 
 import type { Prompts } from '@/context/types.js'
-import { resolveFromDeviceCode } from '@/middleware/auth/resolve-device-code.js'
+import { resolveFromDeviceCode } from '@/middleware/auth/strategies/device-code.js'
 
 import { createMockOAuthServer } from '../helpers/mock-oauth-server.js'
 import type { DevicePollResponse, MockOAuthServer } from '../helpers/mock-oauth-server.js'
@@ -344,13 +344,14 @@ describe('Device Code E2E (resolveFromDeviceCode with real mock server)', () => 
       pollInterval: 10,
       prompts,
       scopes: [],
-      timeout: 1000,
+      timeout: 3000,
       tokenUrl: `${mockServer.url}/token`,
     })
 
     expect(result).toBeNull()
 
-    // Verify that polling actually started (at least one token request was made)
+    // Verify that polling actually started (at least one token request was made).
+    // Server interval is clamped to a 1s minimum, so timeout must exceed 1s.
     const tokenRequests = mockServer.getTokenRequests()
     expect(tokenRequests.length).toBeGreaterThanOrEqual(1)
   }, 10_000)

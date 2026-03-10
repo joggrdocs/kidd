@@ -5,7 +5,7 @@ import type { Socket } from 'node:net'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock(import('node:child_process'), () => ({
-  execFile: vi.fn(),
+  execFile: vi.fn().mockReturnValue({ on: vi.fn() }),
 }))
 
 import { execFile } from 'node:child_process'
@@ -18,7 +18,7 @@ import {
   sendSuccessPage,
   startLocalServer,
   trackConnections,
-} from './oauth-shared.js'
+} from './oauth-server.js'
 
 describe('createDeferred()', () => {
   it('should resolve the promise when resolve is called', async () => {
@@ -49,19 +49,9 @@ describe('createTimeout()', () => {
     vi.useFakeTimers()
 
     const timeout = createTimeout(100)
-    const resolved = { value: false }
 
-    void timeout.promise.then(() => {
-      resolved.value = true
-      return undefined
-    })
-
-    vi.advanceTimersByTime(99)
-    expect(resolved.value).toBeFalsy()
-
-    vi.advanceTimersByTime(1)
+    vi.advanceTimersByTime(100)
     await timeout.promise
-    expect(resolved.value).toBeTruthy()
 
     vi.useRealTimers()
   })

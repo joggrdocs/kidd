@@ -1,17 +1,14 @@
 /**
  * Typed HTTP client factory.
  *
- * Creates a closure-based {@link HttpClient} with pre-configured base URL,
- * auth credentials, and default headers. All methods delegate to a shared
- * request executor.
+ * Creates a closure-based {@link HttpClient} with pre-configured base URL
+ * and default headers. All methods delegate to a shared request executor.
  *
  * @module
  */
 
 import { attemptAsync } from '@kidd-cli/utils/fp'
 
-import type { AuthCredential } from '../auth/types.js'
-import { buildAuthHeaders } from './build-auth-headers.js'
 import type { HttpClient, RequestOptions, TypedResponse } from './types.js'
 
 /**
@@ -19,50 +16,43 @@ import type { HttpClient, RequestOptions, TypedResponse } from './types.js'
  */
 interface CreateHttpClientOptions {
   readonly baseUrl: string
-  readonly credential?: AuthCredential
   readonly defaultHeaders?: Readonly<Record<string, string>>
+  readonly resolveHeaders?: () => Readonly<Record<string, string>>
 }
 
 /**
- * Create a typed HTTP client with pre-configured base URL, auth, and headers.
+ * Create a typed HTTP client with pre-configured base URL and headers.
  *
  * @param options - Client configuration.
  * @returns An HttpClient instance.
  */
 export function createHttpClient(options: CreateHttpClientOptions): HttpClient {
-  const { baseUrl, credential, defaultHeaders } = options
+  const { baseUrl, defaultHeaders, resolveHeaders } = options
 
   return {
     delete: <TResponse = unknown>(path: string, requestOptions?: RequestOptions) =>
-      executeRequest<TResponse>(
-        baseUrl,
-        'DELETE',
-        path,
-        credential,
-        defaultHeaders,
-        requestOptions
-      ),
+      executeRequest<TResponse>(baseUrl, 'DELETE', path, defaultHeaders, resolveHeaders, requestOptions),
 
     get: <TResponse = unknown>(path: string, requestOptions?: RequestOptions) =>
-      executeRequest<TResponse>(baseUrl, 'GET', path, credential, defaultHeaders, requestOptions),
+      executeRequest<TResponse>(baseUrl, 'GET', path, defaultHeaders, resolveHeaders, requestOptions),
 
     patch: <TResponse = unknown, TBody = unknown>(
       path: string,
       requestOptions?: RequestOptions<TBody>
     ) =>
-      executeRequest<TResponse>(baseUrl, 'PATCH', path, credential, defaultHeaders, requestOptions),
+      executeRequest<TResponse>(baseUrl, 'PATCH', path, defaultHeaders, resolveHeaders, requestOptions),
 
     post: <TResponse = unknown, TBody = unknown>(
       path: string,
       requestOptions?: RequestOptions<TBody>
     ) =>
-      executeRequest<TResponse>(baseUrl, 'POST', path, credential, defaultHeaders, requestOptions),
+      executeRequest<TResponse>(baseUrl, 'POST', path, defaultHeaders, resolveHeaders, requestOptions),
 
     put: <TResponse = unknown, TBody = unknown>(
       path: string,
       requestOptions?: RequestOptions<TBody>
     ) =>
-      executeRequest<TResponse>(baseUrl, 'PUT', path, credential, defaultHeaders, requestOptions),
+      executeRequest<TResponse>(baseUrl, 'PUT', path, defaultHeaders, resolveHeaders, requestOptions),
   }
 }
 
@@ -95,45 +85,25 @@ function buildUrl(
 }
 
 /**
- * Resolve auth headers from a credential, returning an empty record
- * when no credential is provided.
+ * Merge default, dynamic, and per-request headers into a single record.
+ *
+ * Per-request headers take highest priority, then dynamic headers,
+ * then default headers.
  *
  * @private
- * @param credential - Optional auth credential.
- * @returns A record of auth headers.
- */
-function resolveAuthHeaders(
-  credential: AuthCredential | undefined
-): Readonly<Record<string, string>> {
-  if (credential !== undefined) {
-    return buildAuthHeaders(credential)
-  }
-
-  return {}
-}
-
-/**
- * Merge auth, default, and per-request headers into a single record.
- *
- * Per-request headers take highest priority, then default headers,
- * then auth headers.
- *
- * @private
- * @param credential - Optional auth credential.
  * @param defaultHeaders - Optional default headers.
+ * @param dynamicHeaders - Optional dynamically resolved headers.
  * @param requestHeaders - Optional per-request headers.
  * @returns The merged headers record.
  */
 function mergeHeaders(
-  credential: AuthCredential | undefined,
   defaultHeaders: Readonly<Record<string, string>> | undefined,
+  dynamicHeaders: Readonly<Record<string, string>> | undefined,
   requestHeaders: Readonly<Record<string, string>> | undefined
 ): Readonly<Record<string, string>> {
-  const authHeaders = resolveAuthHeaders(credential)
-
   return {
-    ...authHeaders,
     ...defaultHeaders,
+    ...dynamicHeaders,
     ...requestHeaders,
   }
 }
@@ -182,6 +152,23 @@ function extractHeaders(
 function extractSignal(options: RequestOptions | undefined): AbortSignal | undefined {
   if (options !== undefined) {
     return options.signal
+  }
+
+  return undefined
+}
+
+/**
+ * Invoke the dynamic header resolver if provided.
+ *
+ * @private
+ * @param resolveHeaders - Optional function to resolve dynamic headers.
+ * @returns The resolved headers record, or undefined.
+ */
+function resolveDynamicHeaders(
+  resolveHeaders: (() => Readonly<Record<string, string>>) | undefined
+): Readonly<Record<string, string>> | undefined {
+  if (resolveHeaders !== undefined) {
+    return resolveHeaders()
   }
 
   return undefined
@@ -241,8 +228,8 @@ function buildFetchInit(
  * @param baseUrl - The base URL.
  * @param method - The HTTP method.
  * @param path - The request path.
- * @param credential - Optional auth credential.
  * @param defaultHeaders - Optional default headers.
+ * @param resolveHeaders - Optional function to resolve dynamic headers per-request.
  * @param options - Optional per-request options.
  * @returns A typed response wrapper.
  */
@@ -250,12 +237,13 @@ async function executeRequest<TResponse>(
   baseUrl: string,
   method: string,
   path: string,
-  credential: AuthCredential | undefined,
   defaultHeaders: Readonly<Record<string, string>> | undefined,
+  resolveHeaders: (() => Readonly<Record<string, string>>) | undefined,
   options: RequestOptions | undefined
 ): Promise<TypedResponse<TResponse>> {
   const url = buildUrl(baseUrl, path, extractParams(options))
-  const headers = mergeHeaders(credential, defaultHeaders, extractHeaders(options))
+  const dynamicHeaders = resolveDynamicHeaders(resolveHeaders)
+  const headers = mergeHeaders(defaultHeaders, dynamicHeaders, extractHeaders(options))
   const body = resolveBody(options)
   const signal = extractSignal(options)
   const init = buildFetchInit(method, headers, body, signal)

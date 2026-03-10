@@ -5,15 +5,15 @@ vi.mock(import('node:fs'), () => ({
   readFileSync: vi.fn(),
 }))
 
-vi.mock(import('./resolve-file.js'), () => ({
+vi.mock(import('./strategies/file.js'), () => ({
   resolveFromFile: vi.fn(),
 }))
 
-vi.mock(import('./resolve-oauth.js'), () => ({
+vi.mock(import('./strategies/oauth.js'), () => ({
   resolveFromOAuth: vi.fn(),
 }))
 
-vi.mock(import('./resolve-device-code.js'), () => ({
+vi.mock(import('./strategies/device-code.js'), () => ({
   resolveFromDeviceCode: vi.fn(),
 }))
 
@@ -21,13 +21,13 @@ import { readFileSync } from 'node:fs'
 
 import type { Prompts } from '@/context/types.js'
 
-import { resolveCredentials } from './resolve-credentials.js'
-import { resolveFromDeviceCode } from './resolve-device-code.js'
-import { resolveFromDotenv } from './resolve-dotenv.js'
-import { resolveFromEnv } from './resolve-env.js'
-import { resolveFromFile } from './resolve-file.js'
-import { resolveFromOAuth } from './resolve-oauth.js'
-import { resolveFromPrompt } from './resolve-prompt.js'
+import { runStrategyChain } from './chain.js'
+import { resolveFromDeviceCode } from './strategies/device-code.js'
+import { resolveFromDotenv } from './strategies/dotenv.js'
+import { resolveFromEnv } from './strategies/env.js'
+import { resolveFromFile } from './strategies/file.js'
+import { resolveFromOAuth } from './strategies/oauth.js'
+import { resolveFromToken } from './strategies/token.js'
 
 describe('resolveFromEnv()', () => {
   afterEach(() => {
@@ -99,11 +99,11 @@ describe('resolveFromDotenv()', () => {
   })
 })
 
-describe('resolveFromPrompt()', () => {
+describe('resolveFromToken()', () => {
   it('should return BearerCredential when user provides input', async () => {
     const prompts = { password: vi.fn().mockResolvedValue('user-token') } as unknown as Prompts
 
-    const result = await resolveFromPrompt({ message: 'Enter token', prompts })
+    const result = await resolveFromToken({ message: 'Enter token', prompts })
 
     expect(result).toEqual({ token: 'user-token', type: 'bearer' })
   })
@@ -113,7 +113,7 @@ describe('resolveFromPrompt()', () => {
       password: vi.fn().mockRejectedValue(new Error('cancelled')),
     } as unknown as Prompts
 
-    const result = await resolveFromPrompt({ message: 'Enter token', prompts })
+    const result = await resolveFromToken({ message: 'Enter token', prompts })
 
     expect(result).toBeNull()
   })
@@ -121,13 +121,13 @@ describe('resolveFromPrompt()', () => {
   it('should return null when user provides empty input', async () => {
     const prompts = { password: vi.fn().mockResolvedValue('') } as unknown as Prompts
 
-    const result = await resolveFromPrompt({ message: 'Enter token', prompts })
+    const result = await resolveFromToken({ message: 'Enter token', prompts })
 
     expect(result).toBeNull()
   })
 })
 
-describe('resolveCredentials()', () => {
+describe('runStrategyChain()', () => {
   afterEach(() => {
     vi.unstubAllEnvs()
     vi.clearAllMocks()
@@ -137,7 +137,7 @@ describe('resolveCredentials()', () => {
     vi.stubEnv('MY_CLI_TOKEN', 'from-env')
 
     const prompts = { password: vi.fn() } as unknown as Prompts
-    const result = await resolveCredentials({
+    const result = await runStrategyChain({
       cliName: 'my-cli',
       prompts,
       resolvers: [{ source: 'env' }, { source: 'token' }],
@@ -149,7 +149,7 @@ describe('resolveCredentials()', () => {
 
   it('should return null when all resolvers return null', async () => {
     const prompts = { password: vi.fn() } as unknown as Prompts
-    const result = await resolveCredentials({
+    const result = await runStrategyChain({
       cliName: 'my-cli',
       prompts,
       resolvers: [{ source: 'env' }],
@@ -162,7 +162,7 @@ describe('resolveCredentials()', () => {
     vi.stubEnv('MY_COOL_APP_TOKEN', 'derived-token')
 
     const prompts = { password: vi.fn() } as unknown as Prompts
-    const result = await resolveCredentials({
+    const result = await runStrategyChain({
       cliName: 'my-cool-app',
       prompts,
       resolvers: [{ source: 'env' }],
@@ -176,7 +176,7 @@ describe('resolveCredentials()', () => {
       password: vi.fn().mockResolvedValue('from-prompt'),
     } as unknown as Prompts
 
-    const result = await resolveCredentials({
+    const result = await runStrategyChain({
       cliName: 'my-cli',
       prompts,
       resolvers: [{ source: 'env' }, { source: 'token' }],
@@ -188,7 +188,7 @@ describe('resolveCredentials()', () => {
 
   it('should use custom resolver', async () => {
     const prompts = { password: vi.fn() } as unknown as Prompts
-    const result = await resolveCredentials({
+    const result = await runStrategyChain({
       cliName: 'my-cli',
       prompts,
       resolvers: [
@@ -206,7 +206,7 @@ describe('resolveCredentials()', () => {
     vi.mocked(resolveFromFile).mockReturnValue({ token: 'from-file', type: 'bearer' })
 
     const prompts = { password: vi.fn() } as unknown as Prompts
-    const result = await resolveCredentials({
+    const result = await runStrategyChain({
       cliName: 'my-cli',
       prompts,
       resolvers: [{ source: 'file' }],
@@ -223,7 +223,7 @@ describe('resolveCredentials()', () => {
     vi.mocked(resolveFromFile).mockReturnValue({ token: 'from-custom-file', type: 'bearer' })
 
     const prompts = { password: vi.fn() } as unknown as Prompts
-    const result = await resolveCredentials({
+    const result = await runStrategyChain({
       cliName: 'my-cli',
       prompts,
       resolvers: [{ dirName: '.my-custom-dir', filename: 'creds.json', source: 'file' }],
@@ -240,7 +240,7 @@ describe('resolveCredentials()', () => {
     vi.mocked(resolveFromOAuth).mockResolvedValue({ token: 'from-oauth', type: 'bearer' })
 
     const prompts = { password: vi.fn() } as unknown as Prompts
-    const result = await resolveCredentials({
+    const result = await runStrategyChain({
       cliName: 'my-cli',
       prompts,
       resolvers: [
@@ -272,7 +272,7 @@ describe('resolveCredentials()', () => {
     })
 
     const prompts = { password: vi.fn() } as unknown as Prompts
-    const result = await resolveCredentials({
+    const result = await runStrategyChain({
       cliName: 'my-cli',
       prompts,
       resolvers: [
@@ -299,7 +299,7 @@ describe('resolveCredentials()', () => {
 
   it('should return null when custom resolver returns null', async () => {
     const prompts = { password: vi.fn() } as unknown as Prompts
-    const result = await resolveCredentials({
+    const result = await runStrategyChain({
       cliName: 'my-cli',
       prompts,
       resolvers: [
@@ -315,7 +315,7 @@ describe('resolveCredentials()', () => {
 
   it('should handle empty resolvers array', async () => {
     const prompts = { password: vi.fn() } as unknown as Prompts
-    const result = await resolveCredentials({
+    const result = await runStrategyChain({
       cliName: 'my-cli',
       prompts,
       resolvers: [],

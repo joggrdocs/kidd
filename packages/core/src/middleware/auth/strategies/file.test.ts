@@ -8,7 +8,7 @@ vi.mock(import('@/lib/store/create-store.js'), () => ({
 
 import { createStore } from '@/lib/store/create-store.js'
 
-import { resolveFromFile } from './resolve-file.js'
+import { resolveFromFile } from './file.js'
 
 describe('resolveFromFile()', () => {
   const mockStore = {

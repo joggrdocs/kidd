@@ -163,18 +163,28 @@ export function sendSuccessPage(res: ServerResponse): void {
 /**
  * Open a URL in the user's default browser using a platform-specific command.
  *
+ * Validates that the URL uses the HTTP or HTTPS protocol before opening
+ * to prevent dangerous schemes like `javascript:` or `data:`. Silently
+ * returns if the URL is invalid.
+ *
  * On Windows, `start` is a `cmd.exe` built-in -- not a standalone executable --
  * so it must be invoked via `cmd /c start "" <url>`. The empty string argument
  * prevents `cmd` from interpreting the URL as a window title.
  *
- * @param url - The URL to open.
+ * @param url - The URL to open (must use http: or https: protocol).
  */
 export function openBrowser(url: string): void {
+  if (!isHttpUrl(url)) {
+    return
+  }
+
   const { command, args } = match(platform())
     .with('darwin', () => ({ args: [url], command: 'open' }))
     .with('win32', () => ({ args: ['/c', 'start', '', url], command: 'cmd' }))
     .otherwise(() => ({ args: [url], command: 'xdg-open' }))
-  execFile(command, args)
+
+  const child = execFile(command, args)
+  child.on('error', () => undefined)
 }
 
 /**
@@ -221,5 +231,28 @@ export function startLocalServer(options: {
     port: portDeferred.promise,
     server,
     sockets,
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Private helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Check whether a URL uses the HTTP or HTTPS protocol.
+ *
+ * Rejects dangerous schemes like `javascript:`, `data:`, and `file:`
+ * to prevent browser-based attacks when opening untrusted URLs.
+ *
+ * @private
+ * @param url - The URL string to validate.
+ * @returns True when the URL uses http: or https: protocol.
+ */
+function isHttpUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url)
+    return parsed.protocol === 'https:' || parsed.protocol === 'http:'
+  } catch {
+    return false
   }
 }

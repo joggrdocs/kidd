@@ -18,8 +18,8 @@ import {
   openBrowser,
   sendSuccessPage,
   startLocalServer,
-} from './oauth-shared.js'
-import type { AuthCredential } from './types.js'
+} from '../oauth-server.js'
+import type { AuthCredential } from '../types.js'
 
 /**
  * Resolve a bearer credential via OAuth 2.0 Authorization Code + PKCE.
@@ -278,6 +278,10 @@ async function exchangeCodeForToken(options: {
     const record = data as Record<string, unknown>
 
     if (typeof record.access_token !== 'string' || record.access_token === '') {
+      return null
+    }
+
+    if (typeof record.token_type === 'string' && record.token_type.toLowerCase() !== 'bearer') {
       return null
     }
 

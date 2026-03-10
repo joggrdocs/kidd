@@ -3,7 +3,7 @@ import { createHash } from 'node:crypto'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock(import('node:child_process'), () => ({
-  execFile: vi.fn(),
+  execFile: vi.fn().mockReturnValue({ on: vi.fn() }),
 }))
 
 vi.mock(import('node:crypto'), async (importOriginal) => {
@@ -16,7 +16,7 @@ vi.mock(import('node:crypto'), async (importOriginal) => {
 
 import { execFile } from 'node:child_process'
 
-import { resolveFromOAuth } from '@/middleware/auth/resolve-oauth.js'
+import { resolveFromOAuth } from '@/middleware/auth/strategies/oauth.js'
 
 import { createMockOAuthServer } from '../helpers/mock-oauth-server.js'
 import type { MockOAuthServer } from '../helpers/mock-oauth-server.js'
@@ -172,7 +172,11 @@ describe('OAuth PKCE E2E (resolveFromOAuth with real mock server)', () => {
 
     expect(sentVerifier).toBe(KNOWN_VERIFIER)
 
-    const derivedChallenge = createHash('sha256').update(sentVerifier!).digest('base64url')
+    if (sentVerifier === null) {
+      expect.fail('code_verifier should be present in token request')
+    }
+
+    const derivedChallenge = createHash('sha256').update(sentVerifier).digest('base64url')
     expect(derivedChallenge).toBe(KNOWN_CHALLENGE)
   })
 
@@ -360,14 +364,9 @@ describe('OAuth PKCE E2E (resolveFromOAuth with real mock server)', () => {
     const port = extractPort()
 
     // After timeout, the server should be destroyed
-    let connectionRefused = false
-    try {
-      await originalFetch(`http://127.0.0.1:${String(port)}/callback`)
-    } catch {
-      connectionRefused = true
-    }
-
-    expect(connectionRefused).toBeTruthy()
+    await expect(
+      originalFetch(`http://127.0.0.1:${String(port)}/callback`)
+    ).rejects.toThrow()
   })
 
   it('should handle redirect_uri with dynamic port correctly', async () => {

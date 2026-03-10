@@ -4,7 +4,7 @@ import type { Result } from '@kidd-cli/utils/fp'
 import { createCliLogger } from '@/lib/logger.js'
 
 import { formatJson, writeToFile } from './format.js'
-import { createRenderer } from './renderer.js'
+import { createRenderer } from './co.js'
 import type {
   CliOutput,
   CreateOutputOptions,

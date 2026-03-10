@@ -41,7 +41,7 @@ The `resolvers` array defines which credential sources to try. Order matters -- 
 
 ### 2. Add a login command
 
-Create a command that calls `ctx.auth.authenticate()` to run the interactive resolvers and persist the credential.
+Create a command that calls `ctx.auth.login()` to run the interactive resolvers and persist the credential.
 
 ```ts
 import { command } from '@kidd-cli/core'
@@ -49,7 +49,7 @@ import { command } from '@kidd-cli/core'
 export default command({
   description: 'Authenticate with the service',
   handler: async (ctx) => {
-    const [error] = await ctx.auth.authenticate()
+    const [error] = await ctx.auth.login()
 
     if (error) {
       ctx.fail(error.message)
@@ -60,9 +60,34 @@ export default command({
 })
 ```
 
-### 3. Guard commands that require auth
+### 3. Add a logout command
 
-Check `ctx.auth.credential()` before making authenticated requests.
+Create a command that calls `ctx.auth.logout()` to remove the stored credential from disk.
+
+```ts
+import { command } from '@kidd-cli/core'
+
+export default command({
+  description: 'Log out of the service',
+  handler: async (ctx) => {
+    const [error] = await ctx.auth.logout()
+
+    if (error) {
+      ctx.fail(error.message)
+    }
+
+    ctx.logger.success('Logged out')
+  },
+})
+```
+
+### 4. Guard commands that require auth
+
+Commands that need a credential should reject unauthenticated requests early. There are two approaches: an inline check for one-off guards, and a reusable middleware for consistent enforcement across commands.
+
+#### Inline check
+
+Check `ctx.auth.authenticated()` at the top of the handler.
 
 ```ts
 import { command } from '@kidd-cli/core'
@@ -70,8 +95,8 @@ import { command } from '@kidd-cli/core'
 export default command({
   description: 'Display the authenticated user',
   handler: async (ctx) => {
-    if (!ctx.auth.credential()) {
-      ctx.fail('Not authenticated. Run `my-app login` first.')
+    if (!ctx.auth.authenticated()) {
+      return ctx.fail('Not authenticated. Run `my-app login` first.')
     }
 
     ctx.logger.info('Authenticated')
@@ -79,7 +104,70 @@ export default command({
 })
 ```
 
-### 4. Add the HTTP middleware
+#### Reusable middleware
+
+Write a middleware that checks for a credential and short-circuits before the handler runs. This keeps handlers focused on business logic.
+
+```ts
+import { middleware } from '@kidd-cli/core'
+
+const requireAuth = middleware((ctx, next) => {
+  if (!ctx.auth.authenticated()) {
+    return ctx.fail('Not authenticated. Run `my-app login` first.')
+  }
+
+  return next()
+})
+
+export default requireAuth
+```
+
+Apply it per-command via the `middleware` array:
+
+```ts
+import { command } from '@kidd-cli/core'
+import requireAuth from '../middleware/require-auth.js'
+
+export default command({
+  description: 'Display the authenticated user',
+  middleware: [requireAuth],
+  handler: async (ctx) => {
+    ctx.logger.info('Authenticated')
+  },
+})
+```
+
+Apply it globally by adding it to the root `middleware` array after `auth()`:
+
+```ts
+import { cli } from '@kidd-cli/core'
+import { auth } from '@kidd-cli/core/auth'
+import requireAuth from './middleware/require-auth.js'
+
+cli({
+  name: 'my-app',
+  version: '1.0.0',
+  middleware: [
+    auth({
+      resolvers: [
+        auth.oauth({
+          clientId: 'my-client-id',
+          authUrl: 'https://example.com/authorize',
+          tokenUrl: 'https://example.com/token',
+        }),
+      ],
+    }),
+    requireAuth,
+  ],
+  commands: `${import.meta.dirname}/commands`,
+})
+```
+
+When applied globally, every command (including `login`) must pass the check. Exclude the login command by applying `requireAuth` per-command instead of globally.
+
+> **Ordering:** `requireAuth` must come after `auth()` in the middleware array because it depends on `ctx.auth` being decorated.
+
+### 5. Add the HTTP middleware
 
 For authenticated API requests, register the `http()` middleware after `auth()`. It reads `ctx.auth.credential()` automatically and injects the correct HTTP headers.
 
@@ -122,7 +210,7 @@ cli({
 
 The `namespace` option determines the context property name. With `namespace: 'api'`, the client is available as `ctx.api`.
 
-### 5. Make authenticated requests
+### 6. Make authenticated requests
 
 Use the typed HTTP client to make requests. Auth headers are injected automatically.
 
@@ -165,7 +253,7 @@ export default command({
 })
 ```
 
-### 6. Support environment variables
+### 7. Support environment variables
 
 Add `env` or `dotenv` resolvers for non-interactive environments (CI, scripts).
 
@@ -185,9 +273,9 @@ auth({
 })
 ```
 
-Passive resolvers (`env`, `dotenv`, `file`) run automatically on middleware init. Interactive resolvers (`oauth`, `device-code`, `token`, `custom`) only run when `ctx.auth.authenticate()` is called.
+Passive resolvers (`env`, `dotenv`, `file`) run automatically on middleware init. Interactive resolvers (`oauth`, `device-code`, `token`, `custom`) only run when `ctx.auth.login()` is called.
 
-### 7. Use PKCE with Clerk as the Identity Provider
+### 8. Use PKCE with Clerk as the Identity Provider
 
 Configure the OAuth resolver to use Clerk as a public OAuth application with PKCE:
 
@@ -205,7 +293,7 @@ auth({
 })
 ```
 
-### 8. Use the device code flow for headless environments
+### 9. Use the device code flow for headless environments
 
 For environments without a browser (SSH sessions, remote servers), use the device code flow:
 
@@ -225,7 +313,7 @@ auth({
 
 The CLI displays a URL and a user code. The user opens the URL in any browser (including on a different device), enters the code, and completes authorization.
 
-### 9. Combine multiple resolvers
+### 10. Combine multiple resolvers
 
 Chain resolvers to support multiple authentication strategies:
 
@@ -262,6 +350,9 @@ cat ~/.my-app/auth.json
 
 # Use an authenticated command
 my-app repos
+
+# Logout
+my-app logout
 
 # Use an environment variable instead
 MY_APP_TOKEN=ghp_abc123 my-app repos

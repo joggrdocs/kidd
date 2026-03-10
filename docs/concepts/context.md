@@ -182,18 +182,19 @@ Deeply readonly CLI metadata.
 
 Optional auth context decorated by the `auth()` middleware from `kidd/auth`. Only present when the auth middleware is registered.
 
-| Property          | Type                                      | Description                                    |
-| ----------------- | ----------------------------------------- | ---------------------------------------------- |
-| `credential()`    | `AuthCredential \| null`                  | Passively resolved credential (file, env)      |
-| `authenticated()` | `boolean`                                 | Whether a passive credential exists            |
-| `authenticate()`  | `AsyncResult<AuthCredential, LoginError>` | Run interactive resolvers, persist, and return |
+| Property          | Type                                     | Description                                    |
+| ----------------- | ---------------------------------------- | ---------------------------------------------- |
+| `credential()`    | `AuthCredential \| null`                 | Passively resolved credential (file, env)      |
+| `authenticated()` | `boolean`                                | Whether a passive credential exists            |
+| `login()`         | `AsyncResult<AuthCredential, AuthError>` | Run interactive resolvers, persist, and return |
+| `logout()`        | `AsyncResult<string, AuthError>`         | Remove stored credential from disk             |
 
 ```ts
 if (!ctx.auth.credential()) {
   ctx.fail('Not authenticated. Run `my-app login` first.')
 }
 
-const [error, credential] = await ctx.auth.authenticate()
+const [error, credential] = await ctx.auth.login()
 if (error) {
   ctx.fail(error.message)
 }

@@ -476,4 +476,60 @@ describe('createStore()', () => {
       expect(content).toContain('  ')
     })
   })
+
+  // -------------------------------------------------------------------------
+  // Remove
+  // -------------------------------------------------------------------------
+
+  describe('remove', () => {
+    it('should remove an existing file from global dir', () => {
+      writeFileSync(join(globalDir, 'auth.json'), '{"type":"bearer","token":"x"}')
+      const store = createStore({ dirName: DIR_NAME })
+
+      const [error, filePath] = store.remove('auth.json', { source: 'global' })
+
+      expect(error).toBeNull()
+      expect(filePath).toBe(join(globalDir, 'auth.json'))
+      expect(existsSync(filePath as string)).toBeFalsy()
+    })
+
+    it('should return ok when file does not exist', () => {
+      const store = createStore({ dirName: DIR_NAME })
+
+      const [error, filePath] = store.remove('nonexistent.json', { source: 'global' })
+
+      expect(error).toBeNull()
+      expect(filePath).toBe(join(globalDir, 'nonexistent.json'))
+    })
+
+    it("should remove from local dir when source is 'local'", () => {
+      writeFileSync(join(tmpDir, DIR_NAME, 'auth.json'), '{"type":"bearer","token":"x"}')
+      const store = createStore({ dirName: DIR_NAME })
+
+      const [error, filePath] = store.remove('auth.json', {
+        source: 'local',
+        startDir: tmpDir,
+      })
+
+      expect(error).toBeNull()
+      expect(filePath).toBe(join(tmpDir, DIR_NAME, 'auth.json'))
+      expect(existsSync(filePath as string)).toBeFalsy()
+    })
+
+    it('should return error when local dir not found', () => {
+      const noGitDir = mkdtempSync(join(tmpdir(), 'kidd-store-nogit-'))
+      try {
+        const store = createStore({ dirName: DIR_NAME })
+
+        const [error] = store.remove('auth.json', {
+          source: 'local',
+          startDir: noGitDir,
+        })
+
+        expect(error).toBeTruthy()
+      } finally {
+        rmSync(noGitDir, { force: true, recursive: true })
+      }
+    })
+  })
 })

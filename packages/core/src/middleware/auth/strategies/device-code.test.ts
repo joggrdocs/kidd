@@ -1,12 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock(import('node:child_process'), () => ({
-  execFile: vi.fn(),
+  execFile: vi.fn().mockReturnValue({ on: vi.fn() }),
 }))
 
 import type { Prompts } from '@/context/types.js'
 
-import { resolveFromDeviceCode } from './resolve-device-code.js'
+import { resolveFromDeviceCode } from './device-code.js'
 
 const DEVICE_AUTH_URL = 'https://auth.example.com/device/code'
 const TOKEN_URL = 'https://auth.example.com/token'

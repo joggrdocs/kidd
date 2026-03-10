@@ -1,9 +1,4 @@
 /**
- * Default store key used by the auth middleware to store credentials.
- */
-export const DEFAULT_AUTH_STORE_KEY = 'auth' as const
-
-/**
  * Default filename for file-based credential storage.
  */
 export const DEFAULT_AUTH_FILENAME = 'auth.json' as const

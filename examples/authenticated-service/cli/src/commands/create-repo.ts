@@ -1,6 +1,8 @@
 import { command } from '@kidd-cli/core'
 import { z } from 'zod'
 
+import requireAuth from '../middleware/require-auth.js'
+
 const args = z.object({
   name: z.string().describe('Repository name'),
   private: z.boolean().default(false).describe('Create as private repo'),
@@ -21,7 +23,8 @@ interface Repo {
 
 export default command({
   args,
-  description: 'Create a new repository',
+  description: '[auth] Create a new repository',
+  middleware: [requireAuth],
   handler: async (ctx) => {
     ctx.spinner.start(`Creating repo "${ctx.args.name}"...`)
 

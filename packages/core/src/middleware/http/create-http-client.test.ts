@@ -52,11 +52,11 @@ describe('createHttpClient()', () => {
     expect(calledUrl).toBe('https://api.example.com/users')
   })
 
-  it('should include auth headers when credential is provided', async () => {
+  it('should include auth headers when passed via defaultHeaders', async () => {
     mockFetch.mockResolvedValue(createMockResponse({ ok: true }))
     const client = createHttpClient({
       baseUrl: 'https://api.example.com',
-      credential: { token: 'my-token', type: 'bearer' },
+      defaultHeaders: { Authorization: 'Bearer my-token' },
     })
 
     await client.get('/users')

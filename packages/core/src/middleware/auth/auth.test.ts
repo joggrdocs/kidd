@@ -63,7 +63,7 @@ describe('auth()', () => {
     await mw.handler(ctx as never, next)
 
     const authCtx = (ctx as Record<string, unknown>)['auth'] as {
-      authenticate: unknown
+      login: unknown
       authenticated: unknown
       credential: () => unknown
     }
@@ -79,7 +79,7 @@ describe('auth()', () => {
     await mw.handler(ctx as never, next)
 
     const authCtx = (ctx as Record<string, unknown>)['auth'] as {
-      authenticate: unknown
+      login: unknown
       authenticated: unknown
       credential: () => unknown
     }
@@ -87,7 +87,7 @@ describe('auth()', () => {
     expect(authCtx.credential()).toBeNull()
   })
 
-  it('should provide an authenticate function on ctx.auth', async () => {
+  it('should provide a login function on ctx.auth', async () => {
     const ctx = createMockCtx()
     const mw = auth({ resolvers: [{ source: 'token' }] })
     const next = vi.fn()
@@ -95,12 +95,12 @@ describe('auth()', () => {
     await mw.handler(ctx as never, next)
 
     const authCtx = (ctx as Record<string, unknown>)['auth'] as {
-      authenticate: unknown
+      login: unknown
       authenticated: unknown
       credential: unknown
     }
 
-    expect(typeof authCtx.authenticate).toBe('function')
+    expect(typeof authCtx.login).toBe('function')
   })
 
   it('should provide an authenticated function on ctx.auth', async () => {

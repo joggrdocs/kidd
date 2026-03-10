@@ -12,8 +12,8 @@ import { match } from 'ts-pattern'
 
 import type { Prompts } from '@/context/types.js'
 
-import { openBrowser } from './oauth-shared.js'
-import type { AuthCredential } from './types.js'
+import { openBrowser } from '../oauth-server.js'
+import type { AuthCredential } from '../types.js'
 
 /**
  * RFC 8628 slow_down backoff increment in milliseconds.
@@ -264,11 +264,11 @@ async function pollForToken(options: {
  * @returns The interval in milliseconds, or null if not a number.
  */
 function resolveServerInterval(value: unknown): number | null {
-  if (typeof value === 'number') {
-    return value * 1000
+  if (typeof value !== 'number' || !Number.isFinite(value) || value <= 0) {
+    return null
   }
 
-  return null
+  return Math.max(1000, Math.min(value * 1000, 60_000))
 }
 
 /**
@@ -335,6 +335,10 @@ async function requestToken(options: {
     const record = data as Record<string, unknown>
 
     if (response.ok && typeof record.access_token === 'string' && record.access_token !== '') {
+      if (typeof record.token_type === 'string' && record.token_type.toLowerCase() !== 'bearer') {
+        return { status: 'error' }
+      }
+
       return { credential: { token: record.access_token, type: 'bearer' }, status: 'success' }
     }
 

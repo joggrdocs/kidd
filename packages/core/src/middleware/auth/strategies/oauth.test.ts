@@ -3,7 +3,7 @@ import { createHash } from 'node:crypto'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock(import('node:child_process'), () => ({
-  execFile: vi.fn(),
+  execFile: vi.fn().mockReturnValue({ on: vi.fn() }),
 }))
 
 vi.mock(import('node:crypto'), async (importOriginal) => {
@@ -16,7 +16,7 @@ vi.mock(import('node:crypto'), async (importOriginal) => {
 
 import { execFile } from 'node:child_process'
 
-import { resolveFromOAuth } from './resolve-oauth.js'
+import { resolveFromOAuth } from './oauth.js'
 
 const KNOWN_STATE = Buffer.from('a'.repeat(32)).toString('hex')
 const KNOWN_VERIFIER = Buffer.from('a'.repeat(32)).toString('base64url')

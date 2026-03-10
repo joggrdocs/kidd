@@ -15,9 +15,9 @@ import type { Middleware } from '@/types.js'
 import { buildAuthHeaders } from '../http/build-auth-headers.js'
 import { createHttpClient } from '../http/create-http-client.js'
 import { DEFAULT_AUTH_FILENAME, deriveTokenVar } from './constants.js'
-import { createAuthContext } from './create-auth-context.js'
-import { resolveFromEnv } from './resolve-env.js'
-import { resolveFromFile } from './resolve-file.js'
+import { createAuthContext } from './context.js'
+import { resolveFromEnv } from './strategies/env.js'
+import { resolveFromFile } from './strategies/file.js'
 import type {
   AuthCredential,
   AuthHttpOptions,
@@ -64,7 +64,7 @@ export interface AuthFactory {
  * 2. Env — `CLI_NAME_TOKEN`
  *
  * Interactive resolvers (OAuth, prompt, custom) only run when the
- * command handler explicitly calls `ctx.auth.authenticate()`.
+ * command handler explicitly calls `ctx.auth.login()`.
  *
  * When `options.http` is provided, the middleware also creates HTTP
  * client(s) with automatic credential header injection and decorates
@@ -82,7 +82,7 @@ function createAuth(options: AuthOptions): Middleware {
     const authContext = createAuthContext({
       cliName,
       prompts: ctx.prompts,
-      resolveCredential: () => resolvePassive(cliName, resolvers),
+      resolveCredential: () => resolveStoredCredential(cliName, resolvers),
       resolvers,
     })
 
@@ -90,13 +90,12 @@ function createAuth(options: AuthOptions): Middleware {
 
     if (options.http !== undefined) {
       const httpConfigs = normalizeHttpOptions(options.http)
-      const credential = authContext.credential()
-      const authHeaders = resolveCredentialHeaders(credential)
 
       httpConfigs.reduce((context, httpConfig) => {
         const client = createHttpClient({
           baseUrl: httpConfig.baseUrl,
-          defaultHeaders: { ...authHeaders, ...httpConfig.headers },
+          defaultHeaders: httpConfig.headers,
+          resolveHeaders: () => credentialToHeaders(authContext.credential()),
         })
 
         return decorateContext(context, httpConfig.namespace, client)
@@ -237,7 +236,7 @@ function normalizeHttpOptions(
  * @param credential - The credential or null.
  * @returns A record of auth headers.
  */
-function resolveCredentialHeaders(
+function credentialToHeaders(
   credential: AuthCredential | null
 ): Readonly<Record<string, string>> {
   if (credential === null) {
@@ -248,7 +247,28 @@ function resolveCredentialHeaders(
 }
 
 /**
- * Attempt to resolve a credential from passive (non-interactive) sources.
+ * Extract a property from an optional config object, falling back to a default.
+ *
+ * @private
+ * @param config - The config object, or undefined.
+ * @param key - The property key to extract.
+ * @param fallback - The default value when the config or property is undefined.
+ * @returns The config property value or the fallback.
+ */
+function configPropOrDefault<TConfig extends object, TKey extends keyof TConfig>(
+  config: TConfig | undefined,
+  key: TKey,
+  fallback: NonNullable<TConfig[TKey]>
+): NonNullable<TConfig[TKey]> {
+  if (config !== undefined && config[key] !== undefined) {
+    return config[key] as NonNullable<TConfig[TKey]>
+  }
+
+  return fallback
+}
+
+/**
+ * Attempt to resolve a credential from stored (non-interactive) sources.
  *
  * Checks the file store first, then falls back to the environment variable.
  * Scans the resolver list for `env` and `file` source configs to respect
@@ -259,7 +279,7 @@ function resolveCredentialHeaders(
  * @param resolvers - The configured resolver list for extracting overrides.
  * @returns The resolved credential, or null.
  */
-function resolvePassive(
+function resolveStoredCredential(
   cliName: string,
   resolvers: readonly ResolverConfig[]
 ): AuthCredential | null {
@@ -267,8 +287,8 @@ function resolvePassive(
   const envConfig = findResolverBySource(resolvers, 'env')
 
   const fromFile = resolveFromFile({
-    dirName: resolveFileDir(fileConfig, cliName),
-    filename: resolveFileFilename(fileConfig),
+    dirName: configPropOrDefault(fileConfig, 'dirName', `.${cliName}`),
+    filename: configPropOrDefault(fileConfig, 'filename', DEFAULT_AUTH_FILENAME),
   })
 
   if (fromFile) {
@@ -276,7 +296,7 @@ function resolvePassive(
   }
 
   return resolveFromEnv({
-    tokenVar: resolveEnvTokenVar(envConfig, cliName),
+    tokenVar: configPropOrDefault(envConfig, 'tokenVar', deriveTokenVar(cliName)),
   })
 }
 
@@ -295,59 +315,4 @@ function findResolverBySource<TSource extends ResolverConfig['source']>(
   return resolvers.find(
     (r): r is Extract<ResolverConfig, { readonly source: TSource }> => r.source === source
   )
-}
-
-/**
- * Resolve the file store directory name from a file resolver config.
- *
- * @private
- * @param config - The file resolver config, or undefined.
- * @param cliName - The CLI name for deriving the default.
- * @returns The directory name.
- */
-function resolveFileDir(
-  config: Extract<ResolverConfig, { readonly source: 'file' }> | undefined,
-  cliName: string
-): string {
-  if (config !== undefined && config.dirName !== undefined) {
-    return config.dirName
-  }
-
-  return `.${cliName}`
-}
-
-/**
- * Resolve the file store filename from a file resolver config.
- *
- * @private
- * @param config - The file resolver config, or undefined.
- * @returns The filename.
- */
-function resolveFileFilename(
-  config: Extract<ResolverConfig, { readonly source: 'file' }> | undefined
-): string {
-  if (config !== undefined && config.filename !== undefined) {
-    return config.filename
-  }
-
-  return DEFAULT_AUTH_FILENAME
-}
-
-/**
- * Resolve the environment variable name from an env resolver config.
- *
- * @private
- * @param config - The env resolver config, or undefined.
- * @param cliName - The CLI name for deriving the default.
- * @returns The token variable name.
- */
-function resolveEnvTokenVar(
-  config: Extract<ResolverConfig, { readonly source: 'env' }> | undefined,
-  cliName: string
-): string {
-  if (config !== undefined && config.tokenVar !== undefined) {
-    return config.tokenVar
-  }
-
-  return deriveTokenVar(cliName)
 }

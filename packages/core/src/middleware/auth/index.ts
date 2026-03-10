@@ -15,7 +15,7 @@ export type {
   EnvSourceConfig,
   FileResolverOptions,
   FileSourceConfig,
-  LoginError,
+  AuthError,
   OAuthResolverOptions,
   OAuthSourceConfig,
   ResolverConfig,

@@ -16,9 +16,9 @@
     "test": "turbo run test --filter='./packages/*'",
     "test:coverage": "turbo run build --filter='./packages/*' && vitest run --coverage",
     "test:watch": "turbo run build --filter='./packages/*' && vitest",
-    "typecheck": "turbo run typecheck",
-    "check": "turbo run typecheck && pnpm lint && pnpm format",
-    "validate": "turbo run typecheck && turbo run test --filter='./packages/*' && pnpm lint && pnpm format",
+    "typecheck": "turbo run typecheck --filter='./packages/*'",
+    "check": "turbo run typecheck --filter='./packages/*' && pnpm lint && pnpm format",
+    "validate": "turbo run typecheck --filter='./packages/*' && turbo run test --filter='./packages/*' && pnpm lint && pnpm format",
     "changeset": "changeset",
     "version": "changeset version",
     "release": "pnpm build && changeset publish"

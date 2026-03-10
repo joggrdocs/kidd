@@ -1,24 +1,27 @@
 export { auth } from './auth.js'
 export type { AuthFactory } from './auth.js'
+export { createAuthHeaders } from './headers.js'
+export { createAuthRequire } from './require.js'
+export type { AuthRequireOptions } from './require.js'
 export type {
   AuthContext,
   AuthCredential,
-  AuthHttpOptions,
   AuthOptions,
-  CustomResolverFn,
   CustomSourceConfig,
-  DeviceCodeResolverOptions,
+  CustomStrategyFn,
   DeviceCodeSourceConfig,
-  DotenvResolverOptions,
+  DeviceCodeStrategyOptions,
   DotenvSourceConfig,
-  EnvResolverOptions,
+  DotenvStrategyOptions,
   EnvSourceConfig,
-  FileResolverOptions,
+  EnvStrategyOptions,
   FileSourceConfig,
+  FileStrategyOptions,
   AuthError,
-  OAuthResolverOptions,
+  LoginOptions,
   OAuthSourceConfig,
-  ResolverConfig,
-  TokenResolverOptions,
+  OAuthStrategyOptions,
+  StrategyConfig,
   TokenSourceConfig,
+  TokenStrategyOptions,
 } from './types.js'

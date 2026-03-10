@@ -1,7 +1,7 @@
 /**
- * Auth credential and resolver types for the auth middleware.
+ * Auth credential and strategy types for the auth middleware.
  *
- * Defines discriminated unions for credential formats and resolver
+ * Defines discriminated unions for credential formats and strategy
  * configurations, the {@link AuthContext} exposed on `ctx.auth`,
  * and the top-level {@link AuthOptions} interface.
  *
@@ -59,7 +59,7 @@ export type AuthCredential =
   | CustomCredential
 
 // ---------------------------------------------------------------------------
-// Resolver configs
+// Strategy configs
 // ---------------------------------------------------------------------------
 
 /**
@@ -144,7 +144,7 @@ export interface CustomSourceConfig {
  * Discriminated union of all supported credential source configurations.
  * The `source` field acts as the discriminator.
  */
-export type ResolverConfig =
+export type StrategyConfig =
   | EnvSourceConfig
   | DotenvSourceConfig
   | FileSourceConfig
@@ -167,6 +167,18 @@ export interface AuthError {
 }
 
 // ---------------------------------------------------------------------------
+// Login options
+// ---------------------------------------------------------------------------
+
+/**
+ * Options accepted by {@link AuthContext.login} to override the default
+ * strategy list for a single login attempt.
+ */
+export interface LoginOptions {
+  readonly strategies?: readonly StrategyConfig[]
+}
+
+// ---------------------------------------------------------------------------
 // Auth context
 // ---------------------------------------------------------------------------
 
@@ -177,7 +189,7 @@ export interface AuthError {
  * use `credential()` to read saved credentials on demand and
  * `authenticated()` to check whether a credential exists without exposing it.
  *
- * `login()` runs the configured interactive resolvers (OAuth, prompt,
+ * `login()` runs the configured interactive strategies (OAuth, prompt,
  * etc.), persists the resulting credential to disk, and returns a
  * {@link AsyncResult}.
  *
@@ -186,65 +198,48 @@ export interface AuthError {
 export interface AuthContext {
   readonly credential: () => AuthCredential | null
   readonly authenticated: () => boolean
-  readonly login: () => AsyncResult<AuthCredential, AuthError>
+  readonly login: (options?: LoginOptions) => AsyncResult<AuthCredential, AuthError>
   readonly logout: () => AsyncResult<string, AuthError>
 }
 
 // ---------------------------------------------------------------------------
-// Resolver builder option types
+// Strategy builder option types
 // ---------------------------------------------------------------------------
 
 /**
  * Options for the `auth.env()` builder. Omits the `source` discriminator.
  */
-export type EnvResolverOptions = Omit<EnvSourceConfig, 'source'>
+export type EnvStrategyOptions = Omit<EnvSourceConfig, 'source'>
 
 /**
  * Options for the `auth.dotenv()` builder. Omits the `source` discriminator.
  */
-export type DotenvResolverOptions = Omit<DotenvSourceConfig, 'source'>
+export type DotenvStrategyOptions = Omit<DotenvSourceConfig, 'source'>
 
 /**
  * Options for the `auth.file()` builder. Omits the `source` discriminator.
  */
-export type FileResolverOptions = Omit<FileSourceConfig, 'source'>
+export type FileStrategyOptions = Omit<FileSourceConfig, 'source'>
 
 /**
  * Options for the `auth.oauth()` builder. Omits the `source` discriminator.
  */
-export type OAuthResolverOptions = Omit<OAuthSourceConfig, 'source'>
+export type OAuthStrategyOptions = Omit<OAuthSourceConfig, 'source'>
 
 /**
  * Options for the `auth.deviceCode()` builder. Omits the `source` discriminator.
  */
-export type DeviceCodeResolverOptions = Omit<DeviceCodeSourceConfig, 'source'>
+export type DeviceCodeStrategyOptions = Omit<DeviceCodeSourceConfig, 'source'>
 
 /**
  * Options for the `auth.token()` builder. Omits the `source` discriminator.
  */
-export type TokenResolverOptions = Omit<TokenSourceConfig, 'source'>
+export type TokenStrategyOptions = Omit<TokenSourceConfig, 'source'>
 
 /**
  * Function signature accepted by `auth.custom()`.
  */
-export type CustomResolverFn = () => Promise<AuthCredential | null> | AuthCredential | null
-
-// ---------------------------------------------------------------------------
-// Auth HTTP integration
-// ---------------------------------------------------------------------------
-
-/**
- * Configuration for an HTTP client created by the auth middleware.
- *
- * When provided on {@link AuthOptions}, the auth middleware creates an HTTP
- * client with automatic credential header injection and decorates it onto
- * `ctx[namespace]`.
- */
-export interface AuthHttpOptions {
-  readonly baseUrl: string
-  readonly namespace: string
-  readonly headers?: Readonly<Record<string, string>>
-}
+export type CustomStrategyFn = () => Promise<AuthCredential | null> | AuthCredential | null
 
 // ---------------------------------------------------------------------------
 // Auth options
@@ -253,12 +248,10 @@ export interface AuthHttpOptions {
 /**
  * Options accepted by the `auth()` middleware factory.
  *
- * @property resolvers - Ordered list of credential sources to try via `login()`.
- * @property http - Optional HTTP client(s) with automatic credential injection.
+ * @property strategies - Ordered list of credential sources to try via `login()`.
  */
 export interface AuthOptions {
-  readonly resolvers: readonly ResolverConfig[]
-  readonly http?: AuthHttpOptions | readonly AuthHttpOptions[]
+  readonly strategies: readonly StrategyConfig[]
 }
 
 // ---------------------------------------------------------------------------

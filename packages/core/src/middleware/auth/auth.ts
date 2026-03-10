@@ -1,9 +1,8 @@
 /**
- * Auth middleware factory with resolver builder functions.
+ * Auth middleware factory with strategy builder functions.
  *
  * Decorates `ctx.auth` with functions to resolve credentials on demand
- * and run interactive authentication. Also supports creating authenticated
- * HTTP clients via the `http` option.
+ * and run interactive authentication.
  *
  * @module
  */
@@ -11,52 +10,55 @@
 import { join } from 'node:path'
 
 import { decorateContext } from '@/context/decorate.js'
+import type { Context } from '@/context/types.js'
 import { middleware } from '@/middleware.js'
 import type { Middleware } from '@/types.js'
 
-import { buildAuthHeaders } from '../http/build-auth-headers.js'
-import { createHttpClient } from '../http/create-http-client.js'
 import { withDefault } from './chain.js'
 import { DEFAULT_AUTH_FILENAME, deriveTokenVar } from './constants.js'
 import { createAuthContext } from './context.js'
+import { createAuthHeaders } from './headers.js'
+import { createAuthRequire } from './require.js'
+import type { AuthRequireOptions } from './require.js'
 import { resolveFromDotenv } from './strategies/dotenv.js'
 import { resolveFromEnv } from './strategies/env.js'
 import { resolveFromFile } from './strategies/file.js'
 import type {
   AuthCredential,
-  AuthHttpOptions,
   AuthOptions,
-  CustomResolverFn,
   CustomSourceConfig,
-  DeviceCodeResolverOptions,
+  CustomStrategyFn,
   DeviceCodeSourceConfig,
-  DotenvResolverOptions,
+  DeviceCodeStrategyOptions,
   DotenvSourceConfig,
-  EnvResolverOptions,
+  DotenvStrategyOptions,
   EnvSourceConfig,
-  FileResolverOptions,
+  EnvStrategyOptions,
   FileSourceConfig,
-  OAuthResolverOptions,
+  FileStrategyOptions,
   OAuthSourceConfig,
-  ResolverConfig,
-  TokenResolverOptions,
+  OAuthStrategyOptions,
+  StrategyConfig,
   TokenSourceConfig,
+  TokenStrategyOptions,
 } from './types.js'
 
 /**
  * Auth factory interface — callable as a middleware factory and as a
- * namespace for resolver builder functions.
+ * namespace for strategy builder functions.
  */
 export interface AuthFactory {
   (options: AuthOptions): Middleware
-  readonly env: (options?: EnvResolverOptions) => EnvSourceConfig
-  readonly dotenv: (options?: DotenvResolverOptions) => DotenvSourceConfig
-  readonly file: (options?: FileResolverOptions) => FileSourceConfig
-  readonly oauth: (options: OAuthResolverOptions) => OAuthSourceConfig
-  readonly deviceCode: (options: DeviceCodeResolverOptions) => DeviceCodeSourceConfig
-  readonly token: (options?: TokenResolverOptions) => TokenSourceConfig
-  readonly apiKey: (options?: TokenResolverOptions) => TokenSourceConfig
-  readonly custom: (resolver: CustomResolverFn) => CustomSourceConfig
+  readonly env: (options?: EnvStrategyOptions) => EnvSourceConfig
+  readonly dotenv: (options?: DotenvStrategyOptions) => DotenvSourceConfig
+  readonly file: (options?: FileStrategyOptions) => FileSourceConfig
+  readonly oauth: (options: OAuthStrategyOptions) => OAuthSourceConfig
+  readonly deviceCode: (options: DeviceCodeStrategyOptions) => DeviceCodeSourceConfig
+  readonly token: (options?: TokenStrategyOptions) => TokenSourceConfig
+  readonly apiKey: (options?: TokenStrategyOptions) => TokenSourceConfig
+  readonly custom: (fn: CustomStrategyFn) => CustomSourceConfig
+  readonly headers: () => (ctx: Context) => Readonly<Record<string, string>>
+  readonly require: (options?: AuthRequireOptions) => Middleware
 }
 
 /**
@@ -68,18 +70,14 @@ export interface AuthFactory {
  * 2. Dotenv — `.env` file (when configured)
  * 3. Env — `CLI_NAME_TOKEN`
  *
- * Interactive resolvers (OAuth, prompt, custom) only run when the
+ * Interactive strategies (OAuth, device-code, token, custom) only run when the
  * command handler explicitly calls `ctx.auth.login()`.
  *
- * When `options.http` is provided, the middleware also creates HTTP
- * client(s) with automatic credential header injection and decorates
- * them onto `ctx[namespace]`.
- *
  * @param options - Auth middleware configuration.
- * @returns A Middleware that decorates ctx.auth (and optionally HTTP clients).
+ * @returns A Middleware that decorates ctx.auth.
  */
 function createAuth(options: AuthOptions): Middleware {
-  const { resolvers } = options
+  const { strategies } = options
 
   return middleware((ctx, next) => {
     const cliName = ctx.meta.name
@@ -87,36 +85,22 @@ function createAuth(options: AuthOptions): Middleware {
     const authContext = createAuthContext({
       cliName,
       prompts: ctx.prompts,
-      resolveCredential: () => resolveStoredCredential(cliName, resolvers),
-      resolvers,
+      resolveCredential: () => resolveStoredCredential(cliName, strategies),
+      strategies,
     })
 
     decorateContext(ctx, 'auth', authContext)
-
-    if (options.http !== undefined) {
-      const httpConfigs = normalizeHttpOptions(options.http)
-
-      httpConfigs.reduce((context, httpConfig) => {
-        const client = createHttpClient({
-          baseUrl: httpConfig.baseUrl,
-          defaultHeaders: httpConfig.headers,
-          resolveHeaders: () => credentialToHeaders(authContext.credential()),
-        })
-
-        return decorateContext(context, httpConfig.namespace, client)
-      }, ctx)
-    }
 
     return next()
   })
 }
 
 /**
- * Auth middleware factory with resolver builder methods.
+ * Auth middleware factory with strategy builder methods.
  *
- * Use as `auth({ resolvers: [...] })` to create middleware, or use
+ * Use as `auth({ strategies: [...] })` to create middleware, or use
  * the builder methods (`auth.env()`, `auth.oauth()`, etc.) to construct
- * resolver configs with a cleaner API.
+ * strategy configs with a cleaner API.
  */
 export const auth: AuthFactory = Object.assign(createAuth, {
   apiKey: buildToken,
@@ -125,91 +109,93 @@ export const auth: AuthFactory = Object.assign(createAuth, {
   dotenv: buildDotenv,
   env: buildEnv,
   file: buildFile,
+  headers: createAuthHeaders,
   oauth: buildOAuth,
+  require: createAuthRequire,
   token: buildToken,
 })
 
 // ---------------------------------------------------------------------------
-// Resolver builders
+// Strategy builders
 // ---------------------------------------------------------------------------
 
 /**
- * Build an env resolver config.
+ * Build an env strategy config.
  *
  * @private
- * @param options - Optional env resolver options.
+ * @param options - Optional env strategy options.
  * @returns An EnvSourceConfig with `source: 'env'`.
  */
-function buildEnv(options?: EnvResolverOptions): EnvSourceConfig {
-  return { source: 'env' as const, ...options }
+function buildEnv(options?: EnvStrategyOptions): EnvSourceConfig {
+  return { ...options, source: 'env' as const }
 }
 
 /**
- * Build a dotenv resolver config.
+ * Build a dotenv strategy config.
  *
  * @private
- * @param options - Optional dotenv resolver options.
+ * @param options - Optional dotenv strategy options.
  * @returns A DotenvSourceConfig with `source: 'dotenv'`.
  */
-function buildDotenv(options?: DotenvResolverOptions): DotenvSourceConfig {
-  return { source: 'dotenv' as const, ...options }
+function buildDotenv(options?: DotenvStrategyOptions): DotenvSourceConfig {
+  return { ...options, source: 'dotenv' as const }
 }
 
 /**
- * Build a file resolver config.
+ * Build a file strategy config.
  *
  * @private
- * @param options - Optional file resolver options.
+ * @param options - Optional file strategy options.
  * @returns A FileSourceConfig with `source: 'file'`.
  */
-function buildFile(options?: FileResolverOptions): FileSourceConfig {
-  return { source: 'file' as const, ...options }
+function buildFile(options?: FileStrategyOptions): FileSourceConfig {
+  return { ...options, source: 'file' as const }
 }
 
 /**
- * Build an OAuth resolver config.
+ * Build an OAuth strategy config.
  *
  * @private
- * @param options - OAuth resolver options (clientId, authUrl, tokenUrl required).
+ * @param options - OAuth strategy options (clientId, authUrl, tokenUrl required).
  * @returns An OAuthSourceConfig with `source: 'oauth'`.
  */
-function buildOAuth(options: OAuthResolverOptions): OAuthSourceConfig {
-  return { source: 'oauth' as const, ...options }
+function buildOAuth(options: OAuthStrategyOptions): OAuthSourceConfig {
+  return { ...options, source: 'oauth' as const }
 }
 
 /**
- * Build a device code resolver config.
+ * Build a device code strategy config.
  *
  * @private
- * @param options - Device code resolver options (clientId, deviceAuthUrl, tokenUrl required).
+ * @param options - Device code strategy options (clientId, deviceAuthUrl, tokenUrl required).
  * @returns A DeviceCodeSourceConfig with `source: 'device-code'`.
  */
-function buildDeviceCode(options: DeviceCodeResolverOptions): DeviceCodeSourceConfig {
-  return { source: 'device-code' as const, ...options }
+function buildDeviceCode(options: DeviceCodeStrategyOptions): DeviceCodeSourceConfig {
+  return { ...options, source: 'device-code' as const }
 }
 
 /**
- * Build a token resolver config.
+ * Build a token strategy config.
  *
  * Prompts the user for a token interactively. Aliased as `auth.apiKey()`.
  *
  * @private
- * @param options - Optional token resolver options.
+ * @param options - Optional token strategy options.
  * @returns A TokenSourceConfig with `source: 'token'`.
  */
-function buildToken(options?: TokenResolverOptions): TokenSourceConfig {
-  return { source: 'token' as const, ...options }
+function buildToken(options?: TokenStrategyOptions): TokenSourceConfig {
+  return { ...options, source: 'token' as const }
 }
 
 /**
- * Build a custom resolver config from a resolver function.
+ * Build a custom strategy config from a strategy function.
  *
  * @private
- * @param resolver - The custom resolver function.
+ * @param fn - The custom strategy function.
  * @returns A CustomSourceConfig with `source: 'custom'`.
  */
-function buildCustom(resolver: CustomResolverFn): CustomSourceConfig {
-  return { resolver, source: 'custom' as const }
+function buildCustom(fn: CustomStrategyFn): CustomSourceConfig {
+  return { resolver: fn, source: 'custom' as const }
 }
 
 // ---------------------------------------------------------------------------
@@ -217,58 +203,25 @@ function buildCustom(resolver: CustomResolverFn): CustomSourceConfig {
 // ---------------------------------------------------------------------------
 
 /**
- * Normalize the `http` option into an array of configs.
- *
- * @private
- * @param http - A single config or array of configs.
- * @returns An array of AuthHttpOptions.
- */
-function normalizeHttpOptions(
-  http: AuthHttpOptions | readonly AuthHttpOptions[]
-): readonly AuthHttpOptions[] {
-  if ('baseUrl' in http) {
-    return [http]
-  }
-
-  return http
-}
-
-/**
- * Convert a credential into auth headers, returning an empty record
- * when no credential is available.
- *
- * @private
- * @param credential - The credential or null.
- * @returns A record of auth headers.
- */
-function credentialToHeaders(credential: AuthCredential | null): Readonly<Record<string, string>> {
-  if (credential === null) {
-    return {}
-  }
-
-  return buildAuthHeaders(credential)
-}
-
-/**
  * Attempt to resolve a credential from stored (non-interactive) sources.
  *
  * Checks the file store first, then dotenv, then falls back to the
- * environment variable. Scans the resolver list for `file`, `dotenv`,
+ * environment variable. Scans the strategy list for `file`, `dotenv`,
  * and `env` source configs to respect user-configured overrides
  * (e.g. a custom `tokenVar`, `dirName`, or dotenv `path`).
  *
  * @private
  * @param cliName - The CLI name, used to derive paths and env var names.
- * @param resolvers - The configured resolver list for extracting overrides.
+ * @param strategies - The configured strategy list for extracting overrides.
  * @returns The resolved credential, or null.
  */
 function resolveStoredCredential(
   cliName: string,
-  resolvers: readonly ResolverConfig[]
+  strategies: readonly StrategyConfig[]
 ): AuthCredential | null {
-  const fileConfig = findResolverBySource(resolvers, 'file')
-  const dotenvConfig = findResolverBySource(resolvers, 'dotenv')
-  const envConfig = findResolverBySource(resolvers, 'env')
+  const fileConfig = findStrategyBySource(strategies, 'file')
+  const dotenvConfig = findStrategyBySource(strategies, 'dotenv')
+  const envConfig = findStrategyBySource(strategies, 'env')
   const defaultTokenVar = deriveTokenVar(cliName)
 
   const fromFile = resolveFromFile({
@@ -297,19 +250,19 @@ function resolveStoredCredential(
 }
 
 /**
- * Find the first resolver config matching a given source type.
+ * Find the first strategy config matching a given source type.
  *
  * @private
- * @param resolvers - The resolver config list.
+ * @param strategies - The strategy config list.
  * @param source - The source type to find.
  * @returns The matching config, or undefined.
  */
-function findResolverBySource<TSource extends ResolverConfig['source']>(
-  resolvers: readonly ResolverConfig[],
+function findStrategyBySource<TSource extends StrategyConfig['source']>(
+  strategies: readonly StrategyConfig[],
   source: TSource
-): Extract<ResolverConfig, { readonly source: TSource }> | undefined {
-  return resolvers.find(
-    (r): r is Extract<ResolverConfig, { readonly source: TSource }> => r.source === source
+): Extract<StrategyConfig, { readonly source: TSource }> | undefined {
+  return strategies.find(
+    (r): r is Extract<StrategyConfig, { readonly source: TSource }> => r.source === source
   )
 }
 

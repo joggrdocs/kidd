@@ -1,6 +1,6 @@
 {
   "name": "@kidd-cli/core",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "An opinionated CLI framework for Node.js",
   "keywords": [
     "cli",
@@ -60,7 +60,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@clack/prompts": "^1.0.1",
+    "@clack/prompts": "^1.1.0",
     "@kidd-cli/config": "workspace:*",
     "@kidd-cli/utils": "workspace:*",
     "@pinojs/redact": "^0.4.0",

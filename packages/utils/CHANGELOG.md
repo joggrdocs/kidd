@@ -1,5 +1,11 @@
 # @kidd-cli/utils
 
+## 0.1.2
+
+### Patch Changes
+
+- f48ad38: Add `fileExists` utility for checking file existence without throwing
+
 ## 0.1.1
 
 ### Patch Changes

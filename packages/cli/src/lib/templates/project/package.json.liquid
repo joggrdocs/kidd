@@ -5,7 +5,7 @@
   "keywords": [],
   "license": "MIT",
   "bin": {
-    "{{ name }}": "./dist/index.js"
+    "{{ name }}": "./dist/index.mjs"
   },
   "files": [
     "dist"
@@ -19,11 +19,12 @@
   },
   "dependencies": {
     "@kidd-cli/core": "^{{ coreVersion }}",
-    "zod": "^3.24.0"
+    "zod": "{{ zodVersion }}"
   },
   "devDependencies": {
     "@kidd-cli/cli": "^{{ cliVersion }}",
-    "typescript": "^5.7.0",
-    "vitest": "^4.0.0"
+    "tsdown": "{{ tsdownVersion }}",
+    "typescript": "{{ typescriptVersion }}",
+    "vitest": "{{ vitestVersion }}"
   }
 }

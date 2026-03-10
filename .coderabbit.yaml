@@ -9,12 +9,12 @@ tone_instructions: "Be direct and technical. Flag bugs, security issues, and sta
 reviews:
   profile: assertive
   request_changes_workflow: true
-  high_level_summary: true
+  high_level_summary: false
   high_level_summary_placeholder: "@coderabbitai summary"
-  review_status: true
-  collapse_walkthrough: false
-  changed_files_summary: true
-  sequence_diagrams: true
+  review_status: false
+  collapse_walkthrough: true
+  changed_files_summary: false
+  sequence_diagrams: false
   poem: false
   labeling_instructions: []
   auto_review:

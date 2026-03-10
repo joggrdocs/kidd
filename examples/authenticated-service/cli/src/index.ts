@@ -12,6 +12,7 @@ cli({
   commandOrder: ['login', 'logout', 'me', 'repos', 'create-repo'],
   commands: `${import.meta.dirname}/commands`,
   description: 'Demo CLI for the faux authenticated service',
+  help: { header: 'demo - authenticated service CLI' },
   middleware: [
     auth({
       http: {

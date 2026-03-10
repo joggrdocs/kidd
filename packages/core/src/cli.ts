@@ -3,11 +3,12 @@ import { resolve } from 'node:path'
 import { loadConfig } from '@kidd-cli/config/loader'
 import { P, attemptAsync, isPlainObject, isString, match } from '@kidd-cli/utils/fp'
 import yargs from 'yargs'
+import type { Argv } from 'yargs'
 import type { z } from 'zod'
 
 import { DEFAULT_EXIT_CODE, isContextError } from '@/context/index.js'
 import { createCliLogger } from '@/lib/logger.js'
-import type { CliOptions, CommandMap } from '@/types.js'
+import type { CliHelpOptions, CliOptions, CommandMap } from '@/types.js'
 
 import { autoload } from './autoloader.js'
 import { createRuntime, registerCommands } from './runtime/index.js'
@@ -44,26 +45,18 @@ export async function cli<TSchema extends z.ZodType = z.ZodType>(
       program.usage(options.description)
     }
 
+    const footer = extractFooter(options.help)
+    if (footer) {
+      program.epilogue(footer)
+    }
+
     const resolved: ResolvedRef = { ref: undefined }
     const errorRef: ErrorRef = { error: undefined }
 
     const commands = await resolveCommands(options.commands)
 
     if (commands) {
-      registerCommands({
-        commands,
-        errorRef,
-        instance: program,
-        order: options.commandOrder,
-        parentPath: [],
-        resolved,
-      })
-
-      if (errorRef.error) {
-        return errorRef.error
-      }
-
-      program.demandCommand(1, 'You must specify a command.')
+      registerCommands({ commands, instance: program, parentPath: [], resolved })
     }
 
     const argv: Record<string, unknown> = await program.parseAsync()
@@ -71,6 +64,7 @@ export async function cli<TSchema extends z.ZodType = z.ZodType>(
     applyCwd(argv)
 
     if (!resolved.ref) {
+      showNoCommandHelp({ argv, commands, help: options.help, program })
       return undefined
     }
 
@@ -173,6 +167,69 @@ function applyCwd(argv: Record<string, unknown>): void {
   if (isString(argv.cwd)) {
     process.chdir(resolve(argv.cwd))
   }
+}
+
+/**
+ * Show help output when no command was matched.
+ *
+ * Prints the header (if configured) above the yargs help text. Skipped when
+ * `--help` was explicitly passed, since yargs already handles that case.
+ *
+ * @private
+ * @param params - The argv, commands, help options, and yargs program instance.
+ */
+function showNoCommandHelp({
+  argv,
+  commands,
+  help,
+  program,
+}: {
+  readonly argv: Record<string, unknown>
+  readonly commands: CommandMap | undefined
+  readonly help: CliHelpOptions | undefined
+  readonly program: Argv
+}): void {
+  if (!commands) {
+    return
+  }
+  if (argv.help) {
+    return
+  }
+
+  const header = extractHeader(help)
+  if (header) {
+    console.log(header)
+    console.log()
+  }
+  program.showHelp('log')
+}
+
+/**
+ * Extract the header string from help options.
+ *
+ * @private
+ * @param help - The help options, possibly undefined.
+ * @returns The header string or undefined.
+ */
+function extractHeader(help: CliHelpOptions | undefined): string | undefined {
+  if (!help) {
+    return undefined
+  }
+  return help.header
+}
+
+/**
+ * Extract the footer string from help options.
+ *
+ * @private
+ * @param help - The help options, possibly undefined.
+ * @returns The footer string or undefined.
+ */
+function extractFooter(help: CliHelpOptions | undefined): string | undefined {
+  if (!help) {
+    return undefined
+  }
+  return help.footer
 }
 
 /**

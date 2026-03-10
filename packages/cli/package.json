@@ -35,7 +35,7 @@
     "@kidd-cli/config": "workspace:*",
     "@kidd-cli/core": "workspace:*",
     "@kidd-cli/utils": "workspace:*",
-    "fs-extra": "^11.3.3",
+    "fs-extra": "^11.3.4",
     "liquidjs": "catalog:",
     "picocolors": "^1.1.1",
     "zod": "catalog:"

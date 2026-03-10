@@ -1,6 +1,6 @@
 {
   "name": "@kidd-cli/bundler",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Programmatic bundler for kidd CLI tools powered by tsdown",
   "license": "MIT",
   "repository": {

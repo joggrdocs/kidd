@@ -14,7 +14,7 @@ Set up your local environment to contribute to kidd.
 ### 1. Fork and clone
 
 ```bash
-gh repo fork joggr/kidd --clone
+gh repo fork joggrdocs/kidd --clone
 cd kidd
 ```
 

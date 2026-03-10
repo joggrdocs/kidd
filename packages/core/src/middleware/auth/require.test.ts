@@ -6,7 +6,7 @@ import { createAuthRequire } from './require.js'
 function resolveOption<T>(
   options: Record<string, unknown> | undefined,
   key: string,
-  fallback: T,
+  fallback: T
 ): T {
   if (options !== undefined && options[key] !== undefined) {
     return options[key] as T
@@ -15,10 +15,7 @@ function resolveOption<T>(
   return fallback
 }
 
-function createMockCtx(options?: {
-  readonly authenticated?: boolean
-  readonly hasAuth?: boolean
-}) {
+function createMockCtx(options?: { readonly authenticated?: boolean; readonly hasAuth?: boolean }) {
   const hasAuth = resolveOption(options, 'hasAuth', true)
   const authenticated = resolveOption(options, 'authenticated', false)
 
@@ -68,10 +65,7 @@ describe('createAuthRequire()', () => {
 
     expect(() => mw.handler(ctx as never, next)).toThrow()
 
-    expect(ctx.fail).toHaveBeenCalledWith(
-      'Authentication required. Run the login command to authenticate.',
-      { code: 'AUTH_REQUIRED' },
-    )
+    expect(ctx.fail).toHaveBeenCalledWith('Authentication required.', { code: 'AUTH_REQUIRED' })
     expect(next).not.toHaveBeenCalled()
   })
 
@@ -82,10 +76,7 @@ describe('createAuthRequire()', () => {
 
     expect(() => mw.handler(ctx as never, next)).toThrow()
 
-    expect(ctx.fail).toHaveBeenCalledWith(
-      'Please log in first.',
-      { code: 'AUTH_REQUIRED' },
-    )
+    expect(ctx.fail).toHaveBeenCalledWith('Please log in first.', { code: 'AUTH_REQUIRED' })
   })
 
   it('should call ctx.fail() with AUTH_MIDDLEWARE_MISSING when ctx.auth absent', () => {
@@ -95,9 +86,8 @@ describe('createAuthRequire()', () => {
 
     expect(() => mw.handler(ctx as never, next)).toThrow()
 
-    expect(ctx.fail).toHaveBeenCalledWith(
-      'auth.require() must run after auth() middleware',
-      { code: 'AUTH_MIDDLEWARE_MISSING' },
-    )
+    expect(ctx.fail).toHaveBeenCalledWith('auth.require() must run after auth() middleware', {
+      code: 'AUTH_MIDDLEWARE_MISSING',
+    })
   })
 })

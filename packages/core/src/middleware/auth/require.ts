@@ -7,8 +7,7 @@
 import { middleware } from '@/middleware.js'
 import type { Middleware } from '@/types.js'
 
-const DEFAULT_MESSAGE =
-  'Authentication required. Run the login command to authenticate.'
+const DEFAULT_MESSAGE = 'Authentication required.'
 
 /**
  * Options for {@link createAuthRequire}.
@@ -29,17 +28,14 @@ export interface AuthRequireOptions {
  * @param options - Optional configuration for the require gate.
  * @returns A Middleware that enforces authentication.
  */
-export function createAuthRequire(
-  options?: AuthRequireOptions
-): Middleware {
+export function createAuthRequire(options?: AuthRequireOptions): Middleware {
   const message = resolveMessage(options)
 
   return middleware((ctx, next) => {
     if (!hasProperty(ctx, 'auth')) {
-      ctx.fail(
-        'auth.require() must run after auth() middleware',
-        { code: 'AUTH_MIDDLEWARE_MISSING' },
-      )
+      ctx.fail('auth.require() must run after auth() middleware', {
+        code: 'AUTH_MIDDLEWARE_MISSING',
+      })
     }
 
     if (!ctx.auth.authenticated()) {

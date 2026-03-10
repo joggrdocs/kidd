@@ -127,7 +127,7 @@ export const auth: AuthFactory = Object.assign(createAuth, {
  * @returns An EnvSourceConfig with `source: 'env'`.
  */
 function buildEnv(options?: EnvStrategyOptions): EnvSourceConfig {
-  return { source: 'env' as const, ...options }
+  return { ...options, source: 'env' as const }
 }
 
 /**
@@ -138,7 +138,7 @@ function buildEnv(options?: EnvStrategyOptions): EnvSourceConfig {
  * @returns A DotenvSourceConfig with `source: 'dotenv'`.
  */
 function buildDotenv(options?: DotenvStrategyOptions): DotenvSourceConfig {
-  return { source: 'dotenv' as const, ...options }
+  return { ...options, source: 'dotenv' as const }
 }
 
 /**
@@ -149,7 +149,7 @@ function buildDotenv(options?: DotenvStrategyOptions): DotenvSourceConfig {
  * @returns A FileSourceConfig with `source: 'file'`.
  */
 function buildFile(options?: FileStrategyOptions): FileSourceConfig {
-  return { source: 'file' as const, ...options }
+  return { ...options, source: 'file' as const }
 }
 
 /**
@@ -160,7 +160,7 @@ function buildFile(options?: FileStrategyOptions): FileSourceConfig {
  * @returns An OAuthSourceConfig with `source: 'oauth'`.
  */
 function buildOAuth(options: OAuthStrategyOptions): OAuthSourceConfig {
-  return { source: 'oauth' as const, ...options }
+  return { ...options, source: 'oauth' as const }
 }
 
 /**
@@ -171,7 +171,7 @@ function buildOAuth(options: OAuthStrategyOptions): OAuthSourceConfig {
  * @returns A DeviceCodeSourceConfig with `source: 'device-code'`.
  */
 function buildDeviceCode(options: DeviceCodeStrategyOptions): DeviceCodeSourceConfig {
-  return { source: 'device-code' as const, ...options }
+  return { ...options, source: 'device-code' as const }
 }
 
 /**
@@ -184,7 +184,7 @@ function buildDeviceCode(options: DeviceCodeStrategyOptions): DeviceCodeSourceCo
  * @returns A TokenSourceConfig with `source: 'token'`.
  */
 function buildToken(options?: TokenStrategyOptions): TokenSourceConfig {
-  return { source: 'token' as const, ...options }
+  return { ...options, source: 'token' as const }
 }
 
 /**

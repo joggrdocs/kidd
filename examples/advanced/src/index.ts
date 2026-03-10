@@ -23,6 +23,7 @@ cli({
     schema: configSchema,
   },
   description: 'Acme platform CLI',
+  help: { banner: 'acme - the Acme platform CLI' },
   middleware: [
     http({
       baseUrl: 'https://api.acme.dev',

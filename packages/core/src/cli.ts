@@ -7,7 +7,7 @@ import type { z } from 'zod'
 
 import { DEFAULT_EXIT_CODE, isContextError } from '@/context/index.js'
 import { createCliLogger } from '@/lib/logger.js'
-import type { CliOptions, CommandMap } from '@/types.js'
+import type { CliHelpOptions, CliOptions, CommandMap } from '@/types.js'
 
 import { autoload } from './autoloader.js'
 import { createRuntime, registerCommands } from './runtime/index.js'
@@ -40,8 +40,9 @@ export async function cli<TSchema extends z.ZodType = z.ZodType>(
         type: 'string',
       })
 
-    if (options.description) {
-      program.usage(options.description)
+    const usageText = buildUsageText({ description: options.description, help: options.help })
+    if (usageText) {
+      program.usage(usageText)
     }
 
     const resolved: ResolvedRef = { ref: undefined }
@@ -50,7 +51,6 @@ export async function cli<TSchema extends z.ZodType = z.ZodType>(
 
     if (commands) {
       registerCommands({ commands, instance: program, parentPath: [], resolved })
-      program.demandCommand(1, 'You must specify a command.')
     }
 
     const argv: Record<string, unknown> = await program.parseAsync()
@@ -58,6 +58,9 @@ export async function cli<TSchema extends z.ZodType = z.ZodType>(
     applyCwd(argv)
 
     if (!resolved.ref) {
+      if (commands) {
+        program.showHelp('log')
+      }
       return undefined
     }
 
@@ -160,6 +163,53 @@ function applyCwd(argv: Record<string, unknown>): void {
   if (isString(argv.cwd)) {
     process.chdir(resolve(argv.cwd))
   }
+}
+
+/**
+ * Extract the banner string from help options.
+ *
+ * @private
+ * @param help - The help options, possibly undefined.
+ * @returns The banner string or undefined.
+ */
+function extractBanner(help: CliHelpOptions | undefined): string | undefined {
+  if (!help) {
+    return undefined
+  }
+  return help.banner
+}
+
+/**
+ * Compose the usage text from banner and description.
+ *
+ * - Banner only → `banner\n\n$0 <command>`
+ * - Banner + description → `banner\n\n$0 <command>\n\ndescription`
+ * - Description only → `description`
+ * - Neither → `undefined`
+ *
+ * @private
+ * @param params - The description and help options.
+ * @returns The composed usage text or undefined.
+ */
+function buildUsageText({
+  description,
+  help,
+}: {
+  readonly description: string | undefined
+  readonly help: CliHelpOptions | undefined
+}): string | undefined {
+  const banner = extractBanner(help)
+
+  if (banner && description) {
+    return `${banner}\n\n$0 <command>\n\n${description}`
+  }
+  if (banner) {
+    return `${banner}\n\n$0 <command>`
+  }
+  if (description) {
+    return description
+  }
+  return undefined
 }
 
 /**

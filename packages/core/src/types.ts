@@ -322,6 +322,16 @@ export interface CliConfigOptions<TSchema extends z.ZodType = z.ZodType> {
 }
 
 /**
+ * Help output customization options for the CLI.
+ */
+export interface CliHelpOptions {
+  /**
+   * Banner text displayed at the top of help output, above the usage line.
+   */
+  readonly banner?: string
+}
+
+/**
  * Options passed to `cli()`.
  */
 export interface CliOptions<TSchema extends z.ZodType = z.ZodType> {
@@ -353,6 +363,10 @@ export interface CliOptions<TSchema extends z.ZodType = z.ZodType> {
    * `Promise<CommandMap>` for advanced use and testing.
    */
   commands?: string | CommandMap | Promise<CommandMap>
+  /**
+   * Help output customization (banner, etc.).
+   */
+  help?: CliHelpOptions
 }
 
 /**

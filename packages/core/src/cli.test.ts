@@ -1,5 +1,5 @@
 import { setArgv, runTestCli, setupTestLifecycle } from '@test/core-utils.js'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { Context } from '@/context/types.js'
 import type { CommandMap } from '@/types.js'
@@ -198,5 +198,108 @@ describe('config-based autoloading', () => {
 
     expect(mockLoadConfig).not.toHaveBeenCalled()
     expect(handler).toHaveBeenCalledOnce()
+  })
+})
+
+describe('help', () => {
+  let logSpy: ReturnType<typeof vi.spyOn>
+
+  // eslint-disable-next-line jest/no-hooks -- capture console.log for help output assertions
+  beforeEach(() => {
+    logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+  })
+
+  // eslint-disable-next-line jest/no-hooks -- restore console.log
+  afterEach(() => {
+    logSpy.mockRestore()
+  })
+
+  it('should show help when no command is given', async () => {
+    const handler = vi.fn()
+    const commands: CommandMap = {
+      deploy: command({ description: 'Deploy the app', handler }),
+      info: command({ description: 'Show info', handler }),
+    }
+
+    setArgv()
+    await runTestCli({ commands, name: 'test-cli', version: '1.0.0' })
+
+    const output = logSpy.mock.calls.map((call) => String(call[0])).join('\n')
+    expect(output).toContain('deploy')
+    expect(output).toContain('info')
+    expect(handler).not.toHaveBeenCalled()
+  })
+
+  it('should display banner above commands in help', async () => {
+    const handler = vi.fn()
+    const commands: CommandMap = {
+      deploy: command({ description: 'Deploy the app', handler }),
+    }
+
+    setArgv()
+    await runTestCli({
+      commands,
+      help: { banner: '*** BANNER ***' },
+      name: 'test-cli',
+      version: '1.0.0',
+    })
+
+    const output = logSpy.mock.calls.map((call) => String(call[0])).join('\n')
+    expect(output).toContain('*** BANNER ***')
+    expect(output).toContain('deploy')
+
+    const bannerIndex = output.indexOf('*** BANNER ***')
+    const deployIndex = output.indexOf('deploy')
+    expect(bannerIndex).toBeLessThan(deployIndex)
+  })
+
+  it('should show description without banner when banner is not set', async () => {
+    const handler = vi.fn()
+    const commands: CommandMap = {
+      run: command({ description: 'Run something', handler }),
+    }
+
+    setArgv()
+    await runTestCli({
+      commands,
+      description: 'A great CLI tool',
+      name: 'test-cli',
+      version: '1.0.0',
+    })
+
+    const output = logSpy.mock.calls.map((call) => String(call[0])).join('\n')
+    expect(output).toContain('A great CLI tool')
+  })
+
+  it('should show both banner and description when both are set', async () => {
+    const handler = vi.fn()
+    const commands: CommandMap = {
+      run: command({ description: 'Run something', handler }),
+    }
+
+    setArgv()
+    await runTestCli({
+      commands,
+      description: 'A great CLI tool',
+      help: { banner: '=== MY CLI ===' },
+      name: 'test-cli',
+      version: '1.0.0',
+    })
+
+    const output = logSpy.mock.calls.map((call) => String(call[0])).join('\n')
+    expect(output).toContain('=== MY CLI ===')
+    expect(output).toContain('A great CLI tool')
+  })
+
+  it('should not call handler when no command is given', async () => {
+    const handler = vi.fn()
+    const commands: CommandMap = {
+      deploy: command({ description: 'Deploy the app', handler }),
+    }
+
+    setArgv()
+    await runTestCli({ commands, name: 'test-cli', version: '1.0.0' })
+
+    expect(handler).not.toHaveBeenCalled()
   })
 })

@@ -48,6 +48,10 @@
     "./http": {
       "types": "./dist/middleware/http.d.ts",
       "default": "./dist/middleware/http.js"
+    },
+    "./utils": {
+      "types": "./dist/utils.d.ts",
+      "default": "./dist/utils.js"
     }
   },
   "scripts": {

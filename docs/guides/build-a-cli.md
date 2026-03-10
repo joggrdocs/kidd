@@ -4,7 +4,7 @@ Define commands, middleware, configuration, and use kidd's sub-exports to build 
 
 ## Prerequisites
 
-- Node.js 18+
+- Node.js 22+
 - `@kidd-cli/core` installed (`pnpm add @kidd-cli/core`)
 
 ## Steps
@@ -145,22 +145,6 @@ const [error, result] = await config.load()
 
 kidd exposes focused utilities through sub-exports.
 
-**Prompts** -- interactive terminal prompts:
-
-```ts
-import { prompts, spinner } from '@kidd-cli/core/prompts'
-
-const result = await prompts.text({ message: 'Project name?' })
-if (prompts.isCancel(result)) {
-  prompts.cancel('Cancelled')
-  process.exit(1)
-}
-spinner.start('Building...')
-spinner.stop('Done')
-```
-
-The standalone `PromptUtils` from `kidd/prompts` returns raw clack values (which may be a cancel symbol). Use `prompts.isCancel()` to detect cancellation. Inside command handlers, `ctx.prompts` handles cancellation automatically.
-
 **Logger** -- structured terminal output:
 
 ```ts
@@ -171,17 +155,6 @@ cliLogger.info('Processing...')
 cliLogger.success('Complete')
 cliLogger.outro('Done')
 ```
-
-**Output** -- JSON serialization, Liquid templates, file writing:
-
-```ts
-import { output } from '@kidd-cli/core/output'
-
-output.json({ status: 'ok' })
-output.print('Deployment complete')
-```
-
-The standalone `CliOutput` from `kidd/output` is distinct from `ctx.output` on the context. `CliOutput` provides `toJson`, `toMarkdown`, `json`, `write` (file), and `print`. The context's `Output` provides `write` (stdout), `table`, `markdown`, and `raw`.
 
 **Store** -- file-backed JSON store for persistent data (separate from the in-memory `ctx.store` used for middleware-to-handler data flow):
 

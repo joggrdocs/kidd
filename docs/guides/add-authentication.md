@@ -11,7 +11,7 @@ Add credential resolution, interactive login, and authenticated HTTP requests to
 
 ### 1. Register the auth middleware
 
-Import `auth` from `kidd/auth` and add it to the `middleware` array in `cli()`.
+Import `auth` from `@kidd-cli/core/auth` and add it to the `middleware` array in `cli()`.
 
 ```ts
 import { cli } from '@kidd-cli/core'
@@ -23,13 +23,12 @@ cli({
   middleware: [
     auth({
       resolvers: [
-        {
-          source: 'oauth',
+        auth.oauth({
           clientId: 'my-client-id',
           authUrl: 'https://example.com/authorize',
           tokenUrl: 'https://example.com/token',
-        },
-        { source: 'token', message: 'Enter your API token:' },
+        }),
+        auth.token({ message: 'Enter your API token:' }),
       ],
     }),
   ],
@@ -190,13 +189,12 @@ cli({
   middleware: [
     auth({
       resolvers: [
-        {
-          source: 'oauth',
+        auth.oauth({
           clientId: 'my-client-id',
           authUrl: 'https://example.com/authorize',
           tokenUrl: 'https://example.com/token',
-        },
-        { source: 'token', message: 'Enter your API token:' },
+        }),
+        auth.token({ message: 'Enter your API token:' }),
       ],
     }),
     http({
@@ -260,15 +258,14 @@ Add `env` or `dotenv` resolvers for non-interactive environments (CI, scripts).
 ```ts
 auth({
   resolvers: [
-    { source: 'env', tokenVar: 'MY_APP_TOKEN' },
-    { source: 'dotenv' },
-    {
-      source: 'oauth',
+    auth.env({ tokenVar: 'MY_APP_TOKEN' }),
+    auth.dotenv(),
+    auth.oauth({
       clientId: 'my-client-id',
       authUrl: 'https://example.com/authorize',
       tokenUrl: 'https://example.com/token',
-    },
-    { source: 'token' },
+    }),
+    auth.token(),
   ],
 })
 ```
@@ -282,13 +279,12 @@ Configure the OAuth resolver to use Clerk as a public OAuth application with PKC
 ```ts
 auth({
   resolvers: [
-    {
-      source: 'oauth',
+    auth.oauth({
       clientId: '<clerk-oauth-app-id>',
       authUrl: 'https://<clerk-domain>/oauth/authorize',
       tokenUrl: 'https://<clerk-domain>/oauth/token',
       scopes: ['openid', 'profile', 'email'],
-    },
+    }),
   ],
 })
 ```
@@ -300,13 +296,12 @@ For environments without a browser (SSH sessions, remote servers), use the devic
 ```ts
 auth({
   resolvers: [
-    {
-      source: 'device-code',
+    auth.deviceCode({
       clientId: 'my-client-id',
       deviceAuthUrl: 'https://github.com/login/device/code',
       tokenUrl: 'https://github.com/login/oauth/access_token',
       scopes: ['repo', 'read:user'],
-    },
+    }),
   ],
 })
 ```
@@ -320,21 +315,19 @@ Chain resolvers to support multiple authentication strategies:
 ```ts
 auth({
   resolvers: [
-    { source: 'env', tokenVar: 'MY_APP_TOKEN' },
-    { source: 'file' },
-    {
-      source: 'oauth',
+    auth.env({ tokenVar: 'MY_APP_TOKEN' }),
+    auth.file(),
+    auth.oauth({
       clientId: 'my-client-id',
       authUrl: 'https://example.com/authorize',
       tokenUrl: 'https://example.com/token',
-    },
-    {
-      source: 'device-code',
+    }),
+    auth.deviceCode({
       clientId: 'my-client-id',
       deviceAuthUrl: 'https://example.com/device/code',
       tokenUrl: 'https://example.com/token',
-    },
-    { source: 'token' },
+    }),
+    auth.token(),
   ],
 })
 ```

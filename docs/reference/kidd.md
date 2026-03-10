@@ -200,16 +200,14 @@ Returns the same `ctx` reference with the new property attached.
 
 ## Sub-exports
 
-| Export         | Purpose                                                                                                                                               |
-| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `kidd/prompts` | Interactive terminal prompts (`createPromptUtils`, `createSpinner`, `prompts`, `spinner`)                                                             |
-| `kidd/logger`  | Structured terminal logger (`createCliLogger`, `cliLogger`)                                                                                           |
-| `kidd/output`  | JSON serialization, Liquid templates, file writing (`createOutput`, `output`)                                                                         |
-| `kidd/config`  | Config loading and validation (`createConfigClient`)                                                                                                  |
-| `kidd/store`   | File-backed JSON store (`createStore`)                                                                                                                |
-| `kidd/project` | Git root resolution, path utilities (`findProjectRoot`, `isInSubmodule`, `getParentRepoRoot`, `resolvePath`, `resolveLocalPath`, `resolveGlobalPath`) |
-| `kidd/auth`    | Auth middleware, credential types, resolvers (`auth`)                                                                                                 |
-| `kidd/http`    | Typed HTTP client middleware (`http`, `createHttpClient`)                                                                                             |
+| Export                  | Purpose                                                                                                                                               |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `@kidd-cli/core/logger`  | Structured terminal logger (`createCliLogger`, `cliLogger`)                                                                                           |
+| `@kidd-cli/core/config`  | Config loading and validation (`createConfigClient`)                                                                                                  |
+| `@kidd-cli/core/store`   | File-backed JSON store (`createStore`)                                                                                                                |
+| `@kidd-cli/core/project` | Git root resolution, path utilities (`findProjectRoot`, `isInSubmodule`, `getParentRepoRoot`, `resolvePath`, `resolveLocalPath`, `resolveGlobalPath`) |
+| `@kidd-cli/core/auth`    | Auth middleware, credential types, resolvers (`auth`)                                                                                                 |
+| `@kidd-cli/core/http`    | Typed HTTP client middleware (`http`, `createHttpClient`)                                                                                             |
 
 ## Resources
 

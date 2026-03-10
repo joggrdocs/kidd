@@ -1,6 +1,6 @@
 # Auth Middleware
 
-Resolve credentials from multiple sources and store them in the context for downstream middleware and commands. Resolvers are tried in order; the first successful match wins.
+Resolve credentials from multiple sources and store them in the context for downstream middleware and commands. Strategies are tried in order; the first successful match wins.
 
 ## Usage
 
@@ -13,7 +13,7 @@ cli({
   version: '1.0.0',
   middleware: [
     auth({
-      resolvers: [auth.env()],
+      strategies: [auth.env()],
     }),
   ],
   commands: { deploy },
@@ -22,13 +22,13 @@ cli({
 
 The middleware decorates `ctx.auth` with `credential()`, `authenticated()`, `login()`, and `logout()` methods.
 
-## Resolver Builders
+## Strategy Builders
 
-`auth` doubles as a namespace with builder methods for constructing resolver configs. Each builder returns a `ResolverConfig` with the `source` discriminator pre-filled. Raw config objects (`{ source: 'env' }`) still work.
+`auth` doubles as a namespace with builder methods for constructing strategy configs. Each builder returns a `StrategyConfig` with the `source` discriminator pre-filled. Raw config objects (`{ source: 'env' }`) still work.
 
 ```ts
 auth({
-  resolvers: [
+  strategies: [
     auth.env(),
     auth.dotenv({ path: '.env.local' }),
     auth.file(),
@@ -40,9 +40,9 @@ auth({
 })
 ```
 
-## Resolvers
+## Strategies
 
-Resolvers are tried in declaration order. The first non-null result is stored and remaining resolvers are skipped.
+Strategies are tried in declaration order. The first non-null result is stored and remaining strategies are skipped.
 
 ### env
 
@@ -50,7 +50,7 @@ Reads a bearer token from `process.env`. The variable name defaults to `<CLI_NAM
 
 ```ts
 auth({
-  resolvers: [auth.env({ tokenVar: 'GITHUB_TOKEN' })],
+  strategies: [auth.env({ tokenVar: 'GITHUB_TOKEN' })],
 })
 ```
 
@@ -64,7 +64,7 @@ Reads a bearer token from a `.env` file without mutating `process.env`.
 
 ```ts
 auth({
-  resolvers: [auth.dotenv({ path: '.env.local' })],
+  strategies: [auth.dotenv({ path: '.env.local' })],
 })
 ```
 
@@ -79,7 +79,7 @@ Reads a credential from a JSON file on disk using local-then-global resolution. 
 
 ```ts
 auth({
-  resolvers: [auth.file({ filename: 'credentials.json', dirName: '.my-app' })],
+  strategies: [auth.file({ filename: 'credentials.json', dirName: '.my-app' })],
 })
 ```
 
@@ -96,7 +96,7 @@ OAuth 2.0 Authorization Code + PKCE (RFC 7636 + RFC 8252). Opens the browser, re
 
 ```ts
 auth({
-  resolvers: [
+  strategies: [
     auth.oauth({
       clientId: 'my-client-id',
       authUrl: 'https://example.com/authorize',
@@ -123,7 +123,7 @@ OAuth 2.0 Device Authorization Grant (RFC 8628). Displays a verification URL and
 
 ```ts
 auth({
-  resolvers: [
+  strategies: [
     auth.deviceCode({
       clientId: 'my-client-id',
       deviceAuthUrl: 'https://example.com/device/code',
@@ -147,11 +147,11 @@ Works with providers that implement RFC 8628, including GitHub, Azure AD, Google
 
 ### token
 
-Interactively prompts the user for a token via `ctx.prompts.password()`. Best placed last in the resolver chain as a fallback. Aliased as `auth.apiKey()`.
+Interactively prompts the user for a token via `ctx.prompts.password()`. Best placed last in the strategy chain as a fallback. Aliased as `auth.apiKey()`.
 
 ```ts
 auth({
-  resolvers: [auth.token({ message: 'Enter your GitHub token' })],
+  strategies: [auth.token({ message: 'Enter your GitHub token' })],
 })
 ```
 
@@ -161,11 +161,11 @@ auth({
 
 ### custom
 
-Supplies a user-defined resolver function. The function is passed directly as the argument (not wrapped in an options object). Returns a credential or `null`.
+Supplies a user-defined strategy function. The function is passed directly as the argument (not wrapped in an options object). Returns a credential or `null`.
 
 ```ts
 auth({
-  resolvers: [
+  strategies: [
     auth.custom(async () => {
       const token = await fetchTokenFromVault()
       if (!token) return null
@@ -182,7 +182,7 @@ When `http` is provided on the auth options, the middleware creates HTTP client(
 ```ts
 // Single HTTP client
 auth({
-  resolvers: [auth.env(), auth.oauth({ ... })],
+  strategies: [auth.env(), auth.oauth({ ... })],
   http: {
     baseUrl: 'https://api.example.com',
     namespace: 'api',
@@ -191,7 +191,7 @@ auth({
 
 // Multiple HTTP clients
 auth({
-  resolvers: [auth.env()],
+  strategies: [auth.env()],
   http: [
     { baseUrl: 'https://api.example.com', namespace: 'api' },
     { baseUrl: 'https://admin.example.com', namespace: 'admin' },
@@ -209,16 +209,16 @@ auth({
 
 | Option      | Type               | Default    | Description                                            |
 | ----------- | ------------------ | ---------- | ------------------------------------------------------ |
-| `resolvers` | `ResolverConfig[]` | _required_ | Ordered list of credential sources to try              |
+| `strategies` | `StrategyConfig[]` | _required_ | Ordered list of credential sources to try              |
 | `http`      | `AuthHttpOptions`  | --         | Optional HTTP client(s) with credential auto-injection |
 
 ## Multiple Auth Sources
 
-Chain resolvers to support multiple credential discovery strategies. The first match wins:
+Chain strategies to support multiple credential discovery methods. The first match wins:
 
 ```ts
 auth({
-  resolvers: [
+  strategies: [
     auth.env({ tokenVar: 'GITHUB_TOKEN' }),
     auth.dotenv(),
     auth.file(),
@@ -229,7 +229,7 @@ auth({
 
 ## Credential Types
 
-All resolvers produce one of four credential variants, discriminated by the `type` field:
+All strategies produce one of four credential variants, discriminated by the `type` field:
 
 | Type      | Fields                 | Header Format                            |
 | --------- | ---------------------- | ---------------------------------------- |
@@ -238,7 +238,7 @@ All resolvers produce one of four credential variants, discriminated by the `typ
 | `api-key` | `headerName`, `key`    | `<headerName>: <key>`                    |
 | `custom`  | `headers`              | Arbitrary headers from the record        |
 
-The `env`, `dotenv`, `token`, `oauth`, and `device-code` resolvers always produce `bearer` credentials. The `file` and `custom` resolvers can produce any variant.
+The `env`, `dotenv`, `token`, `oauth`, and `device-code` strategies always produce `bearer` credentials. The `file` and `custom` strategies can produce any variant.
 
 ## Module Augmentation
 

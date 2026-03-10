@@ -22,7 +22,7 @@ cli({
   version: '1.0.0',
   middleware: [
     auth({
-      resolvers: [
+      strategies: [
         auth.oauth({
           clientId: 'my-client-id',
           authUrl: 'https://example.com/authorize',
@@ -36,11 +36,11 @@ cli({
 })
 ```
 
-The `resolvers` array defines which credential sources to try. Order matters -- resolvers run in sequence and short-circuit on the first success.
+The `strategies` array defines which credential sources to try. Order matters -- strategies run in sequence and short-circuit on the first success.
 
 ### 2. Add a login command
 
-Create a command that calls `ctx.auth.login()` to run the interactive resolvers and persist the credential.
+Create a command that calls `ctx.auth.login()` to run the interactive strategies and persist the credential.
 
 ```ts
 import { command } from '@kidd-cli/core'
@@ -148,7 +148,7 @@ cli({
   version: '1.0.0',
   middleware: [
     auth({
-      resolvers: [
+      strategies: [
         auth.oauth({
           clientId: 'my-client-id',
           authUrl: 'https://example.com/authorize',
@@ -188,7 +188,7 @@ cli({
   version: '1.0.0',
   middleware: [
     auth({
-      resolvers: [
+      strategies: [
         auth.oauth({
           clientId: 'my-client-id',
           authUrl: 'https://example.com/authorize',
@@ -253,11 +253,11 @@ export default command({
 
 ### 7. Support environment variables
 
-Add `env` or `dotenv` resolvers for non-interactive environments (CI, scripts).
+Add `env` or `dotenv` strategies for non-interactive environments (CI, scripts).
 
 ```ts
 auth({
-  resolvers: [
+  strategies: [
     auth.env({ tokenVar: 'MY_APP_TOKEN' }),
     auth.dotenv(),
     auth.oauth({
@@ -270,15 +270,15 @@ auth({
 })
 ```
 
-Passive resolvers (`env`, `dotenv`, `file`) run automatically on middleware init. Interactive resolvers (`oauth`, `device-code`, `token`, `custom`) only run when `ctx.auth.login()` is called.
+Passive strategies (`env`, `dotenv`, `file`) run automatically on middleware init. Interactive strategies (`oauth`, `device-code`, `token`, `custom`) only run when `ctx.auth.login()` is called.
 
 ### 8. Use PKCE with Clerk as the Identity Provider
 
-Configure the OAuth resolver to use Clerk as a public OAuth application with PKCE:
+Configure the OAuth strategy to use Clerk as a public OAuth application with PKCE:
 
 ```ts
 auth({
-  resolvers: [
+  strategies: [
     auth.oauth({
       clientId: '<clerk-oauth-app-id>',
       authUrl: 'https://<clerk-domain>/oauth/authorize',
@@ -295,7 +295,7 @@ For environments without a browser (SSH sessions, remote servers), use the devic
 
 ```ts
 auth({
-  resolvers: [
+  strategies: [
     auth.deviceCode({
       clientId: 'my-client-id',
       deviceAuthUrl: 'https://github.com/login/device/code',
@@ -308,13 +308,13 @@ auth({
 
 The CLI displays a URL and a user code. The user opens the URL in any browser (including on a different device), enters the code, and completes authorization.
 
-### 10. Combine multiple resolvers
+### 10. Combine multiple strategies
 
-Chain resolvers to support multiple authentication strategies:
+Chain strategies to support multiple authentication methods:
 
 ```ts
 auth({
-  resolvers: [
+  strategies: [
     auth.env({ tokenVar: 'MY_APP_TOKEN' }),
     auth.file(),
     auth.oauth({
@@ -369,7 +369,7 @@ MY_APP_TOKEN=ghp_abc123 my-app repos
 
 **Issue:** The CLI polls but never receives a token.
 
-**Fix:** Verify the `deviceAuthUrl` and `tokenUrl` are correct. Ensure the OAuth provider supports the Device Authorization Grant (RFC 8628). Clerk does not support this flow -- use the `oauth` resolver instead.
+**Fix:** Verify the `deviceAuthUrl` and `tokenUrl` are correct. Ensure the OAuth provider supports the Device Authorization Grant (RFC 8628). Clerk does not support this flow -- use the `oauth` strategy instead.
 
 ### Token not persisted after login
 
@@ -379,7 +379,7 @@ MY_APP_TOKEN=ghp_abc123 my-app repos
 
 ### Wrong environment variable name
 
-**Issue:** The `env` resolver doesn't pick up the token.
+**Issue:** The `env` strategy doesn't pick up the token.
 
 **Fix:** The default variable name is derived from the CLI name: `my-app` becomes `MY_APP_TOKEN`. Use `tokenVar` to override if your variable has a different name.
 

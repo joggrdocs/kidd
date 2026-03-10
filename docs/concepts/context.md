@@ -186,7 +186,7 @@ Optional auth context decorated by the `auth()` middleware from `kidd/auth`. Onl
 | ----------------- | ---------------------------------------- | ---------------------------------------------- |
 | `credential()`    | `AuthCredential \| null`                 | Passively resolved credential (file, env)      |
 | `authenticated()` | `boolean`                                | Whether a passive credential exists            |
-| `login()`         | `AsyncResult<AuthCredential, AuthError>` | Run interactive resolvers, persist, and return |
+| `login()`         | `AsyncResult<AuthCredential, AuthError>` | Run interactive strategies, persist, and return |
 | `logout()`        | `AsyncResult<string, AuthError>`         | Remove stored credential from disk             |
 
 ```ts

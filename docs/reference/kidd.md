@@ -206,7 +206,7 @@ Returns the same `ctx` reference with the new property attached.
 | `@kidd-cli/core/config`  | Config loading and validation (`createConfigClient`)                                                                                                  |
 | `@kidd-cli/core/store`   | File-backed JSON store (`createStore`)                                                                                                                |
 | `@kidd-cli/core/project` | Git root resolution, path utilities (`findProjectRoot`, `isInSubmodule`, `getParentRepoRoot`, `resolvePath`, `resolveLocalPath`, `resolveGlobalPath`) |
-| `@kidd-cli/core/auth`    | Auth middleware, credential types, resolvers (`auth`)                                                                                                 |
+| `@kidd-cli/core/auth`    | Auth middleware, credential types, strategies (`auth`)                                                                                                 |
 | `@kidd-cli/core/http`    | Typed HTTP client middleware (`http`, `createHttpClient`)                                                                                             |
 
 ## Resources

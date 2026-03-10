@@ -278,11 +278,11 @@ if (error) {
 
 ### AuthError
 
-| AuthError `type`   | Description                               |
-| ------------------ | ----------------------------------------- |
-| `'no_credential'`  | No resolver produced a credential         |
-| `'save_failed'`    | Credential resolved but failed to persist |
-| `'remove_failed'`  | Failed to remove the credential file      |
+| AuthError `type`  | Description                               |
+| ----------------- | ----------------------------------------- |
+| `'no_credential'` | No resolver produced a credential         |
+| `'save_failed'`   | Credential resolved but failed to persist |
+| `'remove_failed'` | Failed to remove the credential file      |
 
 ## Requiring Authentication
 
@@ -328,10 +328,7 @@ Apply the middleware to the root `middleware` array to enforce authentication on
 cli({
   name: 'my-app',
   version: '1.0.0',
-  middleware: [
-    auth({ resolvers: [auth.env(), auth.token()] }),
-    requireAuth,
-  ],
+  middleware: [auth({ resolvers: [auth.env(), auth.token()] }), requireAuth],
   commands: `${import.meta.dirname}/commands`,
 })
 ```

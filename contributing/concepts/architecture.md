@@ -326,9 +326,135 @@ if (error) return [error, null]
 7. **Zod at boundaries** -- Runtime config, args, and external data validated with Zod schemas
 8. **Sensitive data redaction** -- Deep object redaction and regex pattern sanitization built into the context
 
+## Package Conventions
+
+All packages in this monorepo follow strict conventions to ensure consistency, type safety, and modern JavaScript practices.
+
+### Module System
+
+**ESM Only:**
+- All packages use `"type": "module"` in `package.json`
+- No CommonJS (`require`, `module.exports`)
+- All imports use ESM syntax (`import`/`export`)
+
+### Build Configuration
+
+**tsdown:**
+- All packages built with [tsdown](https://tsdown.dev)
+- Configuration: `dts: true`, `format: 'esm'`, `clean: true`, `outDir: 'dist'`
+- Generates `.js` files and `.d.ts` declaration files
+- Tree-shakeable by default
+
+### TypeScript Configuration
+
+**Strict Mode:**
+```json
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "isolatedDeclarations": true
+  }
+}
+```
+
+**Key Settings:**
+- `target: ES2022` — Modern JavaScript features (top-level await, class fields, etc.)
+- `module: ESNext` — Latest module syntax
+- `moduleResolution: bundler` — Optimized for bundlers (tsdown, vite, etc.)
+- `strict: true` — All strict checks enabled
+- **`isolatedDeclarations: true`** — **Critical:** Forces explicit return types on all exported functions
+
+### Test Structure
+
+**Vitest Workspace:**
+- Root `vitest.config.ts` defines workspace
+- Unit tests: Colocated in `src/**/*.test.ts` alongside source files
+- Integration tests: `test/integration/*.test.ts` at package root
+- Coverage thresholds defined per package
+
+**Example Structure:**
+```
+packages/core/
+├── src/
+│   ├── cli.ts
+│   ├── cli.test.ts        # Unit test (colocated)
+│   ├── command.ts
+│   └── command.test.ts    # Unit test (colocated)
+└── test/
+    └── integration/
+        └── cli.test.ts    # Integration test
+```
+
+### Immutability Requirement
+
+**All Public Properties `readonly`:**
+- All exported interfaces/types must have `readonly` modifiers
+- Deep immutability enforced with `DeepReadonly<T>` from type-fest
+- Prevents accidental mutation of shared objects
+
+**Example:**
+```typescript
+interface Config {
+  readonly apiUrl: string;
+  readonly timeout: number;
+  readonly headers: readonly string[];
+}
+```
+
+### Config Validation
+
+**Zod at Boundaries:**
+- All config files validated with Zod schemas
+- All CLI arguments validated with Zod
+- Runtime validation at system boundaries (file I/O, user input)
+
+### Explicit Return Types
+
+**Required by `isolatedDeclarations`:**
+- All exported functions **must** have explicit return types
+- TypeScript compiler will error without them
+- Ensures declaration files can be generated without full type inference
+
+**Example:**
+```typescript
+// ✅ Correct
+export const loadConfig = (path: string): Result<Config, ConfigError> => {
+  // ...
+};
+
+// ❌ Incorrect (compiler error with isolatedDeclarations)
+export const loadConfig = (path: string) => {
+  // ...
+};
+```
+
+### Package Naming
+
+**Convention:**
+- Scope: `@kidd-cli/`
+- Name: Lowercase, single word or hyphenated (e.g., `@kidd-cli/core`, `@kidd-cli/cli`)
+
+### Package Structure
+
+**Standard Layout:**
+```
+packages/{name}/
+├── src/                  # Source files (.ts)
+├── dist/                 # Build output (.js, .d.ts) [gitignored]
+├── test/                 # Integration tests
+├── package.json          # Package manifest
+├── tsconfig.json         # TypeScript config (extends root)
+├── tsdown.config.ts      # Build config (optional)
+└── README.md             # Package docs
+```
+
 ## References
 
 - [CLI](./cli.md)
+- [Tech Stack](./tech-stack.md)
 - [Lifecycle](../../docs/concepts/lifecycle.md)
 - [Coding Style](../standards/typescript/coding-style.md)
 - [Design Patterns](../standards/typescript/design-patterns.md)

@@ -102,4 +102,3 @@ async function readPackageJson(filePath: string): AsyncResult<PackageJson, Gener
     ]
   }
 }
-

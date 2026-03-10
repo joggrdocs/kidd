@@ -1,7 +1,7 @@
 import { resolve } from 'node:path'
 
 import { loadConfig } from '@kidd-cli/config/loader'
-import { attemptAsync, isPlainObject, isString } from '@kidd-cli/utils/fp'
+import { P, attemptAsync, isPlainObject, isString, match } from '@kidd-cli/utils/fp'
 import yargs from 'yargs'
 import type { z } from 'zod'
 
@@ -53,9 +53,9 @@ export async function cli<TSchema extends z.ZodType = z.ZodType>(
       program.demandCommand(1, 'You must specify a command.')
     }
 
-    const argv = await program.parseAsync()
+    const argv: Record<string, unknown> = await program.parseAsync()
 
-    applyCwd(argv as Record<string, unknown>)
+    applyCwd(argv)
 
     if (!resolved.ref) {
       return undefined
@@ -77,7 +77,7 @@ export async function cli<TSchema extends z.ZodType = z.ZodType>(
       commandPath: resolved.ref.commandPath,
       handler: resolved.ref.handler,
       middleware: resolved.ref.middleware,
-      rawArgs: argv as Record<string, unknown>,
+      rawArgs: argv,
     })
 
     return executeError
@@ -121,7 +121,7 @@ async function resolveCommands(
     return commands
   }
   if (isPlainObject(commands)) {
-    return commands as CommandMap
+    return commands
   }
   return resolveCommandsFromConfig()
 }
@@ -172,14 +172,11 @@ function applyCwd(argv: Record<string, unknown>): void {
  * @param logger - Logger with an error method for output.
  */
 function exitOnError(error: unknown, logger: { error(msg: string): void }): void {
-  if (isContextError(error)) {
-    logger.error(error.message)
-    process.exit(error.exitCode)
-  } else if (error instanceof Error) {
-    logger.error(error.message)
-    process.exit(DEFAULT_EXIT_CODE)
-  } else {
-    logger.error(String(error))
-    process.exit(DEFAULT_EXIT_CODE)
-  }
+  const info = match(error)
+    .when(isContextError, (e) => ({ exitCode: e.exitCode, message: e.message }))
+    .with(P.instanceOf(Error), (e) => ({ exitCode: DEFAULT_EXIT_CODE, message: e.message }))
+    .otherwise((e) => ({ exitCode: DEFAULT_EXIT_CODE, message: String(e) }))
+
+  logger.error(info.message)
+  process.exit(info.exitCode)
 }

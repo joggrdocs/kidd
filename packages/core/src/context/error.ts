@@ -52,8 +52,12 @@ export function createContextError(
   options?: { code?: string; exitCode?: number }
 ): ContextError {
   const data = createContextErrorData(message, options)
+  // Accepted exception: Error construction requires `new Error()` then property decoration.
+  // The `as` cast and Object.defineProperty mutations are the only way to produce a
+  // Tagged Error subtype without using a class.
   const error = new Error(data.message) as ContextError
   error.name = 'ContextError'
+  // Intentional mutation: decorating an Error object with immutable properties.
   Object.defineProperty(error, TAG, { enumerable: false, value: 'ContextError', writable: false })
   Object.defineProperty(error, 'code', { enumerable: true, value: data.code, writable: false })
   Object.defineProperty(error, 'exitCode', {

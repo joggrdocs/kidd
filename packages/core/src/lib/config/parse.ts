@@ -111,10 +111,9 @@ function parseJson(content: string, filePath: string): ConfigOperationResult<unk
  * @returns A ConfigOperationResult with the parsed data or a parse error.
  * @private
  */
-function parseJsoncContent(
-  content: string,
-  filePath: string
-): ConfigOperationResult<unknown> {
+function parseJsoncContent(content: string, filePath: string): ConfigOperationResult<unknown> {
+  // Intentional mutation: jsonc-parser API requires a mutable errors array.
+  // There is no immutable alternative — the parser populates it during parsing.
   const errors: ParseError[] = []
   const result = parseJsonc(content, errors, {
     allowEmptyContent: false,
@@ -140,10 +139,7 @@ function parseJsoncContent(
  * @returns A ConfigOperationResult with the parsed data or a parse error.
  * @private
  */
-function parseYamlContent(
-  content: string,
-  filePath: string
-): ConfigOperationResult<unknown> {
+function parseYamlContent(content: string, filePath: string): ConfigOperationResult<unknown> {
   const [error, result] = attempt(() => parseYaml(content))
   if (error) {
     return err(`Failed to parse YAML in ${filePath}: ${String(error)}`)

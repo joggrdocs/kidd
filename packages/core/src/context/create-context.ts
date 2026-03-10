@@ -56,6 +56,8 @@ export function createContext<TArgs extends AnyRecord, TConfig extends AnyRecord
     args: options.args as Context<TArgs, TConfig>['args'],
     config: options.config as Context<TArgs, TConfig>['config'],
     fail(message: string, failOptions?: { code?: string; exitCode?: number }): never {
+      // Accepted exception: ctx.fail() is typed `never` and caught by the CLI boundary.
+      // This is the framework's halt mechanism — the runner catches the thrown ContextError.
       throw createContextError(message, failOptions)
     },
     logger: ctxLogger,

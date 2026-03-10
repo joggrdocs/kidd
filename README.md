@@ -6,9 +6,7 @@
   <a href="https://www.npmjs.com/package/@kidd-cli/core"><img src="https://img.shields.io/npm/v/@kidd-cli/core" alt="npm version" /></a>
   <a href="https://github.com/joggrdocs/kidd/blob/main/LICENSE"><img src="https://img.shields.io/github/license/joggrdocs/kidd" alt="License" /></a>
 
-  <br />
-
-  <a href="https://kidd.dev">Documentation</a> · <a href="https://github.com/joggrdocs/kidd/issues">Issues</a>
+  <a href="https://kidd.dev">📖 Documentation</a> &nbsp;&nbsp;&nbsp;·&nbsp;&nbsp;&nbsp; <a href="https://github.com/joggrdocs/kidd/issues">🐛 Issues</a>
 </div>
 
 ## Features

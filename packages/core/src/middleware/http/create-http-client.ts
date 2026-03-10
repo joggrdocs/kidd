@@ -241,6 +241,9 @@ async function executeRequest<TResponse>(
  * @returns The parsed body or null.
  */
 async function parseResponseBody<TResponse>(response: Response): Promise<TResponse> {
+  // Accepted exception: generic TResponse cannot be inferred from response.json().
+  // The `as` casts bridge the generic HTTP client boundary. Callers provide TResponse
+  // At the call site and accept the runtime type risk.
   const [error, data] = await attemptAsync(() => response.json() as Promise<TResponse>)
 
   if (error) {

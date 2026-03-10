@@ -27,13 +27,11 @@ export function findProjectRoot(startDir: string = process.cwd()): ProjectRoot |
     const nextVisited = new Set([...visited, currentDir])
 
     const gitPath = join(currentDir, '.git')
-    try {
-      const result = checkGitPath(gitPath, currentDir)
-      if (result) {
-        return result
-      }
-    } catch {
-      // Race condition: file may have been deleted between existsSync and statSync
+    // Race condition: file may have been deleted between existsSync and statSync
+    const [checkError, result] = attempt(() => checkGitPath(gitPath, currentDir))
+
+    if (!checkError && result) {
+      return result
     }
 
     const parent = dirname(currentDir)

@@ -30,7 +30,7 @@ const SPECIFIC_PATHS: readonly string[] = [
   'env.LINEAR_API_KEY',
 ]
 
-const redactPaths = pinoRedact({
+const REDACT_PATHS = pinoRedact({
   censor: resolveCensor,
   paths: [...SPECIFIC_PATHS],
   serialize: false,
@@ -64,7 +64,10 @@ function resolveCensor(value: unknown): unknown {
  * @returns A deep clone with sensitive values replaced.
  */
 export function redactObject<TObj extends object>(obj: TObj): TObj {
-  const pathRedacted = redactPaths(obj)
+  // Accepted exception: pinoRedact returns unknown and the recursive walk
+  // Requires Record<string, unknown>. TObj is preserved for the caller.
+  // eslint-disable-next-line new-cap -- REDACT_PATHS is a function from pinoRedact, not a constructor
+  const pathRedacted = REDACT_PATHS(obj)
   return redactSensitiveKeys(pathRedacted as Record<string, unknown>) as TObj
 }
 
@@ -101,8 +104,8 @@ function redactEntry(key: string, value: unknown): [string, unknown] {
     return [key, value.map(redactArrayItem)]
   }
 
-  if (value && typeof value === 'object') {
-    return [key, redactSensitiveKeys(value as Record<string, unknown>)]
+  if (isNonNullObject(value)) {
+    return [key, redactSensitiveKeys(value)]
   }
 
   return [key, value]
@@ -116,8 +119,19 @@ function redactEntry(key: string, value: unknown): [string, unknown] {
  * @returns The element with sensitive keys redacted, or the original primitive.
  */
 function redactArrayItem(item: unknown): unknown {
-  if (item && typeof item === 'object') {
-    return redactSensitiveKeys(item as Record<string, unknown>)
+  if (isNonNullObject(item)) {
+    return redactSensitiveKeys(item)
   }
   return item
+}
+
+/**
+ * Type guard that narrows an unknown value to a string-keyed record.
+ *
+ * @private
+ * @param value - The value to check.
+ * @returns True when the value is a non-null object.
+ */
+function isNonNullObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
 }

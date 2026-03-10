@@ -57,6 +57,28 @@ describe('resolveFromDeviceCode()', () => {
     vi.clearAllMocks()
   })
 
+  it('should return null when deviceAuthUrl uses HTTP', async () => {
+    const prompts = createMockPrompts()
+
+    const result = await resolveFromDeviceCode({
+      ...createDefaultOptions(prompts),
+      deviceAuthUrl: 'http://auth.example.com/device/code',
+    })
+
+    expect(result).toBeNull()
+  })
+
+  it('should return null when tokenUrl uses HTTP', async () => {
+    const prompts = createMockPrompts()
+
+    const result = await resolveFromDeviceCode({
+      ...createDefaultOptions(prompts),
+      tokenUrl: 'http://auth.example.com/token',
+    })
+
+    expect(result).toBeNull()
+  })
+
   it('should return null when device auth request fails', async () => {
     vi.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('network error'))
 

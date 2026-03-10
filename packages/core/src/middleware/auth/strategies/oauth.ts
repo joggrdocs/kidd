@@ -16,6 +16,7 @@ import {
   createDeferred,
   createTimeout,
   destroyServer,
+  isSecureAuthUrl,
   openBrowser,
   sendSuccessPage,
   startLocalServer,
@@ -44,6 +45,14 @@ export async function resolveFromOAuth(options: {
   readonly callbackPath: string
   readonly timeout: number
 }): Promise<AuthCredential | null> {
+  if (!isSecureAuthUrl(options.authUrl)) {
+    return null
+  }
+
+  if (!isSecureAuthUrl(options.tokenUrl)) {
+    return null
+  }
+
   const codeVerifier = generateCodeVerifier()
   const codeChallenge = deriveCodeChallenge(codeVerifier)
   const state = randomBytes(32).toString('hex')

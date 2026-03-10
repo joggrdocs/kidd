@@ -61,6 +61,7 @@ export type AsyncBundlerResult<T> = AsyncResult<T, Error>
 export interface BuildOutput {
   readonly outDir: string
   readonly entryFile: string
+  readonly version: string | undefined
 }
 
 /**

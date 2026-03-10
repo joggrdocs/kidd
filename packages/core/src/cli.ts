@@ -29,9 +29,17 @@ export async function cli<TSchema extends z.ZodType = z.ZodType>(
   const logger = createCliLogger()
 
   const [uncaughtError, result] = await attemptAsync(async () => {
+    const version = resolveVersion(options.version)
+
+    if (!version) {
+      return new Error(
+        'No CLI version available. Either pass `version` to cli() or build with the kidd bundler.'
+      )
+    }
+
     const program = yargs(process.argv.slice(ARGV_SLICE_START))
       .scriptName(options.name)
-      .version(options.version)
+      .version(version)
       .strict()
       .help()
       .option('cwd', {
@@ -65,7 +73,7 @@ export async function cli<TSchema extends z.ZodType = z.ZodType>(
       config: options.config,
       middleware: options.middleware,
       name: options.name,
-      version: options.version,
+      version,
     })
 
     if (runtimeError) {
@@ -98,6 +106,31 @@ export default cli
 // ---------------------------------------------------------------------------
 // Private
 // ---------------------------------------------------------------------------
+
+/**
+ * Resolve the CLI version from an explicit value or the compile-time constant.
+ *
+ * Resolution order:
+ * 1. Explicit version string passed to `cli()`
+ * 2. `__KIDD_VERSION__` injected by the kidd bundler at build time
+ *
+ * Returns `undefined` when neither source provides a version.
+ *
+ * @private
+ * @param explicit - The version string from `CliOptions.version`, if provided.
+ * @returns The resolved version string, or undefined if unavailable.
+ */
+function resolveVersion(explicit: string | undefined): string | undefined {
+  if (explicit) {
+    return explicit
+  }
+
+  if (typeof __KIDD_VERSION__ === 'string') {
+    return __KIDD_VERSION__
+  }
+
+  return undefined
+}
 
 /**
  * Resolve the commands option to a CommandMap.

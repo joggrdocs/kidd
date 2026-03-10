@@ -331,8 +331,12 @@ export interface CliOptions<TSchema extends z.ZodType = z.ZodType> {
   name: string
   /**
    * CLI version. Enables `--version` flag.
+   *
+   * When omitted, falls back to the compile-time `__KIDD_VERSION__` constant
+   * injected by the kidd bundler. An error is raised at startup if neither
+   * an explicit version nor `__KIDD_VERSION__` is available.
    */
-  version: string
+  version?: string
   /**
    * Human-readable description shown in help text.
    */

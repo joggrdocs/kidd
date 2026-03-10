@@ -56,7 +56,7 @@ export interface AuthFactory {
   readonly deviceCode: (options: DeviceCodeStrategyOptions) => DeviceCodeSourceConfig
   readonly token: (options?: TokenStrategyOptions) => TokenSourceConfig
   readonly apiKey: (options?: TokenStrategyOptions) => TokenSourceConfig
-  readonly custom: (resolver: CustomStrategyFn) => CustomSourceConfig
+  readonly custom: (fn: CustomStrategyFn) => CustomSourceConfig
   readonly headers: () => (ctx: Context) => Readonly<Record<string, string>>
   readonly require: (options?: AuthRequireOptions) => Middleware
 }
@@ -70,7 +70,7 @@ export interface AuthFactory {
  * 2. Dotenv — `.env` file (when configured)
  * 3. Env — `CLI_NAME_TOKEN`
  *
- * Interactive strategies (OAuth, prompt, custom) only run when the
+ * Interactive strategies (OAuth, device-code, token, custom) only run when the
  * command handler explicitly calls `ctx.auth.login()`.
  *
  * @param options - Auth middleware configuration.
@@ -191,11 +191,11 @@ function buildToken(options?: TokenStrategyOptions): TokenSourceConfig {
  * Build a custom strategy config from a strategy function.
  *
  * @private
- * @param resolver - The custom strategy function.
+ * @param fn - The custom strategy function.
  * @returns A CustomSourceConfig with `source: 'custom'`.
  */
-function buildCustom(resolver: CustomStrategyFn): CustomSourceConfig {
-  return { resolver, source: 'custom' as const }
+function buildCustom(fn: CustomStrategyFn): CustomSourceConfig {
+  return { resolver: fn, source: 'custom' as const }
 }
 
 // ---------------------------------------------------------------------------

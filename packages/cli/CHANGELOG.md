@@ -1,5 +1,19 @@
 # kidd-cli
 
+## 0.1.3
+
+### Patch Changes
+
+- f48ad38: Refactor CLI commands to use shared config helpers and validation utilities
+- Updated dependencies [f48ad38]
+- Updated dependencies [fd5bfcd]
+- Updated dependencies [f48ad38]
+- Updated dependencies [f48ad38]
+  - @kidd-cli/core@0.2.0
+  - @kidd-cli/utils@0.1.2
+  - @kidd-cli/bundler@0.1.2
+  - @kidd-cli/config@0.1.2
+
 ## 0.1.2
 
 ### Patch Changes

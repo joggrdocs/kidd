@@ -8,12 +8,22 @@ vi.mock(import('node:child_process'), () => ({
   execFile: vi.fn().mockReturnValue({ on: vi.fn() }),
 }))
 
+vi.mock(import('node:os'), async (importOriginal) => {
+  const original = await importOriginal()
+  return {
+    ...original,
+    platform: vi.fn().mockReturnValue(original.platform()),
+  }
+})
+
 import { execFile } from 'node:child_process'
+import { platform } from 'node:os'
 
 import {
   createDeferred,
   createTimeout,
   destroyServer,
+  isSecureAuthUrl,
   openBrowser,
   sendSuccessPage,
   startLocalServer,
@@ -136,6 +146,36 @@ describe('sendSuccessPage()', () => {
   })
 })
 
+describe('isSecureAuthUrl()', () => {
+  it('should accept HTTPS URLs', () => {
+    expect(isSecureAuthUrl('https://auth.example.com/authorize')).toBeTruthy()
+  })
+
+  it('should reject HTTP URLs on non-loopback hosts', () => {
+    expect(isSecureAuthUrl('http://auth.example.com/authorize')).toBeFalsy()
+  })
+
+  it('should accept HTTP on 127.0.0.1', () => {
+    expect(isSecureAuthUrl('http://127.0.0.1:8080/callback')).toBeTruthy()
+  })
+
+  it('should accept HTTP on localhost', () => {
+    expect(isSecureAuthUrl('http://localhost:3000/callback')).toBeTruthy()
+  })
+
+  it('should accept HTTP on [::1]', () => {
+    expect(isSecureAuthUrl('http://[::1]:8080/callback')).toBeTruthy()
+  })
+
+  it('should reject non-HTTP schemes', () => {
+    expect(isSecureAuthUrl('ftp://auth.example.com/authorize')).toBeFalsy()
+  })
+
+  it('should reject invalid URLs', () => {
+    expect(isSecureAuthUrl('not a url')).toBeFalsy()
+  })
+})
+
 describe('openBrowser()', () => {
   afterEach(() => {
     vi.clearAllMocks()
@@ -147,6 +187,17 @@ describe('openBrowser()', () => {
     expect(vi.mocked(execFile)).toHaveBeenCalled()
     const [, args] = vi.mocked(execFile).mock.calls[0]
     expect(args).toContain('https://example.com')
+  })
+
+  it('should escape cmd metacharacters in URLs on Windows', () => {
+    vi.mocked(platform).mockReturnValue('win32')
+
+    openBrowser('https://example.com/auth?a=1&b=2')
+
+    expect(vi.mocked(execFile)).toHaveBeenCalled()
+    const [command, args] = vi.mocked(execFile).mock.calls[0]
+    expect(command).toBe('cmd')
+    expect(args).toContain('https://example.com/auth?a=1^&b=2')
   })
 })
 

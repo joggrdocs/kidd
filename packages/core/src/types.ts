@@ -253,6 +253,13 @@ export interface CommandDef<
   commands?: CommandMap | Promise<CommandMap>
 
   /**
+   * Display order for subcommands.
+   * Subcommands listed appear first in the specified order; omitted subcommands
+   * fall back to alphabetical sort.
+   */
+  order?: readonly string[]
+
+  /**
    * The command handler.
    */
   handler?: HandlerFn<
@@ -275,6 +282,7 @@ export type Command<
     readonly args?: TArgsDef
     readonly middleware?: TMiddleware
     readonly commands?: CommandMap | Promise<CommandMap>
+    readonly order?: readonly string[]
     readonly handler?: HandlerFn<
       TArgsDef extends z.ZodObject<z.ZodRawShape>
         ? z.infer<TArgsDef>

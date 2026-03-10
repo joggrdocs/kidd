@@ -18,6 +18,7 @@ describe('createAutoloadPlugin', () => {
   describe('transform hook', () => {
     it('should return null for non-kidd dist files', () => {
       const plugin = createAutoloadPlugin({
+        commandOrder: [],
         commandsDir: '/project/commands',
         tagModulePath: '/project/tag.js',
       })
@@ -29,6 +30,7 @@ describe('createAutoloadPlugin', () => {
 
     it('should return null when no region start marker found', () => {
       const plugin = createAutoloadPlugin({
+        commandOrder: [],
         commandsDir: '/project/commands',
         tagModulePath: '/project/tag.js',
       })
@@ -41,6 +43,7 @@ describe('createAutoloadPlugin', () => {
 
     it('should return null when no region end marker found', () => {
       const plugin = createAutoloadPlugin({
+        commandOrder: [],
         commandsDir: '/project/commands',
         tagModulePath: '/project/tag.js',
       })
@@ -53,6 +56,7 @@ describe('createAutoloadPlugin', () => {
 
     it('should replace region with static import when markers found in kidd dist', () => {
       const plugin = createAutoloadPlugin({
+        commandOrder: [],
         commandsDir: '/project/commands',
         tagModulePath: '/project/tag.js',
       })
@@ -79,6 +83,7 @@ describe('createAutoloadPlugin', () => {
   describe('resolveId hook', () => {
     it('should resolve virtual module ID to prefixed ID', () => {
       const plugin = createAutoloadPlugin({
+        commandOrder: [],
         commandsDir: '/project/commands',
         tagModulePath: '/project/tag.js',
       })
@@ -90,6 +95,7 @@ describe('createAutoloadPlugin', () => {
 
     it('should return null for non-virtual module IDs', () => {
       const plugin = createAutoloadPlugin({
+        commandOrder: [],
         commandsDir: '/project/commands',
         tagModulePath: '/project/tag.js',
       })
@@ -103,6 +109,7 @@ describe('createAutoloadPlugin', () => {
   describe('load hook', () => {
     it('should return null for non-virtual module IDs', async () => {
       const plugin = createAutoloadPlugin({
+        commandOrder: [],
         commandsDir: '/project/commands',
         tagModulePath: '/project/tag.js',
       })
@@ -118,6 +125,7 @@ describe('createAutoloadPlugin', () => {
       mockGenerateStaticAutoloader.mockReturnValueOnce('generated code')
 
       const plugin = createAutoloadPlugin({
+        commandOrder: [],
         commandsDir: '/project/commands',
         tagModulePath: '/project/tag.js',
       })
@@ -135,6 +143,7 @@ describe('createAutoloadPlugin', () => {
       mockGenerateStaticAutoloader.mockReturnValueOnce('generated code')
 
       const plugin = createAutoloadPlugin({
+        commandOrder: [],
         commandsDir: '/project/commands',
         tagModulePath: '/project/tag.js',
       })
@@ -146,6 +155,43 @@ describe('createAutoloadPlugin', () => {
         scan: scanResult,
         tagModulePath: '/project/tag.js',
       })
+    })
+
+    it('should throw when commandOrder contains invalid command names', async () => {
+      const scanResult = {
+        dirs: [{ dirs: [], files: [], name: 'deploy' }],
+        files: [{ filePath: '/project/commands/greet.ts', name: 'greet' }],
+      }
+      mockScanCommandsDir.mockResolvedValueOnce(scanResult)
+
+      const plugin = createAutoloadPlugin({
+        commandOrder: ['greet', 'nonexistent'],
+        commandsDir: '/project/commands',
+        tagModulePath: '/project/tag.js',
+      })
+
+      await expect(plugin.load('\0virtual:kidd-static-commands')).rejects.toThrow(
+        'Invalid commandOrder in kidd config: unknown command(s) "nonexistent"'
+      )
+    })
+
+    it('should not throw when commandOrder matches scanned names', async () => {
+      const scanResult = {
+        dirs: [{ dirs: [], files: [], name: 'deploy' }],
+        files: [{ filePath: '/project/commands/greet.ts', name: 'greet' }],
+      }
+      mockScanCommandsDir.mockResolvedValueOnce(scanResult)
+      mockGenerateStaticAutoloader.mockReturnValueOnce('generated code')
+
+      const plugin = createAutoloadPlugin({
+        commandOrder: ['deploy', 'greet'],
+        commandsDir: '/project/commands',
+        tagModulePath: '/project/tag.js',
+      })
+
+      const result = await plugin.load('\0virtual:kidd-static-commands')
+
+      expect(result).toBe('generated code')
     })
   })
 })

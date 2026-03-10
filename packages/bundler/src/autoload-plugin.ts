@@ -2,6 +2,7 @@ import type { Rolldown } from 'tsdown'
 
 import { generateStaticAutoloader } from './generate-autoloader.js'
 import { scanCommandsDir } from './scan-commands.js'
+import type { ScanResult } from './types.js'
 
 const VIRTUAL_MODULE_ID = 'virtual:kidd-static-commands'
 const RESOLVED_VIRTUAL_ID = `\0${VIRTUAL_MODULE_ID}`
@@ -13,6 +14,7 @@ const AUTOLOADER_REGION_END = '//#endregion'
  * Parameters for creating the autoload plugin.
  */
 interface CreateAutoloadPluginParams {
+  readonly commandOrder: readonly string[]
   readonly commandsDir: string
   readonly tagModulePath: string
 }
@@ -44,6 +46,10 @@ export function createAutoloadPlugin(params: CreateAutoloadPluginParams): Rolldo
       }
 
       const scan = await scanCommandsDir(params.commandsDir)
+
+      if (params.commandOrder.length > 0) {
+        validateCommandOrder(scan, params.commandOrder)
+      }
 
       return generateStaticAutoloader({
         scan,
@@ -79,6 +85,28 @@ export function createAutoloadPlugin(params: CreateAutoloadPluginParams): Rolldo
 }
 
 // ---------------------------------------------------------------------------
+
+/**
+ * Validate that every name in the commandOrder array matches a scanned command name.
+ *
+ * Throws an error to break the build when invalid names are found.
+ * Rolldown plugins signal build errors via throw.
+ *
+ * @private
+ * @param scan - The scanned command directory tree.
+ * @param order - The command order array to validate.
+ */
+function validateCommandOrder(scan: ScanResult, order: readonly string[]): void {
+  const scannedNames = new Set([...scan.files.map((f) => f.name), ...scan.dirs.map((d) => d.name)])
+  const invalid = order.filter((name) => !scannedNames.has(name))
+
+  if (invalid.length > 0) {
+    // Intentional throw: rolldown plugins signal build errors via throw.
+    throw new Error(
+      `Invalid commandOrder in kidd config: unknown command(s) ${invalid.map((n) => `"${n}"`).join(', ')}`
+    )
+  }
+}
 
 /**
  * Build the replacement autoloader region that delegates to the virtual module.

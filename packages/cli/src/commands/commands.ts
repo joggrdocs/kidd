@@ -40,7 +40,7 @@ const commandsCommand: KiddCommand = command({
     ctx.spinner.start('Scanning commands...')
 
     const commandMap = await autoload({ dir: commandsDir })
-    const tree = await buildTree(commandMap)
+    const tree = await buildTree(commandMap, config.commandOrder)
 
     ctx.spinner.stop('Commands')
 
@@ -81,17 +81,24 @@ async function resolveSubcommands(
 /**
  * Recursively build a sorted tree of entries from a CommandMap.
  *
+ * Commands listed in the order array appear first in the specified order;
+ * omitted commands fall back to alphabetical sort.
+ *
  * @private
  * @param commandMap - The map of command names to Command objects.
+ * @param order - Optional array of command names defining display order.
  * @returns A sorted array of TreeEntry nodes.
  */
-async function buildTree(commandMap: Record<string, KiddCommand>): Promise<readonly TreeEntry[]> {
-  const entries = Object.entries(commandMap).toSorted(([a], [b]) => a.localeCompare(b))
+async function buildTree(
+  commandMap: Record<string, KiddCommand>,
+  order?: readonly string[]
+): Promise<readonly TreeEntry[]> {
+  const entries = sortEntries(Object.entries(commandMap), order)
 
   return Promise.all(
     entries.map(async ([name, cmd]): Promise<TreeEntry> => {
       const subMap = await resolveSubcommands(cmd.commands)
-      const children = await buildTree(subMap)
+      const children = await buildTree(subMap, cmd.order)
 
       return {
         children,
@@ -100,6 +107,37 @@ async function buildTree(commandMap: Record<string, KiddCommand>): Promise<reado
       }
     })
   )
+}
+
+/**
+ * Sort command entries with ordered names first (in specified order),
+ * remaining names alphabetically.
+ *
+ * @private
+ * @param entries - The command entries to sort.
+ * @param order - Optional array of command names defining display order.
+ * @returns Sorted array of entries.
+ */
+function sortEntries(
+  entries: [string, KiddCommand][],
+  order?: readonly string[]
+): [string, KiddCommand][] {
+  if (!order || order.length === 0) {
+    return entries.toSorted(([a], [b]) => a.localeCompare(b))
+  }
+
+  const entryMap = new Map(entries)
+  const orderedSet = new Set(order)
+
+  const ordered = order
+    .filter((name) => entryMap.has(name))
+    .map((name): [string, KiddCommand] => [name, entryMap.get(name) as KiddCommand])
+
+  const remaining = entries
+    .filter(([name]) => !orderedSet.has(name))
+    .toSorted(([a], [b]) => a.localeCompare(b))
+
+  return [...ordered, ...remaining]
 }
 
 /**

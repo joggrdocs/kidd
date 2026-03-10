@@ -1,8 +1,13 @@
 import { runTestCli, setArgv, setupTestLifecycle } from '@test/core-utils.js'
 import { describe, expect, it, vi } from 'vitest'
+import yargs from 'yargs'
 
 import { command } from '@/command.js'
 import type { CommandMap } from '@/types.js'
+
+import type { ErrorRef } from './register.js'
+import { registerCommands } from './register.js'
+import type { ResolvedRef } from './types.js'
 
 const mockSpinnerInstance = vi.hoisted(() => ({
   message: vi.fn(),
@@ -111,6 +116,90 @@ describe('command registration and execution', () => {
 
     // Should not exit with error
     expect(getExitSpy()).not.toHaveBeenCalled()
+  })
+})
+
+describe('command ordering', () => {
+  it('should register commands in specified order', () => {
+    const commands: CommandMap = {
+      alpha: command({ description: 'Alpha' }),
+      beta: command({ description: 'Beta' }),
+      gamma: command({ description: 'Gamma' }),
+    }
+
+    const resolved: ResolvedRef = { ref: undefined }
+    const errorRef: ErrorRef = { error: undefined }
+    const instance = yargs([])
+
+    const registeredNames: string[] = []
+    const originalCommand = instance.command.bind(instance)
+    vi.spyOn(instance, 'command').mockImplementation((name: unknown, ...rest: unknown[]) => {
+      registeredNames.push(name as string)
+      return originalCommand(name as string, ...(rest as [string]))
+    })
+
+    registerCommands({
+      commands,
+      errorRef,
+      instance,
+      order: ['gamma', 'alpha'],
+      parentPath: [],
+      resolved,
+    })
+
+    expect(registeredNames).toEqual(['gamma', 'alpha', 'beta'])
+    expect(errorRef.error).toBeUndefined()
+  })
+
+  it('should set errorRef when order contains invalid names', () => {
+    const commands: CommandMap = {
+      alpha: command({ description: 'Alpha' }),
+      beta: command({ description: 'Beta' }),
+    }
+
+    const resolved: ResolvedRef = { ref: undefined }
+    const errorRef: ErrorRef = { error: undefined }
+    const instance = yargs([])
+
+    registerCommands({
+      commands,
+      errorRef,
+      instance,
+      order: ['alpha', 'missing'],
+      parentPath: [],
+      resolved,
+    })
+
+    expect(errorRef.error).toBeInstanceOf(Error)
+    expect(errorRef.error?.message).toContain('"missing"')
+  })
+
+  it('should handle subcommand ordering via cmd.order', () => {
+    const commands: CommandMap = {
+      deploy: command({
+        commands: {
+          preview: command({ description: 'Preview' }),
+          production: command({ description: 'Production' }),
+          staging: command({ description: 'Staging' }),
+        },
+        description: 'Deploy',
+        order: ['production', 'staging'],
+      }),
+    }
+
+    const resolved: ResolvedRef = { ref: undefined }
+    const errorRef: ErrorRef = { error: undefined }
+    const instance = yargs([])
+
+    registerCommands({
+      commands,
+      errorRef,
+      instance,
+      parentPath: [],
+      resolved,
+    })
+
+    expect(errorRef.error).toBeUndefined()
   })
 })
 

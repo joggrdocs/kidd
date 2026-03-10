@@ -48,6 +48,7 @@ const CompileOptionsSchema = z
 export const KiddConfigSchema: z.ZodType<KiddConfig> = z
   .object({
     build: BuildOptionsSchema.optional(),
+    commandOrder: z.array(z.string()).optional(),
     commands: z.string().optional(),
     compile: z.union([z.boolean(), CompileOptionsSchema]).optional(),
     entry: z.string().optional(),

@@ -82,4 +82,10 @@ export interface KiddConfig {
    * Extra file globs to include in the bundle.
    */
   include?: string[]
+  /**
+   * Display order for top-level commands.
+   * Commands listed appear first in the specified order; omitted commands
+   * fall back to alphabetical sort.
+   */
+  commandOrder?: readonly string[]
 }

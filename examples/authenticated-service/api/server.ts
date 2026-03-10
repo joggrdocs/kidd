@@ -7,6 +7,7 @@
  *
  * Start with: `pnpm api` or `npx tsx api/server.ts`
  */
+import { createHash } from 'node:crypto'
 import { createServer } from 'node:http'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 
@@ -52,6 +53,22 @@ const REPOS: Repo[] = [
 ]
 
 // ---------------------------------------------------------------------------
+// PKCE authorization code store
+// ---------------------------------------------------------------------------
+
+interface AuthCodeEntry {
+  readonly token: string
+  readonly codeChallenge: string
+  readonly redirectUri: string
+  readonly clientId: string
+  readonly createdAt: number
+}
+
+const AUTH_CODE_TTL_MS = 600_000
+
+const AUTH_CODES: Map<string, AuthCodeEntry> = new Map()
+
+// ---------------------------------------------------------------------------
 // Auth + routing
 // ---------------------------------------------------------------------------
 
@@ -84,6 +101,11 @@ function readBody(req: IncomingMessage): Promise<string> {
     req.on('data', (chunk: Buffer) => chunks.push(chunk))
     req.on('end', () => resolve(Buffer.concat(chunks).toString('utf-8')))
   })
+}
+
+function verifyPkce(codeVerifier: string, codeChallenge: string): boolean {
+  const hash = createHash('sha256').update(codeVerifier).digest('base64url')
+  return hash === codeChallenge
 }
 
 // ---------------------------------------------------------------------------
@@ -180,6 +202,159 @@ function handleAuthPage(res: ServerResponse, callbackUrl: string | null): void {
 }
 
 // ---------------------------------------------------------------------------
+// HTML escaping
+// ---------------------------------------------------------------------------
+
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
+// ---------------------------------------------------------------------------
+// PKCE OAuth endpoints
+// ---------------------------------------------------------------------------
+
+function handleAuthorizePage(
+  res: ServerResponse,
+  params: {
+    readonly clientId: string
+    readonly redirectUri: string
+    readonly codeChallenge: string
+    readonly state: string
+  }
+): void {
+  const safeClientId = escapeHtml(params.clientId)
+  const safeRedirectUri = escapeHtml(params.redirectUri)
+  const safeCodeChallenge = escapeHtml(params.codeChallenge)
+  const safeState = escapeHtml(params.state)
+
+  const html = [
+    '<!DOCTYPE html>',
+    '<html>',
+    '<head><title>Authorize</title><style>',
+    '  body { font-family: system-ui; max-width: 400px; margin: 80px auto; }',
+    '  button { padding: 10px 24px; font-size: 16px; cursor: pointer; }',
+    '  .user-list { margin: 20px 0; }',
+    '  .user-list button { display: block; margin: 8px 0; width: 100%; }',
+    '</style></head>',
+    '<body>',
+    '  <h1>Authorize Application</h1>',
+    `  <p><strong>${safeClientId}</strong> is requesting access.</p>`,
+    '  <p>Select a user to authorize as:</p>',
+    '  <div class="user-list">',
+    `    <button onclick="authorize('tok_alice_12345')">Login as Alice</button>`,
+    `    <button onclick="authorize('tok_bob_67890')">Login as Bob</button>`,
+    '  </div>',
+    '  <script>',
+    `    var authParams = ${JSON.stringify({ clientId: params.clientId, codeChallenge: params.codeChallenge, redirectUri: params.redirectUri, state: params.state })};`,
+    '    function authorize(token) {',
+    '      var code = crypto.randomUUID();',
+    '      fetch("/authorize/grant", {',
+    '        method: "POST",',
+    '        headers: { "Content-Type": "application/json" },',
+    '        body: JSON.stringify({',
+    '          code: code,',
+    '          token: token,',
+    '          codeChallenge: authParams.codeChallenge,',
+    '          redirectUri: authParams.redirectUri,',
+    '          clientId: authParams.clientId',
+    '        })',
+    '      }).then(function() {',
+    '        window.location.href = authParams.redirectUri + "?code=" + encodeURIComponent(code) + "&state=" + encodeURIComponent(authParams.state);',
+    '      });',
+    '    }',
+    '  </script>',
+    '</body>',
+    '</html>',
+  ].join('\n')
+
+  res.writeHead(200, { 'Content-Type': 'text/html', 'Access-Control-Allow-Origin': '*' })
+  res.end(html)
+}
+
+async function handleAuthorizeGrant(
+  req: IncomingMessage,
+  res: ServerResponse
+): Promise<void> {
+  const raw = await readBody(req)
+  try {
+    const body = JSON.parse(raw) as {
+      code?: string
+      token?: string
+      codeChallenge?: string
+      redirectUri?: string
+      clientId?: string
+    }
+
+    if (!body.code || !body.token || !body.codeChallenge || !body.redirectUri || !body.clientId) {
+      sendJson(res, 400, { error: 'Missing required fields' })
+      return
+    }
+
+    AUTH_CODES.set(body.code, {
+      token: body.token,
+      codeChallenge: body.codeChallenge,
+      redirectUri: body.redirectUri,
+      clientId: body.clientId,
+      createdAt: Date.now(),
+    })
+
+    sendJson(res, 200, { ok: true })
+  } catch {
+    sendJson(res, 400, { error: 'Invalid request' })
+  }
+}
+
+async function handleToken(req: IncomingMessage, res: ServerResponse): Promise<void> {
+  const raw = await readBody(req)
+  const params = new URLSearchParams(raw)
+  const grantType = params.get('grant_type')
+  const code = params.get('code')
+  const clientId = params.get('client_id')
+  const codeVerifier = params.get('code_verifier')
+  const redirectUri = params.get('redirect_uri')
+
+  if (grantType !== 'authorization_code') {
+    sendJson(res, 400, { error: 'unsupported_grant_type' })
+    return
+  }
+
+  if (code === null || clientId === null || codeVerifier === null || redirectUri === null) {
+    sendJson(res, 400, { error: 'invalid_request' })
+    return
+  }
+
+  const entry = AUTH_CODES.get(code)
+  if (entry === undefined) {
+    sendJson(res, 400, { error: 'invalid_grant' })
+    return
+  }
+
+  if (Date.now() - entry.createdAt > AUTH_CODE_TTL_MS) {
+    AUTH_CODES.delete(code)
+    sendJson(res, 400, { error: 'invalid_grant' })
+    return
+  }
+
+  if (entry.clientId !== clientId || entry.redirectUri !== redirectUri) {
+    sendJson(res, 400, { error: 'invalid_grant' })
+    return
+  }
+
+  if (!verifyPkce(codeVerifier, entry.codeChallenge)) {
+    sendJson(res, 400, { error: 'invalid_grant' })
+    return
+  }
+
+  AUTH_CODES.delete(code)
+  sendJson(res, 200, { access_token: entry.token, token_type: 'bearer' })
+}
+
+// ---------------------------------------------------------------------------
 // Server
 // ---------------------------------------------------------------------------
 
@@ -205,6 +380,27 @@ const server = createServer(async (req, res) => {
   if (pathname === '/auth') {
     const callbackUrl = url.searchParams.get('callback_url')
     handleAuthPage(res, callbackUrl)
+    return
+  }
+
+  // PKCE OAuth routes (public)
+  if (pathname === '/authorize' && method === 'GET') {
+    handleAuthorizePage(res, {
+      clientId: url.searchParams.get('client_id') ?? '',
+      codeChallenge: url.searchParams.get('code_challenge') ?? '',
+      redirectUri: url.searchParams.get('redirect_uri') ?? '',
+      state: url.searchParams.get('state') ?? '',
+    })
+    return
+  }
+
+  if (pathname === '/authorize/grant' && method === 'POST') {
+    await handleAuthorizeGrant(req, res)
+    return
+  }
+
+  if (pathname === '/token' && method === 'POST') {
+    await handleToken(req, res)
     return
   }
 
@@ -239,6 +435,9 @@ server.listen(PORT, () => {
   console.log('Public endpoints:')
   console.log(`  GET  http://localhost:${String(PORT)}/health`)
   console.log(`  GET  http://localhost:${String(PORT)}/auth`)
+  console.log(`  GET  http://localhost:${String(PORT)}/authorize`)
+  console.log(`  POST http://localhost:${String(PORT)}/authorize/grant`)
+  console.log(`  POST http://localhost:${String(PORT)}/token`)
   console.log('')
   console.log('Protected endpoints (require Bearer token):')
   console.log(`  GET  http://localhost:${String(PORT)}/user`)

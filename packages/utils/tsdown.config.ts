@@ -5,6 +5,7 @@ export default defineConfig({
   dts: true,
   entry: {
     fp: 'src/fp/index.ts',
+    fs: 'src/fs.ts',
     index: 'src/index.ts',
     json: 'src/json.ts',
     manifest: 'src/manifest.ts',

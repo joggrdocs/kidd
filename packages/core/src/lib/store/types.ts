@@ -44,4 +44,5 @@ export interface FileStore<TData> {
   loadRaw(filename: string, options?: LoadOptions): string | null
   getFilePath(filename: string, options?: LoadOptions): string | null
   save(filename: string, data: unknown, options?: SaveOptions): Result<string>
+  remove(filename: string, options?: SaveOptions): Result<string>
 }

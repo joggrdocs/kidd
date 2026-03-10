@@ -4,10 +4,11 @@ import { build, compile, resolveTargetLabel } from '@kidd-cli/bundler'
 import type { CompiledBinary } from '@kidd-cli/bundler'
 import type { CompileTarget, KiddConfig } from '@kidd-cli/config'
 import { loadConfig } from '@kidd-cli/config/loader'
-import type { LoadConfigResult } from '@kidd-cli/config/loader'
 import { command } from '@kidd-cli/core'
 import type { Command, Context } from '@kidd-cli/core'
 import { z } from 'zod'
+
+import { extractConfig } from '../lib/config-helpers.js'
 
 const args = z.object({
   compile: z.boolean().optional().describe('Compile to standalone binaries after bundling'),
@@ -30,12 +31,8 @@ const buildCommand: Command = command({
   handler: async (ctx: Context<BuildArgs>) => {
     const cwd = process.cwd()
 
-    const [configError, configResult] = await loadConfig({ cwd })
+    const [, configResult] = await loadConfig({ cwd })
     const config = extractConfig(configResult)
-
-    if (configError) {
-      // No config file found — all KiddConfig fields are optional, so defaults apply.
-    }
 
     ctx.spinner.start('Bundling with tsdown...')
 
@@ -88,21 +85,6 @@ const buildCommand: Command = command({
 export default buildCommand
 
 // ---------------------------------------------------------------------------
-
-/**
- * Extract a KiddConfig from a load result, falling back to empty defaults.
- *
- * @private
- * @param result - The result from loadConfig, or null when loading failed.
- * @returns The loaded config or an empty object (all KiddConfig fields are optional).
- */
-function extractConfig(result: LoadConfigResult | null): KiddConfig {
-  if (result) {
-    return result.config
-  }
-
-  return {}
-}
 
 /**
  * Determine whether compilation should run based on CLI flags and config.

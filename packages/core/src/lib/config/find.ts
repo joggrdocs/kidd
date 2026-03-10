@@ -1,7 +1,6 @@
-import { access } from 'node:fs/promises'
 import { join } from 'node:path'
 
-import { attemptAsync } from '@kidd-cli/utils/fp'
+import { fileExists } from '@kidd-cli/utils/fs'
 
 import { findProjectRoot } from '@/lib/project/index.js'
 
@@ -18,45 +17,6 @@ import { CONFIG_EXTENSIONS } from './constants.js'
  */
 export function getConfigFileNames(name: string): string[] {
   return CONFIG_EXTENSIONS.map((ext) => `.${name}${ext}`)
-}
-
-/**
- * Check whether a file exists at the given path.
- *
- * @param filePath - The absolute file path to check.
- * @returns True when the file exists and is accessible.
- */
-export async function fileExists(filePath: string): Promise<boolean> {
-  const [error] = await attemptAsync(() => access(filePath))
-  return !error
-}
-
-/**
- * Search a single directory for the first matching config file name.
- *
- * Checks each candidate file name in order and returns the path of the first
- * one that exists on disk.
- *
- * @param dir - The directory to search in.
- * @param fileNames - Candidate config file names to look for.
- * @returns The full path to the first matching config file, or null if none found.
- */
-export async function findConfigFile(
-  dir: string,
-  fileNames: readonly string[]
-): Promise<string | null> {
-  const results = await Promise.all(
-    fileNames.map(async (fileName) => {
-      const filePath = join(dir, fileName)
-      const exists = await fileExists(filePath)
-      if (exists) {
-        return filePath
-      }
-      return null
-    })
-  )
-  const found = results.find((result): result is string => result !== null)
-  return found ?? null
 }
 
 /**
@@ -100,4 +60,37 @@ export async function findConfig(options: {
   }
 
   return null
+}
+
+// ---------------------------------------------------------------------------
+// Private helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Search a single directory for the first matching config file name.
+ *
+ * Checks each candidate file name in order and returns the path of the first
+ * one that exists on disk.
+ *
+ * @param dir - The directory to search in.
+ * @param fileNames - Candidate config file names to look for.
+ * @returns The full path to the first matching config file, or null if none found.
+ * @private
+ */
+async function findConfigFile(
+  dir: string,
+  fileNames: readonly string[]
+): Promise<string | null> {
+  const results = await Promise.all(
+    fileNames.map(async (fileName) => {
+      const filePath = join(dir, fileName)
+      const exists = await fileExists(filePath)
+      if (exists) {
+        return filePath
+      }
+      return null
+    })
+  )
+  const found = results.find((result): result is string => result !== null)
+  return found ?? null
 }

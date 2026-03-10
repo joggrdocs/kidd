@@ -23,8 +23,13 @@ cli({
   middleware: [
     auth({
       resolvers: [
-        { source: 'oauth', authUrl: 'https://example.com/auth' },
-        { source: 'prompt', message: 'Enter your API token:' },
+        {
+          source: 'oauth',
+          clientId: 'my-client-id',
+          authUrl: 'https://example.com/authorize',
+          tokenUrl: 'https://example.com/token',
+        },
+        { source: 'token', message: 'Enter your API token:' },
       ],
     }),
   ],
@@ -36,7 +41,7 @@ The `resolvers` array defines which credential sources to try. Order matters -- 
 
 ### 2. Add a login command
 
-Create a command that calls `ctx.auth.authenticate()` to run the interactive resolvers and persist the credential.
+Create a command that calls `ctx.auth.login()` to run the interactive resolvers and persist the credential.
 
 ```ts
 import { command } from '@kidd-cli/core'
@@ -44,7 +49,7 @@ import { command } from '@kidd-cli/core'
 export default command({
   description: 'Authenticate with the service',
   handler: async (ctx) => {
-    const [error] = await ctx.auth.authenticate()
+    const [error] = await ctx.auth.login()
 
     if (error) {
       ctx.fail(error.message)
@@ -55,9 +60,34 @@ export default command({
 })
 ```
 
-### 3. Guard commands that require auth
+### 3. Add a logout command
 
-Check `ctx.auth.credential()` before making authenticated requests.
+Create a command that calls `ctx.auth.logout()` to remove the stored credential from disk.
+
+```ts
+import { command } from '@kidd-cli/core'
+
+export default command({
+  description: 'Log out of the service',
+  handler: async (ctx) => {
+    const [error] = await ctx.auth.logout()
+
+    if (error) {
+      ctx.fail(error.message)
+    }
+
+    ctx.logger.success('Logged out')
+  },
+})
+```
+
+### 4. Guard commands that require auth
+
+Commands that need a credential should reject unauthenticated requests early. There are two approaches: an inline check for one-off guards, and a reusable middleware for consistent enforcement across commands.
+
+#### Inline check
+
+Check `ctx.auth.authenticated()` at the top of the handler.
 
 ```ts
 import { command } from '@kidd-cli/core'
@@ -65,8 +95,8 @@ import { command } from '@kidd-cli/core'
 export default command({
   description: 'Display the authenticated user',
   handler: async (ctx) => {
-    if (!ctx.auth.credential()) {
-      ctx.fail('Not authenticated. Run `my-app login` first.')
+    if (!ctx.auth.authenticated()) {
+      return ctx.fail('Not authenticated. Run `my-app login` first.')
     }
 
     ctx.logger.info('Authenticated')
@@ -74,7 +104,70 @@ export default command({
 })
 ```
 
-### 4. Add the HTTP middleware
+#### Reusable middleware
+
+Write a middleware that checks for a credential and short-circuits before the handler runs. This keeps handlers focused on business logic.
+
+```ts
+import { middleware } from '@kidd-cli/core'
+
+const requireAuth = middleware((ctx, next) => {
+  if (!ctx.auth.authenticated()) {
+    return ctx.fail('Not authenticated. Run `my-app login` first.')
+  }
+
+  return next()
+})
+
+export default requireAuth
+```
+
+Apply it per-command via the `middleware` array:
+
+```ts
+import { command } from '@kidd-cli/core'
+import requireAuth from '../middleware/require-auth.js'
+
+export default command({
+  description: 'Display the authenticated user',
+  middleware: [requireAuth],
+  handler: async (ctx) => {
+    ctx.logger.info('Authenticated')
+  },
+})
+```
+
+Apply it globally by adding it to the root `middleware` array after `auth()`:
+
+```ts
+import { cli } from '@kidd-cli/core'
+import { auth } from '@kidd-cli/core/auth'
+import requireAuth from './middleware/require-auth.js'
+
+cli({
+  name: 'my-app',
+  version: '1.0.0',
+  middleware: [
+    auth({
+      resolvers: [
+        auth.oauth({
+          clientId: 'my-client-id',
+          authUrl: 'https://example.com/authorize',
+          tokenUrl: 'https://example.com/token',
+        }),
+      ],
+    }),
+    requireAuth,
+  ],
+  commands: `${import.meta.dirname}/commands`,
+})
+```
+
+When applied globally, every command (including `login`) must pass the check. Exclude the login command by applying `requireAuth` per-command instead of globally.
+
+> **Ordering:** `requireAuth` must come after `auth()` in the middleware array because it depends on `ctx.auth` being decorated.
+
+### 5. Add the HTTP middleware
 
 For authenticated API requests, register the `http()` middleware after `auth()`. It reads `ctx.auth.credential()` automatically and injects the correct HTTP headers.
 
@@ -97,8 +190,13 @@ cli({
   middleware: [
     auth({
       resolvers: [
-        { source: 'oauth', authUrl: 'https://example.com/auth' },
-        { source: 'prompt', message: 'Enter your API token:' },
+        {
+          source: 'oauth',
+          clientId: 'my-client-id',
+          authUrl: 'https://example.com/authorize',
+          tokenUrl: 'https://example.com/token',
+        },
+        { source: 'token', message: 'Enter your API token:' },
       ],
     }),
     http({
@@ -112,7 +210,7 @@ cli({
 
 The `namespace` option determines the context property name. With `namespace: 'api'`, the client is available as `ctx.api`.
 
-### 5. Make authenticated requests
+### 6. Make authenticated requests
 
 Use the typed HTTP client to make requests. Auth headers are injected automatically.
 
@@ -145,17 +243,17 @@ export default command({
       return
     }
 
-    ctx.output.table(
-      res.data.map((repo) => ({
-        Name: repo.name,
-        Private: repo.private ? 'yes' : 'no',
-      }))
-    )
+    const rows = res.data.map((repo) => ({
+      Name: repo.name,
+      Private: repo.private,
+    }))
+
+    ctx.output.table(rows)
   },
 })
 ```
 
-### 6. Support environment variables
+### 7. Support environment variables
 
 Add `env` or `dotenv` resolvers for non-interactive environments (CI, scripts).
 
@@ -164,13 +262,82 @@ auth({
   resolvers: [
     { source: 'env', tokenVar: 'MY_APP_TOKEN' },
     { source: 'dotenv' },
-    { source: 'oauth', authUrl: 'https://example.com/auth' },
-    { source: 'prompt' },
+    {
+      source: 'oauth',
+      clientId: 'my-client-id',
+      authUrl: 'https://example.com/authorize',
+      tokenUrl: 'https://example.com/token',
+    },
+    { source: 'token' },
   ],
 })
 ```
 
-Passive resolvers (`env`, `dotenv`, `file`) run automatically on middleware init. Interactive resolvers (`oauth`, `prompt`, `custom`) only run when `ctx.auth.authenticate()` is called.
+Passive resolvers (`env`, `dotenv`, `file`) run automatically on middleware init. Interactive resolvers (`oauth`, `device-code`, `token`, `custom`) only run when `ctx.auth.login()` is called.
+
+### 8. Use PKCE with Clerk as the Identity Provider
+
+Configure the OAuth resolver to use Clerk as a public OAuth application with PKCE:
+
+```ts
+auth({
+  resolvers: [
+    {
+      source: 'oauth',
+      clientId: '<clerk-oauth-app-id>',
+      authUrl: 'https://<clerk-domain>/oauth/authorize',
+      tokenUrl: 'https://<clerk-domain>/oauth/token',
+      scopes: ['openid', 'profile', 'email'],
+    },
+  ],
+})
+```
+
+### 9. Use the device code flow for headless environments
+
+For environments without a browser (SSH sessions, remote servers), use the device code flow:
+
+```ts
+auth({
+  resolvers: [
+    {
+      source: 'device-code',
+      clientId: 'my-client-id',
+      deviceAuthUrl: 'https://github.com/login/device/code',
+      tokenUrl: 'https://github.com/login/oauth/access_token',
+      scopes: ['repo', 'read:user'],
+    },
+  ],
+})
+```
+
+The CLI displays a URL and a user code. The user opens the URL in any browser (including on a different device), enters the code, and completes authorization.
+
+### 10. Combine multiple resolvers
+
+Chain resolvers to support multiple authentication strategies:
+
+```ts
+auth({
+  resolvers: [
+    { source: 'env', tokenVar: 'MY_APP_TOKEN' },
+    { source: 'file' },
+    {
+      source: 'oauth',
+      clientId: 'my-client-id',
+      authUrl: 'https://example.com/authorize',
+      tokenUrl: 'https://example.com/token',
+    },
+    {
+      source: 'device-code',
+      clientId: 'my-client-id',
+      deviceAuthUrl: 'https://example.com/device/code',
+      tokenUrl: 'https://example.com/token',
+    },
+    { source: 'token' },
+  ],
+})
+```
 
 ## Verification
 
@@ -184,17 +351,32 @@ cat ~/.my-app/auth.json
 # Use an authenticated command
 my-app repos
 
+# Logout
+my-app logout
+
 # Use an environment variable instead
 MY_APP_TOKEN=ghp_abc123 my-app repos
 ```
 
 ## Troubleshooting
 
-### OAuth callback never received
+### OAuth redirect not received
 
-**Issue:** The browser opens but the CLI hangs waiting for the callback.
+**Issue:** The browser opens but the CLI hangs waiting for the redirect.
 
-**Fix:** Ensure the auth server sends a POST request to the `callback_url` query parameter with a JSON body `{ "token": "<value>" }`. Query-string tokens are not accepted. Check that no firewall is blocking the local port.
+**Fix:** Ensure the OAuth provider is configured to redirect to `http://127.0.0.1:<port>/callback` with `code` and `state` query parameters. Verify the `clientId` is correct and the application is configured as a public client with PKCE support. Check that no firewall is blocking the local port.
+
+### Token exchange fails
+
+**Issue:** The redirect is received but no credential is returned.
+
+**Fix:** Verify the `tokenUrl` is correct and accepts `application/x-www-form-urlencoded` POST requests. Ensure the OAuth provider accepts the `code_verifier` parameter for PKCE validation.
+
+### Device code flow times out
+
+**Issue:** The CLI polls but never receives a token.
+
+**Fix:** Verify the `deviceAuthUrl` and `tokenUrl` are correct. Ensure the OAuth provider supports the Device Authorization Grant (RFC 8628). Clerk does not support this flow -- use the `oauth` resolver instead.
 
 ### Token not persisted after login
 
@@ -211,6 +393,9 @@ MY_APP_TOKEN=ghp_abc123 my-app repos
 ## Resources
 
 - [@clack/prompts](https://www.clack.cc)
+- [RFC 7636 -- PKCE](https://tools.ietf.org/html/rfc7636)
+- [RFC 8252 -- OAuth for Native Apps](https://tools.ietf.org/html/rfc8252)
+- [RFC 8628 -- Device Authorization Grant](https://tools.ietf.org/html/rfc8628)
 
 ## References
 

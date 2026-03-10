@@ -26,6 +26,7 @@
     "build": "tsdown",
     "typecheck": "tsgo --noEmit",
     "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "test:watch": "vitest"
   },
   "dependencies": {

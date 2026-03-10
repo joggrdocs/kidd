@@ -1,8 +1,9 @@
-import { access, readFile } from 'node:fs/promises'
+import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 
 import { attemptAsync, ok, toErrorMessage } from '@kidd-cli/utils/fp'
 import type { AsyncResult } from '@kidd-cli/utils/fp'
+import { fileExists } from '@kidd-cli/utils/fs'
 
 import type { GenerateError, ProjectInfo } from './types.js'
 
@@ -102,14 +103,3 @@ async function readPackageJson(filePath: string): AsyncResult<PackageJson, Gener
   }
 }
 
-/**
- * Check whether a path exists on disk.
- *
- * @param filePath - The path to check.
- * @returns True when the path is accessible, false otherwise.
- * @private
- */
-async function fileExists(filePath: string): Promise<boolean> {
-  const [err] = await attemptAsync(() => access(filePath))
-  return err === null
-}

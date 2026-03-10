@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 import { attempt, err, match, ok } from '@kidd-cli/utils/fp'
@@ -226,12 +226,55 @@ export function createStore<TData = unknown>(options: StoreOptions<TData>): File
     return ok(filePath)
   }
 
+  /**
+   * Remove a file from the store.
+   *
+   * Returns `ok(filePath)` when the file was deleted or did not exist
+   * (idempotent). Returns an error when the target directory cannot be
+   * resolved or the unlink fails.
+   *
+   * @private
+   * @param filename - The filename to remove.
+   * @param removeOptions - Options controlling the removal target.
+   * @returns A Result with the file path on success.
+   */
+  function remove(filename: string, removeOptions: SaveOptions = {}): Result<string> {
+    const { source: removeSource = 'global', startDir } = removeOptions
+
+    const dir = resolveSaveDir({
+      globalDir: getGlobalDir(),
+      localDir: getLocalDir(startDir),
+      source: removeSource,
+    })
+
+    if (dir === null) {
+      return err(new Error(`Cannot remove from "${removeSource}" — no local project directory found`))
+    }
+
+    const filePath = join(dir, filename)
+
+    if (!existsSync(filePath)) {
+      return ok(filePath)
+    }
+
+    const [removeError] = attempt(() => {
+      unlinkSync(filePath)
+    })
+
+    if (removeError) {
+      return err(removeError)
+    }
+
+    return ok(filePath)
+  }
+
   return {
     getFilePath,
     getGlobalDir,
     getLocalDir,
     load,
     loadRaw,
+    remove,
     save,
   }
 }

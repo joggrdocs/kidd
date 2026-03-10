@@ -9,9 +9,8 @@ import { z } from 'zod'
 
 import { renderTemplate } from '../lib/render.js'
 import type { RenderedFile } from '../lib/types.js'
+import { isKebabCase } from '../lib/validate.js'
 import { writeFiles } from '../lib/write.js'
-
-const KEBAB_CASE_CHARS_RE = /^[a-z][\da-z-]*$/
 
 const args = z.object({
   description: z.string().describe('Project description').optional(),
@@ -65,12 +64,6 @@ const initCommand: Command = command({
 
     ctx.spinner.stop('Project created!')
 
-    // If (args.verbose) {
-    //   Ctx.output.raw('')
-    //   Result.written.map((file) => ctx.output.raw(`  created ${file}`))
-    //   Result.skipped.map((file) => ctx.output.raw(`  skipped ${file} (already exists)`))
-    // }
-
     ctx.output.raw('')
     ctx.output.raw(`Next steps:`)
     ctx.output.raw(`  cd ${projectName}`)
@@ -83,26 +76,6 @@ export default initCommand
 // ---------------------------------------------------------------------------
 // Private helpers
 // ---------------------------------------------------------------------------
-
-/**
- * Check whether a string is valid kebab-case.
- *
- * @param value - The string to validate.
- * @returns True when the string is kebab-case.
- * @private
- */
-function isKebabCase(value: string): boolean {
-  if (!KEBAB_CASE_CHARS_RE.test(value)) {
-    return false
-  }
-  if (value.endsWith('-')) {
-    return false
-  }
-  if (value.includes('--')) {
-    return false
-  }
-  return true
-}
 
 /**
  * Resolve the project name from args or prompt.
@@ -177,7 +150,7 @@ async function resolvePackageManager(ctx: Context<InitArgs>): Promise<string> {
  * @private
  */
 async function resolveIncludeExample(ctx: Context<InitArgs>): Promise<boolean> {
-  if (ctx.args.example !== undefined && ctx.args.example !== null) {
+  if (ctx.args.example !== undefined) {
     return ctx.args.example
   }
   return ctx.prompts.confirm({

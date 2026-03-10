@@ -60,6 +60,66 @@ export type DeepReadonly<TType> = TType extends (...args: unknown[]) => unknown
       ? { readonly [Key in keyof TType]: DeepReadonly<TType[Key]> }
       : TType
 
+/**
+ * Detects the `any` type using the intersection trick.
+ * `0 extends 1 & T` is only true when T is `any`.
+ */
+export type IsAny<T> = 0 extends 1 & T ? true : false
+
+/**
+ * Converts a union `A | B | C` to an intersection `A & B & C`
+ * via the standard contravariant trick.
+ */
+export type UnionToIntersection<U> = (U extends unknown ? (x: U) => void : never) extends (
+  x: infer I
+) => void
+  ? I
+  : never
+
+/**
+ * Environment descriptor for typed middleware.
+ * Middleware declares the context variables it provides via the `Variables` property.
+ *
+ * @example
+ * ```ts
+ * middleware<{ Variables: { user: User } }>(async (ctx, next) => {
+ *   decorateContext(ctx, 'user', await fetchUser())
+ *   await next()
+ * })
+ * ```
+ */
+export interface MiddlewareEnv {
+  readonly Variables?: AnyRecord
+}
+
+/**
+ * Extracts the `Variables` from a {@link MiddlewareEnv}, guarding against `any`.
+ * Returns an empty object when `TEnv` is `any` or has no `Variables`.
+ */
+export type ExtractVariables<TEnv extends MiddlewareEnv> = IsAny<TEnv> extends true
+  ? {} // eslint-disable-line @typescript-eslint/ban-types -- empty intersection identity
+  : TEnv extends { readonly Variables: infer TVars extends AnyRecord }
+    ? TVars
+    : {} // eslint-disable-line @typescript-eslint/ban-types -- empty intersection identity
+
+/**
+ * Extracts the `TEnv` type parameter from a {@link Middleware} instance.
+ */
+export type MiddlewareEnvOf<T> = T extends Middleware<infer TEnv> ? TEnv : MiddlewareEnv
+
+/**
+ * Walks a readonly middleware tuple and intersects all `Variables` from each element.
+ * Produces the merged context variables type for a command handler.
+ *
+ * @example
+ * ```ts
+ * type Vars = InferVariables<[Middleware<{ Variables: { user: User } }>, Middleware<{ Variables: { org: Org } }>]>
+ * // { user: User } & { org: Org }
+ * ```
+ */
+export type InferVariables<TMiddleware extends readonly Middleware<MiddlewareEnv>[]> =
+  UnionToIntersection<ExtractVariables<MiddlewareEnvOf<TMiddleware[number]>>>
+
 // ---------------------------------------------------------------------------
 // Middleware
 // ---------------------------------------------------------------------------
@@ -71,18 +131,22 @@ export type NextFunction = () => Promise<void>
 
 /**
  * A middleware function receives ctx and next.
+ *
+ * The `_TEnv` generic is phantom — it carries the environment type through
+ * {@link Middleware} for type inference without affecting the runtime signature.
  */
-export type MiddlewareFn<TConfig extends AnyRecord = AnyRecord> = (
-  ctx: Context<AnyRecord, TConfig>,
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export type MiddlewareFn<_TEnv extends MiddlewareEnv = MiddlewareEnv> = (
+  ctx: Context,
   next: NextFunction
 ) => Promise<void> | void
 
 /**
  * A middleware object wrapping a MiddlewareFn. Returned by the middleware() factory.
  */
-export type Middleware<TConfig extends AnyRecord = AnyRecord> = Tagged<
+export type Middleware<TEnv extends MiddlewareEnv = MiddlewareEnv> = Tagged<
   {
-    readonly handler: MiddlewareFn<TConfig>
+    readonly handler: MiddlewareFn<TEnv>
   },
   'Middleware'
 >
@@ -144,18 +208,28 @@ export type InferArgs<TDef extends ArgsDef> =
 
 /**
  * Handler function for a command. Receives the fully typed context.
+ *
+ * @typeParam TArgs - Parsed args type.
+ * @typeParam TConfig - Config type.
+ * @typeParam TVars - Context variables contributed by typed middleware.
  */
 export type HandlerFn<
   TArgs extends AnyRecord = AnyRecord,
   TConfig extends AnyRecord = AnyRecord,
-> = (ctx: Context<TArgs, TConfig>) => Promise<void> | void
+  TVars = {}, // eslint-disable-line @typescript-eslint/ban-types -- empty intersection identity
+> = (ctx: Context<TArgs, TConfig> & Readonly<TVars>) => Promise<void> | void
 
 /**
  * Options passed to `command()`.
+ *
+ * @typeParam TArgsDef - Arg definitions type.
+ * @typeParam TConfig - Config type.
+ * @typeParam TMiddleware - Tuple of typed middleware, preserving per-element `TEnv`.
  */
 export interface CommandDef<
   TArgsDef extends ArgsDef = ArgsDef,
   TConfig extends AnyRecord = AnyRecord,
+  TMiddleware extends readonly Middleware<MiddlewareEnv>[] = readonly Middleware<MiddlewareEnv>[],
 > {
   /**
    * Human-readable description shown in help text.
@@ -170,7 +244,7 @@ export interface CommandDef<
   /**
    * Command-level middleware. Runs inside the root middleware chain, wrapping the handler.
    */
-  middleware?: Middleware[]
+  middleware?: TMiddleware
 
   /**
    * Nested subcommands — a static map or a promise from `autoload()`.
@@ -182,7 +256,8 @@ export interface CommandDef<
    */
   handler?: HandlerFn<
     TArgsDef extends z.ZodObject<z.ZodRawShape> ? z.infer<TArgsDef> : InferArgs<TArgsDef & ArgsDef>,
-    TConfig
+    TConfig,
+    InferVariables<TMiddleware>
   >
 }
 
@@ -192,17 +267,19 @@ export interface CommandDef<
 export type Command<
   TArgsDef extends ArgsDef = ArgsDef,
   TConfig extends AnyRecord = AnyRecord,
+  TMiddleware extends readonly Middleware<MiddlewareEnv>[] = readonly Middleware<MiddlewareEnv>[],
 > = Tagged<
   {
     readonly description?: string
     readonly args?: TArgsDef
-    readonly middleware?: Middleware[]
+    readonly middleware?: TMiddleware
     readonly commands?: CommandMap | Promise<CommandMap>
     readonly handler?: HandlerFn<
       TArgsDef extends z.ZodObject<z.ZodRawShape>
         ? z.infer<TArgsDef>
         : InferArgs<TArgsDef & ArgsDef>,
-      TConfig
+      TConfig,
+      InferVariables<TMiddleware>
     >
   },
   'Command'
@@ -287,13 +364,17 @@ export type CliFn = <TSchema extends z.ZodType = z.ZodType>(
 /**
  * Signature of the `command()` factory function.
  */
-export type CommandFn = <TArgsDef extends ArgsDef = ArgsDef, TConfig extends AnyRecord = AnyRecord>(
-  def: CommandDef<TArgsDef, TConfig>
+export type CommandFn = <
+  TArgsDef extends ArgsDef = ArgsDef,
+  TConfig extends AnyRecord = AnyRecord,
+  const TMiddleware extends readonly Middleware<MiddlewareEnv>[] = readonly Middleware<MiddlewareEnv>[],
+>(
+  def: CommandDef<TArgsDef, TConfig, TMiddleware>
 ) => Command
 
 /**
  * Signature of the `middleware()` factory function.
  */
-export type MiddlewareFnFactory = <TConfig extends AnyRecord = AnyRecord>(
-  handler: MiddlewareFn<TConfig>
-) => Middleware<TConfig>
+export type MiddlewareFnFactory = <TEnv extends MiddlewareEnv = MiddlewareEnv>(
+  handler: MiddlewareFn<TEnv>
+) => Middleware<TEnv>

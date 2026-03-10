@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { attempt, attemptAsync, err, ok } from '../fp/index.js'
+import { err, ok } from '../fp/index.js'
 import type { AsyncResult, Result } from '../fp/index.js'
 
 describe(ok, () => {
@@ -129,40 +129,3 @@ describe('AsyncResult type', () => {
   })
 })
 
-describe('attempt + Result', () => {
-  it('should return a success-compatible tuple on success', () => {
-    const [error, value] = attempt(() => 42)
-
-    expect(error).toBeNull()
-    expect(value).toBe(42)
-  })
-
-  it('should return a failure-compatible tuple on thrown error', () => {
-    const [error, value] = attempt((): number => {
-      // eslint-disable-next-line no-restricted-syntax
-      throw new Error('boom')
-    })
-
-    expect(error).toBeInstanceOf(Error)
-    expect(value).toBeNull()
-  })
-})
-
-describe('attemptAsync + Result', () => {
-  it('should return a success-compatible tuple on async success', async () => {
-    const [error, value] = await attemptAsync(async () => 'async ok')
-
-    expect(error).toBeNull()
-    expect(value).toBe('async ok')
-  })
-
-  it('should return a failure-compatible tuple on async rejection', async () => {
-    const [error, value] = await attemptAsync(async (): Promise<string> => {
-      // eslint-disable-next-line no-restricted-syntax
-      throw new Error('async boom')
-    })
-
-    expect(error).toBeInstanceOf(Error)
-    expect(value).toBeNull()
-  })
-})

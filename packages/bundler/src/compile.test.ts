@@ -29,7 +29,6 @@ describe('compile operation', () => {
     const [error, output] = await compile({ config: {}, cwd: '/project' })
 
     expect(error).toBeNull()
-    expect(output).not.toBeNull()
     expect(output).toMatchObject({
       binaries: expect.arrayContaining([
         expect.objectContaining({ target: 'darwin-arm64' }),

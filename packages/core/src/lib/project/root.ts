@@ -5,6 +5,7 @@ import { attempt } from '@kidd-cli/utils/fp'
 
 import type { ProjectRoot } from './types.js'
 
+const GITDIR_RE = /^gitdir:\s*(.+)$/
 const MIN_MODULES_PARTS = 2
 
 /**
@@ -72,7 +73,7 @@ export function getParentRepoRoot(startDir?: string): string | null {
   }
 
   const gitFilePath = join(projectRoot.path, '.git')
-  const gitFileContent = resolveGitDirFromFile(gitFilePath)
+  const gitFileContent = readGitFile(gitFilePath)
   if (gitFileContent === null) {
     return null
   }
@@ -85,16 +86,31 @@ export function getParentRepoRoot(startDir?: string): string | null {
 // ---------------------------------------------------------------------------
 
 /**
+ * Read and trim the contents of a git-related file.
+ *
+ * @param filePath - The absolute file path to read.
+ * @returns The trimmed file content, or null when the file cannot be read.
+ * @private
+ */
+function readGitFile(filePath: string): string | null {
+  const [error, content] = attempt(() => readFileSync(filePath, 'utf8'))
+  if (error || content === null) {
+    return null
+  }
+  return content.trim()
+}
+
+/**
  * Resolve a `.git` file reference to determine if this is a submodule.
  *
  * @private
  */
 function resolveGitFileSubmodule(gitPath: string, currentDir: string): ProjectRoot | null {
-  const [readError, gitFileContent] = attempt(() => readFileSync(gitPath, 'utf8').trim())
-  if (readError || gitFileContent === null) {
+  const gitFileContent = readGitFile(gitPath)
+  if (gitFileContent === null) {
     return { isSubmodule: false, path: currentDir }
   }
-  const gitDirMatch = gitFileContent.match(/^gitdir:\s*(.+)$/)
+  const gitDirMatch = gitFileContent.match(GITDIR_RE)
   if (gitDirMatch && gitDirMatch[1]) {
     const gitDir = resolve(currentDir, gitDirMatch[1])
     const isSubmodule = /[/\\]\.git[/\\]modules[/\\]/.test(gitDir)
@@ -126,19 +142,6 @@ function checkGitPath(gitPath: string, currentDir: string): ProjectRoot | null {
 }
 
 /**
- * Read a `.git` file and return its raw content.
- *
- * @private
- */
-function resolveGitDirFromFile(gitFilePath: string): string | null {
-  const [readError, gitFileContent] = attempt(() => readFileSync(gitFilePath, 'utf8').trim())
-  if (readError || gitFileContent === null) {
-    return null
-  }
-  return gitFileContent
-}
-
-/**
  * Extract the parent repository root from a resolved git modules path.
  *
  * @private
@@ -160,7 +163,7 @@ function resolveParentFromGitDir(resolvedGitDir: string): string | null {
  * @private
  */
 function resolveParentGitDir(projectRoot: ProjectRoot, gitFileContent: string): string | null {
-  const gitDirMatch = gitFileContent.match(/^gitdir:\s*(.+)$/)
+  const gitDirMatch = gitFileContent.match(GITDIR_RE)
   if (!gitDirMatch) {
     return null
   }

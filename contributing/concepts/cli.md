@@ -192,7 +192,7 @@ root middleware end
 - A middleware can short-circuit by not calling `next()`
 - Data flows between middleware and handlers via `ctx.store`
 
-See [Lifecycle](./lifecycle.md) for the full execution model.
+See [Lifecycle](../../docs/concepts/lifecycle.md) for the full execution model.
 
 ## Autoloading
 
@@ -272,6 +272,6 @@ See the [Adding a CLI Command](../guides/adding-a-cli-command.md) guide for a st
 ## References
 
 - [Architecture](./architecture.md)
-- [Lifecycle](./lifecycle.md)
+- [Lifecycle](../../docs/concepts/lifecycle.md)
 - [Errors](../standards/typescript/errors.md)
 - [Design Patterns](../standards/typescript/design-patterns.md)

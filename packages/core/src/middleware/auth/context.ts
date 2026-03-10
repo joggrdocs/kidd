@@ -2,7 +2,7 @@
  * Factory for the {@link AuthContext} object decorated onto `ctx.auth`.
  *
  * Closes over the middleware's resolver config, CLI name, prompts, and
- * a credential resolver function so that `authenticate()` can run
+ * a credential resolver function so that `login()` can run
  * interactive resolvers and persist the result.
  *
  * @module
@@ -14,9 +14,9 @@ import { ok } from '@kidd-cli/utils/fp'
 import type { Prompts } from '@/context/types.js'
 import { createStore } from '@/lib/store/create-store.js'
 
+import { runStrategyChain } from './chain.js'
 import { DEFAULT_AUTH_FILENAME } from './constants.js'
-import { resolveCredentials } from './resolve-credentials.js'
-import type { AuthContext, AuthCredential, LoginError, ResolverConfig } from './types.js'
+import type { AuthContext, AuthCredential, AuthError, ResolverConfig } from './types.js'
 
 /**
  * Options for {@link createAuthContext}.
@@ -33,8 +33,8 @@ export interface CreateAuthContextOptions {
  *
  * No credential data is stored on the returned object. `credential()`
  * resolves passively on every call, `authenticated()` checks existence,
- * and `authenticate()` runs the configured interactive resolvers, saves
- * the credential to the global file store, and returns a Result.
+ * `login()` runs the configured interactive resolvers, saves the
+ * credential to the global file store, and `logout()` removes it.
  *
  * @param options - Factory options.
  * @returns An AuthContext instance.
@@ -66,13 +66,15 @@ export function createAuthContext(options: CreateAuthContextOptions): AuthContex
    * Run configured resolvers interactively and persist the credential.
    *
    * @private
-   * @returns A Result with the credential on success or a LoginError on failure.
+   * @returns A Result with the credential on success or an AuthError on failure.
    */
-  async function authenticate(): AsyncResult<AuthCredential, LoginError> {
-    const resolved = await resolveCredentials({ cliName, prompts, resolvers })
+  // TODO: support targeted resolver selection, e.g. ctx.auth.login({ source: 'token' })
+  // to let callers skip to a specific resolver instead of walking the full chain.
+  async function login(): AsyncResult<AuthCredential, AuthError> {
+    const resolved = await runStrategyChain({ cliName, prompts, resolvers })
 
     if (resolved === null) {
-      return loginError({
+      return authError({
         message: 'No credential resolved from any source',
         type: 'no_credential',
       })
@@ -82,7 +84,7 @@ export function createAuthContext(options: CreateAuthContextOptions): AuthContex
     const [saveError] = store.save(DEFAULT_AUTH_FILENAME, resolved)
 
     if (saveError) {
-      return loginError({
+      return authError({
         message: `Failed to save credential: ${saveError.message}`,
         type: 'save_failed',
       })
@@ -91,7 +93,27 @@ export function createAuthContext(options: CreateAuthContextOptions): AuthContex
     return ok(resolved)
   }
 
-  return { authenticate, authenticated, credential }
+  /**
+   * Remove the stored credential from disk.
+   *
+   * @private
+   * @returns A Result with the removed file path on success or an AuthError on failure.
+   */
+  async function logout(): AsyncResult<string, AuthError> {
+    const store = createStore({ dirName: `.${cliName}` })
+    const [removeError, filePath] = store.remove(DEFAULT_AUTH_FILENAME)
+
+    if (removeError) {
+      return authError({
+        message: `Failed to remove credential: ${removeError.message}`,
+        type: 'remove_failed',
+      })
+    }
+
+    return ok(filePath)
+  }
+
+  return { authenticated, credential, login, logout }
 }
 
 // ---------------------------------------------------------------------------
@@ -99,12 +121,12 @@ export function createAuthContext(options: CreateAuthContextOptions): AuthContex
 // ---------------------------------------------------------------------------
 
 /**
- * Construct a failure Result tuple with a {@link LoginError}.
+ * Construct a failure Result tuple with an {@link AuthError}.
  *
  * @private
- * @param error - The login error.
- * @returns A Result tuple `[LoginError, null]`.
+ * @param error - The auth error.
+ * @returns A Result tuple `[AuthError, null]`.
  */
-function loginError(error: LoginError): Result<never, LoginError> {
+function authError(error: AuthError): Result<never, AuthError> {
   return [error, null] as const
 }

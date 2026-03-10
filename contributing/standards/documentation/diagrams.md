@@ -31,6 +31,7 @@ Based on [Catppuccin Mocha](https://catppuccin.com/palette).
 
 | Name     | Hex       | Usage                                  |
 | -------- | --------- | -------------------------------------- |
+| Crust    | `#181825` | Subgraph fill (app boundary, groups)   |
 | Base     | `#1e1e2e` | Background, cluster backgrounds        |
 | Surface0 | `#313244` | Node fill (primary)                    |
 | Surface1 | `#45475a` | Node fill (secondary), cluster borders |
@@ -136,7 +137,7 @@ Apply with the `class` directive -- never use `classDef default`.
 
 - Max 10-15 nodes per diagram
 - Prefer LR (left-to-right) or TB for vertical flows
-- Use `classDef` + `class` for styling -- never inline `style` on individual nodes
+- Use `classDef` + `class` for styling nodes -- never inline `style` on individual nodes (subgraphs require inline `style` since `classDef` does not apply to them)
 - Use semantic class names (`external`, `core`, `agent`) -- never `classDef default`
 - Group related nodes with subgraphs
 - Add a legend when using both solid and dashed lines

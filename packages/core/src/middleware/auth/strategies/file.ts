@@ -1,7 +1,7 @@
 import { createStore } from '@/lib/store/create-store.js'
 
-import { authCredentialSchema } from './schema.js'
-import type { AuthCredential } from './types.js'
+import { authCredentialSchema } from '../schema.js'
+import type { AuthCredential } from '../types.js'
 
 /**
  * Resolve credentials from a JSON file on disk.

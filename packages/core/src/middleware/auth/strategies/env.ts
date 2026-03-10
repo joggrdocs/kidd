@@ -1,4 +1,5 @@
-import type { AuthCredential } from './types.js'
+import { createBearerCredential, isValidToken } from '../credential.js'
+import type { AuthCredential } from '../types.js'
 
 /**
  * Resolve a bearer credential from a process environment variable.
@@ -9,9 +10,9 @@ import type { AuthCredential } from './types.js'
 export function resolveFromEnv(options: { readonly tokenVar: string }): AuthCredential | null {
   const token = process.env[options.tokenVar]
 
-  if (!token) {
+  if (!isValidToken(token)) {
     return null
   }
 
-  return { token, type: 'bearer' }
+  return createBearerCredential(token)
 }

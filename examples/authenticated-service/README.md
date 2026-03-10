@@ -1,13 +1,13 @@
 # Authenticated Service Example
 
-Demonstrates the kidd `auth` and `http` middleware by building a CLI that makes authenticated requests to a faux API server. Includes a simple browser UI for visual testing.
+Demonstrates the kidd `auth` middleware with an integrated HTTP client by building a CLI that makes authenticated requests to a faux API server. Includes an OAuth PKCE authorization code flow, a browser UI for visual testing, and a fallback prompt resolver.
 
 ## Structure
 
-```
+```text
 authenticated-service/
-  api/          # Faux API server (Node.js HTTP, bearer token validation)
-  cli/          # kidd CLI with auth + http middleware
+  api/          # Faux API server (bearer token validation, PKCE OAuth)
+  cli/          # kidd CLI with auth middleware (includes HTTP client)
   ui/           # Browser dashboard for testing the API
 ```
 
@@ -35,25 +35,26 @@ This starts the faux API on port 3001 in the background and launches `kidd dev` 
 ### CLI commands
 
 ```bash
-# Set token via env var
-API_TOKEN=tok_alice_12345 pnpm dev -- me
+# Authenticate via OAuth PKCE flow (opens browser)
+pnpm dev -- login
 
-# Or let the CLI prompt you
+# Display authenticated user
 pnpm dev -- me
 
+# Display as JSON
+pnpm dev -- me --json
+
 # List repos
-API_TOKEN=tok_alice_12345 pnpm dev -- repos --json
+pnpm dev -- repos --json
 
 # Create a repo
-API_TOKEN=tok_alice_12345 pnpm dev -- create-repo --name my-project
+pnpm dev -- create-repo --name my-project
 ```
 
 The CLI tries resolvers in order:
 
-1. `env` — reads `API_TOKEN` from environment
-2. `dotenv` — reads from `.env` file
-3. `oauth` — opens browser to `http://localhost:3001/auth` for interactive login
-4. `prompt` — falls back to interactive terminal prompt
+1. `oauth` — opens browser to `http://localhost:3001/authorize` for PKCE authorization code flow
+2. `prompt` — falls back to interactive terminal prompt
 
 ### Run individually
 
@@ -64,13 +65,16 @@ pnpm dev   # CLI dev mode only (requires API to be running)
 
 ### API endpoints
 
-| Endpoint  | Method | Auth     | Description                |
-| --------- | ------ | -------- | -------------------------- |
-| `/health` | GET    | Public   | Health check               |
-| `/auth`   | GET    | Public   | Browser auth page          |
-| `/user`   | GET    | Required | Current authenticated user |
-| `/repos`  | GET    | Required | List user's repos          |
-| `/repos`  | POST   | Required | Create a new repo          |
+| Endpoint           | Method | Auth     | Description                         |
+| ------------------ | ------ | -------- | ----------------------------------- |
+| `/health`          | GET    | Public   | Health check                        |
+| `/auth`            | GET    | Public   | Browser auth page (UI demo)         |
+| `/authorize`       | GET    | Public   | PKCE authorization consent page     |
+| `/authorize/grant` | POST   | Public   | Store authorization code (internal) |
+| `/token`           | POST   | Public   | Token exchange (PKCE verification)  |
+| `/user`            | GET    | Required | Current authenticated user          |
+| `/repos`           | GET    | Required | List user's repos                   |
+| `/repos`           | POST   | Required | Create a new repo                   |
 
 Valid tokens:
 
@@ -83,29 +87,61 @@ Open `ui/index.html` in a browser. Select a token, connect, and use the buttons 
 
 ## Auth Middleware Configuration
 
+The CLI uses the `auth()` middleware with an integrated HTTP client and resolver builders:
+
 ```ts
-auth({
-  resolvers: [
-    { source: 'env', tokenVar: 'API_TOKEN' },
-    { source: 'dotenv' },
-    { source: 'oauth', authUrl: 'http://localhost:3001/auth', port: 0, timeout: 60_000 },
-    { source: 'prompt', message: 'Enter your API token:' },
+import { auth } from '@kidd-cli/core/auth'
+import type { HttpClient } from '@kidd-cli/core/http'
+
+declare module '@kidd-cli/core' {
+  interface Context {
+    readonly api: HttpClient
+  }
+}
+
+cli({
+  middleware: [
+    auth({
+      http: {
+        baseUrl: 'http://localhost:3001',
+        namespace: 'api',
+      },
+      resolvers: [
+        auth.oauth({
+          authUrl: 'http://localhost:3001/authorize',
+          clientId: 'demo-client',
+          port: 0,
+          timeout: 60_000,
+          tokenUrl: 'http://localhost:3001/token',
+        }),
+        auth.token({ message: 'Enter your API token (see README for valid tokens):' }),
+      ],
+    }),
   ],
 })
 ```
 
-The OAuth resolver starts a local HTTP server and opens the browser. The auth server must POST a JSON body `{ "token": "<value>" }` to the callback URL — query-string tokens are not accepted.
+### Resolvers
 
-## HTTP Middleware Configuration
+| Resolver        | Description                                                                 |
+| --------------- | --------------------------------------------------------------------------- |
+| `auth.oauth()`  | Opens browser, runs PKCE authorization code flow with local callback server |
+| `auth.token()` | Falls back to interactive terminal input                                    |
 
-```ts
-http({
-  namespace: 'api',
-  baseUrl: 'http://localhost:3001',
-})
-```
+### OAuth PKCE flow
 
-This decorates `ctx.api` with a typed HTTP client. Commands use it as:
+1. CLI generates a `code_verifier` and derives a `code_challenge` (SHA-256, base64url)
+2. CLI opens browser to `/authorize?response_type=code&client_id=...&code_challenge=...&state=...&redirect_uri=...`
+3. User selects a user on the consent page
+4. Browser generates an authorization code and POSTs it to `/authorize/grant`
+5. Browser redirects to the CLI's local callback server with `?code=...&state=...`
+6. CLI exchanges the code at `/token` with `grant_type=authorization_code`, `code_verifier`, etc.
+7. Server verifies PKCE (`base64url(sha256(code_verifier)) === stored code_challenge`)
+8. Server returns `{ access_token, token_type }` and the CLI stores the token
+
+### HTTP client
+
+The `auth({ http })` pattern creates an HTTP client that automatically injects the bearer token. Commands use it as:
 
 ```ts
 const res = await ctx.api.get<User>('/user')

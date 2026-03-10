@@ -254,7 +254,7 @@ middleware(async (ctx, next) => {
 })
 ```
 
-Middleware follows an onion model: root middleware (from `cli()`) wraps command middleware (from `command()`), which wraps the handler. Each middleware calls `next()` to pass control inward. Data flows between middleware and handlers via `ctx.store`. See [Lifecycle](./lifecycle.md) for the full execution model.
+Middleware follows an onion model: root middleware (from `cli()`) wraps command middleware (from `command()`), which wraps the handler. Each middleware calls `next()` to pass control inward. Data flows between middleware and handlers via `ctx.store`. See [Lifecycle](../../docs/concepts/lifecycle.md) for the full execution model.
 
 ## Autoloader
 
@@ -323,7 +323,7 @@ if (error) return [error, null]
 ## References
 
 - [CLI](./cli.md)
-- [Lifecycle](./lifecycle.md)
+- [Lifecycle](../../docs/concepts/lifecycle.md)
 - [Coding Style](../standards/typescript/coding-style.md)
 - [Design Patterns](../standards/typescript/design-patterns.md)
 - [Errors](../standards/typescript/errors.md)

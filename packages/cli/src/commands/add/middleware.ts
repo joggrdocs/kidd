@@ -6,9 +6,8 @@ import { z } from 'zod'
 
 import { detectProject } from '../../lib/detect.js'
 import { renderTemplate } from '../../lib/render.js'
+import { isKebabCase } from '../../lib/validate.js'
 import { writeFiles } from '../../lib/write.js'
-
-const KEBAB_CASE_CHARS_RE = /^[a-z][\da-z-]*$/
 
 const args = z.object({
   description: z.string().describe('Middleware description').optional(),
@@ -60,8 +59,14 @@ const addMiddlewareCommand: Command = command({
 
     ctx.spinner.stop('Middleware created!')
 
-    result.written.map((file) => ctx.output.raw(`  created ${file}`))
-    result.skipped.map((file) => ctx.output.raw(`  skipped ${file} (already exists)`))
+    const lines = [
+      ...result.written.map((file) => `  created ${file}`),
+      ...result.skipped.map((file) => `  skipped ${file} (already exists)`),
+    ]
+    const summary = lines.join('\n')
+    if (summary.length > 0) {
+      ctx.output.raw(summary)
+    }
   },
 })
 
@@ -70,26 +75,6 @@ export default addMiddlewareCommand
 // ---------------------------------------------------------------------------
 // Private helpers
 // ---------------------------------------------------------------------------
-
-/**
- * Check whether a string is valid kebab-case.
- *
- * @param value - The string to validate.
- * @returns True when the string is kebab-case.
- * @private
- */
-function isKebabCase(value: string): boolean {
-  if (!KEBAB_CASE_CHARS_RE.test(value)) {
-    return false
-  }
-  if (value.endsWith('-')) {
-    return false
-  }
-  if (value.includes('--')) {
-    return false
-  }
-  return true
-}
 
 /**
  * Resolve the middleware name from args or prompt.

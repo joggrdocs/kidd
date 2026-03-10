@@ -13,15 +13,32 @@ cli({
   version: '1.0.0',
   middleware: [
     auth({
-      resolvers: [{ source: 'env' }],
-      required: true,
+      resolvers: [auth.env()],
     }),
   ],
   commands: { deploy },
 })
 ```
 
-The resolved credential is stored in `ctx.store` under the `'auth'` key (configurable via `storeKey`). When `required` is `true`, the middleware fails with `AUTH_REQUIRED` if no resolver produces a credential.
+The middleware decorates `ctx.auth` with `credential()`, `authenticated()`, `login()`, and `logout()` methods.
+
+## Resolver Builders
+
+`auth` doubles as a namespace with builder methods for constructing resolver configs. Each builder returns a `ResolverConfig` with the `source` discriminator pre-filled. Raw config objects (`{ source: 'env' }`) still work.
+
+```ts
+auth({
+  resolvers: [
+    auth.env(),
+    auth.dotenv({ path: '.env.local' }),
+    auth.file(),
+    auth.oauth({ clientId: '...', authUrl: '...', tokenUrl: '...' }),
+    auth.deviceCode({ clientId: '...', deviceAuthUrl: '...', tokenUrl: '...' }),
+    auth.token({ message: 'Enter token:' }),
+    auth.custom(async () => fetchToken()),
+  ],
+})
+```
 
 ## Resolvers
 
@@ -33,7 +50,7 @@ Reads a bearer token from `process.env`. The variable name defaults to `<CLI_NAM
 
 ```ts
 auth({
-  resolvers: [{ source: 'env', tokenVar: 'GITHUB_TOKEN' }],
+  resolvers: [auth.env({ tokenVar: 'GITHUB_TOKEN' })],
 })
 ```
 
@@ -47,7 +64,7 @@ Reads a bearer token from a `.env` file without mutating `process.env`.
 
 ```ts
 auth({
-  resolvers: [{ source: 'dotenv', path: '.env.local' }],
+  resolvers: [auth.dotenv({ path: '.env.local' })],
 })
 ```
 
@@ -62,7 +79,7 @@ Reads a credential from a JSON file on disk using local-then-global resolution. 
 
 ```ts
 auth({
-  resolvers: [{ source: 'file', filename: 'credentials.json', dirName: '.my-app' }],
+  resolvers: [auth.file({ filename: 'credentials.json', dirName: '.my-app' })],
 })
 ```
 
@@ -75,35 +92,66 @@ The file must contain a valid credential object (see [Credential Types](#credent
 
 ### oauth
 
-Opens the user's browser for an OAuth flow. A local HTTP server listens for the callback token.
+OAuth 2.0 Authorization Code + PKCE (RFC 7636 + RFC 8252). Opens the browser, receives an authorization code via GET redirect, and exchanges it at the token endpoint with a PKCE code verifier.
 
 ```ts
 auth({
   resolvers: [
-    {
-      source: 'oauth',
+    auth.oauth({
+      clientId: 'my-client-id',
       authUrl: 'https://example.com/authorize',
-      port: 3000,
-      timeout: 60_000,
-    },
+      tokenUrl: 'https://example.com/token',
+      scopes: ['openid', 'profile'],
+    }),
   ],
 })
 ```
 
-| Option         | Type     | Default      | Description                       |
-| -------------- | -------- | ------------ | --------------------------------- |
-| `authUrl`      | `string` | _required_   | OAuth authorization URL           |
-| `port`         | `number` | `0` (random) | Local server port                 |
-| `callbackPath` | `string` | `/callback`  | Path the auth server redirects to |
-| `timeout`      | `number` | `120000`     | Timeout in milliseconds           |
+| Option         | Type                | Default      | Description                       |
+| -------------- | ------------------- | ------------ | --------------------------------- |
+| `clientId`     | `string`            | _required_   | OAuth client ID                   |
+| `authUrl`      | `string`            | _required_   | Authorization endpoint            |
+| `tokenUrl`     | `string`            | _required_   | Token endpoint                    |
+| `scopes`       | `readonly string[]` | `[]`         | OAuth scopes to request           |
+| `port`         | `number`            | `0` (random) | Local server port                 |
+| `callbackPath` | `string`            | `/callback`  | Path the auth server redirects to |
+| `timeout`      | `number`            | `120000`     | Timeout in milliseconds           |
 
-### prompt
+### device-code
 
-Interactively prompts the user for a token via `ctx.prompts.password()`. Best placed last in the resolver chain as a fallback.
+OAuth 2.0 Device Authorization Grant (RFC 8628). Displays a verification URL and user code, then polls the token endpoint until the user completes authorization.
 
 ```ts
 auth({
-  resolvers: [{ source: 'prompt', message: 'Enter your GitHub token' }],
+  resolvers: [
+    auth.deviceCode({
+      clientId: 'my-client-id',
+      deviceAuthUrl: 'https://example.com/device/code',
+      tokenUrl: 'https://example.com/token',
+    }),
+  ],
+})
+```
+
+| Option          | Type                | Default    | Description                                  |
+| --------------- | ------------------- | ---------- | -------------------------------------------- |
+| `clientId`      | `string`            | _required_ | OAuth client ID                              |
+| `deviceAuthUrl` | `string`            | _required_ | Device authorization endpoint                |
+| `tokenUrl`      | `string`            | _required_ | Token endpoint                               |
+| `scopes`        | `readonly string[]` | `[]`       | OAuth scopes to request                      |
+| `pollInterval`  | `number`            | `5000`     | Poll interval in milliseconds                |
+| `timeout`       | `number`            | `300000`   | Timeout in milliseconds                      |
+| `openBrowser`   | `boolean`           | `true`     | Open verification URL in browser on start    |
+
+Works with providers that implement RFC 8628, including GitHub, Azure AD, Google, Auth0, and Okta. Clerk does not currently expose a device authorization endpoint.
+
+### token
+
+Interactively prompts the user for a token via `ctx.prompts.password()`. Best placed last in the resolver chain as a fallback. Aliased as `auth.apiKey()`.
+
+```ts
+auth({
+  resolvers: [auth.token({ message: 'Enter your GitHub token' })],
 })
 ```
 
@@ -113,30 +161,56 @@ auth({
 
 ### custom
 
-Supplies a user-defined resolver function. The function returns a credential or `null`.
+Supplies a user-defined resolver function. The function is passed directly as the argument (not wrapped in an options object). Returns a credential or `null`.
 
 ```ts
 auth({
   resolvers: [
-    {
-      source: 'custom',
-      resolver: async () => {
-        const token = await fetchTokenFromVault()
-        if (!token) return null
-        return { type: 'bearer', token }
-      },
-    },
+    auth.custom(async () => {
+      const token = await fetchTokenFromVault()
+      if (!token) return null
+      return { type: 'bearer', token }
+    }),
   ],
 })
 ```
 
+## HTTP Integration
+
+When `http` is provided on the auth options, the middleware creates HTTP client(s) with automatic credential header injection alongside `ctx.auth`.
+
+```ts
+// Single HTTP client
+auth({
+  resolvers: [auth.env(), auth.oauth({ ... })],
+  http: {
+    baseUrl: 'https://api.example.com',
+    namespace: 'api',
+  },
+})
+
+// Multiple HTTP clients
+auth({
+  resolvers: [auth.env()],
+  http: [
+    { baseUrl: 'https://api.example.com', namespace: 'api' },
+    { baseUrl: 'https://admin.example.com', namespace: 'admin' },
+  ],
+})
+```
+
+| Option      | Type                     | Default    | Description                                |
+| ----------- | ------------------------ | ---------- | ------------------------------------------ |
+| `baseUrl`   | `string`                 | _required_ | Base URL for the HTTP client               |
+| `namespace` | `string`                 | _required_ | Property name on `ctx` (e.g. `'api'`)      |
+| `headers`   | `Record<string, string>` | `{}`       | Additional static headers for all requests |
+
 ## Configuration
 
-| Option      | Type               | Default    | Description                                     |
-| ----------- | ------------------ | ---------- | ----------------------------------------------- |
-| `resolvers` | `ResolverConfig[]` | _required_ | Ordered list of credential sources to try       |
-| `required`  | `boolean`          | `false`    | Fail if no credential is resolved               |
-| `storeKey`  | `string`           | `'auth'`   | Key used to store the credential in `ctx.store` |
+| Option      | Type               | Default    | Description                                            |
+| ----------- | ------------------ | ---------- | ------------------------------------------------------ |
+| `resolvers` | `ResolverConfig[]` | _required_ | Ordered list of credential sources to try              |
+| `http`      | `AuthHttpOptions`  | --         | Optional HTTP client(s) with credential auto-injection |
 
 ## Multiple Auth Sources
 
@@ -145,12 +219,11 @@ Chain resolvers to support multiple credential discovery strategies. The first m
 ```ts
 auth({
   resolvers: [
-    { source: 'env', tokenVar: 'GITHUB_TOKEN' },
-    { source: 'dotenv' },
-    { source: 'file' },
-    { source: 'prompt', message: 'Enter your GitHub token' },
+    auth.env({ tokenVar: 'GITHUB_TOKEN' }),
+    auth.dotenv(),
+    auth.file(),
+    auth.token({ message: 'Enter your GitHub token' }),
   ],
-  required: true,
 })
 ```
 
@@ -165,16 +238,16 @@ All resolvers produce one of four credential variants, discriminated by the `typ
 | `api-key` | `headerName`, `key`    | `<headerName>: <key>`                    |
 | `custom`  | `headers`              | Arbitrary headers from the record        |
 
-The `env`, `dotenv`, `prompt`, and `oauth` resolvers always produce `bearer` credentials. The `file` and `custom` resolvers can produce any variant.
+The `env`, `dotenv`, `token`, `oauth`, and `device-code` resolvers always produce `bearer` credentials. The `file` and `custom` resolvers can produce any variant.
 
 ## Module Augmentation
 
-Augment `KiddStore` to get typed access to the credential in `ctx.store`:
+Augment `Context` to get typed access to `ctx.auth`:
 
 ```ts
 declare module '@kidd-cli/core' {
-  interface KiddStore {
-    auth: AuthCredential
+  interface Context {
+    readonly auth: AuthContext
   }
 }
 ```

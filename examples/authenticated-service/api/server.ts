@@ -276,10 +276,7 @@ function handleAuthorizePage(
   res.end(html)
 }
 
-async function handleAuthorizeGrant(
-  req: IncomingMessage,
-  res: ServerResponse
-): Promise<void> {
+async function handleAuthorizeGrant(req: IncomingMessage, res: ServerResponse): Promise<void> {
   const raw = await readBody(req)
   try {
     const body = JSON.parse(raw) as {

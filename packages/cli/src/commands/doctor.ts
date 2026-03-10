@@ -188,10 +188,7 @@ function displayResults(
  * @param fixResults - The fix results to check for applied fixes.
  * @returns The formatted result line string.
  */
-function formatResultLine(
-  result: CheckResult,
-  fixResults: readonly FixResult[]
-): string {
+function formatResultLine(result: CheckResult, fixResults: readonly FixResult[]): string {
   const appliedFix = fixResults.find((f) => f.name === result.name && f.fixed)
 
   if (appliedFix) {
@@ -221,7 +218,8 @@ function formatDisplayStatus(status: CheckStatus | 'fix'): string {
     .with('pass', () => pc.green('pass'))
     .with('warn', () => pc.yellow('warn'))
     .with('fix', () => pc.blue('fix '))
-    .otherwise(() => pc.red('fail'))
+    .with('fail', () => pc.red('fail'))
+    .exhaustive()
 }
 
 /**

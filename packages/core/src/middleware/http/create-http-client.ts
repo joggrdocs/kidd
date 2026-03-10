@@ -31,28 +31,63 @@ export function createHttpClient(options: CreateHttpClientOptions): HttpClient {
 
   return {
     delete: <TResponse = unknown>(path: string, requestOptions?: RequestOptions) =>
-      executeRequest<TResponse>(baseUrl, 'DELETE', path, defaultHeaders, resolveHeaders, requestOptions),
+      executeRequest<TResponse>(
+        baseUrl,
+        'DELETE',
+        path,
+        defaultHeaders,
+        resolveHeaders,
+        requestOptions
+      ),
 
     get: <TResponse = unknown>(path: string, requestOptions?: RequestOptions) =>
-      executeRequest<TResponse>(baseUrl, 'GET', path, defaultHeaders, resolveHeaders, requestOptions),
+      executeRequest<TResponse>(
+        baseUrl,
+        'GET',
+        path,
+        defaultHeaders,
+        resolveHeaders,
+        requestOptions
+      ),
 
     patch: <TResponse = unknown, TBody = unknown>(
       path: string,
       requestOptions?: RequestOptions<TBody>
     ) =>
-      executeRequest<TResponse>(baseUrl, 'PATCH', path, defaultHeaders, resolveHeaders, requestOptions),
+      executeRequest<TResponse>(
+        baseUrl,
+        'PATCH',
+        path,
+        defaultHeaders,
+        resolveHeaders,
+        requestOptions
+      ),
 
     post: <TResponse = unknown, TBody = unknown>(
       path: string,
       requestOptions?: RequestOptions<TBody>
     ) =>
-      executeRequest<TResponse>(baseUrl, 'POST', path, defaultHeaders, resolveHeaders, requestOptions),
+      executeRequest<TResponse>(
+        baseUrl,
+        'POST',
+        path,
+        defaultHeaders,
+        resolveHeaders,
+        requestOptions
+      ),
 
     put: <TResponse = unknown, TBody = unknown>(
       path: string,
       requestOptions?: RequestOptions<TBody>
     ) =>
-      executeRequest<TResponse>(baseUrl, 'PUT', path, defaultHeaders, resolveHeaders, requestOptions),
+      executeRequest<TResponse>(
+        baseUrl,
+        'PUT',
+        path,
+        defaultHeaders,
+        resolveHeaders,
+        requestOptions
+      ),
   }
 }
 

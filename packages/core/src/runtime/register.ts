@@ -28,12 +28,14 @@ export function isCommand(value: unknown): value is Command {
  */
 export function registerCommands(options: RegisterCommandsOptions): void {
   const { instance, commands, resolved, parentPath } = options
-  const commandEntries = Object.entries(commands).filter(([, entry]) => isCommand(entry))
+  const commandEntries = Object.entries(commands).filter((pair): pair is [string, Command] =>
+    isCommand(pair[1])
+  )
 
   for (const [name, entry] of commandEntries) {
     registerResolvedCommand({
       builder: instance,
-      cmd: entry as Command,
+      cmd: entry,
       instance,
       name,
       parentPath,
@@ -85,12 +87,14 @@ function registerResolvedCommand(options: RegisterResolvedCommandOptions): void 
       registerCommandArgs(builder, cmd.args)
 
       if (cmd.commands) {
-        const subCommands = Object.entries(cmd.commands).filter(([, entry]) => isCommand(entry))
+        const subCommands = Object.entries(cmd.commands).filter((pair): pair is [string, Command] =>
+          isCommand(pair[1])
+        )
 
         for (const [subName, subEntry] of subCommands) {
           registerResolvedCommand({
             builder,
-            cmd: subEntry as Command,
+            cmd: subEntry,
             instance: builder,
             name: subName,
             parentPath: [...parentPath, name],
@@ -108,6 +112,9 @@ function registerResolvedCommand(options: RegisterResolvedCommandOptions): void 
       return builder
     },
     () => {
+      // Intentional mutation: yargs callback model requires mutable ref capture.
+      // The `as` casts are accepted exceptions — generic handler/middleware types
+      // Cannot be narrowed further inside the yargs callback boundary.
       resolved.ref = {
         args: cmd.args,
         commandPath: [...parentPath, name],

@@ -123,9 +123,9 @@ cli({
 
 ### Resolvers
 
-| Resolver        | Description                                                                 |
-| --------------- | --------------------------------------------------------------------------- |
-| `auth.oauth()`  | Opens browser, runs PKCE authorization code flow with local callback server |
+| Resolver       | Description                                                                 |
+| -------------- | --------------------------------------------------------------------------- |
+| `auth.oauth()` | Opens browser, runs PKCE authorization code flow with local callback server |
 | `auth.token()` | Falls back to interactive terminal input                                    |
 
 ### OAuth PKCE flow

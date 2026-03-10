@@ -205,10 +205,7 @@ function handleAuthorizationCodeGrant(
     return
   }
 
-  if (
-    options.expectedVerifier !== undefined &&
-    codeVerifier !== options.expectedVerifier
-  ) {
+  if (options.expectedVerifier !== undefined && codeVerifier !== options.expectedVerifier) {
     sendJsonResponse(res, 400, { error: 'invalid_grant' })
     return
   }

@@ -50,14 +50,14 @@ describe('auth()', () => {
   })
 
   it('should return a Middleware tagged object', () => {
-    const mw = auth({ resolvers: [{ source: 'env' }] })
+    const mw = auth({ strategies: [{ source: 'env' }] })
 
     expect(hasTag(mw, 'Middleware')).toBeTruthy()
   })
 
   it('should decorate ctx.auth with credential() that resolves from env', async () => {
     const ctx = createMockCtx({ envToken: 'my-secret' })
-    const mw = auth({ resolvers: [{ source: 'token' }] })
+    const mw = auth({ strategies: [{ source: 'token' }] })
     const next = vi.fn()
 
     await mw.handler(ctx as never, next)
@@ -73,7 +73,7 @@ describe('auth()', () => {
 
   it('should decorate ctx.auth with credential() returning null when nothing found', async () => {
     const ctx = createMockCtx()
-    const mw = auth({ resolvers: [{ source: 'token' }] })
+    const mw = auth({ strategies: [{ source: 'token' }] })
     const next = vi.fn()
 
     await mw.handler(ctx as never, next)
@@ -89,7 +89,7 @@ describe('auth()', () => {
 
   it('should provide a login function on ctx.auth', async () => {
     const ctx = createMockCtx()
-    const mw = auth({ resolvers: [{ source: 'token' }] })
+    const mw = auth({ strategies: [{ source: 'token' }] })
     const next = vi.fn()
 
     await mw.handler(ctx as never, next)
@@ -105,7 +105,7 @@ describe('auth()', () => {
 
   it('should provide an authenticated function on ctx.auth', async () => {
     const ctx = createMockCtx({ envToken: 'my-secret' })
-    const mw = auth({ resolvers: [{ source: 'token' }] })
+    const mw = auth({ strategies: [{ source: 'token' }] })
     const next = vi.fn()
 
     await mw.handler(ctx as never, next)
@@ -119,7 +119,7 @@ describe('auth()', () => {
 
   it('should call next after decorating', async () => {
     const ctx = createMockCtx()
-    const mw = auth({ resolvers: [{ source: 'env' }] })
+    const mw = auth({ strategies: [{ source: 'env' }] })
     const next = vi.fn()
 
     await mw.handler(ctx as never, next)
@@ -129,7 +129,7 @@ describe('auth()', () => {
 
   it('should never fail even when no credential found (no required behavior)', async () => {
     const ctx = createMockCtx()
-    const mw = auth({ resolvers: [{ source: 'env' }] })
+    const mw = auth({ strategies: [{ source: 'env' }] })
     const next = vi.fn()
 
     await mw.handler(ctx as never, next)
@@ -273,90 +273,5 @@ describe('auth.custom()', () => {
     const config = auth.custom(resolver)
 
     expect(config).toEqual({ resolver, source: 'custom' })
-  })
-})
-
-describe('auth() with http option', () => {
-  afterEach(() => {
-    vi.unstubAllEnvs()
-  })
-
-  it('should decorate ctx with an HTTP client at the specified namespace', async () => {
-    vi.stubEnv('TEST_CLI_TOKEN', 'http-test-token')
-
-    const ctx = createMockCtx()
-    const mw = auth({
-      http: { baseUrl: 'https://api.example.com', namespace: 'api' },
-      resolvers: [auth.env()],
-    })
-    const next = vi.fn()
-
-    await mw.handler(ctx as never, next)
-
-    const client = (ctx as Record<string, unknown>)['api'] as Record<string, unknown>
-
-    expect(client).toBeDefined()
-    expect(typeof client.get).toBe('function')
-    expect(typeof client.post).toBe('function')
-    expect(typeof client.put).toBe('function')
-    expect(typeof client.patch).toBe('function')
-    expect(typeof client.delete).toBe('function')
-  })
-
-  it('should decorate ctx with multiple HTTP clients from an array', async () => {
-    vi.stubEnv('TEST_CLI_TOKEN', 'multi-test-token')
-
-    const ctx = createMockCtx()
-    const mw = auth({
-      http: [
-        { baseUrl: 'https://api.example.com', namespace: 'api' },
-        { baseUrl: 'https://admin.example.com', namespace: 'admin' },
-      ],
-      resolvers: [auth.env()],
-    })
-    const next = vi.fn()
-
-    await mw.handler(ctx as never, next)
-
-    const apiClient = (ctx as Record<string, unknown>)['api'] as Record<string, unknown>
-    const adminClient = (ctx as Record<string, unknown>)['admin'] as Record<string, unknown>
-
-    expect(apiClient).toBeDefined()
-    expect(typeof apiClient.get).toBe('function')
-    expect(adminClient).toBeDefined()
-    expect(typeof adminClient.get).toBe('function')
-  })
-
-  it('should create HTTP client without auth headers when no credential found', async () => {
-    const ctx = createMockCtx()
-    const mw = auth({
-      http: { baseUrl: 'https://api.example.com', namespace: 'api' },
-      resolvers: [auth.env()],
-    })
-    const next = vi.fn()
-
-    await mw.handler(ctx as never, next)
-
-    const client = (ctx as Record<string, unknown>)['api']
-
-    expect(client).toBeDefined()
-    expect(next).toHaveBeenCalledOnce()
-  })
-
-  it('should still decorate ctx.auth alongside HTTP clients', async () => {
-    const ctx = createMockCtx()
-    const mw = auth({
-      http: { baseUrl: 'https://api.example.com', namespace: 'api' },
-      resolvers: [auth.env()],
-    })
-    const next = vi.fn()
-
-    await mw.handler(ctx as never, next)
-
-    const authCtx = (ctx as Record<string, unknown>)['auth'] as {
-      credential: () => unknown
-    }
-
-    expect(typeof authCtx.credential).toBe('function')
   })
 })

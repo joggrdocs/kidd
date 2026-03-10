@@ -96,11 +96,12 @@ export interface MiddlewareEnv {
  * Extracts the `Variables` from a {@link MiddlewareEnv}, guarding against `any`.
  * Returns an empty object when `TEnv` is `any` or has no `Variables`.
  */
-export type ExtractVariables<TEnv extends MiddlewareEnv> = IsAny<TEnv> extends true
-  ? {} // eslint-disable-line @typescript-eslint/ban-types -- empty intersection identity
-  : TEnv extends { readonly Variables: infer TVars extends AnyRecord }
-    ? TVars
-    : {} // eslint-disable-line @typescript-eslint/ban-types -- empty intersection identity
+export type ExtractVariables<TEnv extends MiddlewareEnv> =
+  IsAny<TEnv> extends true
+    ? {} // eslint-disable-line @typescript-eslint/ban-types -- empty intersection identity
+    : TEnv extends { readonly Variables: infer TVars extends AnyRecord }
+      ? TVars
+      : {} // eslint-disable-line @typescript-eslint/ban-types -- empty intersection identity
 
 /**
  * Extracts the `TEnv` type parameter from a {@link Middleware} instance.
@@ -367,7 +368,8 @@ export type CliFn = <TSchema extends z.ZodType = z.ZodType>(
 export type CommandFn = <
   TArgsDef extends ArgsDef = ArgsDef,
   TConfig extends AnyRecord = AnyRecord,
-  const TMiddleware extends readonly Middleware<MiddlewareEnv>[] = readonly Middleware<MiddlewareEnv>[],
+  const TMiddleware extends readonly Middleware<MiddlewareEnv>[] =
+    readonly Middleware<MiddlewareEnv>[],
 >(
   def: CommandDef<TArgsDef, TConfig, TMiddleware>
 ) => Command

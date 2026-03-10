@@ -140,19 +140,19 @@ describe('runStrategyChain()', () => {
     const result = await runStrategyChain({
       cliName: 'my-cli',
       prompts,
-      resolvers: [{ source: 'env' }, { source: 'token' }],
+      strategies: [{ source: 'env' }, { source: 'token' }],
     })
 
     expect(result).toEqual({ token: 'from-env', type: 'bearer' })
     expect(prompts.password).not.toHaveBeenCalled()
   })
 
-  it('should return null when all resolvers return null', async () => {
+  it('should return null when all strategies return null', async () => {
     const prompts = { password: vi.fn() } as unknown as Prompts
     const result = await runStrategyChain({
       cliName: 'my-cli',
       prompts,
-      resolvers: [{ source: 'env' }],
+      strategies: [{ source: 'env' }],
     })
 
     expect(result).toBeNull()
@@ -165,13 +165,13 @@ describe('runStrategyChain()', () => {
     const result = await runStrategyChain({
       cliName: 'my-cool-app',
       prompts,
-      resolvers: [{ source: 'env' }],
+      strategies: [{ source: 'env' }],
     })
 
     expect(result).toEqual({ token: 'derived-token', type: 'bearer' })
   })
 
-  it('should try resolvers in order', async () => {
+  it('should try strategies in order', async () => {
     const prompts = {
       password: vi.fn().mockResolvedValue('from-prompt'),
     } as unknown as Prompts
@@ -179,7 +179,7 @@ describe('runStrategyChain()', () => {
     const result = await runStrategyChain({
       cliName: 'my-cli',
       prompts,
-      resolvers: [{ source: 'env' }, { source: 'token' }],
+      strategies: [{ source: 'env' }, { source: 'token' }],
     })
 
     expect(result).toEqual({ token: 'from-prompt', type: 'bearer' })
@@ -191,7 +191,7 @@ describe('runStrategyChain()', () => {
     const result = await runStrategyChain({
       cliName: 'my-cli',
       prompts,
-      resolvers: [
+      strategies: [
         {
           resolver: () => ({ token: 'custom', type: 'bearer' as const }),
           source: 'custom' as const,
@@ -202,14 +202,14 @@ describe('runStrategyChain()', () => {
     expect(result).toEqual({ token: 'custom', type: 'bearer' })
   })
 
-  it('should dispatch to file resolver with default filename and dirName', async () => {
+  it('should dispatch to file strategy with default filename and dirName', async () => {
     vi.mocked(resolveFromFile).mockReturnValue({ token: 'from-file', type: 'bearer' })
 
     const prompts = { password: vi.fn() } as unknown as Prompts
     const result = await runStrategyChain({
       cliName: 'my-cli',
       prompts,
-      resolvers: [{ source: 'file' }],
+      strategies: [{ source: 'file' }],
     })
 
     expect(result).toEqual({ token: 'from-file', type: 'bearer' })
@@ -219,14 +219,14 @@ describe('runStrategyChain()', () => {
     })
   })
 
-  it('should dispatch to file resolver with custom filename and dirName', async () => {
+  it('should dispatch to file strategy with custom filename and dirName', async () => {
     vi.mocked(resolveFromFile).mockReturnValue({ token: 'from-custom-file', type: 'bearer' })
 
     const prompts = { password: vi.fn() } as unknown as Prompts
     const result = await runStrategyChain({
       cliName: 'my-cli',
       prompts,
-      resolvers: [{ dirName: '.my-custom-dir', filename: 'creds.json', source: 'file' }],
+      strategies: [{ dirName: '.my-custom-dir', filename: 'creds.json', source: 'file' }],
     })
 
     expect(result).toEqual({ token: 'from-custom-file', type: 'bearer' })
@@ -236,14 +236,14 @@ describe('runStrategyChain()', () => {
     })
   })
 
-  it('should dispatch to oauth resolver with PKCE fields', async () => {
+  it('should dispatch to oauth strategy with PKCE fields', async () => {
     vi.mocked(resolveFromOAuth).mockResolvedValue({ token: 'from-oauth', type: 'bearer' })
 
     const prompts = { password: vi.fn() } as unknown as Prompts
     const result = await runStrategyChain({
       cliName: 'my-cli',
       prompts,
-      resolvers: [
+      strategies: [
         {
           authUrl: 'https://auth.example.com/authorize',
           clientId: 'my-client',
@@ -265,7 +265,7 @@ describe('runStrategyChain()', () => {
     })
   })
 
-  it('should dispatch to device-code resolver', async () => {
+  it('should dispatch to device-code strategy', async () => {
     vi.mocked(resolveFromDeviceCode).mockResolvedValue({
       token: 'from-device',
       type: 'bearer',
@@ -275,7 +275,7 @@ describe('runStrategyChain()', () => {
     const result = await runStrategyChain({
       cliName: 'my-cli',
       prompts,
-      resolvers: [
+      strategies: [
         {
           clientId: 'my-client',
           deviceAuthUrl: 'https://auth.example.com/device/code',
@@ -303,7 +303,7 @@ describe('runStrategyChain()', () => {
     const result = await runStrategyChain({
       cliName: 'my-cli',
       prompts,
-      resolvers: [
+      strategies: [
         {
           resolver: () => null,
           source: 'custom' as const,
@@ -314,12 +314,12 @@ describe('runStrategyChain()', () => {
     expect(result).toBeNull()
   })
 
-  it('should handle empty resolvers array', async () => {
+  it('should handle empty strategies array', async () => {
     const prompts = { password: vi.fn() } as unknown as Prompts
     const result = await runStrategyChain({
       cliName: 'my-cli',
       prompts,
-      resolvers: [],
+      strategies: [],
     })
 
     expect(result).toBeNull()

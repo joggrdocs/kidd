@@ -1,3 +1,5 @@
+import { attemptAsync } from '@kidd-cli/utils/fp'
+
 import type { Prompts } from '@/context/types.js'
 
 import { createBearerCredential, isValidToken } from '../credential.js'
@@ -18,15 +20,17 @@ export async function resolveFromToken(options: {
   readonly message: string
   readonly prompts: Prompts
 }): Promise<AuthCredential | null> {
-  try {
-    const token = await options.prompts.password({ message: options.message })
+  const [promptError, token] = await attemptAsync(() =>
+    options.prompts.password({ message: options.message })
+  )
 
-    if (!isValidToken(token)) {
-      return null
-    }
-
-    return createBearerCredential(token)
-  } catch {
+  if (promptError) {
     return null
   }
+
+  if (!isValidToken(token)) {
+    return null
+  }
+
+  return createBearerCredential(token)
 }

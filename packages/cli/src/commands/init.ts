@@ -7,6 +7,12 @@ import { attempt } from '@kidd-cli/utils/fp'
 import { readManifest } from '@kidd-cli/utils/manifest'
 import { z } from 'zod'
 
+import {
+  TSDOWN_VERSION,
+  TYPESCRIPT_VERSION,
+  VITEST_VERSION,
+  ZOD_VERSION,
+} from '../generated/template-versions.js'
 import { renderTemplate } from '../lib/render.js'
 import type { RenderedFile } from '../lib/types.js'
 import { isKebabCase } from '../lib/validate.js'
@@ -44,6 +50,10 @@ const initCommand: Command = command({
         description: projectDescription,
         name: projectName,
         packageManager,
+        tsdownVersion: TSDOWN_VERSION,
+        typescriptVersion: TYPESCRIPT_VERSION,
+        vitestVersion: VITEST_VERSION,
+        zodVersion: ZOD_VERSION,
       },
     })
 

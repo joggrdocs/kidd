@@ -16,8 +16,8 @@ catalogs:
       specifier: ^1.45.0
       version: 1.45.0
     liquidjs:
-      specifier: ^10.24.0
-      version: 10.24.0
+      specifier: ^10.25.0
+      version: 10.25.0
     ts-pattern:
       specifier: ^5.9.0
       version: 5.9.0
@@ -200,7 +200,7 @@ importers:
         version: 11.3.3
       liquidjs:
         specifier: 'catalog:'
-        version: 10.24.0
+        version: 10.25.0
       picocolors:
         specifier: ^1.1.1
         version: 1.1.1
@@ -274,7 +274,7 @@ importers:
         version: 3.3.1
       liquidjs:
         specifier: 'catalog:'
-        version: 10.24.0
+        version: 10.25.0
       picocolors:
         specifier: ^1.1.1
         version: 1.1.1
@@ -2030,8 +2030,8 @@ packages:
     resolution: {integrity: sha512-+bT2uH4E5LGE7h/n3evcS/sQlJXCpIp6ym8OWJ5eV6+67Dsql/LaaT7qJBAt2rzfoa/5QBGBhxDix1dMt2kQKQ==}
     engines: {node: '>= 0.8.0'}
 
-  liquidjs@10.24.0:
-    resolution: {integrity: sha512-TAUNAdgwaAXjjcUFuYVJm9kOVH7zc0mTKxsG9t9Lu4qdWjB2BEblyVIYpjWcmJLMGgiYqnGNJjpNMHx0gp/46A==}
+  liquidjs@10.25.0:
+    resolution: {integrity: sha512-XpO7AiGULTG4xcTlwkcTI5JreFG7b6esLCLp+aUSh7YuQErJZEoUXre9u9rbdb0057pfWG4l0VursvLd5Q/eAw==}
     engines: {node: '>=16'}
     hasBin: true
 
@@ -4365,7 +4365,7 @@ snapshots:
       prelude-ls: 1.2.1
       type-check: 0.4.0
 
-  liquidjs@10.24.0:
+  liquidjs@10.25.0:
     dependencies:
       commander: 10.0.1
 

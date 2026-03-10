@@ -11,6 +11,8 @@
 import { createHash, randomBytes } from 'node:crypto'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 
+import { attemptAsync } from '@kidd-cli/utils/fp'
+
 import { createBearerCredential, postFormEncoded } from '../credential.js'
 import {
   createDeferred,
@@ -300,25 +302,25 @@ async function exchangeCodeForToken(options: {
     return null
   }
 
-  try {
-    const data: unknown = await response.json()
+  const [parseError, data] = await attemptAsync((): Promise<unknown> => response.json())
 
-    if (typeof data !== 'object' || data === null) {
-      return null
-    }
-
-    const record = data as Record<string, unknown>
-
-    if (typeof record.access_token !== 'string' || record.access_token === '') {
-      return null
-    }
-
-    if (typeof record.token_type === 'string' && record.token_type.toLowerCase() !== 'bearer') {
-      return null
-    }
-
-    return createBearerCredential(record.access_token)
-  } catch {
+  if (parseError) {
     return null
   }
+
+  if (typeof data !== 'object' || data === null) {
+    return null
+  }
+
+  const record = data as Record<string, unknown>
+
+  if (typeof record.access_token !== 'string' || record.access_token === '') {
+    return null
+  }
+
+  if (typeof record.token_type === 'string' && record.token_type.toLowerCase() !== 'bearer') {
+    return null
+  }
+
+  return createBearerCredential(record.access_token)
 }

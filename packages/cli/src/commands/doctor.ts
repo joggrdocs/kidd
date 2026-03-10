@@ -1,6 +1,7 @@
 import { loadConfig } from '@kidd-cli/config/loader'
 import { command } from '@kidd-cli/core'
 import type { Command, Context } from '@kidd-cli/core'
+import { match } from '@kidd-cli/utils/fp'
 import { readManifest } from '@kidd-cli/utils/manifest'
 import pc from 'picocolors'
 import { z } from 'zod'
@@ -216,19 +217,11 @@ function formatResultLine(
  * @returns A colored string representation of the status.
  */
 function formatDisplayStatus(status: CheckStatus | 'fix'): string {
-  if (status === 'pass') {
-    return pc.green('pass')
-  }
-
-  if (status === 'warn') {
-    return pc.yellow('warn')
-  }
-
-  if (status === 'fix') {
-    return pc.blue('fix ')
-  }
-
-  return pc.red('fail')
+  return match(status)
+    .with('pass', () => pc.green('pass'))
+    .with('warn', () => pc.yellow('warn'))
+    .with('fix', () => pc.blue('fix '))
+    .otherwise(() => pc.red('fail'))
 }
 
 /**

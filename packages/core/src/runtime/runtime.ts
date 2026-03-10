@@ -26,7 +26,8 @@ export async function createRuntime<TSchema extends z.ZodType>(
 ): AsyncResult<Runtime, Error> {
   const config = await resolveConfig(options.config, options.name)
 
-  const runner = createRunner((options.middleware ?? []) as Middleware[])
+  const middleware: Middleware[] = options.middleware ?? []
+  const runner = createRunner(middleware)
 
   const runtime: Runtime = {
     async execute(command): AsyncResult<void, Error> {
@@ -40,7 +41,7 @@ export async function createRuntime<TSchema extends z.ZodType>(
         args: validatedArgs,
         config,
         meta: {
-          command: command.commandPath as string[],
+          command: [...command.commandPath],
           name: options.name,
           version: options.version,
         },
@@ -48,6 +49,8 @@ export async function createRuntime<TSchema extends z.ZodType>(
 
       const finalHandler = command.handler ?? (async () => {})
 
+      // Accepted exception: generic context assembly requires type assertions.
+      // The generics are validated at the createContext call site.
       const [execError] = await attemptAsync(() =>
         runner.execute({
           ctx: ctx as Context,
@@ -96,5 +99,7 @@ async function resolveConfig<TSchema extends z.ZodType>(
   if (configError || !configResult) {
     return {}
   }
+  // Accepted exception: configResult.config is generic TOutput from zod schema.
+  // The cast bridges the generic boundary to the internal Record type.
   return configResult.config as Record<string, unknown>
 }

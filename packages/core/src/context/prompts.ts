@@ -54,6 +54,8 @@ export function createContextPrompts(): Prompts {
 function unwrapCancelSignal<Type>(result: Type | symbol): Type {
   if (clack.isCancel(result)) {
     clack.cancel('Operation cancelled.')
+    // Accepted exception: prompt cancellation must propagate as an unwind.
+    // The runner catches the thrown ContextError at the CLI boundary.
     throw createContextError('Prompt cancelled by user', {
       code: 'PROMPT_CANCELLED',
       exitCode: DEFAULT_EXIT_CODE,

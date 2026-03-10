@@ -64,11 +64,11 @@ Config values are loaded from a configuration file and accessible via `ctx.confi
 
 ## Middleware stack
 
-| Middleware  | Description                                                  |
-| ----------- | ------------------------------------------------------------ |
-| `http()`    | Standalone HTTP client with dynamic config-driven headers    |
-| `timing`    | Measures and logs command execution time                     |
-| `telemetry` | Tracks command invocations                                   |
+| Middleware  | Description                                               |
+| ----------- | --------------------------------------------------------- |
+| `http()`    | Standalone HTTP client with dynamic config-driven headers |
+| `timing`    | Measures and logs command execution time                  |
+| `telemetry` | Tracks command invocations                                |
 
 ### Standalone `http()` middleware
 

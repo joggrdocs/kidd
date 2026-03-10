@@ -40,7 +40,8 @@ export async function autoload(options?: AutoloadOptions): Promise<CommandMap> {
   const allResults = [...fileResults, ...dirResults]
   const validPairs = allResults.filter((pair): pair is [string, Command] => pair !== undefined)
 
-  return Object.fromEntries(validPairs) as CommandMap
+  const commandMap: CommandMap = Object.fromEntries(validPairs)
+  return commandMap
 }
 
 // ---------------------------------------------------------------------------
@@ -121,7 +122,8 @@ async function buildSubCommands(dir: string, entries: Dirent[]): Promise<Command
   const allResults = [...fileResults, ...dirResults]
   const validPairs = allResults.filter((pair): pair is [string, Command] => pair !== undefined)
 
-  return Object.fromEntries(validPairs) as CommandMap
+  const commandMap: CommandMap = Object.fromEntries(validPairs)
+  return commandMap
 }
 
 /**
@@ -170,7 +172,10 @@ function isCommandExport(mod: unknown): mod is { default: Command } {
   if (typeof mod !== 'object' || mod === null) {
     return false
   }
-  const def = (mod as Record<string, unknown>)['default']
+  if (!('default' in mod)) {
+    return false
+  }
+  const def: unknown = mod.default
   if (!isPlainObject(def)) {
     return false
   }

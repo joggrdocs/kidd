@@ -8,7 +8,7 @@
  * @module
  */
 
-import { match } from 'ts-pattern'
+import { attemptAsync, isPlainObject, match } from '@kidd-cli/utils/fp'
 
 import type { Prompts } from '@/context/types.js'
 
@@ -136,13 +136,13 @@ async function requestDeviceAuth(options: {
     return null
   }
 
-  try {
-    const data: unknown = await response.json()
+  const [parseError, data] = await attemptAsync((): Promise<unknown> => response.json())
 
-    return parseDeviceAuthResponse(data)
-  } catch {
+  if (parseError) {
     return null
   }
+
+  return parseDeviceAuthResponse(data)
 }
 
 /**
@@ -153,31 +153,29 @@ async function requestDeviceAuth(options: {
  * @returns The parsed response, or null if required fields are missing.
  */
 function parseDeviceAuthResponse(data: unknown): DeviceAuthResponse | null {
-  if (typeof data !== 'object' || data === null) {
+  if (!isPlainObject(data)) {
     return null
   }
 
-  const record = data as Record<string, unknown>
-
-  if (typeof record.device_code !== 'string' || record.device_code === '') {
+  if (typeof data.device_code !== 'string' || data.device_code === '') {
     return null
   }
 
-  if (typeof record.user_code !== 'string' || record.user_code === '') {
+  if (typeof data.user_code !== 'string' || data.user_code === '') {
     return null
   }
 
-  if (typeof record.verification_uri !== 'string' || record.verification_uri === '') {
+  if (typeof data.verification_uri !== 'string' || data.verification_uri === '') {
     return null
   }
 
-  const interval = resolveServerInterval(record.interval)
+  const interval = resolveServerInterval(data.interval)
 
   return {
-    deviceCode: record.device_code,
+    deviceCode: data.device_code,
     interval,
-    userCode: record.user_code,
-    verificationUri: record.verification_uri,
+    userCode: data.user_code,
+    verificationUri: data.verification_uri,
   }
 }
 
@@ -197,14 +195,13 @@ async function displayUserCode(
   verificationUri: string,
   userCode: string
 ): Promise<void> {
-  try {
-    await prompts.text({
+  // User cancellation is non-fatal — polling will handle timeout
+  await attemptAsync(() =>
+    prompts.text({
       defaultValue: '',
       message: `Open ${verificationUri} and enter code: ${userCode} (press Enter to continue)`,
     })
-  } catch {
-    // User cancelled -- continue anyway, polling will handle timeout
-  }
+  )
 }
 
 /**
@@ -346,34 +343,32 @@ async function requestToken(options: {
     return { status: 'error' }
   }
 
-  try {
-    const data: unknown = await response.json()
+  const [parseError, data] = await attemptAsync((): Promise<unknown> => response.json())
 
-    if (typeof data !== 'object' || data === null) {
-      return { status: 'error' }
-    }
-
-    const record = data as Record<string, unknown>
-
-    if (response.ok && typeof record.access_token === 'string' && record.access_token !== '') {
-      if (typeof record.token_type === 'string' && record.token_type.toLowerCase() !== 'bearer') {
-        return { status: 'error' }
-      }
-
-      return { credential: createBearerCredential(record.access_token), status: 'success' }
-    }
-
-    if (typeof record.error !== 'string') {
-      return { status: 'error' }
-    }
-
-    return match(record.error)
-      .with('authorization_pending', (): TokenRequestResult => ({ status: 'pending' }))
-      .with('slow_down', (): TokenRequestResult => ({ status: 'slow_down' }))
-      .with('expired_token', (): TokenRequestResult => ({ status: 'expired' }))
-      .with('access_denied', (): TokenRequestResult => ({ status: 'denied' }))
-      .otherwise((): TokenRequestResult => ({ status: 'error' }))
-  } catch {
+  if (parseError) {
     return { status: 'error' }
   }
+
+  if (!isPlainObject(data)) {
+    return { status: 'error' }
+  }
+
+  if (response.ok && typeof data.access_token === 'string' && data.access_token !== '') {
+    if (typeof data.token_type === 'string' && data.token_type.toLowerCase() !== 'bearer') {
+      return { status: 'error' }
+    }
+
+    return { credential: createBearerCredential(data.access_token), status: 'success' }
+  }
+
+  if (typeof data.error !== 'string') {
+    return { status: 'error' }
+  }
+
+  return match(data.error)
+    .with('authorization_pending', (): TokenRequestResult => ({ status: 'pending' }))
+    .with('slow_down', (): TokenRequestResult => ({ status: 'slow_down' }))
+    .with('expired_token', (): TokenRequestResult => ({ status: 'expired' }))
+    .with('access_denied', (): TokenRequestResult => ({ status: 'denied' }))
+    .otherwise((): TokenRequestResult => ({ status: 'error' }))
 }

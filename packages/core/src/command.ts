@@ -1,6 +1,12 @@
 import { withTag } from '@kidd-cli/utils/tag'
 
-import type { ArgsDef, CommandDef, Middleware, MiddlewareEnv, Command as CommandType } from './types.js'
+import type {
+  ArgsDef,
+  CommandDef,
+  Middleware,
+  MiddlewareEnv,
+  Command as CommandType,
+} from './types.js'
 
 /**
  * Define a CLI command with typed args, config, and handler.
@@ -15,7 +21,8 @@ import type { ArgsDef, CommandDef, Middleware, MiddlewareEnv, Command as Command
 export function command<
   TArgsDef extends ArgsDef = ArgsDef,
   TConfig extends Record<string, unknown> = Record<string, unknown>,
-  const TMiddleware extends readonly Middleware<MiddlewareEnv>[] = readonly Middleware<MiddlewareEnv>[],
+  const TMiddleware extends readonly Middleware<MiddlewareEnv>[] =
+    readonly Middleware<MiddlewareEnv>[],
 >(def: CommandDef<TArgsDef, TConfig, TMiddleware>): CommandType {
   return withTag({ ...def }, 'Command') as CommandType
 }

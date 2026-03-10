@@ -25,9 +25,7 @@ export function createContextPrompts(): Prompts {
       return unwrapCancelSignal(result)
     },
     async select<Type>(opts: Parameters<Prompts['select']>[0]): Promise<Type> {
-      const result = await clack.select<Type>(
-        opts as Parameters<typeof clack.select<Type>>[0]
-      )
+      const result = await clack.select<Type>(opts as Parameters<typeof clack.select<Type>>[0])
       return unwrapCancelSignal(result)
     },
     async text(opts): Promise<string> {
@@ -54,6 +52,8 @@ export function createContextPrompts(): Prompts {
 function unwrapCancelSignal<Type>(result: Type | symbol): Type {
   if (clack.isCancel(result)) {
     clack.cancel('Operation cancelled.')
+    // Accepted exception: prompt cancellation must propagate as an unwind.
+    // The runner catches the thrown ContextError at the CLI boundary.
     throw createContextError('Prompt cancelled by user', {
       code: 'PROMPT_CANCELLED',
       exitCode: DEFAULT_EXIT_CODE,

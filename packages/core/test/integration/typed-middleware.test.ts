@@ -1,10 +1,10 @@
 import { describe, expect, it, vi } from 'vitest'
 
 import { command } from '@/command.js'
-import { createContext } from '@/context/index.js'
 import { decorateContext } from '@/context/decorate.js'
-import { middleware } from '@/middleware.js'
+import { createContext } from '@/context/index.js'
 import type { Context } from '@/context/types.js'
+import { middleware } from '@/middleware.js'
 
 vi.mock(import('@clack/prompts'), async (importOriginal) => ({
   ...(await importOriginal()),

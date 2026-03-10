@@ -1,3 +1,5 @@
+import { attemptAsync } from '@kidd-cli/utils/fp'
+
 import type { BearerCredential } from './types.js'
 
 /**
@@ -49,14 +51,18 @@ export async function postFormEncoded(
   params: URLSearchParams,
   signal?: AbortSignal
 ): Promise<Response | null> {
-  try {
-    return await fetch(url, {
+  const [fetchError, response] = await attemptAsync(() =>
+    fetch(url, {
       body: params.toString(),
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       method: 'POST',
       signal,
     })
-  } catch {
+  )
+
+  if (fetchError) {
     return null
   }
+
+  return response
 }

@@ -247,7 +247,9 @@ export function createStore<TData = unknown>(options: StoreOptions<TData>): File
     })
 
     if (dir === null) {
-      return err(new Error(`Cannot remove from "${removeSource}" — no local project directory found`))
+      return err(
+        new Error(`Cannot remove from "${removeSource}" — no local project directory found`)
+      )
     }
 
     const filePath = join(dir, filename)

@@ -1,6 +1,7 @@
 import { loadConfig } from '@kidd-cli/config/loader'
 import { command } from '@kidd-cli/core'
 import type { Command, Context } from '@kidd-cli/core'
+import { match } from '@kidd-cli/utils/fp'
 import { readManifest } from '@kidd-cli/utils/manifest'
 import pc from 'picocolors'
 import { z } from 'zod'
@@ -187,10 +188,7 @@ function displayResults(
  * @param fixResults - The fix results to check for applied fixes.
  * @returns The formatted result line string.
  */
-function formatResultLine(
-  result: CheckResult,
-  fixResults: readonly FixResult[]
-): string {
+function formatResultLine(result: CheckResult, fixResults: readonly FixResult[]): string {
   const appliedFix = fixResults.find((f) => f.name === result.name && f.fixed)
 
   if (appliedFix) {
@@ -216,19 +214,12 @@ function formatResultLine(
  * @returns A colored string representation of the status.
  */
 function formatDisplayStatus(status: CheckStatus | 'fix'): string {
-  if (status === 'pass') {
-    return pc.green('pass')
-  }
-
-  if (status === 'warn') {
-    return pc.yellow('warn')
-  }
-
-  if (status === 'fix') {
-    return pc.blue('fix ')
-  }
-
-  return pc.red('fail')
+  return match(status)
+    .with('pass', () => pc.green('pass'))
+    .with('warn', () => pc.yellow('warn'))
+    .with('fix', () => pc.blue('fix '))
+    .with('fail', () => pc.red('fail'))
+    .exhaustive()
 }
 
 /**

@@ -241,9 +241,7 @@ function normalizeHttpOptions(
  * @param credential - The credential or null.
  * @returns A record of auth headers.
  */
-function credentialToHeaders(
-  credential: AuthCredential | null
-): Readonly<Record<string, string>> {
+function credentialToHeaders(credential: AuthCredential | null): Readonly<Record<string, string>> {
   if (credential === null) {
     return {}
   }

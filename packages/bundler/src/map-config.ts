@@ -39,7 +39,6 @@ export function mapToBuildConfig(config: ResolvedBundlerConfig): InlineConfig {
     platform: 'node',
     plugins: [
       createAutoloadPlugin({
-        commandOrder: config.commandOrder,
         commandsDir: config.commands,
         tagModulePath: resolveTagModulePath(),
       }),

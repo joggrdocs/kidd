@@ -71,7 +71,6 @@ export function resolveConfig(params: {
       target: buildOpts.target ?? DEFAULT_TARGET,
     },
     buildOutDir,
-    commandOrder: config.commandOrder ?? [],
     commands,
     compile: {
       name: compileOpts.name ?? DEFAULT_BINARY_NAME,

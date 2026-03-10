@@ -47,14 +47,14 @@ export async function cli<TSchema extends z.ZodType = z.ZodType>(
     const resolved: ResolvedRef = { ref: undefined }
     const errorRef: ErrorRef = { error: undefined }
 
-    const { commands, commandOrder } = await resolveCommands(options.commands)
+    const commands = await resolveCommands(options.commands)
 
     if (commands) {
       registerCommands({
         commands,
         errorRef,
         instance: program,
-        order: commandOrder,
+        order: options.commandOrder,
         parentPath: [],
         resolved,
       })
@@ -113,17 +113,7 @@ export default cli
 // ---------------------------------------------------------------------------
 
 /**
- * Resolved commands with optional ordering information.
- *
- * @private
- */
-interface ResolvedCommands {
-  readonly commands: CommandMap | undefined
-  readonly commandOrder?: readonly string[]
-}
-
-/**
- * Resolve the commands option to a CommandMap with optional ordering.
+ * Resolve the commands option to a CommandMap.
  *
  * Accepts a directory string (triggers autoload), a static CommandMap,
  * a Promise<CommandMap> (from autoload() called at the call site),
@@ -132,19 +122,19 @@ interface ResolvedCommands {
  *
  * @private
  * @param commands - The commands option from CliOptions.
- * @returns A ResolvedCommands with the CommandMap and optional order.
+ * @returns A CommandMap or undefined.
  */
 async function resolveCommands(
   commands: string | CommandMap | Promise<CommandMap> | undefined
-): Promise<ResolvedCommands> {
+): Promise<CommandMap | undefined> {
   if (isString(commands)) {
-    return { commands: await autoload({ dir: commands }) }
+    return autoload({ dir: commands })
   }
   if (commands instanceof Promise) {
-    return { commands: await commands }
+    return commands
   }
   if (isPlainObject(commands)) {
-    return { commands }
+    return commands
   }
   return resolveCommandsFromConfig()
 }
@@ -156,19 +146,18 @@ async function resolveCommands(
  * or does not specify a `commands` field.
  *
  * @private
- * @returns A ResolvedCommands with the autoloaded CommandMap and optional order from config.
+ * @returns A CommandMap autoloaded from the configured commands directory.
  */
-async function resolveCommandsFromConfig(): Promise<ResolvedCommands> {
+async function resolveCommandsFromConfig(): Promise<CommandMap> {
   const DEFAULT_COMMANDS_DIR = './commands'
 
   const [configError, configResult] = await loadConfig()
   if (configError || !configResult) {
-    return { commands: await autoload({ dir: DEFAULT_COMMANDS_DIR }) }
+    return autoload({ dir: DEFAULT_COMMANDS_DIR })
   }
 
-  const { commandOrder, commands: commandsDir } = configResult.config
-  const dir = commandsDir ?? DEFAULT_COMMANDS_DIR
-  return { commandOrder, commands: await autoload({ dir }) }
+  const dir = configResult.config.commands ?? DEFAULT_COMMANDS_DIR
+  return autoload({ dir })
 }
 
 /**

@@ -19,6 +19,7 @@ const configSchema = z.object({
 })
 
 cli({
+  commandOrder: ['deploy', 'status', 'ping', 'whoami'],
   config: {
     schema: configSchema,
   },

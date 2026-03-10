@@ -361,6 +361,12 @@ export interface CliOptions<TSchema extends z.ZodType = z.ZodType> {
    * `Promise<CommandMap>` for advanced use and testing.
    */
   commands?: string | CommandMap | Promise<CommandMap>
+  /**
+   * Display order for top-level commands.
+   * Commands listed appear first in the specified order; omitted commands
+   * fall back to alphabetical sort. Invalid names trigger a runtime error.
+   */
+  commandOrder?: readonly string[]
 }
 
 /**

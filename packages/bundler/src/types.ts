@@ -29,7 +29,6 @@ export interface ResolvedCompileOptions {
 export interface ResolvedBundlerConfig {
   readonly entry: string
   readonly commands: string
-  readonly commandOrder: readonly string[]
   readonly buildOutDir: string
   readonly compileOutDir: string
   readonly build: ResolvedBuildOptions

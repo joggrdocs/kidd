@@ -40,7 +40,7 @@ const commandsCommand: KiddCommand = command({
     ctx.spinner.start('Scanning commands...')
 
     const commandMap = await autoload({ dir: commandsDir })
-    const tree = await buildTree(commandMap, config.commandOrder)
+    const tree = await buildTree(commandMap)
 
     ctx.spinner.stop('Commands')
 

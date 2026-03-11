@@ -313,15 +313,11 @@ describe('commands command', () => {
     const mod = await import('./commands.js')
     await mod.default.handler!(ctx)
 
-    expect(warnSpy).toHaveBeenCalledWith(
-      expect.stringContaining('unknown command "missing"')
-    )
+    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('unknown command "missing"'))
 
-    const expected = [
-      '└── parent — Parent',
-      '    ├── alpha — Alpha',
-      '    └── beta — Beta',
-    ].join('\n')
+    const expected = ['└── parent — Parent', '    ├── alpha — Alpha', '    └── beta — Beta'].join(
+      '\n'
+    )
     expect(ctx.output.raw).toHaveBeenCalledWith(`${expected}\n`)
     warnSpy.mockRestore()
   })
@@ -345,15 +341,11 @@ describe('commands command', () => {
     const mod = await import('./commands.js')
     await mod.default.handler!(ctx)
 
-    expect(warnSpy).toHaveBeenCalledWith(
-      expect.stringContaining('duplicate command name "beta"')
-    )
+    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('duplicate command name "beta"'))
 
-    const expected = [
-      '└── parent — Parent',
-      '    ├── beta — Beta',
-      '    └── alpha — Alpha',
-    ].join('\n')
+    const expected = ['└── parent — Parent', '    ├── beta — Beta', '    └── alpha — Alpha'].join(
+      '\n'
+    )
     expect(ctx.output.raw).toHaveBeenCalledWith(`${expected}\n`)
     warnSpy.mockRestore()
   })

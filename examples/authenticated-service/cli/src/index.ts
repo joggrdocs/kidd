@@ -9,7 +9,10 @@ declare module '@kidd-cli/core' {
 }
 
 cli({
-  commands: `${import.meta.dirname}/commands`,
+  commands: {
+    order: ['login', 'logout', 'me', 'repos', 'create-repo'],
+    path: `${import.meta.dirname}/commands`,
+  },
   description: 'Demo CLI for the faux authenticated service',
   help: { header: 'demo - authenticated service CLI' },
   middleware: [

@@ -4,13 +4,13 @@
 language: en-US
 early_access: false
 enable_free_tier: true
-tone_instructions: "Be direct and technical. Flag bugs, security issues, and standard violations. Skip style, subjective suggestions, and pre-existing issues."
+tone_instructions: 'Be direct and technical. Flag bugs, security issues, and standard violations. Skip style, subjective suggestions, and pre-existing issues.'
 
 reviews:
   profile: assertive
   request_changes_workflow: true
   high_level_summary: false
-  high_level_summary_placeholder: "@coderabbitai summary"
+  high_level_summary_placeholder: '@coderabbitai summary'
   review_status: false
   collapse_walkthrough: true
   changed_files_summary: false
@@ -21,9 +21,9 @@ reviews:
     enabled: true
     auto_incremental_review: true
     ignore_title_keywords:
-      - "WIP"
-      - "DO NOT MERGE"
-      - "DRAFT"
+      - 'WIP'
+      - 'DO NOT MERGE'
+      - 'DRAFT'
   tools:
     github-checks:
       enabled: true
@@ -45,17 +45,17 @@ reviews:
       enabled_only: false
       level: default
   path_filters:
-    - "!node_modules/**"
-    - "!dist/**"
-    - "!.turbo/**"
-    - "!coverage/**"
-    - "!**/*.generated.*"
-    - "!.claude/**"
-    - "!.changeset/**"
-    - "!pnpm-lock.yaml"
-    - "!**/*.test.ts.snap"
+    - '!node_modules/**'
+    - '!dist/**'
+    - '!.turbo/**'
+    - '!coverage/**'
+    - '!**/*.generated.*'
+    - '!.claude/**'
+    - '!.changeset/**'
+    - '!pnpm-lock.yaml'
+    - '!**/*.test.ts.snap'
   path_instructions:
-    - path: "**"
+    - path: '**'
       instructions: |
         Review with high signal only. Flag only:
         - **Bugs** (logic errors, race conditions, incorrect assumptions)
@@ -84,7 +84,7 @@ reviews:
         - contributing/standards/typescript/functions.md
         - contributing/standards/typescript/errors.md
         - contributing/standards/typescript/state.md
-    - path: "**/package.json"
+    - path: '**/package.json'
       instructions: |
         Review dependency changes:
         - Check changelogs for breaking changes in upgraded packages
@@ -93,7 +93,7 @@ reviews:
         - Check version consistency across monorepo
         - Detect if major version upgrades require code changes
         - Ensure dependencies align with tech stack (Zod, es-toolkit, ts-pattern, yargs, @clack/prompts)
-    - path: "**/*.ts"
+    - path: '**/*.ts'
       instructions: |
         **Required Patterns:**
         - Functions with 2+ parameters must use object destructuring
@@ -117,7 +117,7 @@ reviews:
         - Exhaustive pattern matching with ts-pattern
 
         **Cite:** contributing/standards/typescript/ files for violations
-    - path: "**/*.test.ts"
+    - path: '**/*.test.ts'
       instructions: |
         Review test quality:
         - Unit tests colocated in src/**/*.test.ts
@@ -128,7 +128,7 @@ reviews:
         - Use vi.mock() for module mocks
 
         **Cite:** contributing/standards/typescript/testing.md
-    - path: "**/tsconfig.json"
+    - path: '**/tsconfig.json'
       instructions: |
         Verify TypeScript configuration:
         - target: ES2022 or higher
@@ -137,7 +137,7 @@ reviews:
         - strict: true
         - isolatedDeclarations: true (required for packages)
         - Flag any loosening of strict flags
-    - path: "**/*.md"
+    - path: '**/*.md'
       instructions: |
         Review documentation quality:
         - Follow contributing/standards/documentation/writing.md
@@ -147,7 +147,7 @@ reviews:
         - Internal links must be relative
 
         **Cite:** contributing/standards/documentation/ files
-    - path: "packages/core/**/*.ts"
+    - path: 'packages/core/**/*.ts'
       instructions: |
         Critical CLI framework code - extra scrutiny:
         - Verify factory function patterns for all modules
@@ -156,7 +156,7 @@ reviews:
         - Ensure command definitions are pure data
         - Flag any shared mutable state
         - Config must be validated with Zod at boundaries
-    - path: "packages/cli/**/*.ts"
+    - path: 'packages/cli/**/*.ts'
       instructions: |
         User-facing CLI code:
         - Verify yargs integration follows functional patterns
@@ -164,21 +164,21 @@ reviews:
         - Ensure proper error messages (user-friendly, actionable)
         - Check exit codes are appropriate
         - No process.exit() in library code (only in entrypoint)
-    - path: "contributing/**/*.md"
+    - path: 'contributing/**/*.md'
       instructions: |
         Standards documentation changes:
         - Ensure examples are correct and follow the standard
         - Verify consistency with other standard files
         - Update AGENTS.md if standards change significantly
         - Ensure standards are enforceable (not aspirational)
-    - path: "AGENTS.md"
+    - path: 'AGENTS.md'
       instructions: |
         Core AI agent instruction file:
         - Verify boundaries (Always/Never/Ask First) are enforceable
         - Ensure tech stack table is current
         - Check command examples are correct
         - Validate links to contributing/standards/ files
-    - path: ".github/workflows/**/*.yml"
+    - path: '.github/workflows/**/*.yml'
       instructions: |
         Review CI/CD workflows:
         - Check caching strategies (pnpm, turbo)

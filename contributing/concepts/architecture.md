@@ -19,13 +19,13 @@ packages/
 └── bundler/         # tsdown bundling and binary compilation (internal)
 ```
 
-| Package              | Purpose                                                       |
-| -------------------- | ------------------------------------------------------------- |
-| `@kidd-cli/core`     | Core framework: `cli()`, `command()`, `middleware()`, context |
-| `@kidd-cli/cli`      | DX companion CLI: scaffolding, dev mode, build, compile       |
-| `@kidd-cli/config`   | Configuration loading, validation, and schema (internal)      |
-| `@kidd-cli/utils`    | Shared functional utilities (internal)                        |
-| `@kidd-cli/bundler`  | tsdown bundling and binary compilation (internal)             |
+| Package             | Purpose                                                       |
+| ------------------- | ------------------------------------------------------------- |
+| `@kidd-cli/core`    | Core framework: `cli()`, `command()`, `middleware()`, context |
+| `@kidd-cli/cli`     | DX companion CLI: scaffolding, dev mode, build, compile       |
+| `@kidd-cli/config`  | Configuration loading, validation, and schema (internal)      |
+| `@kidd-cli/utils`   | Shared functional utilities (internal)                        |
+| `@kidd-cli/bundler` | tsdown bundling and binary compilation (internal)             |
 
 ## Layers
 
@@ -132,17 +132,17 @@ Shared utilities consumed by the core and extension layers:
 
 The `Context` is the central object threaded through every middleware and command handler. It carries all request-scoped data and utilities for a single CLI invocation.
 
-| Property  | Type                    | Mutable | Description                                     |
-| --------- | ----------------------- | ------- | ----------------------------------------------- |
-| `args`    | `DeepReadonly<TArgs>`   | No      | Parsed and validated command arguments          |
-| `config`  | `DeepReadonly<TConfig>` | No      | Loaded and validated config file contents       |
-| `logger`  | `CliLogger`             | No      | Structured terminal logger via `@clack/prompts`  |
-| `prompts` | `Prompts`               | No      | Interactive input (confirm, text, select, etc.) |
-| `spinner` | `Spinner`               | No      | Terminal spinner for long-running operations    |
-| `output`  | `Output`                | No      | Structured stdout (write, table, markdown, raw) |
-| `store`   | `Store`                 | Yes     | In-memory key-value store for middleware data   |
-| `fail`    | `(message, options?) => never` | No | Throw a user-facing error with clean exit       |
-| `meta`    | `DeepReadonly<Meta>`    | No      | CLI name, version, resolved command path        |
+| Property  | Type                           | Mutable | Description                                     |
+| --------- | ------------------------------ | ------- | ----------------------------------------------- |
+| `args`    | `DeepReadonly<TArgs>`          | No      | Parsed and validated command arguments          |
+| `config`  | `DeepReadonly<TConfig>`        | No      | Loaded and validated config file contents       |
+| `logger`  | `CliLogger`                    | No      | Structured terminal logger via `@clack/prompts` |
+| `prompts` | `Prompts`                      | No      | Interactive input (confirm, text, select, etc.) |
+| `spinner` | `Spinner`                      | No      | Terminal spinner for long-running operations    |
+| `output`  | `Output`                       | No      | Structured stdout (write, table, markdown, raw) |
+| `store`   | `Store`                        | Yes     | In-memory key-value store for middleware data   |
+| `fail`    | `(message, options?) => never` | No      | Throw a user-facing error with clean exit       |
+| `meta`    | `DeepReadonly<Meta>`           | No      | CLI name, version, resolved command path        |
 
 All data properties (`args`, `config`, `meta`) are deeply readonly at the type level. The `store` is the only mutable property -- it exists for middleware-to-handler data flow.
 
@@ -333,6 +333,7 @@ All packages in this monorepo follow strict conventions to ensure consistency, t
 ### Module System
 
 **ESM Only:**
+
 - All packages use `"type": "module"` in `package.json`
 - No CommonJS (`require`, `module.exports`)
 - All imports use ESM syntax (`import`/`export`)
@@ -340,6 +341,7 @@ All packages in this monorepo follow strict conventions to ensure consistency, t
 ### Build Configuration
 
 **tsdown:**
+
 - All packages built with [tsdown](https://tsdown.dev)
 - Configuration: `dts: true`, `format: 'esm'`, `clean: true`, `outDir: 'dist'`
 - Generates `.js` files and `.d.ts` declaration files
@@ -348,6 +350,7 @@ All packages in this monorepo follow strict conventions to ensure consistency, t
 ### TypeScript Configuration
 
 **Strict Mode:**
+
 ```json
 {
   "compilerOptions": {
@@ -361,6 +364,7 @@ All packages in this monorepo follow strict conventions to ensure consistency, t
 ```
 
 **Key Settings:**
+
 - `target: ES2022` — Modern JavaScript features (top-level await, class fields, etc.)
 - `module: ESNext` — Latest module syntax
 - `moduleResolution: bundler` — Optimized for bundlers (tsdown, vite, etc.)
@@ -370,12 +374,14 @@ All packages in this monorepo follow strict conventions to ensure consistency, t
 ### Test Structure
 
 **Vitest Workspace:**
+
 - Root `vitest.config.ts` defines workspace
 - Unit tests: Colocated in `src/**/*.test.ts` alongside source files
 - Integration tests: `test/integration/*.test.ts` at package root
 - Coverage thresholds defined per package
 
 **Example Structure:**
+
 ```
 packages/core/
 ├── src/
@@ -391,22 +397,25 @@ packages/core/
 ### Immutability Requirement
 
 **All Public Properties `readonly`:**
+
 - All exported interfaces/types must have `readonly` modifiers
 - Deep immutability enforced with `DeepReadonly<T>` from type-fest
 - Prevents accidental mutation of shared objects
 
 **Example:**
+
 ```typescript
 interface Config {
-  readonly apiUrl: string;
-  readonly timeout: number;
-  readonly headers: readonly string[];
+  readonly apiUrl: string
+  readonly timeout: number
+  readonly headers: readonly string[]
 }
 ```
 
 ### Config Validation
 
 **Zod at Boundaries:**
+
 - All config files validated with Zod schemas
 - All CLI arguments validated with Zod
 - Runtime validation at system boundaries (file I/O, user input)
@@ -414,32 +423,36 @@ interface Config {
 ### Explicit Return Types
 
 **Required by `isolatedDeclarations`:**
+
 - All exported functions **must** have explicit return types
 - TypeScript compiler will error without them
 - Ensures declaration files can be generated without full type inference
 
 **Example:**
+
 ```typescript
 // ✅ Correct
 export const loadConfig = (path: string): Result<Config, ConfigError> => {
   // ...
-};
+}
 
 // ❌ Incorrect (compiler error with isolatedDeclarations)
 export const loadConfig = (path: string) => {
   // ...
-};
+}
 ```
 
 ### Package Naming
 
 **Convention:**
+
 - Scope: `@kidd-cli/`
 - Name: Lowercase, single word or hyphenated (e.g., `@kidd-cli/core`, `@kidd-cli/cli`)
 
 ### Package Structure
 
 **Standard Layout:**
+
 ```
 packages/{name}/
 ├── src/                  # Source files (.ts)

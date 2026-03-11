@@ -19,6 +19,10 @@ const configSchema = z.object({
 })
 
 cli({
+  commands: {
+    order: ['deploy', 'status', 'ping', 'whoami'],
+    path: `${import.meta.dirname}/commands`,
+  },
   config: {
     schema: configSchema,
   },

@@ -81,17 +81,24 @@ async function resolveSubcommands(
 /**
  * Recursively build a sorted tree of entries from a CommandMap.
  *
+ * Commands listed in the order array appear first in the specified order;
+ * omitted commands fall back to alphabetical sort.
+ *
  * @private
  * @param commandMap - The map of command names to Command objects.
+ * @param order - Optional array of command names defining display order.
  * @returns A sorted array of TreeEntry nodes.
  */
-async function buildTree(commandMap: Record<string, KiddCommand>): Promise<readonly TreeEntry[]> {
-  const entries = Object.entries(commandMap).toSorted(([a], [b]) => a.localeCompare(b))
+async function buildTree(
+  commandMap: Record<string, KiddCommand>,
+  order?: readonly string[]
+): Promise<readonly TreeEntry[]> {
+  const entries = sortEntries({ entries: Object.entries(commandMap), order })
 
   return Promise.all(
     entries.map(async ([name, cmd]): Promise<TreeEntry> => {
       const subMap = await resolveSubcommands(cmd.commands)
-      const children = await buildTree(subMap)
+      const children = await buildTree(subMap, cmd.order)
 
       return {
         children,
@@ -100,6 +107,78 @@ async function buildTree(commandMap: Record<string, KiddCommand>): Promise<reado
       }
     })
   )
+}
+
+/**
+ * Sort command entries with ordered names first (in specified order),
+ * remaining names alphabetically.
+ *
+ * Validates the order array against available command names and logs a
+ * warning for unknown or duplicate entries rather than failing silently.
+ *
+ * @private
+ * @param params - The command entries and optional order array.
+ * @returns Sorted array of entries.
+ */
+function sortEntries(params: {
+  readonly entries: [string, KiddCommand][]
+  readonly order?: readonly string[]
+}): [string, KiddCommand][] {
+  const { entries, order } = params
+
+  if (!order || order.length === 0) {
+    return entries.toSorted(([a], [b]) => a.localeCompare(b))
+  }
+
+  const commandNames = entries.map(([name]) => name)
+  const validOrder = validateOrder({ commandNames, order })
+
+  const entryMap = new Map(entries)
+  const orderedSet = new Set(validOrder)
+
+  const ordered = validOrder
+    .filter((name) => entryMap.has(name))
+    .map((name): [string, KiddCommand] => [name, entryMap.get(name) as KiddCommand])
+
+  const remaining = entries
+    .filter(([name]) => !orderedSet.has(name))
+    .toSorted(([a], [b]) => a.localeCompare(b))
+
+  return [...ordered, ...remaining]
+}
+
+/**
+ * Validate the order array by filtering out unknown and duplicate names.
+ *
+ * Logs warnings for invalid entries so developers see the mismatch
+ * during `kidd commands` introspection, matching the runtime behaviour.
+ *
+ * @private
+ * @param params - The order array and available command names.
+ * @returns A deduplicated array of valid order names.
+ */
+function validateOrder(params: {
+  readonly commandNames: readonly string[]
+  readonly order: readonly string[]
+}): readonly string[] {
+  const { commandNames, order } = params
+  const nameSet = new Set(commandNames)
+  const seen = new Set<string>()
+
+  return order.filter((name) => {
+    if (seen.has(name)) {
+      console.warn(`Warning: duplicate command name "${name}" in order array`)
+      return false
+    }
+    seen.add(name)
+
+    if (!nameSet.has(name)) {
+      console.warn(`Warning: unknown command "${name}" in order array`)
+      return false
+    }
+
+    return true
+  })
 }
 
 /**

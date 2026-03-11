@@ -28,6 +28,7 @@ await cli({
   name: 'my-app',
   version: '1.0.0',
   commands: { greet },
+  help: { header: 'my-app - a friendly CLI' },
 })
 ```
 
@@ -45,9 +46,7 @@ cli({
   commands: { deploy, migrate },
   middleware: [requireAuth()],
   config: { schema: MyConfigSchema },
-  credentials: {
-    apiKey: { env: 'API_KEY', required: true },
-  },
+  help: { header: 'my-app - deploy and migrate with ease' },
 })
 ```
 

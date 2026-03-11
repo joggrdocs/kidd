@@ -1,5 +1,32 @@
 # kidd
 
+## 0.4.0
+
+### Minor Changes
+
+- 9f1b155: Auto-detect CLI version from package.json at build time
+
+  The kidd bundler now reads the `version` field from the project's `package.json` during build and injects it as a compile-time constant (`__KIDD_VERSION__`). At runtime, `cli()` no longer requires an explicit `version` option — it falls back to the injected constant automatically. Explicit `version` still takes precedence when provided. The build command output now displays the detected version.
+
+- 2f7137b: Add customizable help header/footer and clean exit on no-command
+
+  Add `CliHelpOptions` type with `header` and `footer` fields. `header` displays custom text (e.g., ASCII logo) above help output only when the CLI is invoked without a command. `footer` displays text below help output on all help (maps to yargs `.epilogue()`). When the CLI is invoked without a command, help is now shown to stdout (exit 0) instead of erroring via `demandCommand`.
+
+- 61e22eb: Restructure commands as a grouped config object
+
+  Replace the flat `commandOrder` option on `cli()` and `order` field on `command()` with a unified `CommandsConfig` object nested inside the `commands` field. The new structure groups command source (`path` or inline `commands` map) alongside display ordering under a single key. Backward compatibility is preserved — `commands` still accepts a plain string path or a `CommandMap`.
+
+- ac61665: Add optional credential validation before persistence in auth middleware
+
+  Add `ValidateCredential` callback type and optional `validate` field on `AuthOptions` (default for all logins) and `LoginOptions` (per-call override). When provided, the callback runs between strategy resolution and `store.save()` — if validation fails the credential is never persisted and a `validation_failed` error is returned. The callback may also transform or enrich the credential before it is saved.
+
+### Patch Changes
+
+- 97b92b7: upgrade dependencies across all packages
+- Updated dependencies [97b92b7]
+  - @kidd-cli/utils@0.1.4
+  - @kidd-cli/config@0.1.4
+
 ## 0.3.0
 
 ### Minor Changes
@@ -30,6 +57,7 @@
   **Auth HTTP integration:** `auth({ http: { baseUrl, namespace } })` creates authenticated HTTP clients with automatic credential header injection. Supports single or multiple clients via an array.
 
   **Breaking changes:**
+
   - `http()` no longer auto-reads `ctx.auth.credential()`. Use `auth({ http })` for authenticated clients or pass `headers` explicitly.
   - `HttpOptions.defaultHeaders` renamed to `headers` and now accepts a function `(ctx) => Record<string, string>` in addition to a static record.
 
@@ -37,9 +65,9 @@
 
   ```ts
   middleware: [
-    auth({ resolvers: [{ source: 'env' }] }),
-    http({ baseUrl: 'https://api.example.com', namespace: 'api' }),
-  ]
+    auth({ resolvers: [{ source: "env" }] }),
+    http({ baseUrl: "https://api.example.com", namespace: "api" }),
+  ];
   ```
 
   After:
@@ -48,9 +76,9 @@
   middleware: [
     auth({
       resolvers: [auth.env()],
-      http: { baseUrl: 'https://api.example.com', namespace: 'api' },
+      http: { baseUrl: "https://api.example.com", namespace: "api" },
     }),
-  ]
+  ];
   ```
 
 - f48ad38: Replace non-standard OAuth flow with spec-compliant PKCE (RFC 7636) and add Device Authorization Grant (RFC 8628)

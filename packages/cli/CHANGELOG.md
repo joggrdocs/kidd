@@ -1,5 +1,31 @@
 # kidd-cli
 
+## 0.2.0
+
+### Minor Changes
+
+- 61e22eb: Restructure commands as a grouped config object
+
+  Replace the flat `commandOrder` option on `cli()` and `order` field on `command()` with a unified `CommandsConfig` object nested inside the `commands` field. The new structure groups command source (`path` or inline `commands` map) alongside display ordering under a single key. Backward compatibility is preserved — `commands` still accepts a plain string path or a `CommandMap`.
+
+### Patch Changes
+
+- 9f1b155: Auto-detect CLI version from package.json at build time
+
+  The kidd bundler now reads the `version` field from the project's `package.json` during build and injects it as a compile-time constant (`__KIDD_VERSION__`). At runtime, `cli()` no longer requires an explicit `version` option — it falls back to the injected constant automatically. Explicit `version` still takes precedence when provided. The build command output now displays the detected version.
+
+- 97b92b7: upgrade dependencies across all packages
+- Updated dependencies [9f1b155]
+- Updated dependencies [2f7137b]
+- Updated dependencies [61e22eb]
+- Updated dependencies [fc486c6]
+- Updated dependencies [97b92b7]
+- Updated dependencies [ac61665]
+  - @kidd-cli/bundler@0.2.0
+  - @kidd-cli/core@0.4.0
+  - @kidd-cli/utils@0.1.4
+  - @kidd-cli/config@0.1.4
+
 ## 0.1.4
 
 ### Patch Changes

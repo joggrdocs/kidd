@@ -30,7 +30,7 @@ export function mapToBuildConfig(config: ResolvedBundlerConfig): InlineConfig {
         mainFields: ['module', 'main'],
       },
     },
-    logLevel: 'info',
+    logLevel: 'silent',
     minify: config.build.minify,
     outDir: config.buildOutDir,
     outputOptions: {
@@ -63,6 +63,7 @@ export function mapToWatchConfig(params: {
 
   return {
     ...buildConfig,
+    logLevel: 'error',
     onSuccess: params.onSuccess,
     watch: true,
   }

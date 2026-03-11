@@ -1,10 +1,11 @@
 import { resolve } from 'node:path'
 
 import { loadConfig } from '@kidd-cli/config/loader'
-import { P, attemptAsync, isPlainObject, isString, match } from '@kidd-cli/utils/fp'
+import { P, attemptAsync, err, isPlainObject, isString, match, ok } from '@kidd-cli/utils/fp'
+import type { Result } from '@kidd-cli/utils/fp'
 import yargs from 'yargs'
 import type { Argv } from 'yargs'
-import type { z } from 'zod'
+import { z } from 'zod'
 
 import { DEFAULT_EXIT_CODE, isContextError } from '@/context/index.js'
 import { createCliLogger } from '@/lib/logger.js'
@@ -31,9 +32,15 @@ export async function cli<TSchema extends z.ZodType = z.ZodType>(
   const logger = createCliLogger()
 
   const [uncaughtError, result] = await attemptAsync(async () => {
+    const [versionError, version] = resolveVersion(options.version)
+
+    if (versionError) {
+      return versionError
+    }
+
     const program = yargs(process.argv.slice(ARGV_SLICE_START))
       .scriptName(options.name)
-      .version(options.version)
+      .version(version)
       .strict()
       .help()
       .option('cwd', {
@@ -84,7 +91,7 @@ export async function cli<TSchema extends z.ZodType = z.ZodType>(
       config: options.config,
       middleware: options.middleware,
       name: options.name,
-      version: options.version,
+      version,
     })
 
     if (runtimeError) {
@@ -117,6 +124,44 @@ export default cli
 // ---------------------------------------------------------------------------
 // Private
 // ---------------------------------------------------------------------------
+
+const VERSION_ERROR = new Error(
+  'No CLI version available. Either pass `version` to cli() or build with the kidd bundler.'
+)
+
+const VersionSchema = z.string().trim().min(1)
+
+/**
+ * Resolve the CLI version from an explicit value or the compile-time constant.
+ *
+ * Resolution order:
+ * 1. Explicit version string passed to `cli()`
+ * 2. `__KIDD_VERSION__` injected by the kidd bundler at build time
+ *
+ * Returns an error when neither source provides a non-empty version.
+ *
+ * @private
+ * @param explicit - The version string from `CliOptions.version`, if provided.
+ * @returns A Result tuple with the resolved version string or an Error.
+ */
+function resolveVersion(explicit: string | undefined): Result<string> {
+  if (explicit !== undefined) {
+    const parsed = VersionSchema.safeParse(explicit)
+    if (parsed.success) {
+      return ok(parsed.data)
+    }
+    return err(VERSION_ERROR)
+  }
+
+  if (typeof __KIDD_VERSION__ === 'string') {
+    const parsed = VersionSchema.safeParse(__KIDD_VERSION__)
+    if (parsed.success) {
+      return ok(parsed.data)
+    }
+  }
+
+  return err(VERSION_ERROR)
+}
 
 /**
  * Resolved commands with optional display ordering.

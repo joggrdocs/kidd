@@ -1,5 +1,6 @@
 import { createRequire } from 'node:module'
 
+import { match } from 'ts-pattern'
 import type { InlineConfig } from 'tsdown'
 
 import { createAutoloadPlugin } from './autoload-plugin.js'
@@ -9,21 +10,25 @@ import type { ResolvedBundlerConfig } from './types.js'
 /**
  * Map a resolved bundler config to a tsdown InlineConfig for production builds.
  *
- * @param config - The fully resolved bundler config.
+ * @param params - The resolved config and optional version for compile-time injection.
  * @returns A tsdown InlineConfig ready for `build()`.
  */
-export function mapToBuildConfig(config: ResolvedBundlerConfig): InlineConfig {
+export function mapToBuildConfig(params: {
+  readonly config: ResolvedBundlerConfig
+  readonly version?: string
+}): InlineConfig {
   return {
     banner: SHEBANG,
     clean: true,
     config: false,
-    cwd: config.cwd,
+    cwd: params.config.cwd,
+    define: buildDefine(params.version),
     deps: {
       alwaysBundle: ALWAYS_BUNDLE,
-      neverBundle: buildExternals(config.build.external),
+      neverBundle: buildExternals(params.config.build.external),
     },
     dts: false,
-    entry: { index: config.entry },
+    entry: { index: params.config.entry },
     format: 'esm',
     inputOptions: {
       resolve: {
@@ -31,20 +36,20 @@ export function mapToBuildConfig(config: ResolvedBundlerConfig): InlineConfig {
       },
     },
     logLevel: 'silent',
-    minify: config.build.minify,
-    outDir: config.buildOutDir,
+    minify: params.config.build.minify,
+    outDir: params.config.buildOutDir,
     outputOptions: {
       codeSplitting: false,
     },
     platform: 'node',
     plugins: [
       createAutoloadPlugin({
-        commandsDir: config.commands,
+        commandsDir: params.config.commands,
         tagModulePath: resolveTagModulePath(),
       }),
     ],
-    sourcemap: config.build.sourcemap,
-    target: config.build.target,
+    sourcemap: params.config.build.sourcemap,
+    target: params.config.build.target,
     treeshake: true,
   }
 }
@@ -52,14 +57,15 @@ export function mapToBuildConfig(config: ResolvedBundlerConfig): InlineConfig {
 /**
  * Map a resolved bundler config to a tsdown InlineConfig for watch mode.
  *
- * @param params - The resolved config and optional success callback.
+ * @param params - The resolved config, optional version, and optional success callback.
  * @returns A tsdown InlineConfig with `watch: true`.
  */
 export function mapToWatchConfig(params: {
   readonly config: ResolvedBundlerConfig
+  readonly version?: string
   readonly onSuccess?: () => void | Promise<void>
 }): InlineConfig {
-  const buildConfig = mapToBuildConfig(params.config)
+  const buildConfig = mapToBuildConfig({ config: params.config, version: params.version })
 
   return {
     ...buildConfig,
@@ -80,6 +86,24 @@ export function mapToWatchConfig(params: {
  */
 function buildExternals(userExternals: readonly string[]): (string | RegExp)[] {
   return [...NODE_BUILTINS, ...userExternals]
+}
+
+/**
+ * Build the `define` map for compile-time constants.
+ *
+ * Injects `__KIDD_VERSION__` when a version string is available so that
+ * the runtime can auto-detect the CLI version without reading package.json.
+ *
+ * @private
+ * @param version - The version string from package.json, or undefined.
+ * @returns A define map for tsdown/rolldown.
+ */
+function buildDefine(version: string | undefined): Record<string, string> {
+  return match(version)
+    .with(undefined, () => ({}))
+    .otherwise((resolvedVersion) => ({
+      __KIDD_VERSION__: JSON.stringify(resolvedVersion),
+    }))
 }
 
 /**

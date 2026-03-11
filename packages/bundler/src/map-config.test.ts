@@ -24,7 +24,7 @@ const config: ResolvedBundlerConfig = {
 }
 
 describe('build config mapping', () => {
-  const result = mapToBuildConfig(config)
+  const result = mapToBuildConfig({ config, version: undefined })
 
   it('should set entry as object with index key', () => {
     expect(result.entry).toStrictEqual({ index: '/project/src/index.ts' })
@@ -94,28 +94,43 @@ describe('build config mapping', () => {
     expect(neverBundle.neverBundle).toContain('pg')
     expect(neverBundle.neverBundle).toEqual(expect.arrayContaining(NODE_BUILTINS))
   })
+
+  it('should set empty define when version is undefined', () => {
+    const output = mapToBuildConfig({ config, version: undefined })
+    expect(output.define).toStrictEqual({})
+  })
+
+  it('should set __KIDD_VERSION__ define when version is provided', () => {
+    const output = mapToBuildConfig({ config, version: '3.2.1' })
+    expect(output.define).toStrictEqual({ __KIDD_VERSION__: '"3.2.1"' })
+  })
 })
 
 describe('watch config mapping', () => {
   it('should spread build config and enable watch', () => {
-    const result = mapToWatchConfig({ config })
+    const result = mapToWatchConfig({ config, version: undefined })
     expect(result.watch).toBeTruthy()
     expect(result.format).toBe('esm')
   })
 
   it('should override logLevel to error for watch mode', () => {
-    const result = mapToWatchConfig({ config })
+    const result = mapToWatchConfig({ config, version: undefined })
     expect(result.logLevel).toBe('error')
   })
 
   it('should pass through onSuccess callback', () => {
     const onSuccess = vi.fn()
-    const result = mapToWatchConfig({ config, onSuccess })
+    const result = mapToWatchConfig({ config, onSuccess, version: undefined })
     expect(result.onSuccess).toBe(onSuccess)
   })
 
   it('should leave onSuccess undefined when not provided', () => {
-    const result = mapToWatchConfig({ config })
+    const result = mapToWatchConfig({ config, version: undefined })
     expect(result.onSuccess).toBeUndefined()
+  })
+
+  it('should pass version define through to build config', () => {
+    const result = mapToWatchConfig({ config, version: '1.0.0' })
+    expect(result.define).toStrictEqual({ __KIDD_VERSION__: '"1.0.0"' })
   })
 })

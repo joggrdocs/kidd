@@ -47,7 +47,7 @@ vi.mock(import('@clack/prompts'), async (importOriginal) => ({
   text: vi.fn(),
 }))
 
-setupTestLifecycle()
+const lifecycle = setupTestLifecycle()
 
 describe('meta', () => {
   it('sets name and version on context meta', async () => {
@@ -122,6 +122,87 @@ describe('context properties', () => {
 
     const ctx = handler.mock.calls[0]![0] as Context
     expect(ctx.config).toEqual({})
+  })
+})
+
+describe('version resolution', () => {
+  // eslint-disable-next-line jest/no-hooks -- clean up stubbed globals after each test
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  it('should fall back to __KIDD_VERSION__ when version is omitted', async () => {
+    vi.stubGlobal('__KIDD_VERSION__', '5.0.0')
+
+    const handler = vi.fn()
+    const commands: CommandMap = {
+      info: command({
+        description: 'Show info',
+        handler,
+      }),
+    }
+
+    setArgv('info')
+    await runTestCli({
+      commands,
+      name: 'auto-version-cli',
+    })
+
+    expect(handler).toHaveBeenCalledTimes(1)
+    const ctx = handler.mock.calls[0]![0] as Context
+    expect(ctx.meta.version).toBe('5.0.0')
+  })
+
+  it('should prefer explicit version over __KIDD_VERSION__', async () => {
+    vi.stubGlobal('__KIDD_VERSION__', '5.0.0')
+
+    const handler = vi.fn()
+    const commands: CommandMap = {
+      info: command({
+        description: 'Show info',
+        handler,
+      }),
+    }
+
+    setArgv('info')
+    await runTestCli({
+      commands,
+      name: 'explicit-version-cli',
+      version: '9.9.9',
+    })
+
+    expect(handler).toHaveBeenCalledTimes(1)
+    const ctx = handler.mock.calls[0]![0] as Context
+    expect(ctx.meta.version).toBe('9.9.9')
+  })
+
+  it('should error when neither version nor __KIDD_VERSION__ is available', async () => {
+    vi.stubGlobal('__KIDD_VERSION__', undefined)
+
+    setArgv('info')
+    await runTestCli({
+      commands: {
+        info: command({ description: 'Show info', handler: vi.fn() }),
+      },
+      name: 'no-version-cli',
+    })
+
+    expect(lifecycle.getExitSpy()).toHaveBeenCalled()
+  })
+
+  it('should error when explicit version is an empty string', async () => {
+    vi.stubGlobal('__KIDD_VERSION__', '5.0.0')
+
+    setArgv('info')
+    await runTestCli({
+      commands: {
+        info: command({ description: 'Show info', handler: vi.fn() }),
+      },
+      name: 'empty-version-cli',
+      version: '',
+    })
+
+    expect(lifecycle.getExitSpy()).toHaveBeenCalled()
   })
 })
 

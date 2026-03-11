@@ -154,6 +154,22 @@ export type StrategyConfig =
   | CustomSourceConfig
 
 // ---------------------------------------------------------------------------
+// Validate credential
+// ---------------------------------------------------------------------------
+
+/**
+ * Callback that validates a resolved credential before it is persisted.
+ *
+ * Returning a successful Result allows the credential to be saved (the
+ * returned credential is what gets persisted, so the callback may also
+ * enrich or transform it). Returning a failure Result prevents persistence
+ * and surfaces the error to the caller.
+ */
+export type ValidateCredential = (
+  credential: AuthCredential
+) => AsyncResult<AuthCredential, AuthError>
+
+// ---------------------------------------------------------------------------
 // Auth error
 // ---------------------------------------------------------------------------
 
@@ -162,7 +178,7 @@ export type StrategyConfig =
  * when the operation fails.
  */
 export interface AuthError {
-  readonly type: 'no_credential' | 'save_failed' | 'remove_failed'
+  readonly type: 'no_credential' | 'save_failed' | 'remove_failed' | 'validation_failed'
   readonly message: string
 }
 
@@ -176,6 +192,7 @@ export interface AuthError {
  */
 export interface LoginOptions {
   readonly strategies?: readonly StrategyConfig[]
+  readonly validate?: ValidateCredential
 }
 
 // ---------------------------------------------------------------------------
@@ -249,9 +266,11 @@ export type CustomStrategyFn = () => Promise<AuthCredential | null> | AuthCreden
  * Options accepted by the `auth()` middleware factory.
  *
  * @property strategies - Ordered list of credential sources to try via `login()`.
+ * @property validate - Optional callback to validate a credential before persisting.
  */
 export interface AuthOptions {
   readonly strategies: readonly StrategyConfig[]
+  readonly validate?: ValidateCredential
 }
 
 // ---------------------------------------------------------------------------

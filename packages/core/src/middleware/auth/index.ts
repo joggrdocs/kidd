@@ -24,4 +24,5 @@ export type {
   StrategyConfig,
   TokenSourceConfig,
   TokenStrategyOptions,
+  ValidateCredential,
 } from './types.js'

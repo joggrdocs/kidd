@@ -77,7 +77,7 @@ export interface AuthFactory {
  * @returns A Middleware that decorates ctx.auth.
  */
 function createAuth(options: AuthOptions): Middleware {
-  const { strategies } = options
+  const { strategies, validate } = options
 
   return middleware((ctx, next) => {
     const cliName = ctx.meta.name
@@ -87,6 +87,7 @@ function createAuth(options: AuthOptions): Middleware {
       prompts: ctx.prompts,
       resolveCredential: () => resolveStoredCredential(cliName, strategies),
       strategies,
+      validate,
     })
 
     decorateContext(ctx, 'auth', authContext)

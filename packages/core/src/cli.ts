@@ -5,7 +5,7 @@ import { P, attemptAsync, err, isPlainObject, isString, match, ok } from '@kidd-
 import type { Result } from '@kidd-cli/utils/fp'
 import yargs from 'yargs'
 import type { Argv } from 'yargs'
-import type { z } from 'zod'
+import { z } from 'zod'
 
 import { DEFAULT_EXIT_CODE, isContextError } from '@/context/index.js'
 import { createCliLogger } from '@/lib/logger.js'
@@ -129,6 +129,8 @@ const VERSION_ERROR = new Error(
   'No CLI version available. Either pass `version` to cli() or build with the kidd bundler.'
 )
 
+const VersionSchema = z.string().trim().min(1)
+
 /**
  * Resolve the CLI version from an explicit value or the compile-time constant.
  *
@@ -144,14 +146,18 @@ const VERSION_ERROR = new Error(
  */
 function resolveVersion(explicit: string | undefined): Result<string> {
   if (explicit !== undefined) {
-    if (explicit === '') {
-      return err(VERSION_ERROR)
+    const parsed = VersionSchema.safeParse(explicit)
+    if (parsed.success) {
+      return ok(parsed.data)
     }
-    return ok(explicit)
+    return err(VERSION_ERROR)
   }
 
-  if (typeof __KIDD_VERSION__ === 'string' && __KIDD_VERSION__ !== '') {
-    return ok(__KIDD_VERSION__)
+  if (typeof __KIDD_VERSION__ === 'string') {
+    const parsed = VersionSchema.safeParse(__KIDD_VERSION__)
+    if (parsed.success) {
+      return ok(parsed.data)
+    }
   }
 
   return err(VERSION_ERROR)

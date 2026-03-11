@@ -1,7 +1,8 @@
 import { resolve } from 'node:path'
 
 import { loadConfig } from '@kidd-cli/config/loader'
-import { P, attemptAsync, isPlainObject, isString, match } from '@kidd-cli/utils/fp'
+import { P, attemptAsync, err, isPlainObject, isString, match, ok } from '@kidd-cli/utils/fp'
+import type { Result } from '@kidd-cli/utils/fp'
 import yargs from 'yargs'
 import type { Argv } from 'yargs'
 import type { z } from 'zod'
@@ -31,12 +32,10 @@ export async function cli<TSchema extends z.ZodType = z.ZodType>(
   const logger = createCliLogger()
 
   const [uncaughtError, result] = await attemptAsync(async () => {
-    const version = resolveVersion(options.version)
+    const [versionError, version] = resolveVersion(options.version)
 
-    if (version === undefined || version === '') {
-      return new Error(
-        'No CLI version available. Either pass `version` to cli() or build with the kidd bundler.'
-      )
+    if (versionError) {
+      return versionError
     }
 
     const program = yargs(process.argv.slice(ARGV_SLICE_START))
@@ -126,6 +125,10 @@ export default cli
 // Private
 // ---------------------------------------------------------------------------
 
+const VERSION_ERROR = new Error(
+  'No CLI version available. Either pass `version` to cli() or build with the kidd bundler.'
+)
+
 /**
  * Resolve the CLI version from an explicit value or the compile-time constant.
  *
@@ -133,22 +136,25 @@ export default cli
  * 1. Explicit version string passed to `cli()`
  * 2. `__KIDD_VERSION__` injected by the kidd bundler at build time
  *
- * Returns `undefined` when neither source provides a version.
+ * Returns an error when neither source provides a non-empty version.
  *
  * @private
  * @param explicit - The version string from `CliOptions.version`, if provided.
- * @returns The resolved version string, or undefined if unavailable.
+ * @returns A Result tuple with the resolved version string or an Error.
  */
-function resolveVersion(explicit: string | undefined): string | undefined {
+function resolveVersion(explicit: string | undefined): Result<string> {
   if (explicit !== undefined) {
-    return explicit
+    if (explicit === '') {
+      return err(VERSION_ERROR)
+    }
+    return ok(explicit)
   }
 
-  if (typeof __KIDD_VERSION__ === 'string') {
-    return __KIDD_VERSION__
+  if (typeof __KIDD_VERSION__ === 'string' && __KIDD_VERSION__ !== '') {
+    return ok(__KIDD_VERSION__)
   }
 
-  return undefined
+  return err(VERSION_ERROR)
 }
 
 /**

@@ -22,6 +22,7 @@ import type {
   AuthError,
   LoginOptions,
   StrategyConfig,
+  ValidateCredential,
 } from './types.js'
 
 /**
@@ -32,6 +33,7 @@ export interface CreateAuthContextOptions {
   readonly cliName: string
   readonly prompts: Prompts
   readonly resolveCredential: () => AuthCredential | null
+  readonly validate?: ValidateCredential
 }
 
 /**
@@ -46,7 +48,7 @@ export interface CreateAuthContextOptions {
  * @returns An AuthContext instance.
  */
 export function createAuthContext(options: CreateAuthContextOptions): AuthContext {
-  const { strategies, cliName, prompts, resolveCredential } = options
+  const { strategies, cliName, prompts, resolveCredential, validate } = options
 
   /**
    * Resolve the current credential from passive sources (file, env).
@@ -94,8 +96,15 @@ export function createAuthContext(options: CreateAuthContextOptions): AuthContex
       })
     }
 
+    const activeValidate = resolveLoginValidate(loginOptions, validate)
+    const [validationError, validatedCredential] = await runValidation(activeValidate, resolved)
+
+    if (validationError) {
+      return [validationError, null] as const
+    }
+
     const store = createStore({ dirName: `.${cliName}` })
-    const [saveError] = store.save(DEFAULT_AUTH_FILENAME, resolved)
+    const [saveError] = store.save(DEFAULT_AUTH_FILENAME, validatedCredential)
 
     if (saveError) {
       return authError({
@@ -104,7 +113,7 @@ export function createAuthContext(options: CreateAuthContextOptions): AuthContex
       })
     }
 
-    return ok(resolved)
+    return ok(validatedCredential)
   }
 
   /**
@@ -165,4 +174,58 @@ function resolveLoginStrategies(
   }
 
   return configured
+}
+
+/**
+ * Resolve the active validate callback for a login attempt.
+ *
+ * Returns the override from login options when provided,
+ * otherwise falls back to the configured validate callback.
+ *
+ * @private
+ * @param loginOptions - Optional login overrides.
+ * @param configured - The default configured validate callback.
+ * @returns The validate callback to use, or undefined.
+ */
+function resolveLoginValidate(
+  loginOptions: LoginOptions | undefined,
+  configured: ValidateCredential | undefined
+): ValidateCredential | undefined {
+  if (loginOptions !== undefined && loginOptions.validate !== undefined) {
+    return loginOptions.validate
+  }
+
+  return configured
+}
+
+/**
+ * Run the validate callback against a resolved credential.
+ *
+ * When no validate callback is provided, returns the credential as-is.
+ * When validation fails, returns the error Result.
+ * When validation succeeds, returns the (possibly transformed) credential.
+ *
+ * @private
+ * @param validateFn - The validate callback, or undefined.
+ * @param credential - The resolved credential to validate.
+ * @returns A Result with the validated credential or an AuthError.
+ */
+async function runValidation(
+  validateFn: ValidateCredential | undefined,
+  credential: AuthCredential
+): AsyncResult<AuthCredential, AuthError> {
+  if (validateFn === undefined) {
+    return ok(credential)
+  }
+
+  const [validationError, validatedCredential] = await validateFn(credential)
+
+  if (validationError) {
+    return authError({
+      message: validationError.message,
+      type: 'validation_failed',
+    })
+  }
+
+  return ok(validatedCredential)
 }

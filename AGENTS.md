@@ -70,21 +70,21 @@ kidd/
 
 Before making changes, read the relevant standards in [`contributing/standards/`](contributing/README.md) for the areas your change touches.
 
-| Area | Standard |
-|------|----------|
-| Code style | [`typescript/coding-style.md`](contributing/standards/typescript/coding-style.md) |
+| Area            | Standard                                                                                |
+| --------------- | --------------------------------------------------------------------------------------- |
+| Code style      | [`typescript/coding-style.md`](contributing/standards/typescript/coding-style.md)       |
 | Design patterns | [`typescript/design-patterns.md`](contributing/standards/typescript/design-patterns.md) |
-| Functions | [`typescript/functions.md`](contributing/standards/typescript/functions.md) |
-| Naming | [`typescript/naming.md`](contributing/standards/typescript/naming.md) |
-| Types | [`typescript/types.md`](contributing/standards/typescript/types.md) |
-| State | [`typescript/state.md`](contributing/standards/typescript/state.md) |
-| Errors | [`typescript/errors.md`](contributing/standards/typescript/errors.md) |
-| Conditionals | [`typescript/conditionals.md`](contributing/standards/typescript/conditionals.md) |
-| Testing | [`typescript/testing.md`](contributing/standards/typescript/testing.md) |
-| Utilities | [`typescript/utilities.md`](contributing/standards/typescript/utilities.md) |
-| Git commits | [`git-commits.md`](contributing/standards/git-commits.md) |
-| Pull requests | [`git-pulls.md`](contributing/standards/git-pulls.md) |
-| Documentation | [`documentation/writing.md`](contributing/standards/documentation/writing.md) |
+| Functions       | [`typescript/functions.md`](contributing/standards/typescript/functions.md)             |
+| Naming          | [`typescript/naming.md`](contributing/standards/typescript/naming.md)                   |
+| Types           | [`typescript/types.md`](contributing/standards/typescript/types.md)                     |
+| State           | [`typescript/state.md`](contributing/standards/typescript/state.md)                     |
+| Errors          | [`typescript/errors.md`](contributing/standards/typescript/errors.md)                   |
+| Conditionals    | [`typescript/conditionals.md`](contributing/standards/typescript/conditionals.md)       |
+| Testing         | [`typescript/testing.md`](contributing/standards/typescript/testing.md)                 |
+| Utilities       | [`typescript/utilities.md`](contributing/standards/typescript/utilities.md)             |
+| Git commits     | [`git-commits.md`](contributing/standards/git-commits.md)                               |
+| Pull requests   | [`git-pulls.md`](contributing/standards/git-pulls.md)                                   |
+| Documentation   | [`documentation/writing.md`](contributing/standards/documentation/writing.md)           |
 
 ## Verification
 
@@ -131,11 +131,13 @@ Before marking a task as complete, verify the following:
 Maximize throughput by spawning background agents and teams for independent work. Sequential execution is the last resort.
 
 **Spawn background agents aggressively:**
+
 - Use `run_in_background: true` for any task that does not block your next step
 - If 2+ tasks are independent, spawn them all in a single message as parallel tool calls
 - Prefer multiple focused agents over one agent doing everything sequentially
 
 **When to parallelize:**
+
 - Research + implementation + testing — 3 agents
 - Changes across multiple packages — 1 agent per package
 - Documentation + code changes — 2 agents
@@ -143,28 +145,30 @@ Maximize throughput by spawning background agents and teams for independent work
 - Code review + linting + testing — all in parallel
 
 **Agent types:**
+
 - `Explore` — fast codebase exploration (3+ searches), cheap
 - `general-purpose` — multi-step tasks requiring file edits
 - `Plan` — design implementation plans before coding
 - `Bash` — git operations, command execution
 
 **Do not spawn an agent for:**
+
 - Reading a single file (use Read directly)
 - A single grep/glob search (use Grep/Glob directly)
 
 ## Tech Stack
 
-| Tool | Purpose |
-|------|---------|
-| [ts-pattern](https://github.com/gvergnaud/ts-pattern) | Pattern matching (required for 2+ branch conditionals) |
-| [es-toolkit](https://es-toolkit.sh) | Functional utilities (check before writing custom helpers) |
-| [Zod](https://zod.dev) | Schema validation at boundaries |
-| [yargs](https://yargs.js.org) | CLI argument parsing |
-| [@clack/prompts](https://www.clack.cc) | CLI prompts and terminal UI |
-| [tsdown](https://tsdown.dev) | Bundler (ESM, dts) |
-| [oxlint](https://oxc.rs) | Linting |
-| [Vitest](https://vitest.dev) | Testing |
-| [Changesets](https://github.com/changesets/changesets) | Versioning and publishing |
+| Tool                                                   | Purpose                                                    |
+| ------------------------------------------------------ | ---------------------------------------------------------- |
+| [ts-pattern](https://github.com/gvergnaud/ts-pattern)  | Pattern matching (required for 2+ branch conditionals)     |
+| [es-toolkit](https://es-toolkit.sh)                    | Functional utilities (check before writing custom helpers) |
+| [Zod](https://zod.dev)                                 | Schema validation at boundaries                            |
+| [yargs](https://yargs.js.org)                          | CLI argument parsing                                       |
+| [@clack/prompts](https://www.clack.cc)                 | CLI prompts and terminal UI                                |
+| [tsdown](https://tsdown.dev)                           | Bundler (ESM, dts)                                         |
+| [oxlint](https://oxc.rs)                               | Linting                                                    |
+| [Vitest](https://vitest.dev)                           | Testing                                                    |
+| [Changesets](https://github.com/changesets/changesets) | Versioning and publishing                                  |
 
 ## Git
 

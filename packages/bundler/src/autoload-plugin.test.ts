@@ -147,6 +147,5 @@ describe('createAutoloadPlugin', () => {
         tagModulePath: '/project/tag.js',
       })
     })
-
   })
 })

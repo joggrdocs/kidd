@@ -178,12 +178,14 @@ describe('command ordering', () => {
     const commands: CommandMap = {
       deploy: command({
         commands: {
-          preview: command({ description: 'Preview' }),
-          production: command({ description: 'Production' }),
-          staging: command({ description: 'Staging' }),
+          commands: {
+            preview: command({ description: 'Preview' }),
+            production: command({ description: 'Production' }),
+            staging: command({ description: 'Staging' }),
+          },
+          order: ['production', 'staging'],
         },
         description: 'Deploy',
-        order: ['production', 'staging'],
       }),
     }
 

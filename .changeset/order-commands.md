@@ -3,6 +3,6 @@
 '@kidd-cli/cli': minor
 ---
 
-Add command ordering for help output
+Restructure commands as a grouped config object
 
-Add `commandOrder` option to `cli()` and `order` field to `command()` for controlling display order of commands in help output and the `commands` tree. Commands listed in the order array appear first in the specified order; omitted commands fall back to alphabetical sort. Invalid names are validated at runtime.
+Replace the flat `commandOrder` option on `cli()` and `order` field on `command()` with a unified `CommandsConfig` object nested inside the `commands` field. The new structure groups command source (`path` or inline `commands` map) alongside display ordering under a single key. Backward compatibility is preserved — `commands` still accepts a plain string path or a `CommandMap`.

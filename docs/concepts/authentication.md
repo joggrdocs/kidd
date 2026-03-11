@@ -247,12 +247,12 @@ auth.custom(async () => {
 
 The auth middleware decorates `ctx.auth` with an `AuthContext`:
 
-| Property          | Type                                     | Description                                    |
-| ----------------- | ---------------------------------------- | ---------------------------------------------- |
-| `credential()`    | `AuthCredential \| null`                 | Passively resolved credential (file, env)      |
-| `authenticated()` | `boolean`                                | Whether a passive credential exists            |
+| Property          | Type                                     | Description                                     |
+| ----------------- | ---------------------------------------- | ----------------------------------------------- |
+| `credential()`    | `AuthCredential \| null`                 | Passively resolved credential (file, env)       |
+| `authenticated()` | `boolean`                                | Whether a passive credential exists             |
 | `login()`         | `AsyncResult<AuthCredential, AuthError>` | Run interactive strategies, persist, and return |
-| `logout()`        | `AsyncResult<string, AuthError>`         | Remove stored credential from disk             |
+| `logout()`        | `AsyncResult<string, AuthError>`         | Remove stored credential from disk              |
 
 ### `ctx.auth.login()`
 

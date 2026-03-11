@@ -1,3 +1,4 @@
+import { match } from '@kidd-cli/utils/fp'
 import { withTag } from '@kidd-cli/utils/tag'
 
 import type {
@@ -49,9 +50,10 @@ export function command<
   const TMiddleware extends readonly Middleware<MiddlewareEnv>[] =
     readonly Middleware<MiddlewareEnv>[],
 >(def: CommandDef<TArgsDef, TConfig, TMiddleware>): CommandType {
-  if (isCommandsConfig(def.commands)) {
-    const { order, commands: innerCommands } = def.commands
-    return withTag({ ...def, commands: innerCommands, order }, 'Command') as CommandType
-  }
-  return withTag({ ...def }, 'Command') as CommandType
+  return match(def.commands)
+    .when(isCommandsConfig, (cfg) => {
+      const { order, commands: innerCommands } = cfg
+      return withTag({ ...def, commands: innerCommands, order }, 'Command') as CommandType
+    })
+    .otherwise(() => withTag({ ...def }, 'Command') as CommandType)
 }

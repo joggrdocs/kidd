@@ -14,6 +14,22 @@ export function validateCommandOrder(params: {
   readonly commandNames: readonly string[]
 }): Result<void, Error> {
   const { order, commandNames } = params
+
+  const seen = new Set<string>()
+  const duplicates = order.filter((name) => {
+    if (seen.has(name)) {
+      return true
+    }
+    seen.add(name)
+    return false
+  })
+
+  if (duplicates.length > 0) {
+    return err(
+      `Invalid command order: duplicate command(s) ${[...new Set(duplicates)].map((n) => `"${n}"`).join(', ')}`
+    )
+  }
+
   const nameSet = new Set(commandNames)
   const invalid = order.filter((name) => !nameSet.has(name))
 

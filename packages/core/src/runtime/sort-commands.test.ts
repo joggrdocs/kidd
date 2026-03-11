@@ -42,6 +42,17 @@ describe('validateCommandOrder', () => {
     expect(error).toBeNull()
   })
 
+  it('should return error for duplicate command names', () => {
+    const [error] = validateCommandOrder({
+      commandNames: ['alpha', 'beta', 'gamma'],
+      order: ['alpha', 'beta', 'alpha'],
+    })
+
+    expect(error).toBeInstanceOf(Error)
+    expect(error?.message).toContain('"alpha"')
+    expect(error?.message).toContain('duplicate')
+  })
+
   it('should return ok when order matches all command names exactly', () => {
     const [error] = validateCommandOrder({
       commandNames: ['alpha', 'beta', 'gamma'],

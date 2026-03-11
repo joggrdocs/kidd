@@ -11,6 +11,7 @@ import { createCliLogger } from '@/lib/logger.js'
 import type { CliHelpOptions, CliOptions, CommandMap, CommandsConfig } from '@/types.js'
 
 import { autoload } from './autoloader.js'
+import { isCommandsConfig } from './command.js'
 import { createRuntime, registerCommands } from './runtime/index.js'
 import type { ErrorRef, ResolvedRef } from './runtime/index.js'
 
@@ -118,27 +119,6 @@ export default cli
 // ---------------------------------------------------------------------------
 
 /**
- * Check whether a value is a structured {@link CommandsConfig} object.
- *
- * Discriminates from a plain `CommandMap` by checking for the `order` (array)
- * or `path` (string) keys — neither can appear on a valid `CommandMap` whose
- * values are tagged `Command` objects.
- *
- * @private
- * @param value - The value to test.
- * @returns `true` when `value` is a `CommandsConfig`.
- */
-function isCommandsConfig(value: unknown): value is CommandsConfig {
-  if (typeof value !== 'object' || value === null || value instanceof Promise) {
-    return false
-  }
-  const obj = value as Record<string, unknown>
-  return (
-    ('order' in obj && Array.isArray(obj.order)) || ('path' in obj && typeof obj.path === 'string')
-  )
-}
-
-/**
  * Resolved commands with optional display ordering.
  *
  * @private
@@ -163,19 +143,12 @@ interface ResolvedCommands {
 async function resolveCommands(
   commands: string | CommandMap | Promise<CommandMap> | CommandsConfig | undefined
 ): Promise<ResolvedCommands | undefined> {
-  if (isString(commands)) {
-    return { commands: await autoload({ dir: commands }) }
-  }
-  if (commands instanceof Promise) {
-    return { commands: await commands }
-  }
-  if (isCommandsConfig(commands)) {
-    return resolveCommandsConfig(commands)
-  }
-  if (isPlainObject(commands)) {
-    return { commands }
-  }
-  return resolveCommandsFromConfig()
+  return match(commands)
+    .when(isString, async (dir) => ({ commands: await autoload({ dir }) }))
+    .with(P.instanceOf(Promise), async (p) => ({ commands: await p }))
+    .when(isCommandsConfig, (cfg) => resolveCommandsConfig(cfg))
+    .when(isPlainObject, (cmds) => ({ commands: cmds }))
+    .otherwise(() => resolveCommandsFromConfig())
 }
 
 /**
@@ -191,19 +164,16 @@ async function resolveCommands(
 async function resolveCommandsConfig(config: CommandsConfig): Promise<ResolvedCommands> {
   const { order, path, commands: innerCommands } = config
 
-  if (isString(path)) {
-    return { commands: await autoload({ dir: path }), order }
-  }
+  const commands = await match(innerCommands)
+    .when(
+      () => isString(path),
+      async () => autoload({ dir: path as string })
+    )
+    .with(P.instanceOf(Promise), async (p) => p)
+    .when(isPlainObject, (cmds) => cmds)
+    .otherwise(() => ({}) as CommandMap)
 
-  if (innerCommands instanceof Promise) {
-    return { commands: await innerCommands, order }
-  }
-
-  if (isPlainObject(innerCommands)) {
-    return { commands: innerCommands, order }
-  }
-
-  return { commands: {}, order }
+  return { commands, order }
 }
 
 /**

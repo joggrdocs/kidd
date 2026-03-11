@@ -1,5 +1,13 @@
 # @kidd-cli/config
 
+## 0.1.4
+
+### Patch Changes
+
+- 97b92b7: upgrade dependencies across all packages
+- Updated dependencies [97b92b7]
+  - @kidd-cli/utils@0.1.4
+
 ## 0.1.3
 
 ### Patch Changes

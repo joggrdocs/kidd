@@ -1,5 +1,21 @@
 # @kidd-cli/bundler
 
+## 0.2.0
+
+### Minor Changes
+
+- 9f1b155: Auto-detect CLI version from package.json at build time
+
+  The kidd bundler now reads the `version` field from the project's `package.json` during build and injects it as a compile-time constant (`__KIDD_VERSION__`). At runtime, `cli()` no longer requires an explicit `version` option — it falls back to the injected constant automatically. Explicit `version` still takes precedence when provided. The build command output now displays the detected version.
+
+### Patch Changes
+
+- fc486c6: Silence tsdown build output so only clack/prompts UI is shown to the user
+- 97b92b7: upgrade dependencies across all packages
+- Updated dependencies [97b92b7]
+  - @kidd-cli/utils@0.1.4
+  - @kidd-cli/config@0.1.4
+
 ## 0.1.3
 
 ### Patch Changes

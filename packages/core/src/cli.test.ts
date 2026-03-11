@@ -190,6 +190,23 @@ describe('version resolution', () => {
 
     vi.unstubAllGlobals()
   })
+
+  it('should error when explicit version is an empty string', async () => {
+    vi.stubGlobal('__KIDD_VERSION__', '5.0.0')
+
+    setArgv('info')
+    await runTestCli({
+      commands: {
+        info: command({ description: 'Show info', handler: vi.fn() }),
+      },
+      name: 'empty-version-cli',
+      version: '',
+    })
+
+    expect(lifecycle.getExitSpy()).toHaveBeenCalled()
+
+    vi.unstubAllGlobals()
+  })
 })
 
 describe('config-based autoloading', () => {

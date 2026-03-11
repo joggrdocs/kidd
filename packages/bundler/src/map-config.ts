@@ -1,5 +1,6 @@
 import { createRequire } from 'node:module'
 
+import { match } from 'ts-pattern'
 import type { InlineConfig } from 'tsdown'
 
 import { createAutoloadPlugin } from './autoload-plugin.js'
@@ -14,7 +15,7 @@ import type { ResolvedBundlerConfig } from './types.js'
  */
 export function mapToBuildConfig(params: {
   readonly config: ResolvedBundlerConfig
-  readonly version: string | undefined
+  readonly version?: string
 }): InlineConfig {
   return {
     banner: SHEBANG,
@@ -61,7 +62,7 @@ export function mapToBuildConfig(params: {
  */
 export function mapToWatchConfig(params: {
   readonly config: ResolvedBundlerConfig
-  readonly version: string | undefined
+  readonly version?: string
   readonly onSuccess?: () => void | Promise<void>
 }): InlineConfig {
   const buildConfig = mapToBuildConfig({ config: params.config, version: params.version })
@@ -98,11 +99,11 @@ function buildExternals(userExternals: readonly string[]): (string | RegExp)[] {
  * @returns A define map for tsdown/rolldown.
  */
 function buildDefine(version: string | undefined): Record<string, string> {
-  if (version === undefined) {
-    return {}
-  }
-
-  return { __KIDD_VERSION__: JSON.stringify(version) }
+  return match(version)
+    .with(undefined, () => ({}))
+    .otherwise((resolvedVersion) => ({
+      __KIDD_VERSION__: JSON.stringify(resolvedVersion),
+    }))
 }
 
 /**

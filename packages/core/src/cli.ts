@@ -32,7 +32,7 @@ export async function cli<TSchema extends z.ZodType = z.ZodType>(
   const [uncaughtError, result] = await attemptAsync(async () => {
     const version = resolveVersion(options.version)
 
-    if (!version) {
+    if (version === undefined || version === '') {
       return new Error(
         'No CLI version available. Either pass `version` to cli() or build with the kidd bundler.'
       )
@@ -127,7 +127,7 @@ export default cli
  * @returns The resolved version string, or undefined if unavailable.
  */
 function resolveVersion(explicit: string | undefined): string | undefined {
-  if (explicit) {
+  if (explicit !== undefined) {
     return explicit
   }
 

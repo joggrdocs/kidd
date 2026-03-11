@@ -126,6 +126,11 @@ describe('context properties', () => {
 })
 
 describe('version resolution', () => {
+  // eslint-disable-next-line jest/no-hooks -- clean up stubbed globals after each test
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
   it('should fall back to __KIDD_VERSION__ when version is omitted', async () => {
     vi.stubGlobal('__KIDD_VERSION__', '5.0.0')
 
@@ -146,8 +151,6 @@ describe('version resolution', () => {
     expect(handler).toHaveBeenCalledTimes(1)
     const ctx = handler.mock.calls[0]![0] as Context
     expect(ctx.meta.version).toBe('5.0.0')
-
-    vi.unstubAllGlobals()
   })
 
   it('should prefer explicit version over __KIDD_VERSION__', async () => {
@@ -171,8 +174,6 @@ describe('version resolution', () => {
     expect(handler).toHaveBeenCalledTimes(1)
     const ctx = handler.mock.calls[0]![0] as Context
     expect(ctx.meta.version).toBe('9.9.9')
-
-    vi.unstubAllGlobals()
   })
 
   it('should error when neither version nor __KIDD_VERSION__ is available', async () => {
@@ -187,8 +188,6 @@ describe('version resolution', () => {
     })
 
     expect(lifecycle.getExitSpy()).toHaveBeenCalled()
-
-    vi.unstubAllGlobals()
   })
 
   it('should error when explicit version is an empty string', async () => {
@@ -204,8 +203,6 @@ describe('version resolution', () => {
     })
 
     expect(lifecycle.getExitSpy()).toHaveBeenCalled()
-
-    vi.unstubAllGlobals()
   })
 })
 

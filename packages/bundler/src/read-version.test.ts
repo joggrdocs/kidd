@@ -64,6 +64,6 @@ describe('readVersion', () => {
 
     expect(version).toBeNull()
     expect(error).toBeInstanceOf(Error)
-    expect(error!.message).toContain('Failed to read version')
+    expect(error).toMatchObject({ message: expect.stringContaining('Failed to read version') })
   })
 })

@@ -207,10 +207,10 @@ auth({
 
 ## Configuration
 
-| Option      | Type               | Default    | Description                                            |
-| ----------- | ------------------ | ---------- | ------------------------------------------------------ |
+| Option       | Type               | Default    | Description                                            |
+| ------------ | ------------------ | ---------- | ------------------------------------------------------ |
 | `strategies` | `StrategyConfig[]` | _required_ | Ordered list of credential sources to try              |
-| `http`      | `AuthHttpOptions`  | --         | Optional HTTP client(s) with credential auto-injection |
+| `http`       | `AuthHttpOptions`  | --         | Optional HTTP client(s) with credential auto-injection |
 
 ## Multiple Auth Sources
 

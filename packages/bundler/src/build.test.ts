@@ -71,7 +71,7 @@ describe('build operation', () => {
 
     const [, output] = await build({ config: {}, cwd: '/project' })
 
-    expect(output!.version).toBe('2.5.0')
+    expect(output).toMatchObject({ version: '2.5.0' })
   })
 
   it('should warn and continue when readVersion fails', async () => {
@@ -83,7 +83,7 @@ describe('build operation', () => {
     const [error, output] = await build({ config: {}, cwd: '/project' })
 
     expect(error).toBeNull()
-    expect(output!.version).toBeUndefined()
+    expect(output).toHaveProperty('version', undefined)
     expect(warnSpy).toHaveBeenCalledWith(
       expect.stringContaining('[kidd-bundler]'),
       expect.stringContaining('ENOENT')

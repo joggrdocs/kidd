@@ -16,7 +16,7 @@ export async function readVersion(cwd: string): AsyncBundlerResult<string | unde
   const [manifestError, manifest] = await readManifest(cwd)
 
   if (manifestError) {
-    return [new Error(`Failed to read version: ${String(manifestError)}`), null]
+    return [new Error(`Failed to read version: ${manifestError.message}`), null]
   }
 
   return [null, manifest.version]

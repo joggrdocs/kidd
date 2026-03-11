@@ -5,6 +5,13 @@ vi.mock(import('@kidd-cli/utils/manifest'), () => ({
   readManifest: vi.fn(),
 }))
 
+vi.mock(import('../generated/template-versions.js'), () => ({
+  TSDOWN_VERSION: '^0.21.1' as const,
+  TYPESCRIPT_VERSION: '^5.9.3' as const,
+  VITEST_VERSION: '^4.0.18' as const,
+  ZOD_VERSION: '^4.3.6' as const,
+}))
+
 vi.mock(import('../lib/render.js'), () => ({
   renderTemplate: vi.fn(),
 }))
@@ -136,6 +143,10 @@ describe('init command', () => {
           description: 'Test',
           name: 'test-cli',
           packageManager: 'npm',
+          tsdownVersion: '^0.21.1',
+          typescriptVersion: '^5.9.3',
+          vitestVersion: '^4.0.18',
+          zodVersion: '^4.3.6',
         },
       })
     )

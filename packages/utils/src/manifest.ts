@@ -35,7 +35,7 @@ const ManifestSchema = z.object({
       }),
     ])
     .optional(),
-  version: z.string().optional(),
+  version: z.string().trim().min(1).optional(),
 })
 
 /**

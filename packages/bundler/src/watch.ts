@@ -2,6 +2,7 @@ import { err, ok } from '@kidd-cli/utils/fp'
 import { build as tsdownBuild } from 'tsdown'
 
 import { mapToWatchConfig } from './map-config.js'
+import { readVersion } from './read-version.js'
 import { resolveConfig } from './resolve-config.js'
 import type { AsyncBundlerResult, WatchParams } from './types.js'
 
@@ -16,9 +17,17 @@ import type { AsyncBundlerResult, WatchParams } from './types.js'
  */
 export async function watch(params: WatchParams): AsyncBundlerResult<void> {
   const resolved = resolveConfig(params)
+
+  const [versionError, versionResult] = await readVersion(params.cwd)
+  if (versionError) {
+    console.warn('[kidd-bundler] could not read version from package.json:', versionError.message)
+  }
+  const version = versionResult ?? undefined
+
   const watchConfig = mapToWatchConfig({
     config: resolved,
     onSuccess: params.onSuccess,
+    version,
   })
 
   try {

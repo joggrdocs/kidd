@@ -60,7 +60,7 @@ function makeContext(argOverrides: Record<string, unknown> = {}): Context {
 function setupBuildSuccess(): void {
   mockedBuild.mockResolvedValue([
     null,
-    { entryFile: '/project/dist/index.js', outDir: '/project/dist' },
+    { entryFile: '/project/dist/index.js', outDir: '/project/dist', version: '1.0.0' },
   ])
 }
 
@@ -220,8 +220,9 @@ describe('build command', () => {
       await mod.default.handler!(ctx)
 
       const noteCall = vi.mocked(ctx.logger.note).mock.calls[0]!
-      expect(noteCall[0]).toContain('entry   dist/index.js')
-      expect(noteCall[0]).toContain('output  dist')
+      expect(noteCall[0]).toContain('entry    dist/index.js')
+      expect(noteCall[0]).toContain('output   dist')
+      expect(noteCall[0]).toContain('version  1.0.0')
       expect(noteCall[1]).toBe('Bundle')
     })
   })

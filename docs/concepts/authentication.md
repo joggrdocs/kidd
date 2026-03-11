@@ -8,10 +8,10 @@ Auth is a sub-export of the `@kidd-cli/core` package (`@kidd-cli/core/auth`), no
 
 ### Passive vs Interactive Resolution
 
-Auth resolvers are split into two categories:
+Auth strategies are split into two categories:
 
-- **Passive** resolvers run automatically when the middleware initializes. They check non-interactive sources (file store, environment variables) without prompting the user. The first match wins.
-- **Interactive** resolvers run only when the handler explicitly calls `ctx.auth.login()`. They prompt the user (OAuth browser flow, password input) or call a custom function.
+- **Passive** strategies run automatically when the middleware initializes. They check non-interactive sources (file store, environment variables) without prompting the user. The first match wins.
+- **Interactive** strategies run only when the handler explicitly calls `ctx.auth.login()`. They prompt the user (OAuth browser flow, password input) or call a custom function.
 
 This split allows commands to work without auth when no credential is found, and only prompt when a command actually needs authentication.
 
@@ -72,13 +72,13 @@ Credentials loaded from disk are validated against a Zod schema. Invalid data is
 
 ## Resolver Builders
 
-The `auth` function doubles as a namespace with builder methods for constructing resolver configs. Each builder returns the same `ResolverConfig` type with the `source` discriminator pre-filled. Raw config objects (`{ source: 'env' }`) still work.
+The `auth` function doubles as a namespace with builder methods for constructing strategy configs. Each builder returns the same `StrategyConfig` type with the `source` discriminator pre-filled. Raw config objects (`{ source: 'env' }`) still work.
 
 ```ts
 import { auth } from '@kidd-cli/core/auth'
 
 auth({
-  resolvers: [
+  strategies: [
     // Passive (run automatically)
     auth.env(),
     auth.env({ tokenVar: 'GH_TOKEN' }),
@@ -247,16 +247,16 @@ auth.custom(async () => {
 
 The auth middleware decorates `ctx.auth` with an `AuthContext`:
 
-| Property          | Type                                     | Description                                    |
-| ----------------- | ---------------------------------------- | ---------------------------------------------- |
-| `credential()`    | `AuthCredential \| null`                 | Passively resolved credential (file, env)      |
-| `authenticated()` | `boolean`                                | Whether a passive credential exists            |
-| `login()`         | `AsyncResult<AuthCredential, AuthError>` | Run interactive resolvers, persist, and return |
-| `logout()`        | `AsyncResult<string, AuthError>`         | Remove stored credential from disk             |
+| Property          | Type                                     | Description                                     |
+| ----------------- | ---------------------------------------- | ----------------------------------------------- |
+| `credential()`    | `AuthCredential \| null`                 | Passively resolved credential (file, env)       |
+| `authenticated()` | `boolean`                                | Whether a passive credential exists             |
+| `login()`         | `AsyncResult<AuthCredential, AuthError>` | Run interactive strategies, persist, and return |
+| `logout()`        | `AsyncResult<string, AuthError>`         | Remove stored credential from disk              |
 
 ### `ctx.auth.login()`
 
-Walks the configured resolvers in order, runs each interactive resolver, and persists the first successful credential to the global file store.
+Walks the configured strategies in order, runs each interactive strategy, and persists the first successful credential to the global file store.
 
 ```ts
 const [error, credential] = await ctx.auth.login()
@@ -278,11 +278,11 @@ if (error) {
 
 ### AuthError
 
-| AuthError `type`   | Description                               |
-| ------------------ | ----------------------------------------- |
-| `'no_credential'`  | No resolver produced a credential         |
-| `'save_failed'`    | Credential resolved but failed to persist |
-| `'remove_failed'`  | Failed to remove the credential file      |
+| AuthError `type`  | Description                               |
+| ----------------- | ----------------------------------------- |
+| `'no_credential'` | No strategy produced a credential         |
+| `'save_failed'`   | Credential resolved but failed to persist |
+| `'remove_failed'` | Failed to remove the credential file      |
 
 ## Requiring Authentication
 
@@ -328,10 +328,7 @@ Apply the middleware to the root `middleware` array to enforce authentication on
 cli({
   name: 'my-app',
   version: '1.0.0',
-  middleware: [
-    auth({ resolvers: [auth.env(), auth.token()] }),
-    requireAuth,
-  ],
+  middleware: [auth({ strategies: [auth.env(), auth.token()] }), requireAuth],
   commands: `${import.meta.dirname}/commands`,
 })
 ```
@@ -353,7 +350,7 @@ cli({
   version: '1.0.0',
   middleware: [
     auth({
-      resolvers: [
+      strategies: [
         auth.env(),
         auth.oauth({
           clientId: 'my-client-id',
@@ -371,7 +368,7 @@ cli({
 ```ts
 // Multiple HTTP clients
 auth({
-  resolvers: [auth.env()],
+  strategies: [auth.env()],
   http: [
     { baseUrl: 'https://api.example.com', namespace: 'api' },
     { baseUrl: 'https://admin.example.com', namespace: 'admin' },

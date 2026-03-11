@@ -1,17 +1,20 @@
 import { resolve } from 'node:path'
 
 import { loadConfig } from '@kidd-cli/config/loader'
-import { attemptAsync, isPlainObject, isString } from '@kidd-cli/utils/fp'
+import { P, attemptAsync, err, isPlainObject, isString, match, ok } from '@kidd-cli/utils/fp'
+import type { Result } from '@kidd-cli/utils/fp'
 import yargs from 'yargs'
-import type { z } from 'zod'
+import type { Argv } from 'yargs'
+import { z } from 'zod'
 
 import { DEFAULT_EXIT_CODE, isContextError } from '@/context/index.js'
 import { createCliLogger } from '@/lib/logger.js'
-import type { CliOptions, CommandMap } from '@/types.js'
+import type { CliHelpOptions, CliOptions, CommandMap, CommandsConfig } from '@/types.js'
 
 import { autoload } from './autoloader.js'
+import { isCommandsConfig } from './command.js'
 import { createRuntime, registerCommands } from './runtime/index.js'
-import type { ResolvedRef } from './runtime/index.js'
+import type { ErrorRef, ResolvedRef } from './runtime/index.js'
 
 const ARGV_SLICE_START = 2
 
@@ -29,9 +32,15 @@ export async function cli<TSchema extends z.ZodType = z.ZodType>(
   const logger = createCliLogger()
 
   const [uncaughtError, result] = await attemptAsync(async () => {
+    const [versionError, version] = resolveVersion(options.version)
+
+    if (versionError) {
+      return versionError
+    }
+
     const program = yargs(process.argv.slice(ARGV_SLICE_START))
       .scriptName(options.name)
-      .version(options.version)
+      .version(version)
       .strict()
       .help()
       .option('cwd', {
@@ -44,20 +53,37 @@ export async function cli<TSchema extends z.ZodType = z.ZodType>(
       program.usage(options.description)
     }
 
-    const resolved: ResolvedRef = { ref: undefined }
-
-    const commands = await resolveCommands(options.commands)
-
-    if (commands) {
-      registerCommands({ commands, instance: program, parentPath: [], resolved })
-      program.demandCommand(1, 'You must specify a command.')
+    const footer = extractFooter(options.help)
+    if (footer) {
+      program.epilogue(footer)
     }
 
-    const argv = await program.parseAsync()
+    const resolved: ResolvedRef = { ref: undefined }
+    const errorRef: ErrorRef = { error: undefined }
 
-    applyCwd(argv as Record<string, unknown>)
+    const resolvedCmds = await resolveCommands(options.commands)
+
+    if (resolvedCmds) {
+      registerCommands({
+        commands: resolvedCmds.commands,
+        errorRef,
+        instance: program,
+        order: resolvedCmds.order,
+        parentPath: [],
+        resolved,
+      })
+
+      if (errorRef.error) {
+        return errorRef.error
+      }
+    }
+
+    const argv: Record<string, unknown> = await program.parseAsync()
+
+    applyCwd(argv)
 
     if (!resolved.ref) {
+      showNoCommandHelp({ argv, commands: resolvedCmds, help: options.help, program })
       return undefined
     }
 
@@ -65,7 +91,7 @@ export async function cli<TSchema extends z.ZodType = z.ZodType>(
       config: options.config,
       middleware: options.middleware,
       name: options.name,
-      version: options.version,
+      version,
     })
 
     if (runtimeError) {
@@ -77,7 +103,7 @@ export async function cli<TSchema extends z.ZodType = z.ZodType>(
       commandPath: resolved.ref.commandPath,
       handler: resolved.ref.handler,
       middleware: resolved.ref.middleware,
-      rawArgs: argv as Record<string, unknown>,
+      rawArgs: argv,
     })
 
     return executeError
@@ -99,31 +125,100 @@ export default cli
 // Private
 // ---------------------------------------------------------------------------
 
+const VERSION_ERROR = new Error(
+  'No CLI version available. Either pass `version` to cli() or build with the kidd bundler.'
+)
+
+const VersionSchema = z.string().trim().min(1)
+
 /**
- * Resolve the commands option to a CommandMap.
+ * Resolve the CLI version from an explicit value or the compile-time constant.
+ *
+ * Resolution order:
+ * 1. Explicit version string passed to `cli()`
+ * 2. `__KIDD_VERSION__` injected by the kidd bundler at build time
+ *
+ * Returns an error when neither source provides a non-empty version.
+ *
+ * @private
+ * @param explicit - The version string from `CliOptions.version`, if provided.
+ * @returns A Result tuple with the resolved version string or an Error.
+ */
+function resolveVersion(explicit: string | undefined): Result<string> {
+  if (explicit !== undefined) {
+    const parsed = VersionSchema.safeParse(explicit)
+    if (parsed.success) {
+      return ok(parsed.data)
+    }
+    return err(VERSION_ERROR)
+  }
+
+  if (typeof __KIDD_VERSION__ === 'string') {
+    const parsed = VersionSchema.safeParse(__KIDD_VERSION__)
+    if (parsed.success) {
+      return ok(parsed.data)
+    }
+  }
+
+  return err(VERSION_ERROR)
+}
+
+/**
+ * Resolved commands with optional display ordering.
+ *
+ * @private
+ */
+interface ResolvedCommands {
+  readonly commands: CommandMap
+  readonly order?: readonly string[]
+}
+
+/**
+ * Resolve the commands option to a {@link ResolvedCommands}.
  *
  * Accepts a directory string (triggers autoload), a static CommandMap,
- * a Promise<CommandMap> (from autoload() called at the call site),
+ * a Promise<CommandMap>, a structured {@link CommandsConfig},
  * or undefined (loads `kidd.config.ts` and autoloads from its `commands` field,
  * falling back to `'./commands'`).
  *
  * @private
  * @param commands - The commands option from CliOptions.
- * @returns A CommandMap or undefined.
+ * @returns Resolved commands with optional order, or undefined.
  */
 async function resolveCommands(
-  commands: string | CommandMap | Promise<CommandMap> | undefined
-): Promise<CommandMap | undefined> {
-  if (isString(commands)) {
-    return autoload({ dir: commands })
-  }
-  if (commands instanceof Promise) {
-    return commands
-  }
-  if (isPlainObject(commands)) {
-    return commands as CommandMap
-  }
-  return resolveCommandsFromConfig()
+  commands: string | CommandMap | Promise<CommandMap> | CommandsConfig | undefined
+): Promise<ResolvedCommands | undefined> {
+  return match(commands)
+    .when(isString, async (dir) => ({ commands: await autoload({ dir }) }))
+    .with(P.instanceOf(Promise), async (p) => ({ commands: await p }))
+    .when(isCommandsConfig, (cfg) => resolveCommandsConfig(cfg))
+    .when(isPlainObject, (cmds) => ({ commands: cmds }))
+    .otherwise(() => resolveCommandsFromConfig())
+}
+
+/**
+ * Resolve a structured {@link CommandsConfig} into flat commands and order.
+ *
+ * When `path` is provided, autoloads from that directory. Otherwise uses the
+ * inline `commands` map (resolved if it is a promise).
+ *
+ * @private
+ * @param config - The structured commands configuration.
+ * @returns Resolved commands with optional order.
+ */
+async function resolveCommandsConfig(config: CommandsConfig): Promise<ResolvedCommands> {
+  const { order, path, commands: innerCommands } = config
+
+  const commands = await match(innerCommands)
+    .when(
+      () => isString(path),
+      async () => autoload({ dir: path as string })
+    )
+    .with(P.instanceOf(Promise), async (p) => p)
+    .when(isPlainObject, (cmds) => cmds)
+    .otherwise(() => ({}) as CommandMap)
+
+  return { commands, order }
 }
 
 /**
@@ -135,16 +230,16 @@ async function resolveCommands(
  * @private
  * @returns A CommandMap autoloaded from the configured commands directory.
  */
-async function resolveCommandsFromConfig(): Promise<CommandMap> {
+async function resolveCommandsFromConfig(): Promise<ResolvedCommands> {
   const DEFAULT_COMMANDS_DIR = './commands'
 
   const [configError, configResult] = await loadConfig()
   if (configError || !configResult) {
-    return autoload({ dir: DEFAULT_COMMANDS_DIR })
+    return { commands: await autoload({ dir: DEFAULT_COMMANDS_DIR }) }
   }
 
   const dir = configResult.config.commands ?? DEFAULT_COMMANDS_DIR
-  return autoload({ dir })
+  return { commands: await autoload({ dir }) }
 }
 
 /**
@@ -163,6 +258,69 @@ function applyCwd(argv: Record<string, unknown>): void {
 }
 
 /**
+ * Show help output when no command was matched.
+ *
+ * Prints the header (if configured) above the yargs help text. Skipped when
+ * `--help` was explicitly passed, since yargs already handles that case.
+ *
+ * @private
+ * @param params - The argv, commands, help options, and yargs program instance.
+ */
+function showNoCommandHelp({
+  argv,
+  commands,
+  help,
+  program,
+}: {
+  readonly argv: Record<string, unknown>
+  readonly commands: ResolvedCommands | undefined
+  readonly help: CliHelpOptions | undefined
+  readonly program: Argv
+}): void {
+  if (!commands) {
+    return
+  }
+  if (argv.help) {
+    return
+  }
+
+  const header = extractHeader(help)
+  if (header) {
+    console.log(header)
+    console.log()
+  }
+  program.showHelp('log')
+}
+
+/**
+ * Extract the header string from help options.
+ *
+ * @private
+ * @param help - The help options, possibly undefined.
+ * @returns The header string or undefined.
+ */
+function extractHeader(help: CliHelpOptions | undefined): string | undefined {
+  if (!help) {
+    return undefined
+  }
+  return help.header
+}
+
+/**
+ * Extract the footer string from help options.
+ *
+ * @private
+ * @param help - The help options, possibly undefined.
+ * @returns The footer string or undefined.
+ */
+function extractFooter(help: CliHelpOptions | undefined): string | undefined {
+  if (!help) {
+    return undefined
+  }
+  return help.footer
+}
+
+/**
  * Handle a CLI error by logging the message and exiting with the appropriate code.
  *
  * ContextErrors carry a custom exit code; all other errors exit with code 1.
@@ -172,14 +330,11 @@ function applyCwd(argv: Record<string, unknown>): void {
  * @param logger - Logger with an error method for output.
  */
 function exitOnError(error: unknown, logger: { error(msg: string): void }): void {
-  if (isContextError(error)) {
-    logger.error(error.message)
-    process.exit(error.exitCode)
-  } else if (error instanceof Error) {
-    logger.error(error.message)
-    process.exit(DEFAULT_EXIT_CODE)
-  } else {
-    logger.error(String(error))
-    process.exit(DEFAULT_EXIT_CODE)
-  }
+  const info = match(error)
+    .when(isContextError, (e) => ({ exitCode: e.exitCode, message: e.message }))
+    .with(P.instanceOf(Error), (e) => ({ exitCode: DEFAULT_EXIT_CODE, message: e.message }))
+    .otherwise((e) => ({ exitCode: DEFAULT_EXIT_CODE, message: String(e) }))
+
+  logger.error(info.message)
+  process.exit(info.exitCode)
 }

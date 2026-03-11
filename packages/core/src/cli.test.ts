@@ -1,5 +1,5 @@
 import { setArgv, runTestCli, setupTestLifecycle } from '@test/core-utils.js'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { Context } from '@/context/types.js'
 import type { CommandMap } from '@/types.js'
@@ -47,7 +47,7 @@ vi.mock(import('@clack/prompts'), async (importOriginal) => ({
   text: vi.fn(),
 }))
 
-setupTestLifecycle()
+const lifecycle = setupTestLifecycle()
 
 describe('meta', () => {
   it('sets name and version on context meta', async () => {
@@ -125,6 +125,87 @@ describe('context properties', () => {
   })
 })
 
+describe('version resolution', () => {
+  // eslint-disable-next-line jest/no-hooks -- clean up stubbed globals after each test
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  it('should fall back to __KIDD_VERSION__ when version is omitted', async () => {
+    vi.stubGlobal('__KIDD_VERSION__', '5.0.0')
+
+    const handler = vi.fn()
+    const commands: CommandMap = {
+      info: command({
+        description: 'Show info',
+        handler,
+      }),
+    }
+
+    setArgv('info')
+    await runTestCli({
+      commands,
+      name: 'auto-version-cli',
+    })
+
+    expect(handler).toHaveBeenCalledTimes(1)
+    const ctx = handler.mock.calls[0]![0] as Context
+    expect(ctx.meta.version).toBe('5.0.0')
+  })
+
+  it('should prefer explicit version over __KIDD_VERSION__', async () => {
+    vi.stubGlobal('__KIDD_VERSION__', '5.0.0')
+
+    const handler = vi.fn()
+    const commands: CommandMap = {
+      info: command({
+        description: 'Show info',
+        handler,
+      }),
+    }
+
+    setArgv('info')
+    await runTestCli({
+      commands,
+      name: 'explicit-version-cli',
+      version: '9.9.9',
+    })
+
+    expect(handler).toHaveBeenCalledTimes(1)
+    const ctx = handler.mock.calls[0]![0] as Context
+    expect(ctx.meta.version).toBe('9.9.9')
+  })
+
+  it('should error when neither version nor __KIDD_VERSION__ is available', async () => {
+    vi.stubGlobal('__KIDD_VERSION__', undefined)
+
+    setArgv('info')
+    await runTestCli({
+      commands: {
+        info: command({ description: 'Show info', handler: vi.fn() }),
+      },
+      name: 'no-version-cli',
+    })
+
+    expect(lifecycle.getExitSpy()).toHaveBeenCalled()
+  })
+
+  it('should error when explicit version is an empty string', async () => {
+    vi.stubGlobal('__KIDD_VERSION__', '5.0.0')
+
+    setArgv('info')
+    await runTestCli({
+      commands: {
+        info: command({ description: 'Show info', handler: vi.fn() }),
+      },
+      name: 'empty-version-cli',
+      version: '',
+    })
+
+    expect(lifecycle.getExitSpy()).toHaveBeenCalled()
+  })
+})
+
 describe('config-based autoloading', () => {
   it('should autoload from kidd.config.ts commands field when commands is omitted', async () => {
     const handler = vi.fn()
@@ -198,5 +279,163 @@ describe('config-based autoloading', () => {
 
     expect(mockLoadConfig).not.toHaveBeenCalled()
     expect(handler).toHaveBeenCalledOnce()
+  })
+})
+
+describe('help', () => {
+  let logSpy: ReturnType<typeof vi.spyOn>
+
+  // eslint-disable-next-line jest/no-hooks -- capture console.log for help output assertions
+  beforeEach(() => {
+    logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+  })
+
+  // eslint-disable-next-line jest/no-hooks -- restore console.log
+  afterEach(() => {
+    logSpy.mockRestore()
+  })
+
+  it('should show help when no command is given', async () => {
+    const handler = vi.fn()
+    const commands: CommandMap = {
+      deploy: command({ description: 'Deploy the app', handler }),
+      info: command({ description: 'Show info', handler }),
+    }
+
+    setArgv()
+    await runTestCli({ commands, name: 'test-cli', version: '1.0.0' })
+
+    const output = logSpy.mock.calls.map((call) => String(call[0])).join('\n')
+    expect(output).toContain('deploy')
+    expect(output).toContain('info')
+    expect(handler).not.toHaveBeenCalled()
+  })
+
+  it('should display header above commands on no-command', async () => {
+    const handler = vi.fn()
+    const commands: CommandMap = {
+      deploy: command({ description: 'Deploy the app', handler }),
+    }
+
+    setArgv()
+    await runTestCli({
+      commands,
+      help: { header: '*** HEADER ***' },
+      name: 'test-cli',
+      version: '1.0.0',
+    })
+
+    const output = logSpy.mock.calls.map((call) => String(call[0])).join('\n')
+    expect(output).toContain('*** HEADER ***')
+    expect(output).toContain('deploy')
+
+    const headerIndex = output.indexOf('*** HEADER ***')
+    const deployIndex = output.indexOf('deploy')
+    expect(headerIndex).toBeLessThan(deployIndex)
+  })
+
+  it('should not display header on --help', async () => {
+    const handler = vi.fn()
+    const commands: CommandMap = {
+      deploy: command({ description: 'Deploy the app', handler }),
+    }
+
+    setArgv('--help')
+    await runTestCli({
+      commands,
+      help: { header: '*** HEADER ***' },
+      name: 'test-cli',
+      version: '1.0.0',
+    })
+
+    const output = logSpy.mock.calls.map((call) => String(call[0])).join('\n')
+    expect(output).not.toContain('*** HEADER ***')
+    expect(output).toContain('deploy')
+  })
+
+  it('should show description without header when header is not set', async () => {
+    const handler = vi.fn()
+    const commands: CommandMap = {
+      run: command({ description: 'Run something', handler }),
+    }
+
+    setArgv()
+    await runTestCli({
+      commands,
+      description: 'A great CLI tool',
+      name: 'test-cli',
+      version: '1.0.0',
+    })
+
+    const output = logSpy.mock.calls.map((call) => String(call[0])).join('\n')
+    expect(output).toContain('A great CLI tool')
+  })
+
+  it('should show footer on all help output', async () => {
+    const handler = vi.fn()
+    const commands: CommandMap = {
+      run: command({ description: 'Run something', handler }),
+    }
+
+    setArgv()
+    await runTestCli({
+      commands,
+      help: { footer: 'Docs: https://example.com' },
+      name: 'test-cli',
+      version: '1.0.0',
+    })
+
+    const output = logSpy.mock.calls.map((call) => String(call[0])).join('\n')
+    expect(output).toContain('Docs: https://example.com')
+  })
+
+  it('should show footer on --help', async () => {
+    const handler = vi.fn()
+    const commands: CommandMap = {
+      run: command({ description: 'Run something', handler }),
+    }
+
+    setArgv('--help')
+    await runTestCli({
+      commands,
+      help: { footer: 'Docs: https://example.com' },
+      name: 'test-cli',
+      version: '1.0.0',
+    })
+
+    const output = logSpy.mock.calls.map((call) => String(call[0])).join('\n')
+    expect(output).toContain('Docs: https://example.com')
+  })
+
+  it('should show both header and description on no-command', async () => {
+    const handler = vi.fn()
+    const commands: CommandMap = {
+      run: command({ description: 'Run something', handler }),
+    }
+
+    setArgv()
+    await runTestCli({
+      commands,
+      description: 'A great CLI tool',
+      help: { header: '=== MY CLI ===' },
+      name: 'test-cli',
+      version: '1.0.0',
+    })
+
+    const output = logSpy.mock.calls.map((call) => String(call[0])).join('\n')
+    expect(output).toContain('=== MY CLI ===')
+    expect(output).toContain('A great CLI tool')
+  })
+
+  it('should not call handler when no command is given', async () => {
+    const handler = vi.fn()
+    const commands: CommandMap = {
+      deploy: command({ description: 'Deploy the app', handler }),
+    }
+
+    setArgv()
+    await runTestCli({ commands, name: 'test-cli', version: '1.0.0' })
+
+    expect(handler).not.toHaveBeenCalled()
   })
 })

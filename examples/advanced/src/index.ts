@@ -19,10 +19,15 @@ const configSchema = z.object({
 })
 
 cli({
+  commands: {
+    order: ['deploy', 'status', 'ping', 'whoami'],
+    path: `${import.meta.dirname}/commands`,
+  },
   config: {
     schema: configSchema,
   },
   description: 'Acme platform CLI',
+  help: { header: 'acme - the Acme platform CLI' },
   middleware: [
     http({
       baseUrl: 'https://api.acme.dev',

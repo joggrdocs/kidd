@@ -1,7 +1,13 @@
 <div align="center">
   <img src="assets/banner.svg" alt="kidd" width="90%" />
   <p><strong>An opinionated CLI framework for Node.js. Convention over configuration, end-to-end type safety.</strong></p>
-  <a href="https://kidd.dev">Documentation</a>
+
+<a href="https://github.com/joggrdocs/kidd/actions/workflows/ci.yml"><img src="https://github.com/joggrdocs/kidd/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI" /></a>
+<a href="https://www.npmjs.com/package/@kidd-cli/core"><img src="https://img.shields.io/npm/v/@kidd-cli/core" alt="npm version" /></a>
+<a href="https://github.com/joggrdocs/kidd/blob/main/LICENSE"><img src="https://img.shields.io/github/license/joggrdocs/kidd" alt="License" /></a>
+
+<a href="https://kidd.dev">📖 Documentation</a> &nbsp;&nbsp;&nbsp;·&nbsp;&nbsp;&nbsp; <a href="https://github.com/joggrdocs/kidd/issues">🐛 Issues</a>
+
 </div>
 
 ## Features
@@ -22,7 +28,7 @@ npm install @kidd-cli/core
 
 ### Define your CLI
 
-```typescript
+```ts
 // index.ts
 import { cli } from '@kidd-cli/core'
 import { z } from 'zod'
@@ -41,7 +47,7 @@ await cli({
 
 ### Add a command
 
-```typescript
+```ts
 // commands/deploy.ts
 import { command } from '@kidd-cli/core'
 import { z } from 'zod'

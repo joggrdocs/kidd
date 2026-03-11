@@ -1,9 +1,9 @@
 /**
  * Factory for the {@link AuthContext} object decorated onto `ctx.auth`.
  *
- * Closes over the middleware's resolver config, CLI name, prompts, and
+ * Closes over the middleware's strategy config, CLI name, prompts, and
  * a credential resolver function so that `login()` can run
- * interactive resolvers and persist the result.
+ * interactive strategies and persist the result.
  *
  * @module
  */
@@ -16,16 +16,24 @@ import { createStore } from '@/lib/store/create-store.js'
 
 import { runStrategyChain } from './chain.js'
 import { DEFAULT_AUTH_FILENAME } from './constants.js'
-import type { AuthContext, AuthCredential, AuthError, ResolverConfig } from './types.js'
+import type {
+  AuthContext,
+  AuthCredential,
+  AuthError,
+  LoginOptions,
+  StrategyConfig,
+  ValidateCredential,
+} from './types.js'
 
 /**
  * Options for {@link createAuthContext}.
  */
 export interface CreateAuthContextOptions {
-  readonly resolvers: readonly ResolverConfig[]
+  readonly strategies: readonly StrategyConfig[]
   readonly cliName: string
   readonly prompts: Prompts
   readonly resolveCredential: () => AuthCredential | null
+  readonly validate?: ValidateCredential
 }
 
 /**
@@ -33,14 +41,14 @@ export interface CreateAuthContextOptions {
  *
  * No credential data is stored on the returned object. `credential()`
  * resolves passively on every call, `authenticated()` checks existence,
- * `login()` runs the configured interactive resolvers, saves the
+ * `login()` runs the configured interactive strategies, saves the
  * credential to the global file store, and `logout()` removes it.
  *
  * @param options - Factory options.
  * @returns An AuthContext instance.
  */
 export function createAuthContext(options: CreateAuthContextOptions): AuthContext {
-  const { resolvers, cliName, prompts, resolveCredential } = options
+  const { strategies, cliName, prompts, resolveCredential, validate } = options
 
   /**
    * Resolve the current credential from passive sources (file, env).
@@ -63,15 +71,23 @@ export function createAuthContext(options: CreateAuthContextOptions): AuthContex
   }
 
   /**
-   * Run configured resolvers interactively and persist the credential.
+   * Run configured strategies interactively and persist the credential.
+   *
+   * When `loginOptions.strategies` is provided, those strategies are used
+   * instead of the default configured list.
    *
    * @private
+   * @param loginOptions - Optional overrides for the login attempt.
    * @returns A Result with the credential on success or an AuthError on failure.
    */
-  // TODO: support targeted resolver selection, e.g. ctx.auth.login({ source: 'token' })
-  // to let callers skip to a specific resolver instead of walking the full chain.
-  async function login(): AsyncResult<AuthCredential, AuthError> {
-    const resolved = await runStrategyChain({ cliName, prompts, resolvers })
+  async function login(loginOptions?: LoginOptions): AsyncResult<AuthCredential, AuthError> {
+    const activeStrategies = resolveLoginStrategies(loginOptions, strategies)
+
+    const resolved = await runStrategyChain({
+      cliName,
+      prompts,
+      strategies: activeStrategies,
+    })
 
     if (resolved === null) {
       return authError({
@@ -80,8 +96,15 @@ export function createAuthContext(options: CreateAuthContextOptions): AuthContex
       })
     }
 
+    const activeValidate = resolveLoginValidate(loginOptions, validate)
+    const [validationError, validatedCredential] = await runValidation(activeValidate, resolved)
+
+    if (validationError) {
+      return [validationError, null] as const
+    }
+
     const store = createStore({ dirName: `.${cliName}` })
-    const [saveError] = store.save(DEFAULT_AUTH_FILENAME, resolved)
+    const [saveError] = store.save(DEFAULT_AUTH_FILENAME, validatedCredential)
 
     if (saveError) {
       return authError({
@@ -90,7 +113,7 @@ export function createAuthContext(options: CreateAuthContextOptions): AuthContex
       })
     }
 
-    return ok(resolved)
+    return ok(validatedCredential)
   }
 
   /**
@@ -129,4 +152,80 @@ export function createAuthContext(options: CreateAuthContextOptions): AuthContex
  */
 function authError(error: AuthError): Result<never, AuthError> {
   return [error, null] as const
+}
+
+/**
+ * Resolve the active strategies for a login attempt.
+ *
+ * Returns the override strategies from login options when provided,
+ * otherwise falls back to the configured strategies.
+ *
+ * @private
+ * @param loginOptions - Optional login overrides.
+ * @param configured - The default configured strategies.
+ * @returns The strategies to use for the login attempt.
+ */
+function resolveLoginStrategies(
+  loginOptions: LoginOptions | undefined,
+  configured: readonly StrategyConfig[]
+): readonly StrategyConfig[] {
+  if (loginOptions !== undefined && loginOptions.strategies !== undefined) {
+    return loginOptions.strategies
+  }
+
+  return configured
+}
+
+/**
+ * Resolve the active validate callback for a login attempt.
+ *
+ * Returns the override from login options when provided,
+ * otherwise falls back to the configured validate callback.
+ *
+ * @private
+ * @param loginOptions - Optional login overrides.
+ * @param configured - The default configured validate callback.
+ * @returns The validate callback to use, or undefined.
+ */
+function resolveLoginValidate(
+  loginOptions: LoginOptions | undefined,
+  configured: ValidateCredential | undefined
+): ValidateCredential | undefined {
+  if (loginOptions !== undefined && loginOptions.validate !== undefined) {
+    return loginOptions.validate
+  }
+
+  return configured
+}
+
+/**
+ * Run the validate callback against a resolved credential.
+ *
+ * When no validate callback is provided, returns the credential as-is.
+ * When validation fails, returns the error Result.
+ * When validation succeeds, returns the (possibly transformed) credential.
+ *
+ * @private
+ * @param validateFn - The validate callback, or undefined.
+ * @param credential - The resolved credential to validate.
+ * @returns A Result with the validated credential or an AuthError.
+ */
+async function runValidation(
+  validateFn: ValidateCredential | undefined,
+  credential: AuthCredential
+): AsyncResult<AuthCredential, AuthError> {
+  if (validateFn === undefined) {
+    return ok(credential)
+  }
+
+  const [validationError, validatedCredential] = await validateFn(credential)
+
+  if (validationError) {
+    return authError({
+      message: validationError.message,
+      type: 'validation_failed',
+    })
+  }
+
+  return ok(validatedCredential)
 }

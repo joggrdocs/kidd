@@ -73,7 +73,7 @@ function createMockResponse(): Response {
   return Response.json({ ok: true }, { status: 200 })
 }
 
-describe('Auth + HTTP Integration via auth({ http })', () => {
+describe('Auth + Standalone HTTP Integration', () => {
   let fetchSpy: ReturnType<typeof vi.spyOn<typeof globalThis, 'fetch'>>
 
   beforeEach(() => {
@@ -85,83 +85,12 @@ describe('Auth + HTTP Integration via auth({ http })', () => {
     vi.unstubAllEnvs()
   })
 
-  it('should propagate bearer credential from env resolver through auth http integration', async () => {
-    vi.stubEnv('TEST_APP_TOKEN', 'env-bearer-token-123')
-
-    const ctx = createTestContext('test-app')
-
-    const authMiddleware = auth({
-      http: { baseUrl: 'https://api.example.com', namespace: 'api' },
-      resolvers: [auth.env()],
-    })
-
-    await runMiddlewareChain(ctx, authMiddleware)
-
-    const client = (ctx as unknown as Record<string, HttpClient>).api
-    await client.get('/test')
-
-    expect(fetchSpy).toHaveBeenCalledWith(
-      'https://api.example.com/test',
-      expect.objectContaining({
-        headers: expect.objectContaining({
-          Authorization: 'Bearer env-bearer-token-123',
-        }),
-      })
-    )
-  })
-
-  it('should send no Authorization header when no credential is resolved', async () => {
-    const ctx = createTestContext('no-auth-app')
-
-    const authMiddleware = auth({
-      http: { baseUrl: 'https://api.example.com', namespace: 'api' },
-      resolvers: [auth.env()],
-    })
-
-    await runMiddlewareChain(ctx, authMiddleware)
-
-    const client = (ctx as unknown as Record<string, HttpClient>).api
-    await client.get('/test')
-
-    expect(fetchSpy).toHaveBeenCalledWith(
-      'https://api.example.com/test',
-      expect.objectContaining({
-        headers: {},
-      })
-    )
-  })
-
-  it('should use custom tokenVar from env resolver config', async () => {
-    vi.stubEnv('CUSTOM_VAR', 'custom-token-value')
-
-    const ctx = createTestContext('my-cli')
-
-    const authMiddleware = auth({
-      http: { baseUrl: 'https://api.example.com', namespace: 'api' },
-      resolvers: [auth.env({ tokenVar: 'CUSTOM_VAR' })],
-    })
-
-    await runMiddlewareChain(ctx, authMiddleware)
-
-    const client = (ctx as unknown as Record<string, HttpClient>).api
-    await client.get('/test')
-
-    expect(fetchSpy).toHaveBeenCalledWith(
-      'https://api.example.com/test',
-      expect.objectContaining({
-        headers: expect.objectContaining({
-          Authorization: 'Bearer custom-token-value',
-        }),
-      })
-    )
-  })
-
   it('should decorate ctx.auth with credential() and authenticated() methods', async () => {
     vi.stubEnv('CHAIN_APP_TOKEN', 'chain-test-token')
 
     const ctx = createTestContext('chain-app')
 
-    const authMiddleware = auth({ resolvers: [auth.env()] })
+    const authMiddleware = auth({ strategies: [auth.env()] })
 
     await runMiddlewareChain(ctx, authMiddleware)
 
@@ -176,7 +105,7 @@ describe('Auth + HTTP Integration via auth({ http })', () => {
   it('should return null credential when env var is not set', async () => {
     const ctx = createTestContext('empty-app')
 
-    const authMiddleware = auth({ resolvers: [auth.env()] })
+    const authMiddleware = auth({ strategies: [auth.env()] })
 
     await runMiddlewareChain(ctx, authMiddleware)
 
@@ -186,75 +115,6 @@ describe('Auth + HTTP Integration via auth({ http })', () => {
 
     expect(authCtx.credential()).toBeNull()
     expect(authCtx.authenticated()).toBeFalsy()
-  })
-
-  it('should merge static headers with auth headers via auth http option', async () => {
-    vi.stubEnv('MERGE_APP_TOKEN', 'merge-token')
-
-    const ctx = createTestContext('merge-app')
-
-    const authMiddleware = auth({
-      http: {
-        baseUrl: 'https://api.example.com',
-        headers: { 'X-Request-Id': 'req-123' },
-        namespace: 'api',
-      },
-      resolvers: [auth.env()],
-    })
-
-    await runMiddlewareChain(ctx, authMiddleware)
-
-    const client = (ctx as unknown as Record<string, HttpClient>).api
-    await client.get('/test')
-
-    expect(fetchSpy).toHaveBeenCalledWith(
-      'https://api.example.com/test',
-      expect.objectContaining({
-        headers: expect.objectContaining({
-          Authorization: 'Bearer merge-token',
-          'X-Request-Id': 'req-123',
-        }),
-      })
-    )
-  })
-
-  it('should create multiple HTTP clients via auth http array option', async () => {
-    vi.stubEnv('MULTI_APP_TOKEN', 'multi-token')
-
-    const ctx = createTestContext('multi-app')
-
-    const authMiddleware = auth({
-      http: [
-        { baseUrl: 'https://api.example.com', namespace: 'api' },
-        { baseUrl: 'https://admin.example.com', namespace: 'admin' },
-      ],
-      resolvers: [auth.env()],
-    })
-
-    await runMiddlewareChain(ctx, authMiddleware)
-
-    const apiClient = (ctx as unknown as Record<string, HttpClient>).api
-    const adminClient = (ctx as unknown as Record<string, HttpClient>).admin
-
-    await apiClient.get('/test')
-    expect(fetchSpy).toHaveBeenCalledWith(
-      'https://api.example.com/test',
-      expect.objectContaining({
-        headers: expect.objectContaining({
-          Authorization: 'Bearer multi-token',
-        }),
-      })
-    )
-
-    await adminClient.get('/admin-test')
-    expect(fetchSpy).toHaveBeenCalledWith(
-      'https://admin.example.com/admin-test',
-      expect.objectContaining({
-        headers: expect.objectContaining({
-          Authorization: 'Bearer multi-token',
-        }),
-      })
-    )
   })
 })
 

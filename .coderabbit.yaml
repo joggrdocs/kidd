@@ -1,0 +1,202 @@
+# CodeRabbit AI Code Review Configuration
+# Schema: https://www.coderabbit.ai/integrations/schema.v2.json
+
+language: en-US
+early_access: false
+enable_free_tier: true
+tone_instructions: 'Be direct and technical. Flag bugs, security issues, and standard violations. Skip style, subjective suggestions, and pre-existing issues.'
+
+reviews:
+  profile: assertive
+  request_changes_workflow: true
+  high_level_summary: false
+  high_level_summary_placeholder: '@coderabbitai summary'
+  review_status: false
+  collapse_walkthrough: true
+  changed_files_summary: false
+  sequence_diagrams: false
+  poem: false
+  labeling_instructions: []
+  auto_review:
+    enabled: true
+    auto_incremental_review: true
+    ignore_title_keywords:
+      - 'WIP'
+      - 'DO NOT MERGE'
+      - 'DRAFT'
+  tools:
+    github-checks:
+      enabled: true
+      timeout_ms: 90000
+    oxc:
+      enabled: true
+    gitleaks:
+      enabled: true
+    actionlint:
+      enabled: true
+    shellcheck:
+      enabled: true
+    semgrep:
+      enabled: true
+    markdownlint:
+      enabled: true
+    languagetool:
+      enabled: true
+      enabled_only: false
+      level: default
+  path_filters:
+    - '!node_modules/**'
+    - '!dist/**'
+    - '!.turbo/**'
+    - '!coverage/**'
+    - '!**/*.generated.*'
+    - '!.claude/**'
+    - '!.changeset/**'
+    - '!pnpm-lock.yaml'
+    - '!**/*.test.ts.snap'
+  path_instructions:
+    - path: '**'
+      instructions: |
+        Review with high signal only. Flag only:
+        - **Bugs** (logic errors, race conditions, incorrect assumptions)
+        - **Security vulnerabilities** (injection, XSS, auth bypass, secrets exposure)
+        - **Standard violations** (cite specific files from contributing/standards/)
+        - **Breaking changes** (incompatible API changes, removed exports)
+        - **Functional programming violations** (classes, let, throw, mutations, imperative patterns)
+
+        **Ignore:**
+        - Style/formatting (handled by oxlint)
+        - Subjective suggestions
+        - Pre-existing issues (not introduced in this PR)
+
+        **Functional Programming Enforcement:**
+        - Flag any use of `class`, `let`, `throw`, `for`, `while`, `forEach`
+        - Require `map`, `filter`, `reduce`, `pipe` from es-toolkit
+        - Require ts-pattern for conditionals with 2+ branches
+        - Flag any mutation of parameters or shared state
+        - Require Result tuples for error handling (not try/catch)
+        - All public properties must be `readonly`
+
+        **Reference Standards:**
+        When citing violations, reference:
+        - contributing/standards/typescript/coding-style.md
+        - contributing/standards/typescript/design-patterns.md
+        - contributing/standards/typescript/functions.md
+        - contributing/standards/typescript/errors.md
+        - contributing/standards/typescript/state.md
+    - path: '**/package.json'
+      instructions: |
+        Review dependency changes:
+        - Check changelogs for breaking changes in upgraded packages
+        - Verify peer dependency compatibility
+        - Flag security vulnerabilities
+        - Check version consistency across monorepo
+        - Detect if major version upgrades require code changes
+        - Ensure dependencies align with tech stack (Zod, es-toolkit, ts-pattern, yargs, @clack/prompts)
+    - path: '**/*.ts'
+      instructions: |
+        **Required Patterns:**
+        - Functions with 2+ parameters must use object destructuring
+        - All exported functions require explicit return types (isolatedDeclarations)
+        - All exported functions require JSDoc with @param, @returns
+        - Use ts-pattern for conditional logic with 2+ branches
+        - Use es-toolkit for utilities (check before implementing custom helpers)
+        - Error handling must use Result tuples: `[Data | null, Error | null]`
+
+        **Forbidden Patterns:**
+        - No `class` (use factory functions returning frozen objects)
+        - No `let` (use `const` with transformations)
+        - No `throw` (use Result tuples)
+        - No `for`/`while`/`forEach` (use map/filter/reduce/pipe)
+        - No mutation (use spread, Object.freeze, readonly types)
+        - No `any` type (use `unknown` with type guards)
+
+        **Type Safety:**
+        - Prefer discriminated unions over optional properties
+        - Use branded types for validated strings
+        - Exhaustive pattern matching with ts-pattern
+
+        **Cite:** contributing/standards/typescript/ files for violations
+    - path: '**/*.test.ts'
+      instructions: |
+        Review test quality:
+        - Unit tests colocated in src/**/*.test.ts
+        - Integration tests in test/integration/*.test.ts
+        - Use describe/it structure with clear test names
+        - Prefer inline fixtures for unit tests, file fixtures for integration
+        - Mock external dependencies at module boundaries
+        - Use vi.mock() for module mocks
+
+        **Cite:** contributing/standards/typescript/testing.md
+    - path: '**/tsconfig.json'
+      instructions: |
+        Verify TypeScript configuration:
+        - target: ES2022 or higher
+        - module: ESNext
+        - moduleResolution: bundler
+        - strict: true
+        - isolatedDeclarations: true (required for packages)
+        - Flag any loosening of strict flags
+    - path: '**/*.md'
+      instructions: |
+        Review documentation quality:
+        - Follow contributing/standards/documentation/writing.md
+        - Use active voice, present tense
+        - Code examples must be syntactically correct
+        - Use fenced code blocks with language identifiers
+        - Internal links must be relative
+
+        **Cite:** contributing/standards/documentation/ files
+    - path: 'packages/core/**/*.ts'
+      instructions: |
+        Critical CLI framework code - extra scrutiny:
+        - Verify factory function patterns for all modules
+        - Check immutability of store/config objects
+        - Validate middleware composition (no side effects in middleware)
+        - Ensure command definitions are pure data
+        - Flag any shared mutable state
+        - Config must be validated with Zod at boundaries
+    - path: 'packages/cli/**/*.ts'
+      instructions: |
+        User-facing CLI code:
+        - Verify yargs integration follows functional patterns
+        - Check @clack/prompts usage for consistency
+        - Ensure proper error messages (user-friendly, actionable)
+        - Check exit codes are appropriate
+        - No process.exit() in library code (only in entrypoint)
+    - path: 'contributing/**/*.md'
+      instructions: |
+        Standards documentation changes:
+        - Ensure examples are correct and follow the standard
+        - Verify consistency with other standard files
+        - Update AGENTS.md if standards change significantly
+        - Ensure standards are enforceable (not aspirational)
+    - path: 'AGENTS.md'
+      instructions: |
+        Core AI agent instruction file:
+        - Verify boundaries (Always/Never/Ask First) are enforceable
+        - Ensure tech stack table is current
+        - Check command examples are correct
+        - Validate links to contributing/standards/ files
+    - path: '.github/workflows/**/*.yml'
+      instructions: |
+        Review CI/CD workflows:
+        - Check caching strategies (pnpm, turbo)
+        - Ensure tests run before build
+        - Validate changesets integration
+        - Check permissions are minimal (security)
+        - Flag any hardcoded secrets (use GitHub Secrets)
+
+knowledge_base:
+  opt_out: false
+  learnings:
+    scope: auto
+  issues:
+    scope: auto
+  jira:
+    project_keys: []
+  linear:
+    team_keys: []
+
+chat:
+  auto_reply: true

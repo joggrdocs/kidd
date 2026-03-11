@@ -364,9 +364,7 @@ describe('OAuth PKCE E2E (resolveFromOAuth with real mock server)', () => {
     const port = extractPort()
 
     // After timeout, the server should be destroyed
-    await expect(
-      originalFetch(`http://127.0.0.1:${String(port)}/callback`)
-    ).rejects.toThrow()
+    await expect(originalFetch(`http://127.0.0.1:${String(port)}/callback`)).rejects.toThrow()
   })
 
   it('should handle redirect_uri with dynamic port correctly', async () => {

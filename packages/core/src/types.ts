@@ -96,11 +96,12 @@ export interface MiddlewareEnv {
  * Extracts the `Variables` from a {@link MiddlewareEnv}, guarding against `any`.
  * Returns an empty object when `TEnv` is `any` or has no `Variables`.
  */
-export type ExtractVariables<TEnv extends MiddlewareEnv> = IsAny<TEnv> extends true
-  ? {} // eslint-disable-line @typescript-eslint/ban-types -- empty intersection identity
-  : TEnv extends { readonly Variables: infer TVars extends AnyRecord }
-    ? TVars
-    : {} // eslint-disable-line @typescript-eslint/ban-types -- empty intersection identity
+export type ExtractVariables<TEnv extends MiddlewareEnv> =
+  IsAny<TEnv> extends true
+    ? {} // eslint-disable-line @typescript-eslint/ban-types -- empty intersection identity
+    : TEnv extends { readonly Variables: infer TVars extends AnyRecord }
+      ? TVars
+      : {} // eslint-disable-line @typescript-eslint/ban-types -- empty intersection identity
 
 /**
  * Extracts the `TEnv` type parameter from a {@link Middleware} instance.
@@ -220,6 +221,33 @@ export type HandlerFn<
 > = (ctx: Context<TArgs, TConfig> & Readonly<TVars>) => Promise<void> | void
 
 /**
+ * Structured configuration for a command's subcommands.
+ *
+ * Groups the command source (inline map or directory path) alongside display
+ * ordering into a single cohesive object.
+ */
+export interface CommandsConfig {
+  /**
+   * Display order for subcommands.
+   * Subcommands listed appear first in the specified order; omitted subcommands
+   * fall back to alphabetical sort.
+   */
+  readonly order?: readonly string[]
+
+  /**
+   * Directory path to autoload subcommand files from.
+   * Mutually exclusive with `commands` within this config object.
+   */
+  readonly path?: string
+
+  /**
+   * Inline subcommand map or a promise from `autoload()`.
+   * Mutually exclusive with `path` within this config object.
+   */
+  readonly commands?: CommandMap | Promise<CommandMap>
+}
+
+/**
  * Options passed to `command()`.
  *
  * @typeParam TArgsDef - Arg definitions type.
@@ -247,9 +275,10 @@ export interface CommandDef<
   middleware?: TMiddleware
 
   /**
-   * Nested subcommands — a static map or a promise from `autoload()`.
+   * Nested subcommands — a static map, a promise from `autoload()`, or a
+   * structured {@link CommandsConfig} grouping the source with display order.
    */
-  commands?: CommandMap | Promise<CommandMap>
+  commands?: CommandMap | Promise<CommandMap> | CommandsConfig
 
   /**
    * The command handler.
@@ -274,6 +303,7 @@ export type Command<
     readonly args?: TArgsDef
     readonly middleware?: TMiddleware
     readonly commands?: CommandMap | Promise<CommandMap>
+    readonly order?: readonly string[]
     readonly handler?: HandlerFn<
       TArgsDef extends z.ZodObject<z.ZodRawShape>
         ? z.infer<TArgsDef>
@@ -321,6 +351,22 @@ export interface CliConfigOptions<TSchema extends z.ZodType = z.ZodType> {
 }
 
 /**
+ * Help output customization options for the CLI.
+ */
+export interface CliHelpOptions {
+  /**
+   * Header text displayed above help output when the CLI is invoked
+   * without a command. Not shown on `--help`.
+   */
+  readonly header?: string
+  /**
+   * Footer text displayed below help output (e.g., docs URL, bug report link).
+   * Shown on all help output.
+   */
+  readonly footer?: string
+}
+
+/**
  * Options passed to `cli()`.
  */
 export interface CliOptions<TSchema extends z.ZodType = z.ZodType> {
@@ -330,8 +376,12 @@ export interface CliOptions<TSchema extends z.ZodType = z.ZodType> {
   name: string
   /**
    * CLI version. Enables `--version` flag.
+   *
+   * When omitted, falls back to the compile-time `__KIDD_VERSION__` constant
+   * injected by the kidd bundler. An error is raised at startup if neither
+   * an explicit version nor `__KIDD_VERSION__` is available.
    */
-  version: string
+  version?: string
   /**
    * Human-readable description shown in help text.
    */
@@ -348,10 +398,15 @@ export interface CliOptions<TSchema extends z.ZodType = z.ZodType> {
    * Override the commands source. When omitted, `cli()` loads `kidd.config.ts`
    * and autoloads from its `commands` field (falling back to `'./commands'`).
    *
-   * Accepts a directory path string, a static {@link CommandMap}, or a
-   * `Promise<CommandMap>` for advanced use and testing.
+   * Accepts a directory path string, a static {@link CommandMap}, a
+   * `Promise<CommandMap>`, or a structured {@link CommandsConfig} grouping
+   * the source with display ordering.
    */
-  commands?: string | CommandMap | Promise<CommandMap>
+  commands?: string | CommandMap | Promise<CommandMap> | CommandsConfig
+  /**
+   * Help output customization (header, footer).
+   */
+  help?: CliHelpOptions
 }
 
 /**
@@ -367,7 +422,8 @@ export type CliFn = <TSchema extends z.ZodType = z.ZodType>(
 export type CommandFn = <
   TArgsDef extends ArgsDef = ArgsDef,
   TConfig extends AnyRecord = AnyRecord,
-  const TMiddleware extends readonly Middleware<MiddlewareEnv>[] = readonly Middleware<MiddlewareEnv>[],
+  const TMiddleware extends readonly Middleware<MiddlewareEnv>[] =
+    readonly Middleware<MiddlewareEnv>[],
 >(
   def: CommandDef<TArgsDef, TConfig, TMiddleware>
 ) => Command

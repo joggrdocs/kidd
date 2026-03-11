@@ -23,8 +23,7 @@ export function registerCommandArgs(builder: Argv, args: Command['args']): void 
       builder.option(key, opt)
     }
   } else {
-    const argsDef = args as Record<string, YargsArgDef>
-    for (const [key, def] of Object.entries(argsDef)) {
+    for (const [key, def] of Object.entries(args)) {
       builder.option(key, yargsArgDefToOption(def))
     }
   }
@@ -44,7 +43,7 @@ export function registerCommandArgs(builder: Argv, args: Command['args']): void 
 function yargsArgDefToOption(def: YargsArgDef): YargsOptions {
   return {
     alias: def.alias,
-    choices: def.choices as string[],
+    choices: def.choices,
     default: def.default,
     demandOption: def.required ?? false,
     describe: def.description,

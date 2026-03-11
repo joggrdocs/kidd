@@ -1,5 +1,17 @@
 # @kidd-cli/utils
 
+## 0.1.3
+
+### Patch Changes
+
+- 6a538bc: upgrade dependencies across all packages
+
+## 0.1.2
+
+### Patch Changes
+
+- f48ad38: Add `fileExists` utility for checking file existence without throwing
+
 ## 0.1.1
 
 ### Patch Changes

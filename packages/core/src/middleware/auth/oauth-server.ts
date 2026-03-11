@@ -13,7 +13,7 @@ import type { IncomingMessage, Server, ServerResponse } from 'node:http'
 import type { Socket } from 'node:net'
 import { platform } from 'node:os'
 
-import { match } from 'ts-pattern'
+import { attempt, match } from '@kidd-cli/utils/fp'
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -170,21 +170,21 @@ export function sendSuccessPage(res: ServerResponse): void {
  * @returns True when the URL uses HTTPS or HTTP on a loopback address.
  */
 export function isSecureAuthUrl(url: string): boolean {
-  try {
-    const parsed = new URL(url)
+  const [error, parsed] = attempt(() => new URL(url))
 
-    if (parsed.protocol === 'https:') {
-      return true
-    }
-
-    if (parsed.protocol !== 'http:') {
-      return false
-    }
-
-    return isLoopbackHost(parsed.hostname)
-  } catch {
+  if (error || !parsed) {
     return false
   }
+
+  if (parsed.protocol === 'https:') {
+    return true
+  }
+
+  if (parsed.protocol !== 'http:') {
+    return false
+  }
+
+  return isLoopbackHost(parsed.hostname)
 }
 
 /**
@@ -276,12 +276,13 @@ export function startLocalServer(options: {
  * @returns True when the URL uses http: or https: protocol.
  */
 function isHttpUrl(url: string): boolean {
-  try {
-    const parsed = new URL(url)
-    return parsed.protocol === 'https:' || parsed.protocol === 'http:'
-  } catch {
+  const [error, parsed] = attempt(() => new URL(url))
+
+  if (error || !parsed) {
     return false
   }
+
+  return parsed.protocol === 'https:' || parsed.protocol === 'http:'
 }
 
 /**

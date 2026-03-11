@@ -52,7 +52,12 @@ const buildCommand: Command = command({
     if (!shouldCompile) {
       ctx.spinner.stop('Build complete')
       ctx.logger.note(
-        formatBuildNote({ cwd, entryFile: buildOutput.entryFile, outDir: buildOutput.outDir }),
+        formatBuildNote({
+          cwd,
+          entryFile: buildOutput.entryFile,
+          outDir: buildOutput.outDir,
+          version: buildOutput.version,
+        }),
         'Bundle'
       )
       return
@@ -75,7 +80,12 @@ const buildCommand: Command = command({
 
     ctx.spinner.stop('Build complete')
     ctx.logger.note(
-      formatBuildNote({ cwd, entryFile: buildOutput.entryFile, outDir: buildOutput.outDir }),
+      formatBuildNote({
+        cwd,
+        entryFile: buildOutput.entryFile,
+        outDir: buildOutput.outDir,
+        version: buildOutput.version,
+      }),
       'Bundle'
     )
     ctx.logger.note(formatBinariesNote({ binaries: compileOutput.binaries, cwd }), 'Binaries')
@@ -182,11 +192,28 @@ function formatBuildNote(params: {
   readonly entryFile: string
   readonly outDir: string
   readonly cwd: string
+  readonly version: string | undefined
 }): string {
   return [
-    `entry   ${relative(params.cwd, params.entryFile)}`,
-    `output  ${relative(params.cwd, params.outDir)}`,
+    `entry    ${relative(params.cwd, params.entryFile)}`,
+    `output   ${relative(params.cwd, params.outDir)}`,
+    ...formatVersionLine(params.version),
   ].join('\n')
+}
+
+/**
+ * Format a version line for the build note, if a version is available.
+ *
+ * @private
+ * @param version - The version string, or undefined.
+ * @returns A single-element array with the formatted line, or an empty array.
+ */
+function formatVersionLine(version: string | undefined): string[] {
+  if (!version) {
+    return []
+  }
+
+  return [`version  ${version}`]
 }
 
 /**

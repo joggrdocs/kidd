@@ -5,6 +5,7 @@ import type { Context } from '@/context/types.js'
 import type { Command, CommandMap, Middleware } from '@/types.js'
 
 import { registerCommandArgs } from './args/index.js'
+import { sortCommandEntries, validateCommandOrder } from './sort-commands.js'
 import type { ResolvedCommand, ResolvedRef } from './types.js'
 
 /**
@@ -21,30 +22,50 @@ export function isCommand(value: unknown): value is Command {
  * Register all commands from a CommandMap on a yargs instance.
  *
  * Iterates over the command map, filters for valid Command objects,
- * and recursively registers each command (including subcommands) on
- * the provided yargs Argv instance.
+ * validates the order array, sorts entries, and recursively registers
+ * each command (including subcommands) on the provided yargs Argv instance.
  *
  * @param options - Registration options including the command map, yargs instance, and resolution ref.
  */
 export function registerCommands(options: RegisterCommandsOptions): void {
-  const { instance, commands, resolved, parentPath } = options
+  const { instance, commands, resolved, parentPath, order, errorRef } = options
   const commandEntries = Object.entries(commands).filter((pair): pair is [string, Command] =>
     isCommand(pair[1])
   )
 
-  for (const [name, entry] of commandEntries) {
+  if (order && order.length > 0) {
+    const commandNames = commandEntries.map(([name]) => name)
+    const [validationError] = validateCommandOrder({ commandNames, order })
+    if (validationError && errorRef) {
+      // Intentional mutation: errorRef is a mutable holder for deferred error reporting.
+      errorRef.error = validationError
+      return
+    }
+  }
+
+  const sorted = sortCommandEntries({ entries: commandEntries, order })
+
+  sorted.map(([name, entry]) =>
     registerResolvedCommand({
       builder: instance,
       cmd: entry,
+      errorRef,
       instance,
       name,
       parentPath,
       resolved,
     })
-  }
+  )
 }
 
 export type { ResolvedCommand, ResolvedRef } from './types.js'
+
+/**
+ * Mutable ref holder for deferred error reporting during command registration.
+ */
+export interface ErrorRef {
+  error: Error | undefined
+}
 
 // ---------------------------------------------------------------------------
 // Private
@@ -53,6 +74,7 @@ export type { ResolvedCommand, ResolvedRef } from './types.js'
 interface RegisterResolvedCommandOptions {
   builder: Argv
   cmd: Command
+  errorRef?: ErrorRef
   instance: Argv
   name: string
   parentPath: string[]
@@ -61,7 +83,9 @@ interface RegisterResolvedCommandOptions {
 
 interface RegisterCommandsOptions {
   commands: CommandMap
+  errorRef?: ErrorRef
   instance: Argv
+  order?: readonly string[]
   parentPath: string[]
   resolved: ResolvedRef
 }
@@ -77,7 +101,7 @@ interface RegisterCommandsOptions {
  * @param options - Command registration context.
  */
 function registerResolvedCommand(options: RegisterResolvedCommandOptions): void {
-  const { instance, name, cmd, resolved, parentPath } = options
+  const { instance, name, cmd, resolved, parentPath, errorRef } = options
   const description = cmd.description ?? ''
 
   instance.command(
@@ -91,16 +115,32 @@ function registerResolvedCommand(options: RegisterResolvedCommandOptions): void 
           isCommand(pair[1])
         )
 
-        for (const [subName, subEntry] of subCommands) {
+        if (cmd.order && cmd.order.length > 0) {
+          const subNames = subCommands.map(([n]) => n)
+          const [validationError] = validateCommandOrder({
+            commandNames: subNames,
+            order: cmd.order,
+          })
+          if (validationError && errorRef) {
+            // Intentional mutation: errorRef is a mutable holder for deferred error reporting.
+            errorRef.error = validationError
+            return builder
+          }
+        }
+
+        const sortedSubs = sortCommandEntries({ entries: subCommands, order: cmd.order })
+
+        sortedSubs.map(([subName, subEntry]) =>
           registerResolvedCommand({
             builder,
             cmd: subEntry,
+            errorRef,
             instance: builder,
             name: subName,
             parentPath: [...parentPath, name],
             resolved,
           })
-        }
+        )
 
         if (cmd.handler) {
           builder.demandCommand(0)

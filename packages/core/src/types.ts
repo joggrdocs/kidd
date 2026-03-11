@@ -221,6 +221,33 @@ export type HandlerFn<
 > = (ctx: Context<TArgs, TConfig> & Readonly<TVars>) => Promise<void> | void
 
 /**
+ * Structured configuration for a command's subcommands.
+ *
+ * Groups the command source (inline map or directory path) alongside display
+ * ordering into a single cohesive object.
+ */
+export interface CommandsConfig {
+  /**
+   * Display order for subcommands.
+   * Subcommands listed appear first in the specified order; omitted subcommands
+   * fall back to alphabetical sort.
+   */
+  readonly order?: readonly string[]
+
+  /**
+   * Directory path to autoload subcommand files from.
+   * Mutually exclusive with `commands` within this config object.
+   */
+  readonly path?: string
+
+  /**
+   * Inline subcommand map or a promise from `autoload()`.
+   * Mutually exclusive with `path` within this config object.
+   */
+  readonly commands?: CommandMap | Promise<CommandMap>
+}
+
+/**
  * Options passed to `command()`.
  *
  * @typeParam TArgsDef - Arg definitions type.
@@ -248,9 +275,10 @@ export interface CommandDef<
   middleware?: TMiddleware
 
   /**
-   * Nested subcommands — a static map or a promise from `autoload()`.
+   * Nested subcommands — a static map, a promise from `autoload()`, or a
+   * structured {@link CommandsConfig} grouping the source with display order.
    */
-  commands?: CommandMap | Promise<CommandMap>
+  commands?: CommandMap | Promise<CommandMap> | CommandsConfig
 
   /**
    * The command handler.
@@ -275,6 +303,7 @@ export type Command<
     readonly args?: TArgsDef
     readonly middleware?: TMiddleware
     readonly commands?: CommandMap | Promise<CommandMap>
+    readonly order?: readonly string[]
     readonly handler?: HandlerFn<
       TArgsDef extends z.ZodObject<z.ZodRawShape>
         ? z.infer<TArgsDef>
@@ -365,10 +394,11 @@ export interface CliOptions<TSchema extends z.ZodType = z.ZodType> {
    * Override the commands source. When omitted, `cli()` loads `kidd.config.ts`
    * and autoloads from its `commands` field (falling back to `'./commands'`).
    *
-   * Accepts a directory path string, a static {@link CommandMap}, or a
-   * `Promise<CommandMap>` for advanced use and testing.
+   * Accepts a directory path string, a static {@link CommandMap}, a
+   * `Promise<CommandMap>`, or a structured {@link CommandsConfig} grouping
+   * the source with display ordering.
    */
-  commands?: string | CommandMap | Promise<CommandMap>
+  commands?: string | CommandMap | Promise<CommandMap> | CommandsConfig
   /**
    * Help output customization (header, footer).
    */

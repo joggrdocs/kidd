@@ -8,11 +8,12 @@ import type { z } from 'zod'
 
 import { DEFAULT_EXIT_CODE, isContextError } from '@/context/index.js'
 import { createCliLogger } from '@/lib/logger.js'
-import type { CliHelpOptions, CliOptions, CommandMap } from '@/types.js'
+import type { CliHelpOptions, CliOptions, CommandMap, CommandsConfig } from '@/types.js'
 
 import { autoload } from './autoloader.js'
+import { isCommandsConfig } from './command.js'
 import { createRuntime, registerCommands } from './runtime/index.js'
-import type { ResolvedRef } from './runtime/index.js'
+import type { ErrorRef, ResolvedRef } from './runtime/index.js'
 
 const ARGV_SLICE_START = 2
 
@@ -51,11 +52,23 @@ export async function cli<TSchema extends z.ZodType = z.ZodType>(
     }
 
     const resolved: ResolvedRef = { ref: undefined }
+    const errorRef: ErrorRef = { error: undefined }
 
-    const commands = await resolveCommands(options.commands)
+    const resolvedCmds = await resolveCommands(options.commands)
 
-    if (commands) {
-      registerCommands({ commands, instance: program, parentPath: [], resolved })
+    if (resolvedCmds) {
+      registerCommands({
+        commands: resolvedCmds.commands,
+        errorRef,
+        instance: program,
+        order: resolvedCmds.order,
+        parentPath: [],
+        resolved,
+      })
+
+      if (errorRef.error) {
+        return errorRef.error
+      }
     }
 
     const argv: Record<string, unknown> = await program.parseAsync()
@@ -63,7 +76,7 @@ export async function cli<TSchema extends z.ZodType = z.ZodType>(
     applyCwd(argv)
 
     if (!resolved.ref) {
-      showNoCommandHelp({ argv, commands, help: options.help, program })
+      showNoCommandHelp({ argv, commands: resolvedCmds, help: options.help, program })
       return undefined
     }
 
@@ -106,30 +119,61 @@ export default cli
 // ---------------------------------------------------------------------------
 
 /**
- * Resolve the commands option to a CommandMap.
+ * Resolved commands with optional display ordering.
+ *
+ * @private
+ */
+interface ResolvedCommands {
+  readonly commands: CommandMap
+  readonly order?: readonly string[]
+}
+
+/**
+ * Resolve the commands option to a {@link ResolvedCommands}.
  *
  * Accepts a directory string (triggers autoload), a static CommandMap,
- * a Promise<CommandMap> (from autoload() called at the call site),
+ * a Promise<CommandMap>, a structured {@link CommandsConfig},
  * or undefined (loads `kidd.config.ts` and autoloads from its `commands` field,
  * falling back to `'./commands'`).
  *
  * @private
  * @param commands - The commands option from CliOptions.
- * @returns A CommandMap or undefined.
+ * @returns Resolved commands with optional order, or undefined.
  */
 async function resolveCommands(
-  commands: string | CommandMap | Promise<CommandMap> | undefined
-): Promise<CommandMap | undefined> {
-  if (isString(commands)) {
-    return autoload({ dir: commands })
-  }
-  if (commands instanceof Promise) {
-    return commands
-  }
-  if (isPlainObject(commands)) {
-    return commands
-  }
-  return resolveCommandsFromConfig()
+  commands: string | CommandMap | Promise<CommandMap> | CommandsConfig | undefined
+): Promise<ResolvedCommands | undefined> {
+  return match(commands)
+    .when(isString, async (dir) => ({ commands: await autoload({ dir }) }))
+    .with(P.instanceOf(Promise), async (p) => ({ commands: await p }))
+    .when(isCommandsConfig, (cfg) => resolveCommandsConfig(cfg))
+    .when(isPlainObject, (cmds) => ({ commands: cmds }))
+    .otherwise(() => resolveCommandsFromConfig())
+}
+
+/**
+ * Resolve a structured {@link CommandsConfig} into flat commands and order.
+ *
+ * When `path` is provided, autoloads from that directory. Otherwise uses the
+ * inline `commands` map (resolved if it is a promise).
+ *
+ * @private
+ * @param config - The structured commands configuration.
+ * @returns Resolved commands with optional order.
+ */
+async function resolveCommandsConfig(config: CommandsConfig): Promise<ResolvedCommands> {
+  const { order, path, commands: innerCommands } = config
+
+  const commands = await match(innerCommands)
+    .when(
+      () => isString(path),
+      async () => autoload({ dir: path as string })
+    )
+    .with(P.instanceOf(Promise), async (p) => p)
+    .when(isPlainObject, (cmds) => cmds)
+    .otherwise(() => ({}) as CommandMap)
+
+  return { commands, order }
 }
 
 /**
@@ -141,16 +185,16 @@ async function resolveCommands(
  * @private
  * @returns A CommandMap autoloaded from the configured commands directory.
  */
-async function resolveCommandsFromConfig(): Promise<CommandMap> {
+async function resolveCommandsFromConfig(): Promise<ResolvedCommands> {
   const DEFAULT_COMMANDS_DIR = './commands'
 
   const [configError, configResult] = await loadConfig()
   if (configError || !configResult) {
-    return autoload({ dir: DEFAULT_COMMANDS_DIR })
+    return { commands: await autoload({ dir: DEFAULT_COMMANDS_DIR }) }
   }
 
   const dir = configResult.config.commands ?? DEFAULT_COMMANDS_DIR
-  return autoload({ dir })
+  return { commands: await autoload({ dir }) }
 }
 
 /**
@@ -184,7 +228,7 @@ function showNoCommandHelp({
   program,
 }: {
   readonly argv: Record<string, unknown>
-  readonly commands: CommandMap | undefined
+  readonly commands: ResolvedCommands | undefined
   readonly help: CliHelpOptions | undefined
   readonly program: Argv
 }): void {

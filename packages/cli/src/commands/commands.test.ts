@@ -265,4 +265,88 @@ describe('commands command', () => {
     const expected = ['├── alpha — Alpha', '│   └── sub — Sub', '└── beta — Beta'].join('\n')
     expect(ctx.output.raw).toHaveBeenCalledWith(`${expected}\n`)
   })
+
+  it('should respect subcommand order when specified', async () => {
+    const ctx = makeContext()
+    mockedLoadConfig.mockResolvedValue([null, { config: {} }] as never)
+    mockedExistsSync.mockReturnValue(true)
+    mockedAutoload.mockResolvedValue({
+      deploy: {
+        commands: {
+          preview: { description: 'Preview deploy' },
+          production: { description: 'Production deploy' },
+          staging: { description: 'Staging deploy' },
+        },
+        description: 'Deploy the app',
+        order: ['production', 'preview'],
+      },
+    } as never)
+
+    const mod = await import('./commands.js')
+    await mod.default.handler!(ctx)
+
+    const expected = [
+      '└── deploy — Deploy the app',
+      '    ├── production — Production deploy',
+      '    ├── preview — Preview deploy',
+      '    └── staging — Staging deploy',
+    ].join('\n')
+    expect(ctx.output.raw).toHaveBeenCalledWith(`${expected}\n`)
+  })
+
+  it('should warn and skip unknown names in order array', async () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const ctx = makeContext()
+    mockedLoadConfig.mockResolvedValue([null, { config: {} }] as never)
+    mockedExistsSync.mockReturnValue(true)
+    mockedAutoload.mockResolvedValue({
+      parent: {
+        commands: {
+          alpha: { description: 'Alpha' },
+          beta: { description: 'Beta' },
+        },
+        description: 'Parent',
+        order: ['missing', 'alpha'],
+      },
+    } as never)
+
+    const mod = await import('./commands.js')
+    await mod.default.handler!(ctx)
+
+    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('unknown command "missing"'))
+
+    const expected = ['└── parent — Parent', '    ├── alpha — Alpha', '    └── beta — Beta'].join(
+      '\n'
+    )
+    expect(ctx.output.raw).toHaveBeenCalledWith(`${expected}\n`)
+    warnSpy.mockRestore()
+  })
+
+  it('should warn and skip duplicate names in order array', async () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const ctx = makeContext()
+    mockedLoadConfig.mockResolvedValue([null, { config: {} }] as never)
+    mockedExistsSync.mockReturnValue(true)
+    mockedAutoload.mockResolvedValue({
+      parent: {
+        commands: {
+          alpha: { description: 'Alpha' },
+          beta: { description: 'Beta' },
+        },
+        description: 'Parent',
+        order: ['beta', 'alpha', 'beta'],
+      },
+    } as never)
+
+    const mod = await import('./commands.js')
+    await mod.default.handler!(ctx)
+
+    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('duplicate command name "beta"'))
+
+    const expected = ['└── parent — Parent', '    ├── beta — Beta', '    └── alpha — Alpha'].join(
+      '\n'
+    )
+    expect(ctx.output.raw).toHaveBeenCalledWith(`${expected}\n`)
+    warnSpy.mockRestore()
+  })
 })

@@ -71,8 +71,8 @@ describe('build config mapping', () => {
     expect(result.dts).toBeFalsy()
   })
 
-  it('should set logLevel to info', () => {
-    expect(result.logLevel).toBe('info')
+  it('should set logLevel to silent', () => {
+    expect(result.logLevel).toBe('silent')
   })
 
   it('should disable code splitting for single-file output', () => {
@@ -111,6 +111,11 @@ describe('watch config mapping', () => {
     const result = mapToWatchConfig({ config, version: undefined })
     expect(result.watch).toBeTruthy()
     expect(result.format).toBe('esm')
+  })
+
+  it('should override logLevel to error for watch mode', () => {
+    const result = mapToWatchConfig({ config, version: undefined })
+    expect(result.logLevel).toBe('error')
   })
 
   it('should pass through onSuccess callback', () => {

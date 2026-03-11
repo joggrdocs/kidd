@@ -34,7 +34,7 @@ export function mapToBuildConfig(params: {
         mainFields: ['module', 'main'],
       },
     },
-    logLevel: 'info',
+    logLevel: 'silent',
     minify: params.config.build.minify,
     outDir: params.config.buildOutDir,
     outputOptions: {
@@ -68,6 +68,7 @@ export function mapToWatchConfig(params: {
 
   return {
     ...buildConfig,
+    logLevel: 'error',
     onSuccess: params.onSuccess,
     watch: true,
   }

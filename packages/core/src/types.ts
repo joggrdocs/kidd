@@ -32,6 +32,22 @@ export interface KiddStore {}
 export type InferSchema<TSchema> = TSchema extends z.ZodType<infer TOutput> ? TOutput : AnyRecord
 
 /**
+ * Derive the config type from a Zod schema for use in module augmentation.
+ *
+ * Use this in a `declare module` block to keep `KiddConfig` in sync with
+ * your Zod config schema, eliminating manual type duplication:
+ *
+ * ```ts
+ * import type { ConfigType } from '@kidd-cli/core'
+ *
+ * declare module '@kidd-cli/core' {
+ *   interface KiddConfig extends ConfigType<typeof configSchema> {}
+ * }
+ * ```
+ */
+export type ConfigType<TSchema extends z.ZodType> = z.infer<TSchema>
+
+/**
  * Merge two types, with TBase overriding TOverride.
  */
 export type Merge<TBase, TOverride> = Omit<TBase, keyof TOverride> & TOverride

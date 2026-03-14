@@ -145,21 +145,31 @@ ctx.fail('Deployment failed', { code: 'DEPLOY_ERROR', exitCode: 2 })
 
 kidd exposes empty interfaces that consumers extend via TypeScript declaration merging. This adds project-wide type safety to `ctx.args`, `ctx.config`, and `ctx.store` without threading generics.
 
+For `KiddConfig`, use the `ConfigType` utility to derive the type from your Zod schema so the augmentation stays in sync automatically:
+
 ```ts
+import type { ConfigType } from '@kidd-cli/core'
+import { z } from 'zod'
+
+export const configSchema = z.object({
+  apiUrl: z.string().url(),
+  org: z.string().min(1),
+})
+
 declare module '@kidd-cli/core' {
   interface KiddArgs {
     verbose: boolean
   }
 
-  interface KiddConfig {
-    apiUrl: string
-  }
+  interface KiddConfig extends ConfigType<typeof configSchema> {}
 
   interface KiddStore {
     token: string
   }
 }
 ```
+
+Run `kidd add config` to scaffold a config schema with `ConfigType` wiring, or pass `--config` to `kidd init`.
 
 | Interface    | Affects      | Description                                                                                     |
 | ------------ | ------------ | ----------------------------------------------------------------------------------------------- |

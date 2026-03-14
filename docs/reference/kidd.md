@@ -115,18 +115,18 @@ The `config` option in `cli()` accepts a `CliConfigOptions` object:
 
 The `Context` object is threaded through every handler and middleware. See [Context](../concepts/context.md) for the full reference.
 
-| Property  | Type                                       | Description                                                                                                |
-| --------- | ------------------------------------------ | ---------------------------------------------------------------------------------------------------------- |
-| `args`    | `DeepReadonly<Merge<KiddArgs, TArgs>>`     | Parsed and validated command args                                                                          |
-| `config`  | `DeepReadonly<Merge<KiddConfig, TConfig>>` | Validated runtime config                                                                                   |
-| `logger`  | `CliLogger`                                | Structured terminal logger (info, success, error, warn, step, message, intro, outro, note, newline, print) |
-| `prompts` | `Prompts`                                  | Interactive prompts (confirm, text, select, multiselect, password)                                         |
-| `spinner` | `Spinner`                                  | Spinner for long-running operations (start, stop, message)                                                 |
-| `output`  | `Output`                                   | Structured output (write, table, markdown, raw)                                                            |
-| `store`   | `Store`                                    | Typed in-memory key-value store (get, set, has, delete, clear)                                             |
-| `fail`    | `(message, options?) => never`             | Throw a user-facing error                                                                                  |
-| `meta`    | `Meta`                                     | CLI metadata (name, version, command path)                                                                 |
-| `auth?`   | `AuthContext`                              | Auth credential and login (when `kidd/auth` middleware registered)                                         |
+| Property  | Type                                      | Description                                                                                                |
+| --------- | ----------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `args`    | `DeepReadonly<Merge<KiddArgs, TArgs>>`    | Parsed and validated command args                                                                          |
+| `config`  | `DeepReadonly<Merge<CliConfig, TConfig>>` | Validated runtime config                                                                                   |
+| `logger`  | `CliLogger`                               | Structured terminal logger (info, success, error, warn, step, message, intro, outro, note, newline, print) |
+| `prompts` | `Prompts`                                 | Interactive prompts (confirm, text, select, multiselect, password)                                         |
+| `spinner` | `Spinner`                                 | Spinner for long-running operations (start, stop, message)                                                 |
+| `output`  | `Output`                                  | Structured output (write, table, markdown, raw)                                                            |
+| `store`   | `Store`                                   | Typed in-memory key-value store (get, set, has, delete, clear)                                             |
+| `fail`    | `(message, options?) => never`            | Throw a user-facing error                                                                                  |
+| `meta`    | `Meta`                                    | CLI metadata (name, version, command path)                                                                 |
+| `auth?`   | `AuthContext`                             | Auth credential and login (when `kidd/auth` middleware registered)                                         |
 
 ### `ctx.fail()`
 
@@ -145,7 +145,7 @@ ctx.fail('Deployment failed', { code: 'DEPLOY_ERROR', exitCode: 2 })
 
 kidd exposes empty interfaces that consumers extend via TypeScript declaration merging. This adds project-wide type safety to `ctx.args`, `ctx.config`, and `ctx.store` without threading generics.
 
-For `KiddConfig`, use the `ConfigType` utility to derive the type from your Zod schema so the augmentation stays in sync automatically:
+For `CliConfig`, use the `ConfigType` utility to derive the type from your Zod schema so the augmentation stays in sync automatically:
 
 ```ts
 import type { ConfigType } from '@kidd-cli/core'
@@ -161,7 +161,7 @@ declare module '@kidd-cli/core' {
     verbose: boolean
   }
 
-  interface KiddConfig extends ConfigType<typeof configSchema> {}
+  interface CliConfig extends ConfigType<typeof configSchema> {}
 
   interface KiddStore {
     token: string
@@ -171,12 +171,12 @@ declare module '@kidd-cli/core' {
 
 Run `kidd add config` to scaffold a config schema with `ConfigType` wiring, or pass `--config` to `kidd init`.
 
-| Interface    | Affects      | Description                                                                                     |
-| ------------ | ------------ | ----------------------------------------------------------------------------------------------- |
-| `KiddArgs`   | `ctx.args`   | Global args merged into every command's args                                                    |
-| `KiddConfig` | `ctx.config` | Global config merged into every command's config                                                |
-| `KiddStore`  | `ctx.store`  | Global store keys merged into the store type                                                    |
-| `StoreMap`   | `ctx.store`  | The store's full key-value shape — extend this to register typed keys (merges with `KiddStore`) |
+| Interface   | Affects      | Description                                                                                     |
+| ----------- | ------------ | ----------------------------------------------------------------------------------------------- |
+| `KiddArgs`  | `ctx.args`   | Global args merged into every command's args                                                    |
+| `CliConfig` | `ctx.config` | Global config merged into every command's config                                                |
+| `KiddStore` | `ctx.store`  | Global store keys merged into the store type                                                    |
+| `StoreMap`  | `ctx.store`  | The store's full key-value shape — extend this to register typed keys (merges with `KiddStore`) |
 
 ## `decorateContext()`
 

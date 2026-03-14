@@ -155,7 +155,7 @@ declare module '@kidd-cli/core' {
   interface KiddArgs {
     verbose: boolean
   }
-  interface KiddConfig {
+  interface CliConfig {
     apiUrl: string
   }
   interface KiddStore {
@@ -320,7 +320,7 @@ if (error) return [error, null]
 1. **Immutable by default** -- All context properties are deeply readonly; only `ctx.store` is mutable (for middleware data flow)
 2. **Factories over classes** -- All components are factory functions returning plain objects
 3. **Result tuples over throw** -- Expected failures use `Result<T, E>`; `ContextError` is the only thrown type at the CLI boundary
-4. **Module augmentation** -- `KiddArgs`, `KiddConfig`, `KiddStore` interfaces allow typed extensions without generics threading
+4. **Module augmentation** -- `KiddArgs`, `CliConfig`, `KiddStore` interfaces allow typed extensions without generics threading
 5. **Discriminated unions** -- Domain types use `type` fields or symbol-based tags for exhaustive pattern matching via `ts-pattern`
 6. **Lazy subcommand loading** -- Commands accept `Promise<CommandMap>` from `autoload()` for deferred imports
 7. **Zod at boundaries** -- Runtime config, args, and external data validated with Zod schemas

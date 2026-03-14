@@ -71,11 +71,11 @@ export const configSchema = z.object({
 })
 
 declare module '@kidd-cli/core' {
-  interface KiddConfig extends ConfigType<typeof configSchema> {}
+  interface CliConfig extends ConfigType<typeof configSchema> {}
 }
 ```
 
-This keeps the schema as the single source of truth — `KiddConfig` is always derived from it, so they can never drift apart. Every command handler now sees `ctx.config.apiUrl` and `ctx.config.org` as fully typed properties.
+This keeps the schema as the single source of truth — `CliConfig` is always derived from it, so they can never drift apart. Every command handler now sees `ctx.config.apiUrl` and `ctx.config.org` as fully typed properties.
 
 You can scaffold this setup automatically:
 

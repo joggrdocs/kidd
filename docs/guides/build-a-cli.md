@@ -139,7 +139,7 @@ kidd init --config
 
 **Manual setup:**
 
-Create a config schema file with `ConfigType` to derive `KiddConfig` from your Zod schema:
+Create a config schema file with `ConfigType` to derive `CliConfig` from your Zod schema:
 
 ```ts
 // src/config.ts
@@ -152,7 +152,7 @@ export const configSchema = z.object({
 })
 
 declare module '@kidd-cli/core' {
-  interface KiddConfig extends ConfigType<typeof configSchema> {}
+  interface CliConfig extends ConfigType<typeof configSchema> {}
 }
 ```
 

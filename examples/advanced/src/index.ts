@@ -18,7 +18,7 @@ declare module '@kidd-cli/core' {
     readonly api: HttpClient
   }
 
-  interface KiddConfig extends ConfigType<typeof configSchema> {}
+  interface CliConfig extends ConfigType<typeof configSchema> {}
 }
 
 cli({

@@ -12,5 +12,5 @@ export const configSchema = z.object({
 })
 
 declare module '@kidd-cli/core' {
-  interface KiddConfig extends ConfigType<typeof configSchema> {}
+  interface CliConfig extends ConfigType<typeof configSchema> {}
 }

@@ -48,6 +48,9 @@ describe('loadCLIManifest()', () => {
     const [error] = await loadCLIManifest('/project/dist')
 
     expect(error).toBeInstanceOf(Error)
+    if (error === null) {
+      return
+    }
     expect(error.message).toContain('Failed to read CLI manifest: read failed')
   })
 
@@ -70,6 +73,9 @@ describe('loadCLIManifest()', () => {
     const [error] = await loadCLIManifest('/project/dist')
 
     expect(error).toBeInstanceOf(Error)
+    if (error === null) {
+      return
+    }
     expect(error.message).toContain('CLI manifest is missing required field: name')
   })
 
@@ -92,6 +98,9 @@ describe('loadCLIManifest()', () => {
     const [error] = await loadCLIManifest('/project/dist')
 
     expect(error).toBeInstanceOf(Error)
+    if (error === null) {
+      return
+    }
     expect(error.message).toContain('CLI manifest is missing required field: version')
   })
 
@@ -114,6 +123,9 @@ describe('loadCLIManifest()', () => {
     const [error] = await loadCLIManifest('/project/dist')
 
     expect(error).toBeInstanceOf(Error)
+    if (error === null) {
+      return
+    }
     expect(error.message).toContain('CLI manifest is missing required field: description')
   })
 })

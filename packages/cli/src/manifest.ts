@@ -43,5 +43,8 @@ export async function loadCLIManifest(
     return [new Error('CLI manifest is missing required field: description'), null] as const
   }
 
-  return [null, { description: manifest.description, name: manifest.name, version: manifest.version }] as const
+  return [
+    null,
+    { description: manifest.description, name: manifest.name, version: manifest.version },
+  ] as const
 }

@@ -13,10 +13,10 @@ Bundle and compile a kidd CLI into standalone binaries using `@kidd-cli/bundler`
 
 The bundler package provides three operations you compose into a release pipeline:
 
-| Operation | Function  | What it does                                                        |
-| --------- | --------- | ------------------------------------------------------------------- |
-| Build     | `build()` | Bundles your CLI source into a single ESM file via tsdown           |
-| Watch     | `watch()` | Runs the same bundling step in watch mode for local development      |
+| Operation | Function    | What it does                                                       |
+| --------- | ----------- | ------------------------------------------------------------------ |
+| Build     | `build()`   | Bundles your CLI source into a single ESM file via tsdown          |
+| Watch     | `watch()`   | Runs the same bundling step in watch mode for local development    |
 | Compile   | `compile()` | Compiles the bundled ESM file into self-contained binaries via Bun |
 
 `build()` must run before `compile()`. The autoload plugin is applied automatically during both build and watch.
@@ -74,11 +74,11 @@ console.log('Entry file:', output.entryFile)
 
 `build()` returns a `[Error | null, BuildOutput | null]` result tuple. `BuildOutput` contains:
 
-| Field       | Type                | Description                                     |
-| ----------- | ------------------- | ----------------------------------------------- |
-| `outDir`    | `string`            | Absolute path to the build output directory     |
-| `entryFile` | `string`            | Absolute path to the bundled entry file         |
-| `version`   | `string\|undefined` | Version read from `package.json`, if available  |
+| Field       | Type                | Description                                    |
+| ----------- | ------------------- | ---------------------------------------------- |
+| `outDir`    | `string`            | Absolute path to the build output directory    |
+| `entryFile` | `string`            | Absolute path to the bundled entry file        |
+| `version`   | `string\|undefined` | Version read from `package.json`, if available |
 
 ### 3. Watch for changes
 
@@ -153,17 +153,17 @@ for (const binary of output.binaries) {
 
 `compile()` returns a `[Error | null, CompileOutput | null]` tuple. `CompileOutput` contains:
 
-| Field      | Type                    | Description                             |
-| ---------- | ----------------------- | --------------------------------------- |
-| `binaries` | `readonly CompiledBinary[]` | One entry per compiled target       |
+| Field      | Type                        | Description                   |
+| ---------- | --------------------------- | ----------------------------- |
+| `binaries` | `readonly CompiledBinary[]` | One entry per compiled target |
 
 Each `CompiledBinary` has:
 
-| Field    | Type            | Description                                                  |
-| -------- | --------------- | ------------------------------------------------------------ |
-| `target` | `CompileTarget` | The target identifier (e.g. `'darwin-arm64'`)               |
-| `label`  | `string`        | Human-readable label (e.g. `'macOS Apple Silicon'`)         |
-| `path`   | `string`        | Absolute path to the compiled binary                         |
+| Field    | Type            | Description                                         |
+| -------- | --------------- | --------------------------------------------------- |
+| `target` | `CompileTarget` | The target identifier (e.g. `'darwin-arm64'`)       |
+| `label`  | `string`        | Human-readable label (e.g. `'macOS Apple Silicon'`) |
+| `path`   | `string`        | Absolute path to the compiled binary                |
 
 ### 5. Use the autoload plugin
 
@@ -188,43 +188,43 @@ All fields in `kidd.config.ts` are optional. The following table lists every sup
 
 ### Top-level
 
-| Field      | Type                               | Default              | Description                                         |
-| ---------- | ---------------------------------- | -------------------- | --------------------------------------------------- |
-| `entry`    | `string`                           | `./src/index.ts`     | CLI entrypoint                                      |
-| `commands` | `string`                           | `./commands`         | Directory scanned by the autoloader                 |
-| `include`  | `string[]`                         | `[]`                 | Additional files to include in the bundle           |
+| Field      | Type       | Default          | Description                               |
+| ---------- | ---------- | ---------------- | ----------------------------------------- |
+| `entry`    | `string`   | `./src/index.ts` | CLI entrypoint                            |
+| `commands` | `string`   | `./commands`     | Directory scanned by the autoloader       |
+| `include`  | `string[]` | `[]`             | Additional files to include in the bundle |
 
 ### `build`
 
-| Field      | Type       | Default  | Description                                      |
-| ---------- | ---------- | -------- | ------------------------------------------------ |
-| `out`      | `string`   | `./dist` | Build output directory                           |
-| `target`   | `string`   | `node18` | tsdown/esbuild target                            |
-| `minify`   | `boolean`  | `false`  | Minify output                                    |
-| `sourcemap`| `boolean`  | `true`   | Generate source maps                             |
-| `external` | `string[]` | `[]`     | Additional packages to mark as external          |
+| Field       | Type       | Default  | Description                             |
+| ----------- | ---------- | -------- | --------------------------------------- |
+| `out`       | `string`   | `./dist` | Build output directory                  |
+| `target`    | `string`   | `node18` | tsdown/esbuild target                   |
+| `minify`    | `boolean`  | `false`  | Minify output                           |
+| `sourcemap` | `boolean`  | `true`   | Generate source maps                    |
+| `external`  | `string[]` | `[]`     | Additional packages to mark as external |
 
 ### `compile`
 
 Can be `true` (compile with all defaults), `false`/omitted (skip compilation), or an object:
 
-| Field     | Type               | Default                                                     | Description                                     |
-| --------- | ------------------ | ----------------------------------------------------------- | ----------------------------------------------- |
-| `name`    | `string`           | `cli`                                                       | Output binary name                              |
-| `out`     | `string`           | `./dist`                                                    | Compile output directory                        |
-| `targets` | `CompileTarget[]`  | `darwin-arm64`, `darwin-x64`, `linux-x64`, `windows-x64`   | Platforms to compile for                        |
+| Field     | Type              | Default                                                  | Description              |
+| --------- | ----------------- | -------------------------------------------------------- | ------------------------ |
+| `name`    | `string`          | `cli`                                                    | Output binary name       |
+| `out`     | `string`          | `./dist`                                                 | Compile output directory |
+| `targets` | `CompileTarget[]` | `darwin-arm64`, `darwin-x64`, `linux-x64`, `windows-x64` | Platforms to compile for |
 
 #### Supported targets
 
-| Target           | Platform                  |
-| ---------------- | ------------------------- |
-| `darwin-arm64`   | macOS Apple Silicon       |
-| `darwin-x64`     | macOS Intel               |
-| `linux-arm64`    | Linux ARM64               |
-| `linux-x64`      | Linux x64                 |
-| `linux-x64-musl` | Linux x64 (musl/Alpine)   |
-| `windows-arm64`  | Windows ARM64             |
-| `windows-x64`    | Windows x64               |
+| Target           | Platform                |
+| ---------------- | ----------------------- |
+| `darwin-arm64`   | macOS Apple Silicon     |
+| `darwin-x64`     | macOS Intel             |
+| `linux-arm64`    | Linux ARM64             |
+| `linux-x64`      | Linux x64               |
+| `linux-x64-musl` | Linux x64 (musl/Alpine) |
+| `windows-arm64`  | Windows ARM64           |
+| `windows-x64`    | Windows x64             |
 
 ## Example: release script
 

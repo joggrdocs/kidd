@@ -1,0 +1,139 @@
+/**
+ * Icons middleware factory.
+ *
+ * Detects Nerd Font availability, optionally prompts for installation,
+ * and decorates `ctx.icons` with a callable icon resolver.
+ *
+ * @module
+ */
+
+import { decorateContext } from '@/context/decorate.js'
+import { middleware } from '@/middleware.js'
+import type { Middleware } from '@/types.js'
+
+import type { IconsCtx } from './context.js'
+import { createIconsContext } from './context.js'
+import { createDefaultIcons } from './definitions.js'
+import { detectNerdFonts } from './detect.js'
+import { installNerdFont } from './install.js'
+import type { IconsFactory, IconsOptions } from './types.js'
+
+// ---------------------------------------------------------------------------
+// Public API
+// ---------------------------------------------------------------------------
+
+/**
+ * Create an icons middleware that decorates `ctx.icons`.
+ *
+ * Detects whether Nerd Fonts are installed. When `autoSetup` is enabled
+ * and fonts are missing, prompts the user to install them. Merges any
+ * custom icon definitions with the built-in defaults.
+ *
+ * @param options - Optional middleware configuration.
+ * @returns A Middleware instance.
+ *
+ * @example
+ * ```ts
+ * import { icons } from '@kidd-cli/core/icons'
+ *
+ * cli({
+ *   middleware: [
+ *     icons({ autoSetup: true, font: 'JetBrainsMono' }),
+ *   ],
+ * })
+ * ```
+ */
+function createIcons(options?: IconsOptions): Middleware {
+  const resolved = resolveOptions(options)
+
+  return middleware(async (ctx, next) => {
+    const isDetected = await detectNerdFonts()
+    const mergedIcons = { ...createDefaultIcons(), ...resolved.icons }
+    const isInstalled = await resolveInstallStatus(isDetected, resolved, ctx)
+
+    const iconsContext = createIconsContext({
+      ctx,
+      font: resolved.font,
+      forceSetup: resolved.forceSetup,
+      icons: mergedIcons,
+      isInstalled,
+    })
+
+    decorateContext(ctx, 'icons', iconsContext)
+
+    return next()
+  })
+}
+
+/**
+ * Icons middleware factory.
+ *
+ * @see {@link createIcons}
+ */
+export const icons: IconsFactory = createIcons
+
+// ---------------------------------------------------------------------------
+// Private helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Resolved options with explicit undefined for missing fields.
+ *
+ * @private
+ */
+interface ResolvedOptions {
+  readonly icons: IconsOptions['icons']
+  readonly autoSetup: boolean
+  readonly font: string | undefined
+  readonly forceSetup: boolean
+}
+
+/**
+ * Extract options into a resolved shape, avoiding optional chaining.
+ *
+ * @private
+ * @param options - Raw middleware options.
+ * @returns Resolved options with defaults applied.
+ */
+function resolveOptions(options: IconsOptions | undefined): ResolvedOptions {
+  if (options === undefined) {
+    return { autoSetup: false, font: undefined, forceSetup: false, icons: undefined }
+  }
+
+  return {
+    autoSetup: options.autoSetup === true,
+    font: options.font,
+    forceSetup: options.forceSetup === true,
+    icons: options.icons,
+  }
+}
+
+/**
+ * Determine final install status, triggering auto-setup if configured.
+ *
+ * @private
+ * @param isDetected - Whether fonts were detected on the system.
+ * @param resolved - Resolved middleware options.
+ * @param ctx - The middleware context.
+ * @returns Whether Nerd Fonts should be considered installed.
+ */
+async function resolveInstallStatus(
+  isDetected: boolean,
+  resolved: ResolvedOptions,
+  ctx: IconsCtx
+): Promise<boolean> {
+  if (isDetected) {
+    return true
+  }
+
+  if (!resolved.autoSetup) {
+    return false
+  }
+
+  const [, result] = await installNerdFont({
+    ctx,
+    font: resolved.font,
+  })
+
+  return result === true
+}

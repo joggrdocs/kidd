@@ -10,8 +10,8 @@ catalog:
   liquidjs: ^10.25.0
   # dev
   typescript: ^5.9.3
-  vitest: ^4.0.18
-  '@vitest/coverage-v8': ^4.0.18
-  tsdown: 0.21.1
-  '@types/node': ^25.4.0
+  vitest: ^4.1.0
+  '@vitest/coverage-v8': ^4.1.0
+  tsdown: 0.21.2
+  '@types/node': ^25.5.0
   tsx: ^4.21.0

@@ -18,9 +18,9 @@ export const TYPESCRIPT_VERSION = '^5.9.3'
 /**
  * Vitest version from the workspace catalog.
  */
-export const VITEST_VERSION = '^4.0.18'
+export const VITEST_VERSION = '^4.1.0'
 
 /**
  * Tsdown version from the workspace catalog.
  */
-export const TSDOWN_VERSION = '^0.21.1'
+export const TSDOWN_VERSION = '^0.21.2'

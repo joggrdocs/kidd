@@ -7,13 +7,8 @@ import { attempt } from '@kidd-cli/utils/fp'
 import { readManifest } from '@kidd-cli/utils/manifest'
 import { z } from 'zod'
 
-import {
-  TSDOWN_VERSION,
-  TYPESCRIPT_VERSION,
-  VITEST_VERSION,
-  ZOD_VERSION,
-} from '../generated/template-versions.js'
 import { renderTemplate } from '../lib/render.js'
+import { readTemplateVersions } from '../lib/template-versions.js'
 import type { RenderedFile } from '../lib/types.js'
 import { isKebabCase } from '../lib/validate.js'
 import { writeFiles } from '../lib/write.js'
@@ -40,6 +35,12 @@ const initCommand: Command = command({
 
     ctx.spinner.start('Scaffolding project...')
 
+    const [versionsError, templateVersions] = readTemplateVersions()
+    if (versionsError) {
+      ctx.spinner.stop('Failed')
+      return ctx.fail(versionsError.message)
+    }
+
     const coreVersion = await resolveDependencyVersion('@kidd-cli/core')
     const cliVersion = await resolveSelfVersion()
 
@@ -53,10 +54,7 @@ const initCommand: Command = command({
         includeConfig,
         name: projectName,
         packageManager,
-        tsdownVersion: TSDOWN_VERSION,
-        typescriptVersion: TYPESCRIPT_VERSION,
-        vitestVersion: VITEST_VERSION,
-        zodVersion: ZOD_VERSION,
+        ...templateVersions,
       },
     })
 

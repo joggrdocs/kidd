@@ -4,12 +4,7 @@ import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { parse } from 'yaml'
 
-import {
-  TSDOWN_VERSION,
-  TYPESCRIPT_VERSION,
-  VITEST_VERSION,
-  ZOD_VERSION,
-} from '../generated/template-versions.js'
+import { readTemplateVersions } from './template-versions.js'
 
 const workspaceContent = readFileSync(
   join(import.meta.dirname, '..', '..', '..', '..', 'pnpm-workspace.yaml'),
@@ -32,20 +27,26 @@ function normalizeVersion(version: string): string {
   return `^${version}`
 }
 
-describe('template-versions', () => {
-  it('should match zod version from workspace catalog', () => {
-    expect(ZOD_VERSION).toBe(normalizeVersion(catalog.zod))
+describe('readTemplateVersions', () => {
+  it('should return versions matching the workspace catalog', () => {
+    const [error, versions] = readTemplateVersions()
+    expect(error).toBeNull()
+    expect(versions).not.toBeNull()
+    expect(versions!.zodVersion).toBe(normalizeVersion(catalog.zod))
+    expect(versions!.typescriptVersion).toBe(normalizeVersion(catalog.typescript))
+    expect(versions!.vitestVersion).toBe(normalizeVersion(catalog.vitest))
+    expect(versions!.tsdownVersion).toBe(normalizeVersion(catalog.tsdown))
   })
 
-  it('should match typescript version from workspace catalog', () => {
-    expect(TYPESCRIPT_VERSION).toBe(normalizeVersion(catalog.typescript))
+  it('should add caret prefix to versions without a range operator', () => {
+    const [, versions] = readTemplateVersions()
+    expect(versions!.tsdownVersion).toBe(`^${catalog.tsdown}`)
   })
 
-  it('should match vitest version from workspace catalog', () => {
-    expect(VITEST_VERSION).toBe(normalizeVersion(catalog.vitest))
-  })
-
-  it('should match tsdown version from workspace catalog', () => {
-    expect(TSDOWN_VERSION).toBe(normalizeVersion(catalog.tsdown))
+  it('should preserve existing range operators', () => {
+    const [, versions] = readTemplateVersions()
+    expect(versions!.zodVersion).toBe(catalog.zod)
+    expect(versions!.typescriptVersion).toBe(catalog.typescript)
+    expect(versions!.vitestVersion).toBe(catalog.vitest)
   })
 })

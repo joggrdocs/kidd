@@ -5,11 +5,19 @@ vi.mock(import('@kidd-cli/utils/manifest'), () => ({
   readManifest: vi.fn(),
 }))
 
-vi.mock(import('../generated/template-versions.js'), () => ({
-  TSDOWN_VERSION: '^0.21.2' as const,
-  TYPESCRIPT_VERSION: '^5.9.3' as const,
-  VITEST_VERSION: '^4.1.0' as const,
-  ZOD_VERSION: '^4.3.6' as const,
+vi.mock(import('../lib/template-versions.js'), () => ({
+  readTemplateVersions: vi.fn(
+    () =>
+      [
+        null,
+        {
+          tsdownVersion: '^0.21.2',
+          typescriptVersion: '^5.9.3',
+          vitestVersion: '^4.1.0',
+          zodVersion: '^4.3.6',
+        },
+      ] as const
+  ),
 }))
 
 vi.mock(import('../lib/render.js'), () => ({

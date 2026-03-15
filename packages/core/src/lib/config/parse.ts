@@ -1,14 +1,10 @@
 import { extname } from 'node:path'
 
-import { attempt, err, match } from '@kidd-cli/utils/fp'
-import { jsonParse, jsonStringify } from '@kidd-cli/utils/json'
-import type { ParseError } from 'jsonc-parser'
-import { parse as jsoncParse, printParseErrorCode } from 'jsonc-parser'
-import { parse as yamlParse, stringify as yamlStringify } from 'yaml'
+import { match } from '@kidd-cli/utils/fp'
+import { jsonStringify } from '@kidd-cli/utils/json'
+import { stringify as yamlStringify } from 'yaml'
 
 import type { ConfigFormat, ConfigWriteFormat } from './constants.js'
-import { EMPTY_LENGTH } from './constants.js'
-import type { ConfigOperationResult } from './types.js'
 
 /**
  * Determine the config format from a file path's extension.
@@ -21,6 +17,7 @@ export function getFormat(filePath: string): ConfigFormat {
   return match(ext)
     .with('.jsonc', () => 'jsonc' as const)
     .with('.yaml', () => 'yaml' as const)
+    .with('.yml', () => 'yaml' as const)
     .with('.ts', () => 'ts' as const)
     .with('.mts', () => 'ts' as const)
     .with('.cts', () => 'ts' as const)
@@ -28,32 +25,6 @@ export function getFormat(filePath: string): ConfigFormat {
     .with('.mjs', () => 'js' as const)
     .with('.cjs', () => 'js' as const)
     .otherwise(() => 'json' as const)
-}
-
-/**
- * Options for parsing config file content (dotfile fallback only).
- */
-export interface ParseContentOptions {
-  readonly content: string
-  readonly filePath: string
-  readonly format: ConfigWriteFormat
-}
-
-/**
- * Parse config file content using the appropriate parser for the given format.
- *
- * Used only for dotfile fallback — c12 handles TS/JS/etc. natively.
- *
- * @param options - Parse content options.
- * @returns A ConfigOperationResult with the parsed data or an error.
- */
-export function parseContent(options: ParseContentOptions): ConfigOperationResult<unknown> {
-  const { content, filePath, format } = options
-  return match(format)
-    .with('json', () => parseJson({ content, filePath }))
-    .with('jsonc', () => parseJsonc({ content, filePath }))
-    .with('yaml', () => parseYaml({ content, filePath }))
-    .exhaustive()
 }
 
 /**
@@ -95,76 +66,4 @@ export function getExtension(format: ConfigWriteFormat): string {
     .with('jsonc', () => '.jsonc')
     .with('yaml', () => '.yaml')
     .exhaustive()
-}
-
-// ---------------------------------------------------------------------------
-// Private helpers
-// ---------------------------------------------------------------------------
-
-/**
- * Options for parsing raw config content.
- */
-interface ParseOptions {
-  readonly content: string
-  readonly filePath: string
-}
-
-/**
- * Parse a JSON string and return the result as a ConfigOperationResult.
- *
- * @param options - The raw content and file path for error messages.
- * @returns A ConfigOperationResult with the parsed data or a parse error.
- * @private
- */
-function parseJson(options: ParseOptions): ConfigOperationResult<unknown> {
-  const { content, filePath } = options
-  const [error, result] = jsonParse(content)
-  if (error) {
-    return err(`Failed to parse JSON in ${filePath}: ${error.message}`)
-  }
-  return [null, result]
-}
-
-/**
- * Parse a JSONC (JSON with comments) string and return the result as a ConfigOperationResult.
- *
- * @param options - The raw content and file path for error messages.
- * @returns A ConfigOperationResult with the parsed data or a parse error.
- * @private
- */
-function parseJsonc(options: ParseOptions): ConfigOperationResult<unknown> {
-  const { content, filePath } = options
-  // Intentional mutation: jsonc-parser API requires a mutable errors array.
-  // There is no immutable alternative — the parser populates it during parsing.
-  const errors: ParseError[] = []
-  const result = jsoncParse(content, errors, {
-    allowEmptyContent: false,
-    allowTrailingComma: true,
-  })
-  if (errors.length > EMPTY_LENGTH) {
-    const errorMessages = errors
-      .map(
-        (parseError) =>
-          `  - ${printParseErrorCode(parseError.error)} at offset ${parseError.offset}`
-      )
-      .join('\n')
-    return err(`Failed to parse JSONC in ${filePath}:\n${errorMessages}`)
-  }
-  return [null, result]
-}
-
-/**
- * Parse a YAML string and return the result as a ConfigOperationResult.
- *
- * @param options - The raw content and file path for error messages.
- * @returns A ConfigOperationResult with the parsed data or a parse error.
- * @private
- */
-function parseYaml(options: ParseOptions): ConfigOperationResult<unknown> {
-  const { content, filePath } = options
-  const [error, result] = attempt(() => yamlParse(content))
-  if (error) {
-    return err(`Failed to parse YAML in ${filePath}: ${String(error)}`)
-  }
-  return [null, result]
 }

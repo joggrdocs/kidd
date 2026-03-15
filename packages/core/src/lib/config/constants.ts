@@ -14,11 +14,15 @@ export type ConfigWriteFormat = 'json' | 'jsonc' | 'yaml'
 export { JSON_INDENT } from '@/utils/constants.js'
 
 /**
- * Sentinel for empty-length checks.
+ * File extensions allowed for the short config name (e.g. `jog.json`, `jog.yaml`).
+ *
+ * TS/JS extensions are excluded — use the `name.config.*` pattern for those.
  */
-export const EMPTY_LENGTH = 0
-
-/**
- * Dotfile extensions used as fallback when c12 finds no `name.config.*` file.
- */
-export const DOTFILE_EXTENSIONS = ['.json', '.jsonc', '.yaml'] as const
+export const DATA_EXTENSIONS: ReadonlySet<string> = new Set([
+  '.json',
+  '.jsonc',
+  '.json5',
+  '.yaml',
+  '.yml',
+  '.toml',
+])

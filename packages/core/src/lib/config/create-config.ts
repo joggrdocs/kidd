@@ -1,13 +1,13 @@
-import { mkdir, readFile, writeFile } from 'node:fs/promises'
-import { dirname, isAbsolute, join } from 'node:path'
+import { mkdir, writeFile } from 'node:fs/promises'
+import { dirname, extname, isAbsolute, join } from 'node:path'
 
 import { attemptAsync, err, match } from '@kidd-cli/utils/fp'
 import { formatZodIssues } from '@kidd-cli/utils/validate'
 import { loadConfig as c12LoadConfig } from 'c12'
 import type { ZodTypeAny, output } from 'zod'
 
-import { findDotfileConfig, getDotfileNames } from './find.js'
-import { getExtension, getFormat, parseContent, serializeContent } from './parse.js'
+import { DATA_EXTENSIONS } from './constants.js'
+import { getExtension, getFormat, serializeContent } from './parse.js'
 import type {
   Config,
   ConfigOperationResult,
@@ -18,11 +18,20 @@ import type {
 } from './types.js'
 
 /**
+ * c12 resolution result containing the loaded config and resolved file path.
+ */
+interface C12Result {
+  readonly config: unknown
+  readonly configFile?: string
+}
+
+/**
  * Create a typed config client that loads, validates, and writes config files.
  *
- * Uses c12 as the primary loader for `name.config.*` files (supports TS, JS, JSON,
- * JSONC, YAML). Falls back to dotfile variants (`.name.json`, `.name.jsonc`, `.name.yaml`)
- * for backward compatibility.
+ * Uses c12 to resolve config files in two passes:
+ *
+ * 1. `name.config.*` — all formats (TS, JS, JSON, JSONC, YAML, TOML)
+ * 2. `name.*` — data formats only (JSON, JSONC, YAML, TOML)
  *
  * @param options - Config client options including name and Zod schema.
  * @returns A {@link Config} client instance.
@@ -31,45 +40,19 @@ export function createConfigClient<TSchema extends ZodTypeAny>(
   options: ConfigOptions<TSchema>
 ): Config<output<TSchema>> {
   const { name, schema, searchPaths } = options
-  const dotfileNames = getDotfileNames(name)
 
   /**
-   * Load config using c12 (`name.config.*`), searching optional searchPaths first.
+   * Resolve a config file via c12 for a single directory.
    *
    * @private
-   * @param cwd - Working directory to search from.
+   * @param cwd - Directory to search in.
+   * @param configFile - The base config file name (without extension).
    * @returns The c12 result, or null if nothing was found.
    */
-  async function loadNamedConfig(
-    cwd: string
-  ): Promise<{ config: unknown; configFile?: string } | null> {
-    if (searchPaths) {
-      const results = await Promise.all(
-        searchPaths.map(async (dir) => {
-          const [loadError, loaded] = await attemptAsync(() =>
-            c12LoadConfig({
-              cwd: dir,
-              dotenv: false,
-              globalRc: false,
-              name,
-              packageJson: false,
-              rcFile: false,
-            })
-          )
-          if (loadError || !loaded || !hasResolvedConfigFile(loaded.configFile)) {
-            return null
-          }
-          return loaded
-        })
-      )
-      const found = results.find((r): r is NonNullable<typeof r> => r !== null)
-      if (found) {
-        return found
-      }
-    }
-
+  async function resolveFromDir(cwd: string, configFile: string): Promise<C12Result | null> {
     const [loadError, loaded] = await attemptAsync(() =>
       c12LoadConfig({
+        configFile,
         cwd,
         dotenv: false,
         globalRc: false,
@@ -78,18 +61,60 @@ export function createConfigClient<TSchema extends ZodTypeAny>(
         rcFile: false,
       })
     )
-
     if (loadError || !loaded || !hasResolvedConfigFile(loaded.configFile)) {
       return null
     }
-
     return loaded
   }
 
   /**
-   * Find a config file in the given directory.
+   * Resolve a config file across searchPaths then cwd.
    *
-   * Checks c12 `name.config.*` patterns first, then dotfile fallback.
+   * @private
+   * @param cwd - Working directory.
+   * @param configFile - The base config file name (without extension).
+   * @returns The c12 result, or null if nothing was found.
+   */
+  async function resolveConfig(cwd: string, configFile: string): Promise<C12Result | null> {
+    if (searchPaths) {
+      const results = await Promise.all(searchPaths.map((dir) => resolveFromDir(dir, configFile)))
+      const found = results.find((r): r is NonNullable<typeof r> => r !== null)
+      if (found) {
+        return found
+      }
+    }
+    return resolveFromDir(cwd, configFile)
+  }
+
+  /**
+   * Load config using c12 with two-pass resolution.
+   *
+   * First pass: `name.config.*` (all formats).
+   * Second pass: `name.*` (data formats only — no TS/JS).
+   *
+   * @private
+   * @param cwd - Working directory to search from.
+   * @returns The c12 result, or null if nothing was found.
+   */
+  async function loadConfig(cwd: string): Promise<C12Result | null> {
+    const longForm = await resolveConfig(cwd, `${name}.config`)
+    if (longForm && hasResolvedConfigFile(longForm.configFile)) {
+      return longForm
+    }
+
+    const shortForm = await resolveConfig(cwd, name)
+    if (shortForm && hasResolvedConfigFile(shortForm.configFile)) {
+      if (!isDataExtension(shortForm.configFile)) {
+        return null
+      }
+      return shortForm
+    }
+
+    return null
+  }
+
+  /**
+   * Find a config file in the given directory.
    *
    * @private
    * @param cwd - Working directory to search from.
@@ -97,24 +122,15 @@ export function createConfigClient<TSchema extends ZodTypeAny>(
    */
   async function find(cwd?: string): Promise<string | null> {
     const resolvedCwd = cwd ?? process.cwd()
-
-    const c12Result = await loadNamedConfig(resolvedCwd)
-    if (c12Result && hasResolvedConfigFile(c12Result.configFile)) {
-      return c12Result.configFile
+    const result = await loadConfig(resolvedCwd)
+    if (result && hasResolvedConfigFile(result.configFile)) {
+      return result.configFile
     }
-
-    return findDotfileConfig({
-      cwd: resolvedCwd,
-      fileNames: dotfileNames,
-      searchPaths,
-    })
+    return null
   }
 
   /**
    * Load and validate a config file.
-   *
-   * Tries c12 first (supports TS/JS/JSON/JSONC/YAML via `name.config.*`),
-   * then falls back to dotfile patterns (`.name.json`, `.name.jsonc`, `.name.yaml`).
    *
    * @private
    * @param cwd - Working directory to search from.
@@ -124,13 +140,11 @@ export function createConfigClient<TSchema extends ZodTypeAny>(
     cwd?: string
   ): Promise<ConfigOperationResult<ConfigResult<output<TSchema>>> | readonly [null, null]> {
     const resolvedCwd = cwd ?? process.cwd()
-
-    const c12Result = await loadNamedConfig(resolvedCwd)
-    if (c12Result && hasResolvedConfigFile(c12Result.configFile)) {
-      return validateAndReturn(c12Result.config, c12Result.configFile)
+    const result = await loadConfig(resolvedCwd)
+    if (!result || !hasResolvedConfigFile(result.configFile)) {
+      return [null, null]
     }
-
-    return loadFromDotfile(resolvedCwd)
+    return validateAndReturn(result.config, result.configFile)
   }
 
   /**
@@ -193,43 +207,6 @@ export function createConfigClient<TSchema extends ZodTypeAny>(
   }
 
   /**
-   * Load config from a dotfile (`.name.json`, `.name.jsonc`, `.name.yaml`).
-   *
-   * @private
-   * @param cwd - Working directory to search from.
-   * @returns A ConfigOperationResult with the loaded config, or [null, null] if not found.
-   */
-  async function loadFromDotfile(
-    cwd: string
-  ): Promise<ConfigOperationResult<ConfigResult<output<TSchema>>> | readonly [null, null]> {
-    const filePath = await findDotfileConfig({
-      cwd,
-      fileNames: dotfileNames,
-      searchPaths,
-    })
-    if (!filePath) {
-      return [null, null]
-    }
-
-    const [readError, content] = await attemptAsync(() => readFile(filePath, 'utf8'))
-    if (readError || content === null) {
-      return err(`Failed to read config at ${filePath}: ${formatReadError(readError)}`)
-    }
-
-    const format = getFormat(filePath)
-    if (format === 'ts' || format === 'js') {
-      return err(`Dotfile format not supported for ${filePath}: use name.config.ts instead`)
-    }
-
-    const [parseError, parsed] = parseContent({ content, filePath, format })
-    if (parseError) {
-      return [parseError, null]
-    }
-
-    return validateAndReturn(parsed, filePath)
-  }
-
-  /**
    * Validate parsed config data and return a typed result.
    *
    * @private
@@ -277,19 +254,18 @@ function hasResolvedConfigFile(configFile: string | undefined): configFile is st
 }
 
 /**
- * Format an error from a file read operation into a descriptive string.
+ * Check whether a resolved config file has a data-only extension.
+ *
+ * Used to restrict the short-form config (`name.*`) to data formats,
+ * preventing accidental resolution of `name.ts` or `name.js`.
  *
  * @private
- * @param readError - The error from the read operation, or null.
- * @returns A descriptive error string.
+ * @param configFile - The resolved config file path.
+ * @returns `true` when the file has a data extension (JSON, JSONC, YAML, TOML).
  */
-function formatReadError(readError: unknown): string {
-  return match(readError)
-    .when(
-      (e) => e !== null && e !== undefined,
-      (e) => String(e)
-    )
-    .otherwise(() => 'empty file')
+function isDataExtension(configFile: string): boolean {
+  const ext = extname(configFile)
+  return DATA_EXTENSIONS.has(ext)
 }
 
 /**

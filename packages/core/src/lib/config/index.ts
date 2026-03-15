@@ -6,6 +6,5 @@ export type {
   ConfigResult,
   ConfigWriteOptions,
   ConfigWriteResult,
-  FindDotfileOptions,
 } from './types.js'
 export { createConfigClient } from './create-config.js'

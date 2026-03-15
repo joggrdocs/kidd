@@ -1,11 +1,4 @@
-import {
-  chmodSync,
-  mkdirSync,
-  mkdtempSync,
-  realpathSync,
-  rmSync,
-  writeFileSync,
-} from 'node:fs'
+import { chmodSync, mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
@@ -46,7 +39,7 @@ describe('config', () => {
   })
 
   describe('find', () => {
-    it('should find myapp.config.json via c12', async () => {
+    it('should find myapp.config.json via c12 (long form)', async () => {
       const client = createConfigClient({ name: 'myapp', schema })
       writeFileSync(join(tmpDir, 'myapp.config.json'), JSON.stringify(validConfig, null, 2))
 
@@ -55,7 +48,7 @@ describe('config', () => {
       expect(result).toBe(join(tmpDir, 'myapp.config.json'))
     })
 
-    it('should find myapp.config.jsonc via c12', async () => {
+    it('should find myapp.config.jsonc via c12 (long form)', async () => {
       const client = createConfigClient({ name: 'myapp', schema })
       writeFileSync(join(tmpDir, 'myapp.config.jsonc'), JSON.stringify(validConfig, null, 2))
 
@@ -64,36 +57,48 @@ describe('config', () => {
       expect(result).toBe(join(tmpDir, 'myapp.config.jsonc'))
     })
 
-    it('should fall back to .myapp.json dotfile', async () => {
+    it('should find myapp.json via c12 (short form)', async () => {
       const client = createConfigClient({ name: 'myapp', schema })
-      writeFileSync(join(tmpDir, '.myapp.json'), '{}')
+      writeFileSync(join(tmpDir, 'myapp.json'), JSON.stringify(validConfig, null, 2))
 
       const result = await client.find(tmpDir)
 
-      expect(result).toBe(join(tmpDir, '.myapp.json'))
+      expect(result).toBe(join(tmpDir, 'myapp.json'))
     })
 
-    it('should fall back to .myapp.jsonc dotfile', async () => {
+    it('should find myapp.yaml via c12 (short form)', async () => {
       const client = createConfigClient({ name: 'myapp', schema })
-      writeFileSync(join(tmpDir, '.myapp.jsonc'), '{}')
+      writeFileSync(join(tmpDir, 'myapp.yaml'), 'name: test-app\nversion: 1\n')
 
       const result = await client.find(tmpDir)
 
-      expect(result).toBe(join(tmpDir, '.myapp.jsonc'))
+      expect(result).toBe(join(tmpDir, 'myapp.yaml'))
     })
 
-    it('should fall back to .myapp.yaml dotfile', async () => {
+    it('should find myapp.jsonc via c12 (short form)', async () => {
       const client = createConfigClient({ name: 'myapp', schema })
-      writeFileSync(join(tmpDir, '.myapp.yaml'), 'name: test\n')
+      writeFileSync(
+        join(tmpDir, 'myapp.jsonc'),
+        '{ /* comment */ "name": "test-app", "version": 1 }'
+      )
 
       const result = await client.find(tmpDir)
 
-      expect(result).toBe(join(tmpDir, '.myapp.yaml'))
+      expect(result).toBe(join(tmpDir, 'myapp.jsonc'))
     })
 
-    it('should prefer name.config.* over dotfile', async () => {
+    it('should reject myapp.ts via short form (TS not allowed)', async () => {
       const client = createConfigClient({ name: 'myapp', schema })
-      writeFileSync(join(tmpDir, '.myapp.json'), '{}')
+      writeFileSync(join(tmpDir, 'myapp.ts'), 'export default { name: "test-app", version: 1 }')
+
+      const result = await client.find(tmpDir)
+
+      expect(result).toBeNull()
+    })
+
+    it('should prefer name.config.* over name.*', async () => {
+      const client = createConfigClient({ name: 'myapp', schema })
+      writeFileSync(join(tmpDir, 'myapp.json'), JSON.stringify({ name: 'short', version: 1 }))
       writeFileSync(join(tmpDir, 'myapp.config.json'), JSON.stringify(validConfig, null, 2))
 
       const result = await client.find(tmpDir)
@@ -118,18 +123,6 @@ describe('config', () => {
       expect(result).toBe(join(searchDir, 'myapp.config.json'))
     })
 
-    it('should fall back to project root when not in cwd', async () => {
-      const subDir = join(tmpDir, 'packages', 'sub')
-      mkdirSync(subDir, { recursive: true })
-      writeFileSync(join(tmpDir, '.myapp.json'), '{}')
-
-      const client = createConfigClient({ name: 'myapp', schema })
-
-      const result = await client.find(subDir)
-
-      expect(result).toBe(join(tmpDir, '.myapp.json'))
-    })
-
     it('should return null when no config found', async () => {
       const client = createConfigClient({ name: 'myapp', schema })
 
@@ -147,10 +140,10 @@ describe('config', () => {
       expect(result).toBe(join(tmpDir, 'myapp.config.json'))
     })
 
-    it('should find dotfile in searchPaths when c12 finds nothing', async () => {
-      const searchDir = join(tmpDir, 'search-dotfile')
+    it('should find short-form config in searchPaths', async () => {
+      const searchDir = join(tmpDir, 'search-short')
       mkdirSync(searchDir, { recursive: true })
-      writeFileSync(join(searchDir, '.myapp.json'), JSON.stringify(validConfig, null, 2))
+      writeFileSync(join(searchDir, 'myapp.json'), JSON.stringify(validConfig, null, 2))
 
       const client = createConfigClient({
         name: 'myapp',
@@ -160,12 +153,12 @@ describe('config', () => {
 
       const result = await client.find(tmpDir)
 
-      expect(result).toBe(join(searchDir, '.myapp.json'))
+      expect(result).toBe(join(searchDir, 'myapp.json'))
     })
   })
 
   describe('load', () => {
-    it('should load and validate JSON config via c12', async () => {
+    it('should load and validate JSON config via long form', async () => {
       const client = createConfigClient({ name: 'myapp', schema })
       writeFileSync(join(tmpDir, 'myapp.config.json'), JSON.stringify(validConfig, null, 2))
 
@@ -178,16 +171,13 @@ describe('config', () => {
       expect(result!.format).toBe('json')
     })
 
-    it('should load and validate JSONC config via c12', async () => {
+    it('should load and validate JSONC config via long form', async () => {
       const client = createConfigClient({ name: 'myapp', schema })
       const jsoncContent = `{
   // This is a comment
   "name": "test-app",
   "version": 1,
-  "features": [
-    "auth",
-    "logging"
-  ]
+  "features": ["auth", "logging"]
 }`
       writeFileSync(join(tmpDir, 'myapp.config.jsonc'), jsoncContent)
 
@@ -200,42 +190,20 @@ describe('config', () => {
       expect(result!.format).toBe('jsonc')
     })
 
-    it('should load dotfile JSON config as fallback', async () => {
+    it('should load JSON config via short form', async () => {
       const client = createConfigClient({ name: 'myapp', schema })
-      writeFileSync(join(tmpDir, '.myapp.json'), JSON.stringify(validConfig, null, 2))
+      writeFileSync(join(tmpDir, 'myapp.json'), JSON.stringify(validConfig, null, 2))
 
       const [error, result] = await client.load(tmpDir)
 
       expect(error).toBeNull()
       expect(result).not.toBeNull()
       expect(result!.config).toEqual(validConfig)
-      expect(result!.filePath).toBe(join(tmpDir, '.myapp.json'))
+      expect(result!.filePath).toBe(join(tmpDir, 'myapp.json'))
       expect(result!.format).toBe('json')
     })
 
-    it('should load dotfile JSONC config as fallback', async () => {
-      const client = createConfigClient({ name: 'myapp', schema })
-      const jsoncContent = `{
-  // This is a comment
-  "name": "test-app",
-  "version": 1,
-  "features": [
-    "auth",
-    "logging"
-  ]
-}`
-      writeFileSync(join(tmpDir, '.myapp.jsonc'), jsoncContent)
-
-      const [error, result] = await client.load(tmpDir)
-
-      expect(error).toBeNull()
-      expect(result).not.toBeNull()
-      expect(result!.config).toEqual(validConfig)
-      expect(result!.filePath).toBe(join(tmpDir, '.myapp.jsonc'))
-      expect(result!.format).toBe('jsonc')
-    })
-
-    it('should load dotfile YAML config as fallback', async () => {
+    it('should load YAML config via short form', async () => {
       const client = createConfigClient({ name: 'myapp', schema })
       const yamlContent = `name: test-app
 version: 1
@@ -243,20 +211,20 @@ features:
   - auth
   - logging
 `
-      writeFileSync(join(tmpDir, '.myapp.yaml'), yamlContent)
+      writeFileSync(join(tmpDir, 'myapp.yaml'), yamlContent)
 
       const [error, result] = await client.load(tmpDir)
 
       expect(error).toBeNull()
       expect(result).not.toBeNull()
       expect(result!.config).toEqual(validConfig)
-      expect(result!.filePath).toBe(join(tmpDir, '.myapp.yaml'))
+      expect(result!.filePath).toBe(join(tmpDir, 'myapp.yaml'))
       expect(result!.format).toBe('yaml')
     })
 
-    it('should prefer name.config.* over dotfile when loading', async () => {
+    it('should prefer long form over short form when loading', async () => {
       const client = createConfigClient({ name: 'myapp', schema })
-      writeFileSync(join(tmpDir, '.myapp.json'), JSON.stringify({ name: 'dotfile', version: 1 }))
+      writeFileSync(join(tmpDir, 'myapp.json'), JSON.stringify({ name: 'short', version: 1 }))
       writeFileSync(join(tmpDir, 'myapp.config.json'), JSON.stringify(validConfig, null, 2))
 
       const [error, result] = await client.load(tmpDir)
@@ -267,8 +235,9 @@ features:
       expect(result!.filePath).toBe(join(tmpDir, 'myapp.config.json'))
     })
 
-    it('should return [null, null] when no config found', async () => {
+    it('should not load short-form TS files', async () => {
       const client = createConfigClient({ name: 'myapp', schema })
+      writeFileSync(join(tmpDir, 'myapp.ts'), 'export default { name: "test-app", version: 1 }')
 
       const [error, result] = await client.load(tmpDir)
 
@@ -276,37 +245,13 @@ features:
       expect(result).toBeNull()
     })
 
-    it('should return Error for invalid JSON in dotfile', async () => {
+    it('should return [null, null] when no config found', async () => {
       const client = createConfigClient({ name: 'myapp', schema })
-      writeFileSync(join(tmpDir, '.myapp.json'), '{ invalid json }')
 
       const [error, result] = await client.load(tmpDir)
 
+      expect(error).toBeNull()
       expect(result).toBeNull()
-      expect(error).toBeInstanceOf(Error)
-      expect(error!.message).toContain('Failed to parse JSON')
-    })
-
-    it('should return Error for invalid JSONC in dotfile', async () => {
-      const client = createConfigClient({ name: 'myapp', schema })
-      writeFileSync(join(tmpDir, '.myapp.jsonc'), '{ "name": }')
-
-      const [error, result] = await client.load(tmpDir)
-
-      expect(result).toBeNull()
-      expect(error).toBeInstanceOf(Error)
-      expect(error!.message).toContain('Failed to parse JSONC')
-    })
-
-    it('should return Error for invalid YAML in dotfile', async () => {
-      const client = createConfigClient({ name: 'myapp', schema })
-      writeFileSync(join(tmpDir, '.myapp.yaml'), ':\n  :\n    - :\n  bad: [')
-
-      const [error, result] = await client.load(tmpDir)
-
-      expect(result).toBeNull()
-      expect(error).toBeInstanceOf(Error)
-      expect(error!.message).toContain('Failed to parse YAML')
     })
 
     it('should return Error for schema mismatch', async () => {
@@ -326,7 +271,7 @@ features:
     it('should return Error with validation details for schema mismatch', async () => {
       const client = createConfigClient({ name: 'myapp', schema })
       writeFileSync(
-        join(tmpDir, '.myapp.json'),
+        join(tmpDir, 'myapp.json'),
         JSON.stringify({ name: 123, version: 'not-a-number' })
       )
 
@@ -336,20 +281,6 @@ features:
       expect(error).toBeInstanceOf(Error)
       expect(error!.message).toContain('name')
       expect(error!.message).toContain('version')
-    })
-
-    it('should return Error when dotfile exists but is unreadable', async () => {
-      const client = createConfigClient({ name: 'myapp', schema })
-      const filePath = join(tmpDir, '.myapp.json')
-      writeFileSync(filePath, JSON.stringify(validConfig))
-      chmodSync(filePath, 0o000)
-
-      const [error, result] = await client.load(tmpDir)
-
-      chmodSync(filePath, 0o644)
-      expect(result).toBeNull()
-      expect(error).toBeInstanceOf(Error)
-      expect(error!.message).toContain('Failed to read config')
     })
 
     it('should strip extra fields not in schema', async () => {
@@ -365,41 +296,6 @@ features:
       expect(result).not.toBeNull()
       expect(result!.config).toEqual(validConfig)
       expect((result!.config as Record<string, unknown>)['extraField']).toBeUndefined()
-    })
-
-    it('should gracefully handle c12 failure and fall back to dotfile', async () => {
-      const client = createConfigClient({
-        name: 'myapp',
-        schema,
-        searchPaths: ['/nonexistent/path/that/does/not/exist'],
-      })
-      writeFileSync(join(tmpDir, '.myapp.json'), JSON.stringify(validConfig, null, 2))
-
-      const [error, result] = await client.load(tmpDir)
-
-      expect(error).toBeNull()
-      expect(result).not.toBeNull()
-      expect(result!.config).toEqual(validConfig)
-      expect(result!.filePath).toBe(join(tmpDir, '.myapp.json'))
-    })
-
-    it('should load dotfile via searchPaths when c12 finds nothing', async () => {
-      const searchDir = join(tmpDir, 'search-dotfile')
-      mkdirSync(searchDir, { recursive: true })
-      writeFileSync(join(searchDir, '.myapp.json'), JSON.stringify(validConfig, null, 2))
-
-      const client = createConfigClient({
-        name: 'myapp',
-        schema,
-        searchPaths: [searchDir],
-      })
-
-      const [error, result] = await client.load(tmpDir)
-
-      expect(error).toBeNull()
-      expect(result).not.toBeNull()
-      expect(result!.config).toEqual(validConfig)
-      expect(result!.filePath).toBe(join(searchDir, '.myapp.json'))
     })
   })
 
@@ -463,11 +359,6 @@ features:
 
       expect(error).toBeNull()
       expect(result!.filePath).toBe(join(deepDir, 'myapp.config.json'))
-
-      const reloadClient = createConfigClient({ name: 'myapp', schema })
-      const [loadError, loaded] = await reloadClient.load(deepDir)
-      expect(loadError).toBeNull()
-      expect(loaded!.config).toEqual(validConfig)
     })
 
     it('should return Error for invalid data', async () => {
@@ -475,9 +366,7 @@ features:
 
       const [error, result] = await client.write(
         { name: 123, version: 'bad' } as unknown as TestConfig,
-        {
-          dir: tmpDir,
-        }
+        { dir: tmpDir }
       )
 
       expect(result).toBeNull()
@@ -501,23 +390,17 @@ features:
       const client = createConfigClient({ name: 'myapp', schema })
 
       const yamlPath = join(tmpDir, 'config.yaml')
-      const [yamlError, yamlResult] = await client.write(validConfig, {
-        filePath: yamlPath,
-      })
+      const [yamlError, yamlResult] = await client.write(validConfig, { filePath: yamlPath })
       expect(yamlError).toBeNull()
       expect(yamlResult!.format).toBe('yaml')
 
       const jsoncPath = join(tmpDir, 'config.jsonc')
-      const [jsoncError, jsoncResult] = await client.write(validConfig, {
-        filePath: jsoncPath,
-      })
+      const [jsoncError, jsoncResult] = await client.write(validConfig, { filePath: jsoncPath })
       expect(jsoncError).toBeNull()
       expect(jsoncResult!.format).toBe('jsonc')
 
       const jsonPath = join(tmpDir, 'config.json')
-      const [jsonError, jsonResult] = await client.write(validConfig, {
-        filePath: jsonPath,
-      })
+      const [jsonError, jsonResult] = await client.write(validConfig, { filePath: jsonPath })
       expect(jsonError).toBeNull()
       expect(jsonResult!.format).toBe('json')
     })

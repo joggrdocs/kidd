@@ -43,23 +43,6 @@ export interface ConfigWriteResult {
 export type ConfigOperationResult<TResult> = readonly [Error, null] | readonly [null, TResult]
 
 /**
- * Options for searching a dotfile config across directories.
- */
-export interface FindDotfileOptions {
-  readonly cwd: string
-  readonly fileNames: readonly string[]
-  readonly searchPaths?: readonly string[]
-}
-
-/**
- * Options for searching a single directory for config files.
- */
-export interface FindConfigFileOptions {
-  readonly dir: string
-  readonly fileNames: readonly string[]
-}
-
-/**
  * Config client for loading, finding, and writing config files.
  */
 export interface Config<TConfig> {

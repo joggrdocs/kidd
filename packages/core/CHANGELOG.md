@@ -57,7 +57,6 @@
   **Auth HTTP integration:** `auth({ http: { baseUrl, namespace } })` creates authenticated HTTP clients with automatic credential header injection. Supports single or multiple clients via an array.
 
   **Breaking changes:**
-
   - `http()` no longer auto-reads `ctx.auth.credential()`. Use `auth({ http })` for authenticated clients or pass `headers` explicitly.
   - `HttpOptions.defaultHeaders` renamed to `headers` and now accepts a function `(ctx) => Record<string, string>` in addition to a static record.
 
@@ -65,9 +64,9 @@
 
   ```ts
   middleware: [
-    auth({ resolvers: [{ source: "env" }] }),
-    http({ baseUrl: "https://api.example.com", namespace: "api" }),
-  ];
+    auth({ resolvers: [{ source: 'env' }] }),
+    http({ baseUrl: 'https://api.example.com', namespace: 'api' }),
+  ]
   ```
 
   After:
@@ -76,9 +75,9 @@
   middleware: [
     auth({
       resolvers: [auth.env()],
-      http: { baseUrl: "https://api.example.com", namespace: "api" },
+      http: { baseUrl: 'https://api.example.com', namespace: 'api' },
     }),
-  ];
+  ]
   ```
 
 - f48ad38: Replace non-standard OAuth flow with spec-compliant PKCE (RFC 7636) and add Device Authorization Grant (RFC 8628)

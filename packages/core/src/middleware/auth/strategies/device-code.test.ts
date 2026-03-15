@@ -453,7 +453,7 @@ describe('resolveFromDeviceCode()', () => {
     await resultPromise
 
     expect(vi.mocked(execFileMock)).toHaveBeenCalled()
-    const calls = vi.mocked(execFileMock).mock.calls
+    const { calls } = vi.mocked(execFileMock).mock
     const browserArgs = calls.flatMap((call) => call[1] as string[])
     expect(browserArgs).toContain('https://auth.example.com/activate')
   })

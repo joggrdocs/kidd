@@ -12,7 +12,7 @@ function testCommand(description: string): Command {
   return command({ description })
 }
 
-describe('validateCommandOrder', () => {
+describe(validateCommandOrder, () => {
   it('should return ok when all order names exist', () => {
     const [error] = validateCommandOrder({
       commandNames: ['alpha', 'beta', 'gamma'],
@@ -63,7 +63,7 @@ describe('validateCommandOrder', () => {
   })
 })
 
-describe('sortCommandEntries', () => {
+describe(sortCommandEntries, () => {
   it('should sort alphabetically when no order is provided', () => {
     const entries: readonly (readonly [string, Command])[] = [
       ['gamma', testCommand('Gamma')],

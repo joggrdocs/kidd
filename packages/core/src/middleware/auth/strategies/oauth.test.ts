@@ -36,7 +36,7 @@ const originalFetch = globalThis.fetch
 function extractBrowserUrl(): string {
   const [call] = vi.mocked(execFile).mock.calls
   const args = call[1]
-  return args[args.length - 1]
+  return args.at(-1)
 }
 
 /**

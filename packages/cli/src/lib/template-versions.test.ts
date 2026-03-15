@@ -4,12 +4,7 @@ import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { parse } from 'yaml'
 
-import {
-  TSDOWN_VERSION,
-  TYPESCRIPT_VERSION,
-  VITEST_VERSION,
-  ZOD_VERSION,
-} from '../generated/template-versions.js'
+import { normalizeVersion, readTemplateVersions } from './template-versions.js'
 
 const workspaceContent = readFileSync(
   join(import.meta.dirname, '..', '..', '..', '..', 'pnpm-workspace.yaml'),
@@ -19,33 +14,51 @@ const { catalog } = parse(workspaceContent) as {
   catalog: { tsdown: string; typescript: string; vitest: string; zod: string }
 }
 
-function normalizeVersion(version: string): string {
-  if (
-    version.startsWith('^') ||
-    version.startsWith('~') ||
-    version.startsWith('>') ||
-    version.startsWith('<') ||
-    version.startsWith('=')
-  ) {
-    return version
-  }
-  return `^${version}`
-}
-
-describe('template-versions', () => {
-  it('should match zod version from workspace catalog', () => {
-    expect(ZOD_VERSION).toBe(normalizeVersion(catalog.zod))
+describe('normalizeVersion()', () => {
+  it('should return version as-is when it starts with ^', () => {
+    expect(normalizeVersion('^1.2.3')).toBe('^1.2.3')
   })
 
-  it('should match typescript version from workspace catalog', () => {
-    expect(TYPESCRIPT_VERSION).toBe(normalizeVersion(catalog.typescript))
+  it('should return version as-is when it starts with ~', () => {
+    expect(normalizeVersion('~1.2.3')).toBe('~1.2.3')
   })
 
-  it('should match vitest version from workspace catalog', () => {
-    expect(VITEST_VERSION).toBe(normalizeVersion(catalog.vitest))
+  it('should return version as-is when it starts with >', () => {
+    expect(normalizeVersion('>1.2.3')).toBe('>1.2.3')
   })
 
-  it('should match tsdown version from workspace catalog', () => {
-    expect(TSDOWN_VERSION).toBe(normalizeVersion(catalog.tsdown))
+  it('should return version as-is when it starts with <', () => {
+    expect(normalizeVersion('<1.2.3')).toBe('<1.2.3')
+  })
+
+  it('should return version as-is when it starts with =', () => {
+    expect(normalizeVersion('=1.2.3')).toBe('=1.2.3')
+  })
+
+  it('should add caret prefix to bare version strings', () => {
+    expect(normalizeVersion('1.2.3')).toBe('^1.2.3')
+  })
+})
+
+describe('readTemplateVersions()', () => {
+  it('should return versions matching the workspace catalog', () => {
+    const [error, versions] = readTemplateVersions()
+    expect(error).toBeNull()
+    if (error) {
+      return
+    }
+    expect(versions.zodVersion).toBe(normalizeVersion(catalog.zod))
+    expect(versions.typescriptVersion).toBe(normalizeVersion(catalog.typescript))
+    expect(versions.vitestVersion).toBe(normalizeVersion(catalog.vitest))
+    expect(versions.tsdownVersion).toBe(normalizeVersion(catalog.tsdown))
+  })
+
+  it('should return a frozen object', () => {
+    const [error, versions] = readTemplateVersions()
+    expect(error).toBeNull()
+    if (error) {
+      return
+    }
+    expect(Object.isFrozen(versions)).toBeTruthy()
   })
 })

@@ -91,5 +91,5 @@ This creates a typed `ctx.api` HTTP client. Commands use it as:
 
 ```ts
 const res = await ctx.api.get('/health')
-ctx.output.write(res.data, { json: true })
+process.stdout.write(ctx.format.json(res.data))
 ```

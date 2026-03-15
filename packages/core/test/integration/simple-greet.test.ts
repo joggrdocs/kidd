@@ -1,8 +1,10 @@
-import { createWritableCapture, runTestCli, setArgv, setupTestLifecycle } from '@test/core-utils.js'
+import { runTestCli, setArgv, setupTestLifecycle } from '@test/core-utils.js'
 import { describe, expect, it, vi } from 'vitest'
 
 import { command } from '@/command.js'
+import { createContext } from '@/context/index.js'
 import type { Context } from '@/context/types.js'
+import { createCliLogger } from '@/lib/logger.js'
 import type { CommandMap } from '@/types.js'
 
 import greetCommand from '../../../../examples/simple/commands/greet.js'
@@ -41,15 +43,13 @@ setupTestLifecycle()
 describe('examples/simple/commands/greet', () => {
   describe('handler', () => {
     it('should write greeting with provided name', () => {
-      const { stream, output } = createWritableCapture()
-      const ctx = createHandlerContext({ args: { name: 'Alice', shout: false }, output: stream })
+      const { ctx, output } = createGreetContext({ args: { name: 'Alice', shout: false } })
       greetCommand.handler(ctx)
       expect(output()).toBe('Hello, Alice!\n')
     })
 
     it('should uppercase greeting when --shout', () => {
-      const { stream, output } = createWritableCapture()
-      const ctx = createHandlerContext({ args: { name: 'Bob', shout: true }, output: stream })
+      const { ctx, output } = createGreetContext({ args: { name: 'Bob', shout: true } })
       greetCommand.handler(ctx)
       expect(output()).toBe('HELLO, BOB!\n')
     })
@@ -102,16 +102,27 @@ describe('examples/simple/commands/greet', () => {
 // Helpers
 // ---------------------------------------------------------------------------
 
-import { createContext } from '@/context/index.js'
+import { Writable } from 'node:stream'
 
-function createHandlerContext(overrides: {
+function createGreetContext(overrides: {
   readonly args: { readonly name: string; readonly shout: boolean }
-  readonly output: NodeJS.WriteStream
-}): Context<{ name: string; shout: boolean }> {
-  return createContext({
+}): { ctx: Context<{ name: string; shout: boolean }>; output: () => string } {
+  const chunks: string[] = []
+  const stream = new Writable({
+    write(chunk: Buffer, _encoding: string, callback: () => void): void {
+      chunks.push(chunk.toString())
+      callback()
+    },
+  }) as unknown as NodeJS.WriteStream
+
+  const logger = createCliLogger({ output: stream })
+
+  const ctx = createContext({
     args: overrides.args,
     config: {},
+    logger,
     meta: { command: ['greet'], name: 'tasks', version: '1.0.0' },
-    output: overrides.output,
   })
+
+  return { ctx, output: () => chunks.join('') }
 }

@@ -51,7 +51,7 @@ const fontNameSchema = z
  *
  * @private
  */
-const FONT_MAP: ReadonlyArray<readonly [string, string]> = Object.freeze([
+const FONT_MAP: readonly (readonly [string, string])[] = Object.freeze([
   ['jetbrains mono', 'JetBrainsMono'],
   ['fira code', 'FiraCode'],
   ['fira mono', 'FiraMono'],
@@ -96,7 +96,7 @@ const FONT_MAP: ReadonlyArray<readonly [string, string]> = Object.freeze([
  *
  * @private
  */
-const POPULAR_FONTS: ReadonlyArray<string> = Object.freeze([
+const POPULAR_FONTS: readonly string[] = Object.freeze([
   'JetBrainsMono',
   'FiraCode',
   'Hack',
@@ -262,7 +262,7 @@ async function installWithConfirmation({
  * @private
  * @returns An array of matched Nerd Font release names.
  */
-async function detectMatchingFonts(): Promise<ReadonlyArray<string>> {
+async function detectMatchingFonts(): Promise<readonly string[]> {
   const [error, systemFonts] = await attemptAsync(() => getFonts({ disableQuoting: true }))
 
   if (error || systemFonts === null) {
@@ -287,8 +287,8 @@ async function detectMatchingFonts(): Promise<ReadonlyArray<string>> {
  * @returns An array of select options.
  */
 function buildFontChoices(
-  matches: ReadonlyArray<string>
-): Array<{ readonly value: string; readonly label: string; readonly hint?: string }> {
+  matches: readonly string[]
+): { readonly value: string; readonly label: string; readonly hint?: string }[] {
   const matchedSet = new Set(matches)
 
   const matchedChoices = matches.map((name) => ({
@@ -328,7 +328,7 @@ async function showInstallCommands({
 
   const hasBrew = await checkBrewAvailable()
 
-  const lines: ReadonlyArray<string> = match(process.platform)
+  const lines: readonly string[] = match(process.platform)
     .with('darwin', () =>
       match(hasBrew)
         .with(true, () => [
@@ -541,8 +541,8 @@ const BREW_SLUG_MAP: Readonly<Record<string, string>> = Object.freeze({
   DroidSansMono: 'droid-sans-mono',
   FiraCode: 'fira-code',
   FiraMono: 'fira-mono',
-  'Go-Mono': 'go-mono',
   GeistMono: 'geist-mono',
+  'Go-Mono': 'go-mono',
   Hack: 'hack',
   Hasklig: 'hasklig',
   Hermit: 'hermit',

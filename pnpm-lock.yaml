@@ -131,6 +131,28 @@ importers:
         specifier: 'catalog:'
         version: 5.9.3
 
+  examples/diagnostic-output:
+    dependencies:
+      '@kidd-cli/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      zod:
+        specifier: 'catalog:'
+        version: 4.3.6
+    devDependencies:
+      '@kidd-cli/cli':
+        specifier: workspace:*
+        version: link:../../packages/cli
+      tsdown:
+        specifier: 'catalog:'
+        version: 0.21.1(@typescript/native-preview@7.0.0-dev.20260310.1)(typescript@5.9.3)
+      tsx:
+        specifier: 'catalog:'
+        version: 4.21.0
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
+
   examples/icons:
     dependencies:
       '@kidd-cli/core':

@@ -63,7 +63,7 @@ flowchart TB
         CONFIG(["config"])
         STORE(["store"])
         LOGGER(["logger"])
-        OUTPUT(["output"])
+        FORMAT(["format"])
         PROMPTS(["prompts"])
         ERRORS(["errors"])
         RESULT(["result"])
@@ -72,7 +72,7 @@ flowchart TB
 
     INDEX --> CLICORE
     CLICORE --> CMD & MW & AUTO & CTX
-    CTX --> LOGGER & STORE & OUTPUT & PROMPTS & ERRORS
+    CTX --> LOGGER & STORE & FORMAT & PROMPTS & ERRORS
     CMD & MW --> CTX
 
     classDef core fill:#313244,stroke:#89b4fa,stroke-width:2px,color:#cdd6f4
@@ -83,7 +83,7 @@ flowchart TB
     class INDEX external
     class CLICORE gateway
     class CMD,MW,AUTO,CTX core
-    class CONFIG,STORE,LOGGER,OUTPUT,PROMPTS,ERRORS,RESULT,PROJECT agent
+    class CONFIG,STORE,LOGGER,FORMAT,PROMPTS,ERRORS,RESULT,PROJECT agent
 
     style entry fill:#181825,stroke:#f5c2e7,stroke-width:2px
     style core fill:#181825,stroke:#fab387,stroke-width:2px
@@ -116,17 +116,17 @@ The framework primitives:
 
 Shared utilities consumed by the core and extension layers:
 
-| Module        | Purpose                                              |
-| ------------- | ---------------------------------------------------- |
-| `config.ts`   | Config file discovery, parsing, Zod validation       |
-| `store.ts`    | File-backed JSON store (local and global)            |
-| `logger.ts`   | Structured logging with `@clack/prompts`             |
-| `output.ts`   | Structured stdout (write, table, markdown, raw)      |
-| `prompts.ts`  | Interactive prompts and spinner via `@clack/prompts` |
-| `errors.ts`   | Sensitive data redaction and sanitization            |
-| `result.ts`   | `Result<T, E>` type constructors (`ok`, `err`)       |
-| `validate.ts` | Zod schema validation returning Result tuples        |
-| `project.ts`  | Git project root detection and submodule handling    |
+| Module        | Purpose                                                             |
+| ------------- | ------------------------------------------------------------------- |
+| `config.ts`   | Config file discovery, parsing, Zod validation                      |
+| `store.ts`    | File-backed JSON store (local and global)                           |
+| `logger.ts`   | Structured logging with `@clack/prompts`                            |
+| `format/`     | Pure format functions (check, finding, code-frame, tally, duration) |
+| `prompts.ts`  | Interactive prompts and spinner via `@clack/prompts`                |
+| `errors.ts`   | Sensitive data redaction and sanitization                           |
+| `result.ts`   | `Result<T, E>` type constructors (`ok`, `err`)                      |
+| `validate.ts` | Zod schema validation returning Result tuples                       |
+| `project.ts`  | Git project root detection and submodule handling                   |
 
 ## Context
 
@@ -139,7 +139,8 @@ The `Context` is the central object threaded through every middleware and comman
 | `logger`  | `CliLogger`                    | No      | Structured terminal logger via `@clack/prompts` |
 | `prompts` | `Prompts`                      | No      | Interactive input (confirm, text, select, etc.) |
 | `spinner` | `Spinner`                      | No      | Terminal spinner for long-running operations    |
-| `output`  | `Output`                       | No      | Structured stdout (write, table, markdown, raw) |
+| `colors`  | `Colors`                       | No      | Color formatting utilities (picocolors)         |
+| `format`  | `Format`                       | No      | Pure string formatters (json, table)            |
 | `store`   | `Store`                        | Yes     | In-memory key-value store for middleware data   |
 | `fail`    | `(message, options?) => never` | No      | Throw a user-facing error with clean exit       |
 | `meta`    | `DeepReadonly<Meta>`           | No      | CLI name, version, resolved command path        |
@@ -240,7 +241,7 @@ export default command({
     force: z.boolean().optional(),
   }),
   handler: async (ctx) => {
-    ctx.output.write(`Deploying to ${ctx.args.environment}`)
+    process.stdout.write(ctx.format.json({ environment: ctx.args.environment }))
   },
 })
 ```
@@ -313,7 +314,7 @@ const [error, config] = loadConfig(workspace)
 if (error) return [error, null]
 ```
 
-**ContextError** is used for user-facing errors via `ctx.errors.fail()`. It is the only thrown type, and is caught at the CLI boundary for clean exit handling.
+**ContextError** is used for user-facing errors via `ctx.fail()`. It is the only thrown type, and is caught at the CLI boundary for clean exit handling.
 
 ## Design Decisions
 

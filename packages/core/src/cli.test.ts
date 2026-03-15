@@ -98,7 +98,7 @@ describe('context properties', () => {
     expect(ctx).toHaveProperty('logger')
     expect(ctx).toHaveProperty('prompts')
     expect(ctx).toHaveProperty('spinner')
-    expect(ctx).toHaveProperty('output')
+    expect(ctx).toHaveProperty('format')
     expect(ctx).toHaveProperty('store')
     expect(ctx).toHaveProperty('fail')
     expect(ctx).toHaveProperty('meta')

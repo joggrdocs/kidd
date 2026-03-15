@@ -237,7 +237,7 @@ export default command({
     ctx.spinner.stop(`Found ${String(res.data.length)} repos`)
 
     if (ctx.args.json) {
-      ctx.output.write(res.data, { json: true })
+      process.stdout.write(ctx.format.json(res.data))
       return
     }
 
@@ -246,7 +246,7 @@ export default command({
       Private: repo.private,
     }))
 
-    ctx.output.table(rows)
+    process.stdout.write(ctx.format.table(rows))
   },
 })
 ```

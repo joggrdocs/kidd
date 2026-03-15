@@ -1,5 +1,3 @@
-import { Writable } from 'node:stream'
-
 import * as clack from '@clack/prompts'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -44,17 +42,6 @@ function defaultOptions(): {
     config: { debug: false },
     meta: { command: ['deploy', 'preview'], name: 'my-cli', version: '1.0.0' },
   }
-}
-
-function createWritableStream(): { output: () => string; stream: NodeJS.WriteStream } {
-  let data = ''
-  const stream = new Writable({
-    write(chunk: Buffer, _encoding: string, callback: () => void): void {
-      data += chunk.toString()
-      callback()
-    },
-  }) as unknown as NodeJS.WriteStream
-  return { output: () => data, stream }
 }
 
 describe('createContext()', () => {
@@ -109,7 +96,9 @@ describe('createContext()', () => {
   describe('logger', () => {
     it('uses the provided logger when given', () => {
       const customLogger = {
+        check: vi.fn(),
         error: vi.fn(),
+        finding: vi.fn(),
         info: vi.fn(),
         intro: vi.fn(),
         message: vi.fn(),
@@ -119,6 +108,7 @@ describe('createContext()', () => {
         print: vi.fn(),
         step: vi.fn(),
         success: vi.fn(),
+        tally: vi.fn(),
         warn: vi.fn(),
       }
       const ctx = createContext({ ...defaultOptions(), logger: customLogger })
@@ -286,42 +276,32 @@ describe('createContext()', () => {
   })
 
   // ---------------------------------------------------------------------------
-  // Output
+  // Format
   // ---------------------------------------------------------------------------
 
-  describe('output', () => {
-    describe('write()', () => {
-      it('writes a string to the stream', () => {
-        const { stream, output } = createWritableStream()
-        const ctx = createContext({ ...defaultOptions(), output: stream })
-        ctx.output.write('hello')
-        expect(output()).toBe('hello\n')
+  describe('format', () => {
+    describe('json()', () => {
+      it('serializes a string as JSON', () => {
+        const ctx = createContext(defaultOptions())
+        const result = ctx.format.json('hello')
+        expect(result).toBe(`${JSON.stringify('hello', null, 2)}\n`)
       })
 
-      it('serializes objects as JSON', () => {
-        const { stream, output } = createWritableStream()
-        const ctx = createContext({ ...defaultOptions(), output: stream })
-        ctx.output.write({ key: 'value' })
-        expect(output()).toBe(`${JSON.stringify({ key: 'value' }, null, 2)}\n`)
-      })
-
-      it('serializes as JSON when json option is true', () => {
-        const { stream, output } = createWritableStream()
-        const ctx = createContext({ ...defaultOptions(), output: stream })
-        ctx.output.write('text', { json: true })
-        expect(output()).toBe(`${JSON.stringify('text', null, 2)}\n`)
+      it('serializes an object as pretty JSON', () => {
+        const ctx = createContext(defaultOptions())
+        const result = ctx.format.json({ key: 'value' })
+        expect(result).toBe(`${JSON.stringify({ key: 'value' }, null, 2)}\n`)
       })
     })
 
     describe('table()', () => {
-      it('writes a formatted table to the stream', () => {
-        const { stream, output } = createWritableStream()
-        const ctx = createContext({ ...defaultOptions(), output: stream })
-        ctx.output.table([
+      it('formats a table with header and rows', () => {
+        const ctx = createContext(defaultOptions())
+        const result = ctx.format.table([
           { age: 30, name: 'Alice' },
           { age: 25, name: 'Bob' },
         ])
-        const lines = output().split('\n')
+        const lines = result.split('\n')
         expect(lines[0]).toContain('name')
         expect(lines[0]).toContain('age')
         // Separator line
@@ -331,37 +311,10 @@ describe('createContext()', () => {
         expect(lines[3]).toContain('Bob')
       })
 
-      it('writes JSON when json option is true', () => {
-        const { stream, output } = createWritableStream()
-        const ctx = createContext({ ...defaultOptions(), output: stream })
-        const rows = [{ value: 1 }]
-        ctx.output.table(rows, { json: true })
-        expect(output()).toBe(`${JSON.stringify(rows, null, 2)}\n`)
-      })
-
-      it('does nothing for empty arrays', () => {
-        const { stream, output } = createWritableStream()
-        const ctx = createContext({ ...defaultOptions(), output: stream })
-        ctx.output.table([])
-        expect(output()).toBe('')
-      })
-    })
-
-    describe('markdown()', () => {
-      it('writes markdown content with a trailing newline', () => {
-        const { stream, output } = createWritableStream()
-        const ctx = createContext({ ...defaultOptions(), output: stream })
-        ctx.output.markdown('# Hello')
-        expect(output()).toBe('# Hello\n')
-      })
-    })
-
-    describe('raw()', () => {
-      it('writes raw content without any formatting', () => {
-        const { stream, output } = createWritableStream()
-        const ctx = createContext({ ...defaultOptions(), output: stream })
-        ctx.output.raw('raw content')
-        expect(output()).toBe('raw content')
+      it('returns empty string for empty arrays', () => {
+        const ctx = createContext(defaultOptions())
+        const result = ctx.format.table([])
+        expect(result).toBe('')
       })
     })
   })

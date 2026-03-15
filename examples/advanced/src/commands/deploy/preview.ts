@@ -23,14 +23,13 @@ export default command({
 
     ctx.spinner.stop('Preview deployed')
 
-    ctx.output.write(
-      {
+    process.stdout.write(
+      ctx.format.json({
         branch: ctx.args.branch,
         environment: 'preview',
         org: ctx.config.org,
         url: deployUrl,
-      },
-      { json: true }
+      })
     )
   },
 })

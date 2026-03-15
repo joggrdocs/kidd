@@ -15,6 +15,6 @@ export default command({
       },
     }
 
-    ctx.output.write(status, { json: true })
+    process.stdout.write(ctx.format.json(status))
   },
 })

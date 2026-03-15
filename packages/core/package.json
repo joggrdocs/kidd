@@ -33,6 +33,10 @@
       "types": "./dist/lib/config.d.ts",
       "default": "./dist/lib/config.js"
     },
+    "./format": {
+      "types": "./dist/lib/format.d.ts",
+      "default": "./dist/lib/format.js"
+    },
     "./store": {
       "types": "./dist/lib/store.d.ts",
       "default": "./dist/lib/store.js"

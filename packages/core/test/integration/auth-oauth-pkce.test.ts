@@ -290,7 +290,7 @@ describe('OAuth PKCE E2E (resolveFromOAuth with real mock server)', () => {
     const tokenRequests = mockServer.getTokenRequests()
     expect(tokenRequests).toHaveLength(1)
 
-    const params = tokenRequests[0].params
+    const [{ params }] = tokenRequests
     expect(params.get('grant_type')).toBe('authorization_code')
     expect(params.get('code')).toBe('params-code')
     expect(params.get('client_id')).toBe('pkce-client')

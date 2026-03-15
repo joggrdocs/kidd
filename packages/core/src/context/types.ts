@@ -1,3 +1,5 @@
+import type { Colors } from 'picocolors/types'
+
 import type { CliLogger } from '@/lib/logger.js'
 import type {
   AnyRecord,
@@ -120,39 +122,17 @@ export interface Spinner {
 }
 
 /**
- * Formatting options for structured output methods.
+ * Pure string formatters for data serialization (no I/O).
  */
-export interface OutputOptions {
+export interface Format {
   /**
-   * When true, output JSON instead of human-readable text.
+   * Serialize a value as pretty-printed JSON.
    */
-  readonly json?: boolean
-}
-
-/**
- * Structured output methods available on the context.
- *
- * Commands use these to write data to stdout. The `json` flag on
- * {@link OutputOptions} switches between human-readable formatting
- * and machine-parsable JSON.
- */
-export interface Output {
+  json(data: unknown): string
   /**
-   * Write a value to stdout. Objects are serialized as JSON when `json` is set.
+   * Format an array of objects as an aligned text table.
    */
-  write(data: unknown, options?: OutputOptions): void
-  /**
-   * Write a table (array of objects) to stdout.
-   */
-  table(rows: Record<string, unknown>[], options?: OutputOptions): void
-  /**
-   * Write a markdown-formatted string to stdout.
-   */
-  markdown(content: string): void
-  /**
-   * Write raw string to stdout (no formatting).
-   */
-  raw(content: string): void
+  table(rows: readonly Record<string, unknown>[]): string
 }
 
 /**
@@ -197,12 +177,24 @@ export interface Context<
   readonly args: DeepReadonly<Merge<KiddArgs, TArgs>>
 
   /**
+   * Color formatting utilities (picocolors). Use for coloring summary
+   * values, diagnostic output, and other terminal text.
+   */
+  readonly colors: Colors
+
+  /**
    * Runtime config validated against the zod schema. Deeply immutable.
    */
   readonly config: DeepReadonly<Merge<CliConfig, TConfig>>
 
   /**
+   * Pure string formatters for data serialization (no I/O).
+   */
+  readonly format: Format
+
+  /**
    * Structured logger backed by @clack/prompts for styled terminal output.
+   * Also provides check, finding, and tally methods for structured output.
    */
   readonly logger: CliLogger
 
@@ -215,11 +207,6 @@ export interface Context<
    * Spinner for long-running operations.
    */
   readonly spinner: Spinner
-
-  /**
-   * Structured output (write, table, markdown, raw).
-   */
-  readonly output: Output
 
   /**
    * In-memory key-value store (mutable — use this for middleware-to-handler data flow).

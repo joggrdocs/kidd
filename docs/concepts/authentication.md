@@ -315,7 +315,7 @@ export default command({
   middleware: [requireAuth],
   handler: async (ctx) => {
     const res = await ctx.api.get('/repos')
-    ctx.output.table(res.data)
+    process.stdout.write(ctx.format.table(res.data))
   },
 })
 ```

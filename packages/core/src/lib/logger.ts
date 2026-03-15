@@ -1,5 +1,10 @@
 import * as clack from '@clack/prompts'
 
+import { formatCheck } from '@/lib/format/check.js'
+import { formatFinding } from '@/lib/format/finding.js'
+import { formatTally } from '@/lib/format/tally.js'
+import type { CheckInput, FindingInput, TallyInput } from '@/lib/format/types.js'
+
 /**
  * Options for creating a logger instance.
  */
@@ -59,6 +64,20 @@ export interface CliLogger {
    * Write raw text followed by a newline to the output stream.
    */
   print(text: string): void
+  /**
+   * Write a single pass/fail/warn/skip/fix check row (vitest test file style).
+   */
+  check(input: CheckInput): void
+  /**
+   * Write a full finding with optional code frame (oxlint style).
+   */
+  finding(input: FindingInput): void
+  /**
+   * Write a tally block. Use `style: 'tally'` for labeled count rows
+   * (vitest style) or `style: 'inline'` for a one-liner stats footer
+   * (oxlint style).
+   */
+  tally(input: TallyInput): void
 }
 
 /**
@@ -71,8 +90,14 @@ export function createCliLogger(options: CliLoggerOptions = {}): CliLogger {
   const output = options.output ?? process.stderr
 
   return {
+    check(input: CheckInput): void {
+      output.write(`${formatCheck(input)}\n`)
+    },
     error(message: string): void {
       clack.log.error(message)
+    },
+    finding(input: FindingInput): void {
+      output.write(`${formatFinding(input)}\n\n`)
     },
     info(message: string): void {
       clack.log.info(message)
@@ -100,6 +125,9 @@ export function createCliLogger(options: CliLoggerOptions = {}): CliLogger {
     },
     success(message: string): void {
       clack.log.success(message)
+    },
+    tally(input: TallyInput): void {
+      output.write(`\n${formatTally(input)}\n`)
     },
     warn(message: string): void {
       clack.log.warn(message)

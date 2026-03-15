@@ -13,9 +13,9 @@ export default command({
     const greeting = `Hello, ${ctx.args.name}!`
 
     if (ctx.args.shout) {
-      ctx.output.write(greeting.toUpperCase())
+      ctx.logger.print(greeting.toUpperCase())
     } else {
-      ctx.output.write(greeting)
+      ctx.logger.print(greeting)
     }
   },
 })

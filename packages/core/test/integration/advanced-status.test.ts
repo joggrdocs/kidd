@@ -1,4 +1,4 @@
-import { createWritableCapture, setupTestLifecycle } from '@test/core-utils.js'
+import { setupTestLifecycle } from '@test/core-utils.js'
 import { describe, expect, it, vi } from 'vitest'
 
 import { createContext } from '@/context/index.js'
@@ -40,19 +40,23 @@ setupTestLifecycle()
 describe('examples/advanced/src/commands/status', () => {
   describe('handler', () => {
     it('should output JSON with cli name and version', () => {
-      const { stream, output } = createWritableCapture()
-      const ctx = createStatusContext({ output: stream })
+      const writeSpy = mockStdoutWrite()
+      const ctx = createStatusContext()
       statusCommand.handler(ctx)
-      const parsed = JSON.parse(output()) as { cli: { name: string; version: string } }
+      const result = capturedOutput(writeSpy)
+      writeSpy.mockRestore()
+      const parsed = JSON.parse(result) as { cli: { name: string; version: string } }
       expect(parsed.cli.name).toBe('acme')
       expect(parsed.cli.version).toBe('2.0.0')
     })
 
     it('should include config values in output', () => {
-      const { stream, output } = createWritableCapture()
-      const ctx = createStatusContext({ output: stream })
+      const writeSpy = mockStdoutWrite()
+      const ctx = createStatusContext()
       statusCommand.handler(ctx)
-      const parsed = JSON.parse(output()) as {
+      const result = capturedOutput(writeSpy)
+      writeSpy.mockRestore()
+      const parsed = JSON.parse(result) as {
         config: { apiUrl: string; environment: string; org: string }
       }
       expect(parsed.config.apiUrl).toBe('https://api.acme.dev')
@@ -71,9 +75,7 @@ interface AcmeConfig {
   readonly org: string
 }
 
-function createStatusContext(overrides: {
-  readonly output: NodeJS.WriteStream
-}): Context<Record<string, never>, AcmeConfig> {
+function createStatusContext(): Context<Record<string, never>, AcmeConfig> {
   return createContext({
     args: {},
     config: {
@@ -82,6 +84,13 @@ function createStatusContext(overrides: {
       org: 'acme-corp',
     },
     meta: { command: ['status'], name: 'acme', version: '2.0.0' },
-    output: overrides.output,
   })
+}
+
+function mockStdoutWrite(): ReturnType<typeof vi.spyOn> {
+  return vi.spyOn(process.stdout, 'write').mockImplementation(() => true)
+}
+
+function capturedOutput(spy: ReturnType<typeof vi.spyOn>): string {
+  return spy.mock.calls.map((call) => String(call[0])).join('')
 }

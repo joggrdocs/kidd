@@ -9,7 +9,7 @@ import {
   STATUS_ICONS,
 } from './definitions.js'
 
-describe('createDefaultIcons', () => {
+describe(createDefaultIcons, () => {
   it('should contain icons from all categories', () => {
     const icons = createDefaultIcons()
     expect(icons).toHaveProperty('branch')
@@ -20,7 +20,7 @@ describe('createDefaultIcons', () => {
 
   it('should return a frozen record', () => {
     const icons = createDefaultIcons()
-    expect(Object.isFrozen(icons)).toBe(true)
+    expect(Object.isFrozen(icons)).toBeTruthy()
   })
 
   it('should have nerdFont and emoji fields on all icons', () => {
@@ -29,11 +29,11 @@ describe('createDefaultIcons', () => {
     const allValid = entries.every(
       (def) => typeof def.nerdFont === 'string' && typeof def.emoji === 'string'
     )
-    expect(allValid).toBe(true)
+    expect(allValid).toBeTruthy()
   })
 })
 
-describe('getIconsByCategory', () => {
+describe(getIconsByCategory, () => {
   it('should return GIT_ICONS for git category', () => {
     expect(getIconsByCategory('git')).toBe(GIT_ICONS)
   })

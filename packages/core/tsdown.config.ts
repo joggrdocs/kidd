@@ -12,6 +12,7 @@ export default defineConfig({
     'lib/store': 'src/lib/store/index.ts',
     'middleware/auth': 'src/middleware/auth/index.ts',
     'middleware/http': 'src/middleware/http/index.ts',
+    'middleware/icons': 'src/middleware/icons/index.ts',
   },
   fixedExtension: false,
   format: 'esm',

@@ -133,18 +133,18 @@ Shared utilities consumed by the core and extension layers:
 
 The `Context` is the central object threaded through every middleware and command handler. It carries all request-scoped data and utilities for a single CLI invocation.
 
-| Property  | Type                           | Mutable | Description                                                                  |
-| --------- | ------------------------------ | ------- | ---------------------------------------------------------------------------- |
-| `args`    | `DeepReadonly<TArgs>`          | No      | Parsed and validated command arguments                                       |
-| `config`  | `DeepReadonly<TConfig>`        | No      | Loaded and validated config file contents                                    |
-| `logger`  | `CliLogger`                    | No      | Structured terminal logger via `@clack/prompts`                              |
-| `prompts` | `Prompts`                      | No      | Interactive input (confirm, text, select, etc.)                              |
-| `spinner` | `Spinner`                      | No      | Terminal spinner for long-running operations                                 |
-| `colors`  | `Colors`                       | No      | Color formatting utilities (picocolors)                                      |
-| `output`  | `Output`                       | No      | Structured stdout (write, table, markdown, raw, result, diagnostic, summary) |
-| `store`   | `Store`                        | Yes     | In-memory key-value store for middleware data                                |
-| `fail`    | `(message, options?) => never` | No      | Throw a user-facing error with clean exit                                    |
-| `meta`    | `DeepReadonly<Meta>`           | No      | CLI name, version, resolved command path                                     |
+| Property  | Type                           | Mutable | Description                                                                             |
+| --------- | ------------------------------ | ------- | --------------------------------------------------------------------------------------- |
+| `args`    | `DeepReadonly<TArgs>`          | No      | Parsed and validated command arguments                                                  |
+| `config`  | `DeepReadonly<TConfig>`        | No      | Loaded and validated config file contents                                               |
+| `logger`  | `CliLogger`                    | No      | Structured terminal logger via `@clack/prompts`                                         |
+| `prompts` | `Prompts`                      | No      | Interactive input (confirm, text, select, etc.)                                         |
+| `spinner` | `Spinner`                      | No      | Terminal spinner for long-running operations                                            |
+| `colors`  | `Colors`                       | No      | Color formatting utilities (picocolors)                                                 |
+| `output`  | `Output`                       | No      | Structured stdout (write, table, markdown, raw, result, diagnostic, codeFrame, summary) |
+| `store`   | `Store`                        | Yes     | In-memory key-value store for middleware data                                           |
+| `fail`    | `(message, options?) => never` | No      | Throw a user-facing error with clean exit                                               |
+| `meta`    | `DeepReadonly<Meta>`           | No      | CLI name, version, resolved command path                                                |
 
 All data properties (`args`, `config`, `meta`) are deeply readonly at the type level. The `store` is the only mutable property -- it exists for middleware-to-handler data flow.
 

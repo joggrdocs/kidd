@@ -25,7 +25,9 @@ export function formatCodeFrame(input: CodeFrameInput): string {
   })
 
   const annotationLineIdx = annotation.line - startLine
-  const pointer = ' '.repeat(annotation.column - 1) + pc.red('^'.repeat(annotation.length))
+  const safeColumn = Math.max(1, annotation.column)
+  const safeLength = Math.max(1, annotation.length)
+  const pointer = ' '.repeat(safeColumn - 1) + pc.red('^'.repeat(safeLength))
   const annotationRow = `  ${' '.repeat(gutterWidth)} ${pc.cyan(SYMBOLS.pipe)} ${pointer} ${pc.red(annotation.message)}`
 
   const outputLines = codeLines.reduce<readonly string[]>((acc, line, idx) => {

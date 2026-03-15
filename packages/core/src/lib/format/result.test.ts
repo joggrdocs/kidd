@@ -15,24 +15,28 @@ describe('formatResult()', () => {
     const result = formatResult({ name: 'src/auth.test.ts', status: 'fail' })
 
     expect(result).toContain('src/auth.test.ts')
+    expect(result).toContain(SYMBOLS.cross)
   })
 
   it('should format a warning result', () => {
     const result = formatResult({ name: 'src/config.ts', status: 'warn' })
 
     expect(result).toContain('src/config.ts')
+    expect(result).toContain(SYMBOLS.warning)
   })
 
   it('should format a skipped result', () => {
     const result = formatResult({ name: 'src/old.test.ts', status: 'skip' })
 
     expect(result).toContain('src/old.test.ts')
+    expect(result).toContain(SYMBOLS.skip)
   })
 
   it('should format a fixed result', () => {
     const result = formatResult({ name: 'src/lint.ts', status: 'fix' })
 
     expect(result).toContain('src/lint.ts')
+    expect(result).toContain(SYMBOLS.fix)
   })
 
   it('should include detail text when provided', () => {

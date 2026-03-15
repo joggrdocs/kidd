@@ -131,7 +131,7 @@ Structured output methods for writing data to stdout.
 
 | Method                  | Description                                                                                |
 | ----------------------- | ------------------------------------------------------------------------------------------ |
-| `write(data, options?)` | Write a value; objects serialize as JSON when `json` set                                   |
+| `write(data, options?)` | Write a value; objects always serialize as JSON, primitives render as strings              |
 | `table(rows, options?)` | Write a table from an array of objects                                                     |
 | `markdown(content)`     | Write a markdown-formatted string                                                          |
 | `raw(content)`          | Write a raw string (no formatting)                                                         |

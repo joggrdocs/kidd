@@ -56,8 +56,8 @@ export interface CreateIconsContextOptions {
 export function createIconsContext(options: CreateIconsContextOptions): IconsContext {
   const { ctx, icons, font, forceSetup } = options
   // NOTE: Intentional mutable closure — mutating `state.isInstalled` after
-  // a successful setup() is required so that existing references to ctx.icons
-  // reflect the updated install status without replacing the object.
+  // A successful setup() is required so that existing references to ctx.icons
+  // Reflect the updated install status without replacing the object.
   const state = { isInstalled: options.isInstalled }
 
   return Object.freeze({

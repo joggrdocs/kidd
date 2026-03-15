@@ -135,5 +135,5 @@ function formatTable(rows: Record<string, unknown>[], keys: string[]): string {
   const header = createTableHeader({ keys, widths })
   const separator = widths.map((width) => '-'.repeat(width)).join('  ')
   const dataRows = rows.map((row) => createTableRow({ keys, row, widths }))
-  return [header, separator, ...dataRows].join('\n') + '\n'
+  return `${[header, separator, ...dataRows].join('\n')}\n`
 }

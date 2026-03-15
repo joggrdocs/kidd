@@ -46,12 +46,12 @@ export function formatCodeFrame(input: CodeFrameInput): string {
   const pointer = ' '.repeat(annotation.column - 1) + pc.red('^'.repeat(annotation.length))
   const annotationRow = `  ${' '.repeat(gutterWidth)} ${pc.cyan(GLYPHS.pipe)} ${pointer} ${pc.red(annotation.message)}`
 
-  const outputLines = codeLines.reduce<readonly string[]>((acc, line, idx) => {
-    return match(idx === annotationLineIdx)
+  const outputLines = codeLines.reduce<readonly string[]>((acc, line, idx) =>
+    match(idx === annotationLineIdx)
       .with(true, () => [...acc, line, annotationRow])
       .with(false, () => [...acc, line])
       .exhaustive()
-  }, [])
+  , [])
 
   return [header, separator, ...outputLines, separator].join('\n')
 }

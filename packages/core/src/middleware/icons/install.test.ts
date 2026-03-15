@@ -1,11 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-vi.mock('font-list', () => ({
+vi.mock(import('font-list'), () => ({
   getFonts: vi.fn(async () => []),
 }))
 
-vi.mock('node:child_process', () => ({
-  exec: vi.fn((_cmd: string, _opts: unknown, cb?: (...args: ReadonlyArray<unknown>) => void) => {
+vi.mock(import('node:child_process'), () => ({
+  exec: vi.fn((_cmd: string, _opts: unknown, cb?: (...args: readonly unknown[]) => void) => {
     const callback = cb ?? _opts
     if (typeof callback === 'function') {
       callback(null, { stderr: '', stdout: '' })
@@ -13,7 +13,7 @@ vi.mock('node:child_process', () => ({
   }),
 }))
 
-vi.mock('node:fs/promises', () => ({
+vi.mock(import('node:fs/promises'), () => ({
   mkdir: vi.fn(async () => undefined),
   rm: vi.fn(async () => undefined),
 }))
@@ -89,7 +89,7 @@ describe('installNerdFont()', () => {
       const [error, value] = await installNerdFont({ ctx, font: 'JetBrainsMono' })
 
       expect(error).toBeNull()
-      expect(value).toBe(false)
+      expect(value).toBeFalsy()
     })
 
     it('should accept font names with hyphens', async () => {
@@ -99,7 +99,7 @@ describe('installNerdFont()', () => {
       const [error, value] = await installNerdFont({ ctx, font: 'Go-Mono' })
 
       expect(error).toBeNull()
-      expect(value).toBe(false)
+      expect(value).toBeFalsy()
     })
   })
 
@@ -123,7 +123,7 @@ describe('installNerdFont()', () => {
       const [error, value] = await installNerdFont({ ctx, font: 'Hack' })
 
       expect(error).toBeNull()
-      expect(value).toBe(false)
+      expect(value).toBeFalsy()
     })
 
     it('should call installFontWithSpinner when user confirms', async () => {
@@ -158,7 +158,7 @@ describe('installNerdFont()', () => {
       const [error, value] = await installNerdFont({ ctx })
 
       expect(error).toBeNull()
-      expect(value).toBe(false)
+      expect(value).toBeFalsy()
     })
 
     it('should return ok(false) when user cancels action selection', async () => {
@@ -171,7 +171,7 @@ describe('installNerdFont()', () => {
       const [error, value] = await installNerdFont({ ctx })
 
       expect(error).toBeNull()
-      expect(value).toBe(false)
+      expect(value).toBeFalsy()
     })
   })
 
@@ -202,7 +202,7 @@ describe('installNerdFont()', () => {
       const [error, value] = await installNerdFont({ ctx })
 
       expect(error).toBeNull()
-      expect(value).toBe(false)
+      expect(value).toBeFalsy()
       expect(ctx.logger.info).toHaveBeenCalled()
     })
   })
@@ -225,7 +225,7 @@ describe('installNerdFont()', () => {
       const [error, value] = await installNerdFont({ ctx, font: 'Hack' })
 
       expect(error).toBeNull()
-      expect(value).toBe(true)
+      expect(value).toBeTruthy()
       expect(ctx.spinner.stop).toHaveBeenCalledWith(
         expect.stringContaining('installed successfully')
       )
@@ -235,7 +235,7 @@ describe('installNerdFont()', () => {
       const ctx = createMockCtx()
       vi.mocked(ctx.prompts.confirm).mockResolvedValue(true)
       vi.mocked(exec).mockImplementation(
-        (cmd: string, _opts: unknown, cb?: (...args: ReadonlyArray<unknown>) => void) => {
+        (cmd: string, _opts: unknown, cb?: (...args: readonly unknown[]) => void) => {
           const callback = cb ?? _opts
           if (typeof callback === 'function') {
             if (typeof cmd === 'string' && cmd.includes('command -v brew')) {
@@ -251,7 +251,7 @@ describe('installNerdFont()', () => {
       const [error, value] = await installNerdFont({ ctx, font: 'Hack' })
 
       expect(error).toBeNull()
-      expect(value).toBe(true)
+      expect(value).toBeTruthy()
       expect(ctx.spinner.message).toHaveBeenCalledWith(
         expect.stringContaining('Downloading Hack Nerd Font')
       )
@@ -261,7 +261,7 @@ describe('installNerdFont()', () => {
       const ctx = createMockCtx()
       vi.mocked(ctx.prompts.confirm).mockResolvedValue(true)
       vi.mocked(exec).mockImplementation(
-        (cmd: string, _opts: unknown, cb?: (...args: ReadonlyArray<unknown>) => void) => {
+        (cmd: string, _opts: unknown, cb?: (...args: readonly unknown[]) => void) => {
           const callback = cb ?? _opts
           if (typeof callback === 'function') {
             if (typeof cmd === 'string' && cmd.includes('brew install')) {
@@ -299,7 +299,7 @@ describe('installNerdFont()', () => {
       const [error, value] = await installNerdFont({ ctx, font: 'Hack' })
 
       expect(error).toBeNull()
-      expect(value).toBe(true)
+      expect(value).toBeTruthy()
       expect(ctx.spinner.message).toHaveBeenCalledWith(
         expect.stringContaining('Downloading Hack Nerd Font')
       )
@@ -309,7 +309,7 @@ describe('installNerdFont()', () => {
       const ctx = createMockCtx()
       vi.mocked(ctx.prompts.confirm).mockResolvedValue(true)
       vi.mocked(exec).mockImplementation(
-        (cmd: string, _opts: unknown, cb?: (...args: ReadonlyArray<unknown>) => void) => {
+        (cmd: string, _opts: unknown, cb?: (...args: readonly unknown[]) => void) => {
           const callback = cb ?? _opts
           if (typeof callback === 'function') {
             if (typeof cmd === 'string' && cmd.includes('curl')) {

@@ -35,7 +35,7 @@ const originalFetch = globalThis.fetch
  */
 function extractBrowserUrl(): string {
   const [call] = vi.mocked(execFile).mock.calls
-  const args = call[1]
+  const [, args] = call
   return args.at(-1)
 }
 
@@ -161,10 +161,7 @@ describe('resolveFromOAuth()', () => {
 
   it('should return bearer credential when valid code is exchanged', async () => {
     const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
-      new Response(JSON.stringify({ access_token: 'at-12345' }), {
-        headers: { 'Content-Type': 'application/json' },
-        status: 200,
-      })
+      Response.json({ access_token: 'at-12345' }, { status: 200 })
     )
 
     const resultPromise = resolveFromOAuth({
@@ -221,7 +218,7 @@ describe('resolveFromOAuth()', () => {
     expect(response.status).toBe(400)
 
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(
-      new Response(JSON.stringify({ access_token: 'cleanup' }), { status: 200 })
+      Response.json({ access_token: 'cleanup' }, { status: 200 })
     )
 
     await shutdownServer(port)
@@ -249,7 +246,7 @@ describe('resolveFromOAuth()', () => {
     expect(response.status).toBe(400)
 
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(
-      new Response(JSON.stringify({ access_token: 'cleanup' }), { status: 200 })
+      Response.json({ access_token: 'cleanup' }, { status: 200 })
     )
 
     await shutdownServer(port)
@@ -278,7 +275,7 @@ describe('resolveFromOAuth()', () => {
 
   it('should return null when token endpoint returns error status', async () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(
-      new Response(JSON.stringify({ error: 'invalid_grant' }), { status: 400 })
+      Response.json({ error: 'invalid_grant' }, { status: 400 })
     )
 
     const resultPromise = resolveFromOAuth({
@@ -300,10 +297,7 @@ describe('resolveFromOAuth()', () => {
 
   it('should return null when response is missing access_token', async () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(
-      new Response(JSON.stringify({ token_type: 'bearer' }), {
-        headers: { 'Content-Type': 'application/json' },
-        status: 200,
-      })
+      Response.json({ token_type: 'bearer' }, { status: 200 })
     )
 
     const resultPromise = resolveFromOAuth({
@@ -347,7 +341,7 @@ describe('resolveFromOAuth()', () => {
     // Clean up
     const port = extractPort()
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(
-      new Response(JSON.stringify({ access_token: 'cleanup' }), { status: 200 })
+      Response.json({ access_token: 'cleanup' }, { status: 200 })
     )
     await shutdownServer(port)
     await resultPromise
@@ -372,7 +366,7 @@ describe('resolveFromOAuth()', () => {
     // Clean up
     const port = extractPort()
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(
-      new Response(JSON.stringify({ access_token: 'cleanup' }), { status: 200 })
+      Response.json({ access_token: 'cleanup' }, { status: 200 })
     )
     await shutdownServer(port)
     await resultPromise
@@ -380,7 +374,7 @@ describe('resolveFromOAuth()', () => {
 
   it('should return 200 success page on valid callback', async () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(
-      new Response(JSON.stringify({ access_token: 'at-success' }), { status: 200 })
+      Response.json({ access_token: 'at-success' }, { status: 200 })
     )
 
     const resultPromise = resolveFromOAuth({
@@ -430,7 +424,7 @@ describe('resolveFromOAuth()', () => {
     expect(response.status).toBe(400)
 
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(
-      new Response(JSON.stringify({ access_token: 'cleanup' }), { status: 200 })
+      Response.json({ access_token: 'cleanup' }, { status: 200 })
     )
 
     await shutdownServer(port)
@@ -441,7 +435,7 @@ describe('resolveFromOAuth()', () => {
     const fetchSpy = vi
       .spyOn(globalThis, 'fetch')
       .mockResolvedValue(
-        new Response(JSON.stringify({ access_token: 'redirect-uri-token' }), { status: 200 })
+        Response.json({ access_token: 'redirect-uri-token' }, { status: 200 })
       )
 
     const resultPromise = resolveFromOAuth({
@@ -472,7 +466,7 @@ describe('resolveFromOAuth()', () => {
     const fetchSpy = vi
       .spyOn(globalThis, 'fetch')
       .mockResolvedValue(
-        new Response(JSON.stringify({ access_token: 'custom-path-token' }), { status: 200 })
+        Response.json({ access_token: 'custom-path-token' }, { status: 200 })
       )
 
     const resultPromise = resolveFromOAuth({

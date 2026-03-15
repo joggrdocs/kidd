@@ -30,12 +30,12 @@ function createMockCtx(): IconsCtx {
   }
 }
 
-describe('createIconsContext', () => {
+describe(createIconsContext, () => {
   it('should return a frozen object', () => {
     const ctx = createMockCtx()
     const icons = createDefaultIcons()
     const result = createIconsContext({ ctx, icons, isInstalled: false })
-    expect(Object.isFrozen(result)).toBe(true)
+    expect(Object.isFrozen(result)).toBeTruthy()
   })
 
   describe('get()', () => {
@@ -66,14 +66,14 @@ describe('createIconsContext', () => {
       const ctx = createMockCtx()
       const icons = createDefaultIcons()
       const result = createIconsContext({ ctx, icons, isInstalled: false })
-      expect(result.has('branch')).toBe(true)
+      expect(result.has('branch')).toBeTruthy()
     })
 
     it('should return false for unknown icons', () => {
       const ctx = createMockCtx()
       const icons = createDefaultIcons()
       const result = createIconsContext({ ctx, icons, isInstalled: false })
-      expect(result.has('nonexistent')).toBe(false)
+      expect(result.has('nonexistent')).toBeFalsy()
     })
   })
 
@@ -82,21 +82,21 @@ describe('createIconsContext', () => {
       const ctx = createMockCtx()
       const icons = createDefaultIcons()
       const result = createIconsContext({ ctx, icons, isInstalled: true })
-      expect(result.installed()).toBe(true)
+      expect(result.installed()).toBeTruthy()
     })
 
     it('should return false when nerd fonts are not installed', () => {
       const ctx = createMockCtx()
       const icons = createDefaultIcons()
       const result = createIconsContext({ ctx, icons, isInstalled: false })
-      expect(result.installed()).toBe(false)
+      expect(result.installed()).toBeFalsy()
     })
 
     it('should return false when forceSetup is true regardless of install state', () => {
       const ctx = createMockCtx()
       const icons = createDefaultIcons()
-      const result = createIconsContext({ ctx, icons, isInstalled: true, forceSetup: true })
-      expect(result.installed()).toBe(false)
+      const result = createIconsContext({ ctx, forceSetup: true, icons, isInstalled: true })
+      expect(result.installed()).toBeFalsy()
     })
   })
 
@@ -131,7 +131,7 @@ describe('createIconsContext', () => {
       const icons = createDefaultIcons()
       const result = createIconsContext({ ctx, icons, isInstalled: false })
       const statusIcons = result.category('status')
-      expect(Object.isFrozen(statusIcons)).toBe(true)
+      expect(Object.isFrozen(statusIcons)).toBeTruthy()
     })
   })
 
@@ -153,15 +153,15 @@ describe('createIconsContext', () => {
       vi.mocked(installNerdFont).mockResolvedValue([null, true] as const)
       const result = createIconsContext({ ctx, icons, isInstalled: false })
 
-      expect(result.installed()).toBe(false)
+      expect(result.installed()).toBeFalsy()
       await result.setup()
-      expect(result.installed()).toBe(true)
+      expect(result.installed()).toBeTruthy()
     })
 
     it('should propagate errors from installNerdFont', async () => {
       const ctx = createMockCtx()
       const icons = createDefaultIcons()
-      const mockError = { type: 'install_failed' as const, message: 'test error' }
+      const mockError = { message: 'test error', type: 'install_failed' as const }
       vi.mocked(installNerdFont).mockResolvedValue([mockError, null] as const)
       const result = createIconsContext({ ctx, icons, isInstalled: false })
 
@@ -173,13 +173,13 @@ describe('createIconsContext', () => {
     it('should not update installed status on error', async () => {
       const ctx = createMockCtx()
       const icons = createDefaultIcons()
-      const mockError = { type: 'install_failed' as const, message: 'test error' }
+      const mockError = { message: 'test error', type: 'install_failed' as const }
       vi.mocked(installNerdFont).mockResolvedValue([mockError, null] as const)
       const result = createIconsContext({ ctx, icons, isInstalled: false })
 
       await result.setup()
 
-      expect(result.installed()).toBe(false)
+      expect(result.installed()).toBeFalsy()
     })
   })
 })

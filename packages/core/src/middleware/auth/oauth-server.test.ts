@@ -185,7 +185,7 @@ describe('openBrowser()', () => {
     openBrowser('https://example.com')
 
     expect(vi.mocked(execFile)).toHaveBeenCalled()
-    const [, args] = vi.mocked(execFile).mock.calls[0]
+    const [[, args]] = vi.mocked(execFile).mock.calls
     expect(args).toContain('https://example.com')
   })
 
@@ -195,7 +195,7 @@ describe('openBrowser()', () => {
     openBrowser('https://example.com/auth?a=1&b=2')
 
     expect(vi.mocked(execFile)).toHaveBeenCalled()
-    const [command, args] = vi.mocked(execFile).mock.calls[0]
+    const [[command, args]] = vi.mocked(execFile).mock.calls
     expect(command).toBe('cmd')
     expect(args).toContain('https://example.com/auth?a=1^&b=2')
   })

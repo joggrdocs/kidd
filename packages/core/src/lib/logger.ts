@@ -3,9 +3,7 @@ import * as clack from '@clack/prompts'
 import { formatCheck } from '@/lib/format/check.js'
 import { formatFinding } from '@/lib/format/finding.js'
 import { formatTally } from '@/lib/format/tally.js'
-import type { CheckInput } from '@/lib/format/types.js'
-import type { FindingInput } from '@/lib/format/types.js'
-import type { TallyInput } from '@/lib/format/types.js'
+import type { CheckInput, FindingInput, TallyInput } from '@/lib/format/types.js'
 
 /**
  * Options for creating a logger instance.

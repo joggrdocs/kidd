@@ -166,7 +166,7 @@ Structured output methods for writing data to stdout.
 
 | Method                  | Description                                                                                |
 | ----------------------- | ------------------------------------------------------------------------------------------ |
-| `write(data, options?)` | Write a value; objects always serialize as JSON, primitives render as strings              |
+| `write(data, options?)` | Write a value; objects and `json: true` serialize as JSON, primitives render as strings    |
 | `table(rows, options?)` | Write a table from an array of objects                                                     |
 | `markdown(content)`     | Write a markdown-formatted string                                                          |
 | `raw(content)`          | Write a raw string (no formatting)                                                         |
@@ -175,7 +175,7 @@ Structured output methods for writing data to stdout.
 | `codeFrame(input)`      | Write an annotated code snippet (oxlint code frame style)                                  |
 | `summary(input)`        | Write a summary block (`style: 'tally'` for labeled rows, `style: 'inline'` for one-liner) |
 
-The optional `options` parameter on `write` and `table` accepts `{ json?: boolean }` to switch between human-readable and machine-parsable output.
+The optional `options` parameter on `write` and `table` accepts `{ json?: boolean }`. For `write`, objects are always serialized as pretty-printed JSON regardless of the flag; setting `json: true` also forces primitives (strings, numbers) to serialize as JSON. For `table`, `json: true` outputs the rows as a JSON array instead of a formatted table.
 
 ```ts
 // Table output

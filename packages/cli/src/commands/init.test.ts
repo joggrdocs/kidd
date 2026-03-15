@@ -29,9 +29,11 @@ vi.mock(import('../lib/write.js'), () => ({
 }))
 
 const { readManifest } = await import('@kidd-cli/utils/manifest')
+const { readTemplateVersions } = await import('../lib/template-versions.js')
 const { renderTemplate } = await import('../lib/render.js')
 const { writeFiles } = await import('../lib/write.js')
 const mockedReadManifest = vi.mocked(readManifest)
+const mockedReadTemplateVersions = vi.mocked(readTemplateVersions)
 const mockedRenderTemplate = vi.mocked(renderTemplate)
 const mockedWriteFiles = vi.mocked(writeFiles)
 
@@ -215,5 +217,22 @@ describe('init command', () => {
 
     const mod = await import('./init.js')
     await expect(mod.default.handler!(ctx)).rejects.toThrow('bad template')
+  })
+
+  it('should call fail when template versions cannot be read', async () => {
+    const ctx = makeContext({
+      config: false,
+      description: 'Test',
+      example: false,
+      name: 'test-cli',
+      pm: 'pnpm',
+    })
+    mockedReadTemplateVersions.mockReturnValueOnce([
+      new Error('Could not locate pnpm-workspace.yaml'),
+      null,
+    ])
+
+    const mod = await import('./init.js')
+    await expect(mod.default.handler!(ctx)).rejects.toThrow('Could not locate pnpm-workspace.yaml')
   })
 })

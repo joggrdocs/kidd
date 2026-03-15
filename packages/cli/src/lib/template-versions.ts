@@ -1,19 +1,24 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 
+import { attempt, err, match, ok } from '@kidd-cli/utils/fp'
+import type { Result } from '@kidd-cli/utils/fp'
 import { parse } from 'yaml'
+import { z } from 'zod'
 
 /**
- * Shape of the `catalog` field in `pnpm-workspace.yaml`.
+ * Zod schema for the `catalog` field in `pnpm-workspace.yaml`.
  *
  * @private
  */
-interface WorkspaceCatalog {
-  readonly tsdown: string
-  readonly typescript: string
-  readonly vitest: string
-  readonly zod: string
-}
+const catalogSchema = z.object({
+  catalog: z.object({
+    tsdown: z.string(),
+    typescript: z.string(),
+    vitest: z.string(),
+    zod: z.string(),
+  }),
+})
 
 /**
  * Resolved template dependency versions read from the workspace catalog.
@@ -28,7 +33,7 @@ export interface TemplateVersions {
 /**
  * Known locations for `pnpm-workspace.yaml` relative to this module.
  *
- * - First path covers the built `dist/lib/` layout (yaml copied to `dist/`).
+ * - First path covers the built `dist/` layout (yaml copied to `dist/`).
  * - Second path covers running from source `src/lib/` during development.
  *
  * @private
@@ -45,9 +50,15 @@ const CANDIDATE_PATHS: readonly string[] = [
  * @private
  */
 function findWorkspaceYaml(): string | null {
-  const found = CANDIDATE_PATHS.find(existsSync)
-  return found ?? null
+  return CANDIDATE_PATHS.find(existsSync) ?? null
 }
+
+/**
+ * Range operator prefixes recognized in version strings.
+ *
+ * @private
+ */
+const RANGE_PREFIXES = ['^', '~', '>', '<', '='] as const
 
 /**
  * Normalize a version string to always include a caret range prefix.
@@ -57,46 +68,53 @@ function findWorkspaceYaml(): string | null {
  *
  * @param version - The raw version string from the catalog.
  * @returns The version prefixed with `^` when no range operator is present.
- * @private
  */
-function normalizeVersion(version: string): string {
-  if (
-    version.startsWith('^') ||
-    version.startsWith('~') ||
-    version.startsWith('>') ||
-    version.startsWith('<') ||
-    version.startsWith('=')
-  ) {
-    return version
-  }
-  return `^${version}`
+export function normalizeVersion(version: string): string {
+  const hasRange = RANGE_PREFIXES.some((prefix) => version.startsWith(prefix))
+  return match(hasRange)
+    .with(true, () => version)
+    .with(false, () => `^${version}`)
+    .exhaustive()
 }
 
 /**
  * Read template dependency versions from the workspace catalog (`pnpm-workspace.yaml`).
  *
  * Resolves the workspace file from known relative locations, parses the YAML,
- * and returns normalized version strings suitable for scaffolding `package.json`
- * files in new projects.
+ * validates the structure with Zod, and returns normalized version strings
+ * suitable for scaffolding `package.json` files in new projects.
  *
  * @returns A `Result` tuple with the resolved versions or an error.
  */
-export function readTemplateVersions(): readonly [Error, null] | readonly [null, TemplateVersions] {
+export function readTemplateVersions(): Result<TemplateVersions> {
   const yamlPath = findWorkspaceYaml()
   if (yamlPath === null) {
-    return [new Error('Could not locate pnpm-workspace.yaml'), null]
+    return err(new Error('Could not locate pnpm-workspace.yaml'))
   }
 
-  const content = readFileSync(yamlPath, 'utf8')
-  const parsed = parse(content) as { catalog: WorkspaceCatalog }
+  const [readError, content] = attempt(() => readFileSync(yamlPath, 'utf8'))
+  if (readError) {
+    return err(readError)
+  }
 
-  return [
-    null,
+  const [parseError, rawParsed] = attempt(() => parse(content as string) as unknown)
+  if (parseError) {
+    return err(parseError)
+  }
+
+  const validation = catalogSchema.safeParse(rawParsed)
+  if (!validation.success) {
+    return err(new Error(`Invalid pnpm-workspace.yaml catalog: ${validation.error.message}`))
+  }
+
+  const { catalog } = validation.data
+
+  return ok(
     Object.freeze({
-      tsdownVersion: normalizeVersion(parsed.catalog.tsdown),
-      typescriptVersion: normalizeVersion(parsed.catalog.typescript),
-      vitestVersion: normalizeVersion(parsed.catalog.vitest),
-      zodVersion: normalizeVersion(parsed.catalog.zod),
-    }),
-  ]
+      tsdownVersion: normalizeVersion(catalog.tsdown),
+      typescriptVersion: normalizeVersion(catalog.typescript),
+      vitestVersion: normalizeVersion(catalog.vitest),
+      zodVersion: normalizeVersion(catalog.zod),
+    })
+  )
 }

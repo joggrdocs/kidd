@@ -1,5 +1,32 @@
 # kidd-cli
 
+## 0.3.0
+
+### Minor Changes
+
+- 6d8889a: Add `ConfigType` utility type and `CliConfig` augmentation interface for typed `ctx.config`.
+
+  **@kidd-cli/core:**
+
+  - Add `ConfigType<TSchema>` utility type to derive `CliConfig` from a Zod schema
+  - Rename `KiddConfig` augmentation interface to `CliConfig` to avoid confusion with the build config type in `@kidd-cli/config`
+  - Export `CliConfig` and `ConfigType` from `@kidd-cli/core`
+
+  **@kidd-cli/cli:**
+
+  - Add `--config` flag to `kidd init` to scaffold config schema setup during project creation
+  - Add `kidd add config` command to scaffold config into existing projects
+  - Scaffolded config includes Zod schema with `ConfigType` module augmentation wiring
+
+### Patch Changes
+
+- 0db5742: Convert `loadCLIManifest` from throwing errors to returning Result tuples and add warning logs when version resolution falls back to `0.0.0` in the init command
+- Updated dependencies [a7dff7d]
+- Updated dependencies [0db5742]
+- Updated dependencies [6d8889a]
+- Updated dependencies [70deba8]
+  - @kidd-cli/core@0.5.0
+
 ## 0.2.0
 
 ### Minor Changes

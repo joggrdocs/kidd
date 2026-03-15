@@ -1,5 +1,11 @@
 # @kidd-cli/config
 
+## 0.1.5
+
+### Patch Changes
+
+- 5f46e63: Update all dependencies to latest versions
+
 ## 0.1.4
 
 ### Patch Changes

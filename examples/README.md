@@ -38,7 +38,7 @@ examples/advanced/
 
 ## Diagnostic Output
 
-Demonstrates the `ctx.output` format methods for displaying linting, testing, and diagnostic results. Shows how to use `diagnostic()`, `result()`, `codeFrame()`, and `summary()` (with `style: 'tally'` and `style: 'inline'`) for structured terminal output, plus `ctx.colors` for coloring.
+Demonstrates the `ctx.logger` styled output methods for displaying linting, testing, and diagnostic results. Shows how to use `finding()`, `check()`, and `tally()` (with `style: 'tally'` and `style: 'inline'`) for structured terminal output, plus `ctx.colors` for coloring.
 
 ```
 examples/diagnostic-output/

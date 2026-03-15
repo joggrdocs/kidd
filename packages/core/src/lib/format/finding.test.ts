@@ -1,14 +1,14 @@
 import { describe, expect, it, vi } from 'vitest'
 
-import { formatDiagnostic } from './diagnostic'
+import { formatFinding } from './finding'
 
 vi.mock(import('./code-frame.js'), () => ({
   formatCodeFrame: vi.fn((input: { filePath: string }) => `  [code-frame: ${input.filePath}]`),
 }))
 
-describe('formatDiagnostic()', () => {
-  it('should format an error diagnostic', () => {
-    const result = formatDiagnostic({
+describe('formatFinding()', () => {
+  it('should format an error finding', () => {
+    const result = formatFinding({
       message: 'x is unused',
       rule: 'no-unused-vars',
       severity: 'error',
@@ -19,8 +19,8 @@ describe('formatDiagnostic()', () => {
     expect(result).toContain('x is unused')
   })
 
-  it('should format a warning diagnostic', () => {
-    const result = formatDiagnostic({
+  it('should format a warning finding', () => {
+    const result = formatFinding({
       message: 'Unexpected console statement',
       rule: 'no-console',
       severity: 'warning',
@@ -29,8 +29,8 @@ describe('formatDiagnostic()', () => {
     expect(result).toContain('warning')
   })
 
-  it('should format a hint diagnostic', () => {
-    const result = formatDiagnostic({
+  it('should format a hint finding', () => {
+    const result = formatFinding({
       message: 'Use const instead of let',
       rule: 'prefer-const',
       severity: 'hint',
@@ -40,7 +40,7 @@ describe('formatDiagnostic()', () => {
   })
 
   it('should include category when provided', () => {
-    const result = formatDiagnostic({
+    const result = formatFinding({
       category: 'correctness',
       message: 'x is unused',
       rule: 'no-unused-vars',
@@ -51,7 +51,7 @@ describe('formatDiagnostic()', () => {
   })
 
   it('should include code frame when provided', () => {
-    const result = formatDiagnostic({
+    const result = formatFinding({
       frame: {
         annotation: {
           column: 7,
@@ -72,7 +72,7 @@ describe('formatDiagnostic()', () => {
   })
 
   it('should include help text when provided', () => {
-    const result = formatDiagnostic({
+    const result = formatFinding({
       help: 'consider removing x',
       message: 'x is unused',
       rule: 'no-unused-vars',

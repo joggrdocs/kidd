@@ -45,9 +45,12 @@ export default command({
     ctx.logger.step('Lint')
     ctx.logger.newline()
 
-    FINDINGS.map((finding) => ctx.output.diagnostic(finding))
+    FINDINGS.reduce((_acc, finding) => {
+      ctx.logger.finding(finding)
+      return _acc
+    }, undefined)
 
-    ctx.output.summary({
+    ctx.logger.tally({
       stats: [
         ctx.colors.yellow('1 warning'),
         ctx.colors.green('2 fixed'),
@@ -63,9 +66,12 @@ export default command({
     ctx.logger.step('Test')
     ctx.logger.newline()
 
-    RESULTS.map((result) => ctx.output.result(result))
+    RESULTS.reduce((_acc, result) => {
+      ctx.logger.check(result)
+      return _acc
+    }, undefined)
 
-    ctx.output.summary({
+    ctx.logger.tally({
       stats: [
         { label: 'Tests', value: `${ctx.colors.green('3 passed')} ${ctx.colors.gray('(3)')}` },
         { label: 'Suites', value: `${ctx.colors.green('3 passed')} ${ctx.colors.gray('(3)')}` },

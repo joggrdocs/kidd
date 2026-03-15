@@ -1,7 +1,7 @@
 /**
- * Shape of the Unicode symbols object.
+ * Shape of the Unicode glyphs object.
  */
-export interface Symbols {
+export interface Glyphs {
   readonly check: '\u2713'
   readonly cross: '\u2717'
   readonly warning: '\u26A0'
@@ -15,9 +15,9 @@ export interface Symbols {
 }
 
 /**
- * Unicode symbols used in formatted output, frozen for immutability.
+ * Unicode glyphs used in formatted output, frozen for immutability.
  */
-export const SYMBOLS: Symbols = Object.freeze({
+export const GLYPHS: Glyphs = Object.freeze({
   arrow: '\u203A',
   check: '\u2713',
   corner: '\u2570',

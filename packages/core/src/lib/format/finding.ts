@@ -2,16 +2,16 @@ import pc from 'picocolors'
 import { match } from 'ts-pattern'
 
 import { formatCodeFrame } from './code-frame.js'
-import { SYMBOLS } from './constants.js'
-import type { CodeFrameInput, DiagnosticInput } from './types.js'
+import { GLYPHS } from './constants.js'
+import type { CodeFrameInput, FindingInput } from './types.js'
 
 /**
- * Format a full diagnostic finding (oxlint style).
+ * Format a full finding (oxlint style).
  *
- * @param input - The diagnostic data to format.
- * @returns A formatted diagnostic string.
+ * @param input - The finding data to format.
+ * @returns A formatted finding string.
  */
-export function formatDiagnostic(input: DiagnosticInput): string {
+export function formatFinding(input: FindingInput): string {
   const severityLabel = match(input.severity)
     .with('error', () => pc.red('error'))
     .with('warning', () => pc.yellow('warning'))
@@ -72,7 +72,5 @@ function formatFramePart(frame: CodeFrameInput | undefined): readonly string[] {
 function formatHelpPart(help: string | undefined): readonly string[] {
   return match(help)
     .with(undefined, () => [] as readonly string[])
-    .otherwise((h) => [
-      `\n  ${pc.cyan(`${SYMBOLS.corner}${SYMBOLS.dash}`)} ${pc.cyan('help')}: ${h}`,
-    ])
+    .otherwise((h) => [`\n  ${pc.cyan(`${GLYPHS.corner}${GLYPHS.dash}`)} ${pc.cyan('help')}: ${h}`])
 }

@@ -1,67 +1,28 @@
 import { jsonStringify } from '@kidd-cli/utils/json'
 
-import { formatCodeFrame } from '@/lib/format/code-frame.js'
-import { formatDiagnostic } from '@/lib/format/diagnostic.js'
-import { formatResult } from '@/lib/format/result.js'
-import { formatSummary } from '@/lib/format/summary.js'
-import type {
-  CodeFrameInput,
-  DiagnosticInput,
-  ResultInput,
-  SummaryInput,
-} from '@/lib/format/types.js'
-
-import type { Output, OutputOptions } from './types.js'
+import type { Format } from './types.js'
 
 /**
- * Create the structured output methods for a context.
+ * Create the pure string formatter methods for a context.
  *
  * @private
- * @param stream - The writable stream to write output to.
- * @returns An Output instance backed by the given stream.
+ * @returns A Format instance with json and table formatters.
  */
-export function createContextOutput(stream: NodeJS.WriteStream): Output {
+export function createContextFormat(): Format {
   return {
-    codeFrame(input: CodeFrameInput): void {
-      stream.write(`${formatCodeFrame(input)}\n\n`)
+    json(data: unknown): string {
+      const [, json] = jsonStringify(data, { pretty: true })
+      return `${json}\n`
     },
-    diagnostic(input: DiagnosticInput): void {
-      stream.write(`${formatDiagnostic(input)}\n\n`)
-    },
-    markdown(content: string): void {
-      stream.write(`${content}\n`)
-    },
-    raw(content: string): void {
-      stream.write(content)
-    },
-    result(input: ResultInput): void {
-      stream.write(`${formatResult(input)}\n`)
-    },
-    summary(input: SummaryInput): void {
-      stream.write(`\n${formatSummary(input)}\n`)
-    },
-    table(rows: Record<string, unknown>[], options?: OutputOptions): void {
-      if (options && options.json) {
-        const [, json] = jsonStringify(rows, { pretty: true })
-        stream.write(`${json}\n`)
-        return
-      }
+    table(rows: Record<string, unknown>[]): string {
       if (rows.length === 0) {
-        return
+        return ''
       }
       const [firstRow] = rows
       if (!firstRow) {
-        return
+        return ''
       }
-      writeTableToStream(stream, rows, Object.keys(firstRow))
-    },
-    write(data: unknown, options?: OutputOptions): void {
-      if ((options && options.json) || (typeof data === 'object' && data !== null)) {
-        const [, json] = jsonStringify(data, { pretty: true })
-        stream.write(`${json}\n`)
-      } else {
-        stream.write(`${String(data)}\n`)
-      }
+      return formatTable(rows, Object.keys(firstRow))
     },
   }
 }
@@ -86,6 +47,8 @@ function formatStringValue(val: unknown): string {
 
 /**
  * Options for creating a table header string.
+ *
+ * @private
  */
 interface TableHeaderOptions {
   keys: string[]
@@ -114,6 +77,8 @@ function createTableHeader(options: TableHeaderOptions): string {
 
 /**
  * Options for creating a table row string.
+ *
+ * @private
  */
 interface TableRowOptions {
   row: Record<string, unknown>
@@ -158,22 +123,17 @@ function computeColumnWidths(rows: Record<string, unknown>[], keys: string[]): n
 }
 
 /**
- * Write a formatted table (header, separator, rows) to a writable stream.
+ * Format a table (header, separator, rows) as a string.
  *
  * @private
- * @param stream - The writable stream.
  * @param rows - The data rows.
  * @param keys - The column keys.
+ * @returns The formatted table string.
  */
-function writeTableToStream(
-  stream: NodeJS.WriteStream,
-  rows: Record<string, unknown>[],
-  keys: string[]
-): void {
+function formatTable(rows: Record<string, unknown>[], keys: string[]): string {
   const widths = computeColumnWidths(rows, keys)
   const header = createTableHeader({ keys, widths })
   const separator = widths.map((width) => '-'.repeat(width)).join('  ')
   const dataRows = rows.map((row) => createTableRow({ keys, row, widths }))
-  const content = [header, separator, ...dataRows].join('\n')
-  stream.write(`${content}\n`)
+  return [header, separator, ...dataRows].join('\n') + '\n'
 }

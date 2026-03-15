@@ -1,21 +1,21 @@
 import pc from 'picocolors'
 import { match } from 'ts-pattern'
 
-import type { InlineSummaryInput, SummaryInput, TallySummaryInput } from './types.js'
+import type { TallyBlockInput, TallyInlineInput, TallyInput } from './types.js'
 
 /**
- * Format a summary block.
+ * Format a tally block.
  *
  * - `style: 'tally'` renders labeled stat rows aligned in a block.
  * - `style: 'inline'` renders a pipe-separated one-liner.
  *
- * @param input - The summary data to format.
- * @returns A formatted summary string.
+ * @param input - The tally data to format.
+ * @returns A formatted tally string.
  */
-export function formatSummary(input: SummaryInput): string {
+export function formatTally(input: TallyInput): string {
   return match(input)
-    .with({ style: 'tally' }, formatTallySummary)
-    .with({ style: 'inline' }, formatInlineSummary)
+    .with({ style: 'tally' }, formatTallyBlock)
+    .with({ style: 'inline' }, formatTallyInline)
     .exhaustive()
 }
 
@@ -24,25 +24,25 @@ export function formatSummary(input: SummaryInput): string {
 // ---------------------------------------------------------------------------
 
 /**
- * Format a tally-style summary with labeled stat rows.
+ * Format a tally block with labeled stat rows.
  *
  * @private
- * @param input - The tally summary data.
+ * @param input - The tally block data.
  * @returns A formatted tally block string.
  */
-function formatTallySummary(input: TallySummaryInput): string {
+function formatTallyBlock(input: TallyBlockInput): string {
   const maxWidth = input.stats.reduce((max, stat) => Math.max(max, stat.label.length), 0)
 
   return input.stats.map((stat) => `  ${stat.label.padEnd(maxWidth)}  ${stat.value}`).join('\n')
 }
 
 /**
- * Format an inline-style summary as a pipe-separated one-liner.
+ * Format a tally inline as a pipe-separated one-liner.
  *
  * @private
- * @param input - The inline summary data.
- * @returns A formatted summary line string.
+ * @param input - The tally inline data.
+ * @returns A formatted tally line string.
  */
-function formatInlineSummary(input: InlineSummaryInput): string {
+function formatTallyInline(input: TallyInlineInput): string {
   return `  ${input.stats.join(pc.gray(' | '))}`
 }

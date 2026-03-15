@@ -1,5 +1,5 @@
 import * as clack from '@clack/prompts'
-import { createWritableCapture, setupTestLifecycle } from '@test/core-utils.js'
+import { setupTestLifecycle } from '@test/core-utils.js'
 import { describe, expect, it, vi } from 'vitest'
 
 import { createContext, isContextError } from '@/context/index.js'
@@ -46,25 +46,39 @@ setupTestLifecycle()
 describe('examples/advanced/src/commands/deploy/preview', () => {
   describe('handler', () => {
     it('should output deploy info with correct URL', async () => {
-      const { stream, output } = createWritableCapture()
+      let captured = ''
+      const writeSpy = vi
+        .spyOn(process.stdout, 'write')
+        .mockImplementation((chunk: string | Uint8Array) => {
+          captured += String(chunk)
+          return true
+        })
+
       const ctx = createPreviewContext({
         args: { branch: 'feat-xyz', clean: false },
-        output: stream,
       })
       await previewCommand.handler(ctx)
-      const parsed = JSON.parse(output()) as { branch: string; environment: string; url: string }
+
+      writeSpy.mockRestore()
+
+      const parsed = JSON.parse(captured) as { branch: string; environment: string; url: string }
       expect(parsed.url).toBe('https://preview-feat-xyz.acme-corp.acme.dev')
       expect(parsed.environment).toBe('preview')
       expect(parsed.branch).toBe('feat-xyz')
     })
 
     it('should log clean build when --clean', async () => {
-      const { stream } = createWritableCapture()
+      const writeSpy = vi
+        .spyOn(process.stdout, 'write')
+        .mockImplementation(() => true)
+
       const ctx = createPreviewContext({
         args: { branch: 'main', clean: true },
-        output: stream,
       })
       await previewCommand.handler(ctx)
+
+      writeSpy.mockRestore()
+
       expect(mockSpinnerInstance.message).toHaveBeenCalledWith('Running clean build')
     })
   })
@@ -77,33 +91,41 @@ describe('examples/advanced/src/commands/deploy/preview', () => {
 describe('examples/advanced/src/commands/deploy/production', () => {
   describe('handler', () => {
     it('should skip prompt when --force', async () => {
-      const { stream } = createWritableCapture()
+      const writeSpy = vi
+        .spyOn(process.stdout, 'write')
+        .mockImplementation(() => true)
+
       const ctx = createProductionContext({
         args: { force: true, tag: 'v1.0.0' },
-        output: stream,
       })
       await productionCommand.handler(ctx)
+
+      writeSpy.mockRestore()
+
       expect(clack.confirm).not.toHaveBeenCalled()
       expect(mockSpinnerInstance.start).toHaveBeenCalled()
     })
 
     it('should prompt when force is false', async () => {
       vi.mocked(clack.confirm).mockResolvedValue(true)
-      const { stream } = createWritableCapture()
+      const writeSpy = vi
+        .spyOn(process.stdout, 'write')
+        .mockImplementation(() => true)
+
       const ctx = createProductionContext({
         args: { force: false, tag: 'v1.0.0' },
-        output: stream,
       })
       await productionCommand.handler(ctx)
+
+      writeSpy.mockRestore()
+
       expect(clack.confirm).toHaveBeenCalledOnce()
     })
 
     it('should exit when user declines', async () => {
       vi.mocked(clack.confirm).mockResolvedValue(false)
-      const { stream } = createWritableCapture()
       const ctx = createProductionContext({
         args: { force: false, tag: 'v1.0.0' },
-        output: stream,
       })
 
       let caught: unknown
@@ -118,13 +140,22 @@ describe('examples/advanced/src/commands/deploy/production', () => {
     })
 
     it('should output deploy JSON on success', async () => {
-      const { stream, output } = createWritableCapture()
+      let captured = ''
+      const writeSpy = vi
+        .spyOn(process.stdout, 'write')
+        .mockImplementation((chunk: string | Uint8Array) => {
+          captured += String(chunk)
+          return true
+        })
+
       const ctx = createProductionContext({
         args: { force: true, tag: 'v2.3.1' },
-        output: stream,
       })
       await productionCommand.handler(ctx)
-      const parsed = JSON.parse(output()) as {
+
+      writeSpy.mockRestore()
+
+      const parsed = JSON.parse(captured) as {
         environment: string
         org: string
         tag: string
@@ -150,7 +181,6 @@ interface AcmeConfig {
 
 function createPreviewContext(overrides: {
   readonly args: { readonly branch: string; readonly clean: boolean }
-  readonly output: NodeJS.WriteStream
 }): Context<{ branch: string; clean: boolean }, AcmeConfig> {
   return createContext({
     args: overrides.args,
@@ -160,13 +190,11 @@ function createPreviewContext(overrides: {
       org: 'acme-corp',
     },
     meta: { command: ['deploy', 'preview'], name: 'acme', version: '2.0.0' },
-    output: overrides.output,
   })
 }
 
 function createProductionContext(overrides: {
   readonly args: { readonly force: boolean; readonly tag: string }
-  readonly output: NodeJS.WriteStream
 }): Context<{ force: boolean; tag: string }, AcmeConfig> {
   return createContext({
     args: overrides.args,
@@ -176,6 +204,5 @@ function createProductionContext(overrides: {
       org: 'acme-corp',
     },
     meta: { command: ['deploy', 'production'], name: 'acme', version: '2.0.0' },
-    output: overrides.output,
   })
 }

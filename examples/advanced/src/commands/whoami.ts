@@ -9,6 +9,6 @@ export default command({
   args,
   description: 'Display the current user',
   handler: (ctx) => {
-    ctx.output.write({ user: 'todo' }, { json: ctx.args.json })
+    process.stdout.write(ctx.format.json({ user: 'todo' }))
   },
 })

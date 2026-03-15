@@ -26,14 +26,13 @@ export default command({
     ctx.spinner.message('Rolling out to production')
     ctx.spinner.stop(`Deployed ${ctx.args.tag} to production`)
 
-    ctx.output.write(
-      {
+    process.stdout.write(
+      ctx.format.json({
         environment: 'production',
         org: ctx.config.org,
         tag: ctx.args.tag,
         url: `https://${ctx.config.org}.acme.dev`,
-      },
-      { json: true }
+      })
     )
   },
 })

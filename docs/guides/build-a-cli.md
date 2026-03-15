@@ -84,7 +84,7 @@ const deploy = command({
   description: 'Deploy the application',
   middleware: [requireAuth],
   async handler(ctx) {
-    ctx.output.write('Deploying')
+    ctx.logger.print('Deploying')
   },
 })
 ```

@@ -30,9 +30,12 @@ export default command({
     ctx.logger.info('Running tests...')
     ctx.logger.newline()
 
-    RESULTS.map((result) => ctx.output.result(result))
+    RESULTS.reduce((_acc, result) => {
+      ctx.logger.check(result)
+      return _acc
+    }, undefined)
 
-    ctx.output.summary({
+    ctx.logger.tally({
       stats: [
         {
           label: 'Tests',

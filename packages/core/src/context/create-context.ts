@@ -7,10 +7,10 @@ import type { CliLogger } from '@/lib/logger.js'
 import type { AnyRecord, KiddStore, Merge } from '@/types.js'
 
 import { createContextError } from './error.js'
-import { createContextOutput } from './output.js'
+import { createContextFormat } from './format.js'
 import { createContextPrompts } from './prompts.js'
 import { createMemoryStore } from './store.js'
-import type { Context, Meta, Output, Prompts, Spinner, Store, StoreMap } from './types.js'
+import type { Context, Format, Meta, Prompts, Spinner, Store, StoreMap } from './types.js'
 
 /**
  * Options for creating a {@link Context} instance via {@link createContext}.
@@ -25,13 +25,12 @@ export interface CreateContextOptions<TArgs extends AnyRecord, TConfig extends A
   readonly config: TConfig
   readonly meta: { readonly name: string; readonly version: string; readonly command: string[] }
   readonly logger?: CliLogger
-  readonly output?: NodeJS.WriteStream
 }
 
 /**
  * Create the {@link Context} object threaded through middleware and command handlers.
  *
- * Assembles logger, spinner, output, store, prompts, and meta from
+ * Assembles logger, spinner, format, store, prompts, and meta from
  * the provided options into a single immutable context. Each sub-system is
  * constructed via its own factory so this function remains a lean orchestrator.
  *
@@ -43,7 +42,7 @@ export function createContext<TArgs extends AnyRecord, TConfig extends AnyRecord
 ): Context<TArgs, TConfig> {
   const ctxLogger: CliLogger = options.logger ?? createCliLogger()
   const ctxSpinner: Spinner = clack.spinner()
-  const ctxOutput: Output = createContextOutput(options.output ?? process.stdout)
+  const ctxFormat: Format = createContextFormat()
   const ctxStore: Store<Merge<KiddStore, StoreMap>> = createMemoryStore()
   const ctxPrompts: Prompts = createContextPrompts()
   const ctxMeta: Meta = {
@@ -63,9 +62,9 @@ export function createContext<TArgs extends AnyRecord, TConfig extends AnyRecord
       // This is the framework's halt mechanism — the runner catches the thrown ContextError.
       throw createContextError(message, failOptions)
     },
+    format: ctxFormat,
     logger: ctxLogger,
     meta: ctxMeta as Context<TArgs, TConfig>['meta'],
-    output: ctxOutput,
     prompts: ctxPrompts,
     spinner: ctxSpinner,
     store: ctxStore,

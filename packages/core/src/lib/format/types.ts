@@ -1,21 +1,21 @@
 /**
- * Status for a single result row (e.g. test file, lint check).
+ * Status for a single check row (e.g. test file, lint check).
  */
-export type ResultStatus = 'pass' | 'fail' | 'warn' | 'skip' | 'fix'
+export type CheckStatus = 'pass' | 'fail' | 'warn' | 'skip' | 'fix'
 
 /**
- * Severity level for a diagnostic finding.
+ * Severity level for a finding.
  */
-export type DiagnosticSeverity = 'error' | 'warning' | 'hint'
+export type FindingSeverity = 'error' | 'warning' | 'hint'
 
 /**
- * Input for a single pass/fail/warn result row.
+ * Input for a single pass/fail/warn check row.
  */
-export interface ResultInput {
+export interface CheckInput {
   /**
-   * Status of the result.
+   * Status of the check.
    */
-  readonly status: ResultStatus
+  readonly status: CheckStatus
   /**
    * Display name (e.g. file path, test name).
    */
@@ -49,14 +49,14 @@ export interface TallyStat {
 }
 
 /**
- * Tally-style summary: labeled rows aligned in a block.
+ * Tally block: labeled rows aligned in a block.
  *
  * ```
  *   Tests     3 passed | 2 failed (5)
  *   Duration  5.63s
  * ```
  */
-export interface TallySummaryInput {
+export interface TallyBlockInput {
   /**
    * Display as a multi-row tally block.
    */
@@ -68,13 +68,13 @@ export interface TallySummaryInput {
 }
 
 /**
- * Inline-style summary: pipe-separated one-liner.
+ * Tally inline: pipe-separated one-liner.
  *
  * ```
  *   1 error | 3 warnings | 95 files | in 142ms
  * ```
  */
-export interface InlineSummaryInput {
+export interface TallyInlineInput {
   /**
    * Display as a single-line stats footer.
    */
@@ -86,9 +86,9 @@ export interface InlineSummaryInput {
 }
 
 /**
- * Discriminated union for summary output.
+ * Discriminated union for tally output.
  */
-export type SummaryInput = TallySummaryInput | InlineSummaryInput
+export type TallyInput = TallyBlockInput | TallyInlineInput
 
 /**
  * Annotation applied to a line in a code frame.
@@ -135,13 +135,13 @@ export interface CodeFrameInput {
 }
 
 /**
- * Input for a full diagnostic finding (lint error/warning).
+ * Input for a full finding (lint error/warning).
  */
-export interface DiagnosticInput {
+export interface FindingInput {
   /**
-   * Severity of the diagnostic.
+   * Severity of the finding.
    */
-  readonly severity: DiagnosticSeverity
+  readonly severity: FindingSeverity
   /**
    * Rule identifier (e.g. "no-unused-vars").
    */
@@ -151,7 +151,7 @@ export interface DiagnosticInput {
    */
   readonly category?: string
   /**
-   * Diagnostic message.
+   * Finding message.
    */
   readonly message: string
   /**

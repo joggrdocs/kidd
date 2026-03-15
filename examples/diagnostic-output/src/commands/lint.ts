@@ -75,9 +75,12 @@ export default command({
     ctx.logger.info('Linting project...')
     ctx.logger.newline()
 
-    FINDINGS.map((finding) => ctx.output.diagnostic(finding))
+    FINDINGS.reduce((_acc, finding) => {
+      ctx.logger.finding(finding)
+      return _acc
+    }, undefined)
 
-    ctx.output.summary({
+    ctx.logger.tally({
       stats: [
         ctx.colors.red('1 error'),
         ctx.colors.yellow('3 warnings'),

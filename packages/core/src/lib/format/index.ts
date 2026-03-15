@@ -1,19 +1,19 @@
 export type {
+  CheckInput,
+  CheckStatus,
   CodeFrameAnnotation,
   CodeFrameInput,
-  DiagnosticInput,
-  DiagnosticSeverity,
-  InlineSummaryInput,
-  ResultInput,
-  ResultStatus,
-  SummaryInput,
+  FindingInput,
+  FindingSeverity,
+  TallyBlockInput,
+  TallyInlineInput,
+  TallyInput,
   TallyStat,
-  TallySummaryInput,
 } from './types.js'
 
-export { SYMBOLS } from './constants.js'
+export { GLYPHS } from './constants.js'
+export { formatCheck } from './check.js'
 export { formatCodeFrame } from './code-frame.js'
-export { formatDiagnostic } from './diagnostic.js'
 export { formatDuration } from './duration.js'
-export { formatResult } from './result.js'
-export { formatSummary } from './summary.js'
+export { formatFinding } from './finding.js'
+export { formatTally } from './tally.js'

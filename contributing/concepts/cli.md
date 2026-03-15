@@ -31,7 +31,7 @@ export default command({
     force: z.boolean().optional(),
   }),
   handler: async (ctx) => {
-    ctx.output.write(`Deploying to ${ctx.args.environment}`)
+    process.stdout.write(ctx.format.json({ environment: ctx.args.environment }))
   },
 })
 ```
@@ -44,7 +44,7 @@ import { command } from '@kidd-cli/core'
 export default command({
   description: 'List available scripts',
   handler: async (ctx) => {
-    ctx.output.table(scripts)
+    process.stdout.write(ctx.format.table(scripts))
   },
 })
 ```
@@ -64,18 +64,18 @@ export default command({
 
 Every handler and middleware receives a `Context` object with the following properties:
 
-| Property  | Description                                                                             |
-| --------- | --------------------------------------------------------------------------------------- |
-| `args`    | Parsed command arguments (typed by Zod schema)                                          |
-| `config`  | Loaded config (typed by config schema, deeply readonly)                                 |
-| `logger`  | Structured terminal logger backed by @clack/prompts (info, success, error, warn, step)  |
-| `prompts` | Interactive prompts (confirm, text, select, multiselect, password)                      |
-| `spinner` | Terminal spinner (start, stop, message)                                                 |
-| `colors`  | Color formatting utilities (picocolors)                                                 |
-| `output`  | Structured stdout (write, table, markdown, raw, result, diagnostic, codeFrame, summary) |
-| `store`   | In-memory key-value store (mutable, for middleware data)                                |
-| `fail`    | Throw a user-facing error with clean exit                                               |
-| `meta`    | CLI name, version, and resolved command path                                            |
+| Property  | Description                                                                            |
+| --------- | -------------------------------------------------------------------------------------- |
+| `args`    | Parsed command arguments (typed by Zod schema)                                         |
+| `config`  | Loaded config (typed by config schema, deeply readonly)                                |
+| `logger`  | Structured terminal logger backed by @clack/prompts (info, success, error, warn, step) |
+| `prompts` | Interactive prompts (confirm, text, select, multiselect, password)                     |
+| `spinner` | Terminal spinner (start, stop, message)                                                |
+| `colors`  | Color formatting utilities (picocolors)                                                |
+| `format`  | Pure string formatters (json, table) — no I/O                                          |
+| `store`   | In-memory key-value store (mutable, for middleware data)                               |
+| `fail`    | Throw a user-facing error with clean exit                                              |
+| `meta`    | CLI name, version, and resolved command path                                           |
 
 All data properties (`args`, `config`, `meta`) are deeply readonly. The `store` is the only mutable property -- middleware uses it to pass typed data to handlers.
 
@@ -118,21 +118,23 @@ const env = await ctx.prompts.select({
 
 Cancellation (Ctrl-C) produces a `ContextError` with code `PROMPT_CANCELLED`.
 
-### Output
+### Format
 
-Structured output methods for writing to stdout:
+Pure string formatters for data serialization (no I/O):
 
 ```ts
-ctx.output.write('Hello')
-ctx.output.write({ key: 'value' }, { json: true })
-ctx.output.table(rows)
-ctx.output.markdown('# Title')
-ctx.output.raw('raw string')
+process.stdout.write(ctx.format.json({ key: 'value' }))
+process.stdout.write(ctx.format.table(rows))
+```
 
-// Diagnostic and test output
-ctx.output.result({ status: 'pass', name: 'src/auth.test.ts', duration: 42 })
-ctx.output.diagnostic({ severity: 'error', rule: 'no-unused-vars', message: '...' })
-ctx.output.summary({
+### Styled Output
+
+Structured output methods on the logger for test results, lint findings, and tallies:
+
+```ts
+ctx.logger.check({ status: 'pass', name: 'src/auth.test.ts', duration: 42 })
+ctx.logger.finding({ severity: 'error', rule: 'no-unused-vars', message: '...' })
+ctx.logger.tally({
   style: 'tally',
   stats: [
     { label: 'Tests', value: `${ctx.colors.green('3 passed')} ${ctx.colors.gray('(3)')}` },
@@ -180,7 +182,7 @@ command({
   description: 'Deploy the application',
   middleware: [requireAuth],
   handler: async (ctx) => {
-    ctx.output.write('Deploying')
+    ctx.logger.print('Deploying')
   },
 })
 ```

@@ -1,4 +1,5 @@
 import { command } from '@kidd-cli/core'
+import { match } from 'ts-pattern'
 import { z } from 'zod'
 
 const args = z.object({
@@ -22,13 +23,14 @@ export default command({
       (task) => ctx.args.status === 'all' || task.status === ctx.args.status
     )
 
-    ctx.output.table(
-      filtered.map((task) => ({
-        ID: task.id,
-        Status: task.status,
-        Title: task.title,
-      })),
-      { json: ctx.args.json }
-    )
+    const mapped = filtered.map((task) => ({
+      ID: task.id,
+      Status: task.status,
+      Title: task.title,
+    }))
+
+    match(ctx.args.json)
+      .with(true, () => process.stdout.write(ctx.format.json(mapped)))
+      .otherwise(() => process.stdout.write(ctx.format.table(mapped)))
   },
 })

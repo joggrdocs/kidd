@@ -1,22 +1,22 @@
 import pc from 'picocolors'
 import { match } from 'ts-pattern'
 
-import { SYMBOLS } from './constants.js'
-import type { ResultInput } from './types.js'
+import { GLYPHS } from './constants.js'
+import type { CheckInput } from './types.js'
 
 /**
- * Format a single pass/fail/warn result row.
+ * Format a single pass/fail/warn check row.
  *
- * @param input - The result data to format.
- * @returns A formatted result string.
+ * @param input - The check data to format.
+ * @returns A formatted check string.
  */
-export function formatResult(input: ResultInput): string {
+export function formatCheck(input: CheckInput): string {
   const icon = match(input.status)
-    .with('pass', () => pc.green(SYMBOLS.check))
-    .with('fail', () => pc.red(SYMBOLS.cross))
-    .with('warn', () => pc.yellow(SYMBOLS.warning))
-    .with('skip', () => pc.gray(SYMBOLS.skip))
-    .with('fix', () => pc.blue(SYMBOLS.fix))
+    .with('pass', () => pc.green(GLYPHS.check))
+    .with('fail', () => pc.red(GLYPHS.cross))
+    .with('warn', () => pc.yellow(GLYPHS.warning))
+    .with('skip', () => pc.gray(GLYPHS.skip))
+    .with('fix', () => pc.blue(GLYPHS.fix))
     .exhaustive()
 
   const nameText = match(input.status)
@@ -50,7 +50,7 @@ function formatOptionalDetail(detail: string | undefined): string {
 }
 
 /**
- * Format optional duration for a result row.
+ * Format optional duration for a check row.
  *
  * @private
  * @param duration - Optional duration in milliseconds.
@@ -76,7 +76,7 @@ function formatOptionalHint(hint: string | undefined): string {
 }
 
 /**
- * Inline duration format for result rows (compact).
+ * Inline duration format for check rows (compact).
  *
  * @private
  * @param ms - Duration in milliseconds.

@@ -77,10 +77,10 @@ const initCommand: Command = command({
 
     ctx.spinner.stop('Project created!')
 
-    ctx.output.raw('')
-    ctx.output.raw(`Next steps:`)
-    ctx.output.raw(`  cd ${projectName}`)
-    ctx.output.raw(`  ${packageManager} install`)
+    ctx.logger.newline()
+    ctx.logger.print('Next steps:')
+    ctx.logger.print(`  cd ${projectName}`)
+    ctx.logger.print(`  ${packageManager} install`)
   },
 })
 

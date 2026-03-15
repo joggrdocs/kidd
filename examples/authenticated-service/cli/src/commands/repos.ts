@@ -36,15 +36,17 @@ export default command({
     ctx.spinner.stop(`Found ${String(res.data.length)} repos`)
 
     if (ctx.args.json) {
-      ctx.output.write(res.data, { json: true })
+      process.stdout.write(ctx.format.json(res.data))
       return
     }
 
-    ctx.output.table(
-      res.data.map((repo) => ({
-        Name: repo.full_name,
-        Private: formatPrivate(repo.private),
-      }))
+    process.stdout.write(
+      ctx.format.table(
+        res.data.map((repo) => ({
+          Name: repo.full_name,
+          Private: formatPrivate(repo.private),
+        }))
+      )
     )
   },
 })

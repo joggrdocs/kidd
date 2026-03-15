@@ -28,7 +28,7 @@ export default command({
     ctx.spinner.start('Validating scripts')
 
     if (ctx.args.fix) {
-      ctx.output.write('Running with auto-fix enabled')
+      ctx.logger.print('Running with auto-fix enabled')
     }
 
     ctx.spinner.stop('Validation complete')
@@ -44,7 +44,7 @@ import { command } from '@kidd-cli/core'
 export default command({
   description: 'List available scripts',
   handler: async (ctx) => {
-    ctx.output.table(scripts)
+    process.stdout.write(ctx.format.table(scripts))
   },
 })
 ```

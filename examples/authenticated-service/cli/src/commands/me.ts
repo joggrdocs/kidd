@@ -26,7 +26,7 @@ export default command({
     ctx.spinner.stop('User fetched')
 
     if (ctx.args.json) {
-      ctx.output.write(res.data, { json: true })
+      process.stdout.write(ctx.format.json(res.data))
       return
     }
 

@@ -5,10 +5,10 @@ import pc from 'picocolors'
 
 import {
   formatCodeFrame,
-  formatDiagnostic,
+  formatCheck,
   formatDuration,
-  formatResult,
-  formatSummary,
+  formatFinding,
+  formatTally,
 } from '../packages/core/src/lib/format/index.js'
 
 console.log('\n=== formatDuration ===\n')
@@ -17,23 +17,23 @@ console.log('  150ms  →', formatDuration(150))
 console.log('  1234ms →', formatDuration(1234))
 console.log('  125000 →', formatDuration(125000))
 
-console.log('\n=== formatResult ===\n')
-console.log(formatResult({ status: 'pass', name: 'src/utils.test.ts', duration: 42 }))
+console.log('\n=== formatCheck ===\n')
+console.log(formatCheck({ status: 'pass', name: 'src/utils.test.ts', duration: 42 }))
 console.log(
-  formatResult({
+  formatCheck({
     status: 'fail',
     name: 'src/auth.test.ts',
     detail: '2 assertions failed',
     duration: 1523,
   })
 )
-console.log(formatResult({ status: 'warn', name: 'src/config.ts', hint: 'deprecated API' }))
-console.log(formatResult({ status: 'skip', name: 'src/old.test.ts', hint: 'todo' }))
-console.log(formatResult({ status: 'fix', name: 'src/lint.ts', detail: 'auto-fixed 3 issues' }))
+console.log(formatCheck({ status: 'warn', name: 'src/config.ts', hint: 'deprecated API' }))
+console.log(formatCheck({ status: 'skip', name: 'src/old.test.ts', hint: 'todo' }))
+console.log(formatCheck({ status: 'fix', name: 'src/lint.ts', detail: 'auto-fixed 3 issues' }))
 
-console.log('\n=== formatSummary (tally) ===\n')
+console.log('\n=== formatTally (tally) ===\n')
 console.log(
-  formatSummary({
+  formatTally({
     stats: [
       {
         label: 'Tests',
@@ -68,9 +68,9 @@ console.log(
   })
 )
 
-console.log('\n=== formatDiagnostic ===\n')
+console.log('\n=== formatFinding ===\n')
 console.log(
-  formatDiagnostic({
+  formatFinding({
     severity: 'error',
     rule: 'no-param-reassign',
     category: 'correctness',
@@ -96,16 +96,16 @@ console.log(
 
 console.log()
 console.log(
-  formatDiagnostic({
+  formatFinding({
     severity: 'warning',
     rule: 'no-unused-vars',
     message: "'oldConfig' is defined but never used",
   })
 )
 
-console.log('\n=== formatSummary (inline) ===\n')
+console.log('\n=== formatTally (inline) ===\n')
 console.log(
-  formatSummary({
+  formatTally({
     stats: [
       pc.red('1 error'),
       pc.yellow('3 warnings'),
@@ -118,7 +118,7 @@ console.log(
 )
 
 console.log(
-  formatSummary({
+  formatTally({
     stats: [pc.green('7 fixed'), pc.dim('12 files'), pc.dim('in 47ms')],
     style: 'inline',
   })

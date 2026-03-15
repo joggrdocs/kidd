@@ -73,7 +73,7 @@ const addCommandCommand: Command = command({
     ]
     const summary = lines.join('\n')
     if (summary.length > 0) {
-      ctx.output.raw(summary)
+      ctx.logger.print(summary)
     }
   },
 })

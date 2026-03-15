@@ -1,6 +1,6 @@
 # Context
 
-The central API surface threaded through every handler and middleware. Provides typed access to args, config, logger, prompts, spinner, output, store, error handling, and CLI metadata.
+The central API surface threaded through every handler and middleware. Provides typed access to args, config, logger, prompts, spinner, format, store, error handling, and CLI metadata.
 
 ## Properties
 
@@ -9,10 +9,10 @@ The central API surface threaded through every handler and middleware. Provides 
 | `args`    | `DeepReadonly<Merge<KiddArgs, TArgs>>`    | Parsed and validated command args                                  |
 | `colors`  | `Colors`                                  | Color formatting utilities (picocolors)                            |
 | `config`  | `DeepReadonly<Merge<CliConfig, TConfig>>` | Validated runtime config                                           |
-| `logger`  | `CliLogger`                               | Structured terminal logger                                         |
+| `format`  | `Format`                                  | Pure string formatters (no I/O)                                    |
+| `logger`  | `CliLogger`                               | Structured terminal logger + styled output                         |
 | `prompts` | `Prompts`                                 | Interactive terminal prompts                                       |
 | `spinner` | `Spinner`                                 | Spinner for long-running operations                                |
-| `output`  | `Output`                                  | Structured data output                                             |
 | `store`   | `Store`                                   | Typed in-memory key-value store                                    |
 | `fail`    | `(message, options?) => never`            | Throw a user-facing error                                          |
 | `meta`    | `Meta`                                    | CLI metadata                                                       |
@@ -85,6 +85,8 @@ Run `kidd add config` to scaffold this setup in an existing project, or pass `--
 
 Structured logger backed by `@clack/prompts` for styled terminal output. All methods write to stderr.
 
+### General logging
+
 | Method                    | Description                          |
 | ------------------------- | ------------------------------------ |
 | `info(message)`           | Log an informational message         |
@@ -104,6 +106,42 @@ ctx.logger.intro('my-app v1.0.0')
 ctx.logger.info('Starting deployment...')
 ctx.logger.success('Deployed successfully')
 ctx.logger.outro('Done')
+```
+
+### Styled output
+
+| Method           | Description                                                                              |
+| ---------------- | ---------------------------------------------------------------------------------------- |
+| `check(input)`   | Write a single pass/fail/warn/skip/fix row (vitest test file style)                      |
+| `finding(input)` | Write a full finding with optional code frame (oxlint style)                             |
+| `tally(input)`   | Write a tally block (`style: 'tally'` for labeled rows, `style: 'inline'` for one-liner) |
+
+```ts
+// Test results
+ctx.logger.check({ status: 'pass', name: 'src/auth.test.ts', duration: 42 })
+ctx.logger.check({ status: 'fail', name: 'src/api.test.ts', detail: 'timeout' })
+
+// Lint findings
+ctx.logger.finding({
+  severity: 'error',
+  rule: 'no-unused-vars',
+  message: "'config' is defined but never used",
+})
+
+// Tally (tally style)
+ctx.logger.tally({
+  style: 'tally',
+  stats: [
+    { label: 'Tests', value: `${ctx.colors.green('3 passed')} ${ctx.colors.gray('(3)')}` },
+    { label: 'Duration', value: '45ms' },
+  ],
+})
+
+// Tally (inline style)
+ctx.logger.tally({
+  style: 'inline',
+  stats: [ctx.colors.red('1 error'), ctx.colors.dim('95 files'), ctx.colors.dim('in 142ms')],
+})
 ```
 
 ## `ctx.prompts`
@@ -146,13 +184,13 @@ ctx.spinner.stop('Build complete')
 
 ## `ctx.colors`
 
-Color formatting utilities powered by [picocolors](https://github.com/nicedoc/picocolors). Use for coloring summary values, diagnostic output, and other terminal text.
+Color formatting utilities powered by [picocolors](https://github.com/alexeyraspopov/picocolors). Use for coloring summary values, diagnostic output, and other terminal text.
 
 ```ts
 const c = ctx.colors
 ctx.logger.info(`Status: ${c.green('passing')}`)
 
-ctx.output.summary({
+ctx.logger.tally({
   style: 'inline',
   stats: [c.red('1 error'), c.yellow('3 warnings'), c.dim('95 files')],
 })
@@ -160,55 +198,26 @@ ctx.output.summary({
 
 Available formatters: `bold`, `dim`, `italic`, `underline`, `red`, `green`, `yellow`, `blue`, `magenta`, `cyan`, `white`, `gray`, and more.
 
-## `ctx.output`
+## `ctx.format`
 
-Structured output methods for writing data to stdout.
+Pure string formatters for data serialization. These return strings and perform no I/O -- write the result to stdout yourself.
 
-| Method                  | Description                                                                                |
-| ----------------------- | ------------------------------------------------------------------------------------------ |
-| `write(data, options?)` | Write a value; objects and `json: true` serialize as JSON, primitives render as strings    |
-| `table(rows, options?)` | Write a table from an array of objects                                                     |
-| `markdown(content)`     | Write a markdown-formatted string                                                          |
-| `raw(content)`          | Write a raw string (no formatting)                                                         |
-| `result(input)`         | Write a single pass/fail/warn/skip/fix row (vitest test file style)                        |
-| `diagnostic(input)`     | Write a full diagnostic finding with optional code frame (oxlint style)                    |
-| `codeFrame(input)`      | Write an annotated code snippet (oxlint code frame style)                                  |
-| `summary(input)`        | Write a summary block (`style: 'tally'` for labeled rows, `style: 'inline'` for one-liner) |
-
-The optional `options` parameter on `write` and `table` accepts `{ json?: boolean }`. For `write`, objects are always serialized as pretty-printed JSON regardless of the flag; setting `json: true` also forces primitives (strings, numbers) to serialize as JSON. For `table`, `json: true` outputs the rows as a JSON array instead of a formatted table.
+| Method        | Returns  | Description                                         |
+| ------------- | -------- | --------------------------------------------------- |
+| `json(data)`  | `string` | Serialize a value as pretty-printed JSON            |
+| `table(rows)` | `string` | Format an array of objects as an aligned text table |
 
 ```ts
+// JSON output
+process.stdout.write(ctx.format.json({ name: 'deploy', status: 'success' }))
+
 // Table output
-ctx.output.table([
-  { name: 'deploy', status: 'success' },
-  { name: 'migrate', status: 'skipped' },
-])
-
-// Test results
-ctx.output.result({ status: 'pass', name: 'src/auth.test.ts', duration: 42 })
-ctx.output.result({ status: 'fail', name: 'src/api.test.ts', detail: 'timeout' })
-
-// Lint diagnostics
-ctx.output.diagnostic({
-  severity: 'error',
-  rule: 'no-unused-vars',
-  message: "'config' is defined but never used",
-})
-
-// Summary (tally style)
-ctx.output.summary({
-  style: 'tally',
-  stats: [
-    { label: 'Tests', value: `${ctx.colors.green('3 passed')} ${ctx.colors.gray('(3)')}` },
-    { label: 'Duration', value: '45ms' },
-  ],
-})
-
-// Summary (inline style)
-ctx.output.summary({
-  style: 'inline',
-  stats: [ctx.colors.red('1 error'), ctx.colors.dim('95 files'), ctx.colors.dim('in 142ms')],
-})
+process.stdout.write(
+  ctx.format.table([
+    { name: 'deploy', status: 'success' },
+    { name: 'migrate', status: 'skipped' },
+  ])
+)
 ```
 
 ## `ctx.store`

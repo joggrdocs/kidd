@@ -67,6 +67,24 @@ describe('formatCodeFrame()', () => {
     expect(messageIdx).toBe(annotatedLineIdx + 1)
   })
 
+  it('should return error message for invalid annotation', () => {
+    const input = {
+      annotation: {
+        column: 0,
+        length: -1,
+        line: 1,
+        message: 'bad',
+      },
+      filePath: 'src/invalid.ts',
+      lines: ['const x = 1'],
+      startLine: 1,
+    } as CodeFrameInput
+
+    const result = formatCodeFrame(input)
+
+    expect(result).toContain('Invalid code frame annotation')
+  })
+
   it('should handle single-line frames', () => {
     const input: CodeFrameInput = {
       annotation: {

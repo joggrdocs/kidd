@@ -63,7 +63,7 @@ export interface WritableCapture {
 
 /**
  * Create a writable stream that captures all written data into a string buffer.
- * Useful for asserting against `ctx.output.*` calls in handler tests.
+ * Useful for asserting against logger output in handler tests.
  */
 export function createWritableCapture(): WritableCapture {
   let data = ''

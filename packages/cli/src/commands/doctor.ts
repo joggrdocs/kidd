@@ -58,7 +58,7 @@ const doctorCommand: Command = command({
 
     const summary = formatSummary({ failed, fixed, passed, total: results.length, warnings })
 
-    ctx.output.raw(summary)
+    ctx.logger.print(summary)
 
     if (failed > 0) {
       ctx.fail(`${failed} ${pluralizeCheck(failed)} failed`)
@@ -176,7 +176,7 @@ function displayResults(
   const lines = results.map((result) => formatResultLine(result, fixResults))
   const output = lines.join('')
   if (output.length > 0) {
-    ctx.output.raw(output)
+    ctx.logger.print(output)
   }
 }
 

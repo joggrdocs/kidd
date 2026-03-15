@@ -1,4 +1,4 @@
-export type { ConfigFormat } from './constants.js'
+export type { ConfigFormat, ConfigWriteFormat } from './constants.js'
 export type {
   Config,
   ConfigOperationResult,

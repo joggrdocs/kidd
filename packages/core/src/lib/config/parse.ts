@@ -6,7 +6,7 @@ import type { ParseError } from 'jsonc-parser'
 import { parse as parseJsonc, printParseErrorCode } from 'jsonc-parser'
 import { parse as parseYaml, stringify as stringifyYaml } from 'yaml'
 
-import type { ConfigFormat } from './constants.js'
+import type { ConfigFormat, ConfigWriteFormat } from './constants.js'
 import { EMPTY_LENGTH } from './constants.js'
 import type { ConfigOperationResult } from './types.js'
 
@@ -14,27 +14,35 @@ import type { ConfigOperationResult } from './types.js'
  * Determine the config format from a file path's extension.
  *
  * @param filePath - The file path to inspect.
- * @returns The detected config format ('json', 'jsonc', or 'yaml').
+ * @returns The detected config format.
  */
 export function getFormat(filePath: string): ConfigFormat {
   const ext = extname(filePath)
   return match(ext)
     .with('.jsonc', () => 'jsonc' as const)
     .with('.yaml', () => 'yaml' as const)
+    .with('.ts', () => 'ts' as const)
+    .with('.mts', () => 'ts' as const)
+    .with('.cts', () => 'ts' as const)
+    .with('.js', () => 'js' as const)
+    .with('.mjs', () => 'js' as const)
+    .with('.cjs', () => 'js' as const)
     .otherwise(() => 'json' as const)
 }
 
 /**
- * Options for parsing config file content.
+ * Options for parsing config file content (dotfile fallback only).
  */
 export interface ParseContentOptions {
   readonly content: string
   readonly filePath: string
-  readonly format: ConfigFormat
+  readonly format: ConfigWriteFormat
 }
 
 /**
  * Parse config file content using the appropriate parser for the given format.
+ *
+ * Used only for dotfile fallback — c12 handles TS/JS/etc. natively.
  *
  * @param options - Parse content options.
  * @returns A ConfigOperationResult with the parsed data or an error.
@@ -55,7 +63,7 @@ export function parseContent(options: ParseContentOptions): ConfigOperationResul
  * @param format - The target config format.
  * @returns The serialized string representation.
  */
-export function serializeContent(data: unknown, format: ConfigFormat): string {
+export function serializeContent(data: unknown, format: ConfigWriteFormat): string {
   return match(format)
     .with('json', () => {
       const [, json] = jsonStringify(data, { pretty: true })
@@ -70,12 +78,12 @@ export function serializeContent(data: unknown, format: ConfigFormat): string {
 }
 
 /**
- * Get the file extension string for a given config format.
+ * Get the file extension string for a given write format.
  *
- * @param format - The config format.
+ * @param format - The config write format.
  * @returns The file extension including the leading dot (e.g. '.json').
  */
-export function getExtension(format: ConfigFormat): string {
+export function getExtension(format: ConfigWriteFormat): string {
   return match(format)
     .with('json', () => '.json')
     .with('jsonc', () => '.jsonc')

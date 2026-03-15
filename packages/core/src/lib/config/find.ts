@@ -4,23 +4,22 @@ import { fileExists } from '@kidd-cli/utils/fs'
 
 import { findProjectRoot } from '@/lib/project/index.js'
 
-import { CONFIG_EXTENSIONS } from './constants.js'
+import { DOTFILE_EXTENSIONS } from './constants.js'
 
 /**
- * Generate the list of config file names to search for based on the CLI name.
+ * Generate dotfile config names used as a fallback when c12 finds nothing.
  *
- * Produces names like `.myapp.jsonc`, `.myapp.json`, `.myapp.yaml` from the
- * supported extension list.
+ * Produces names like `.myapp.json`, `.myapp.jsonc`, `.myapp.yaml`.
  *
  * @param name - The CLI name used to derive config file names.
- * @returns An array of config file names to search for.
+ * @returns An array of dotfile config file names.
  */
-export function getConfigFileNames(name: string): string[] {
-  return CONFIG_EXTENSIONS.map((ext) => `.${name}${ext}`)
+export function getDotfileNames(name: string): string[] {
+  return DOTFILE_EXTENSIONS.map((ext) => `.${name}${ext}`)
 }
 
 /**
- * Search for a config file across multiple directories.
+ * Search for a dotfile config across multiple directories.
  *
  * Searches in order: explicit search paths, the current working directory,
  * and the project root (if different from cwd). Returns the path of the
@@ -29,7 +28,7 @@ export function getConfigFileNames(name: string): string[] {
  * @param options - Search options including cwd, file names, and optional search paths.
  * @returns The full path to the config file, or null if not found.
  */
-export async function findConfig(options: {
+export async function findDotfileConfig(options: {
   cwd: string
   fileNames: string[]
   searchPaths?: string[]
@@ -68,9 +67,6 @@ export async function findConfig(options: {
 
 /**
  * Search a single directory for the first matching config file name.
- *
- * Checks each candidate file name in order and returns the path of the first
- * one that exists on disk.
  *
  * @param dir - The directory to search in.
  * @param fileNames - Candidate config file names to look for.

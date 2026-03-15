@@ -1,40 +1,40 @@
 import type { ZodTypeAny } from 'zod'
 
-import type { ConfigFormat } from './constants.js'
+import type { ConfigFormat, ConfigWriteFormat } from './constants.js'
 
 /**
  * Options for creating a config client.
  */
 export interface ConfigOptions<TSchema extends ZodTypeAny> {
-  name: string
-  schema: TSchema
-  searchPaths?: string[]
+  readonly name: string
+  readonly schema: TSchema
+  readonly searchPaths?: string[]
 }
 
 /**
  * Result of loading a config file: the parsed config, its path, and format.
  */
 export interface ConfigResult<TConfig> {
-  config: TConfig
-  filePath: string
-  format: ConfigFormat
+  readonly config: TConfig
+  readonly filePath: string
+  readonly format: ConfigFormat
 }
 
 /**
  * Options for writing a config file.
  */
 export interface ConfigWriteOptions {
-  dir?: string
-  format?: ConfigFormat
-  filePath?: string
+  readonly dir?: string
+  readonly format?: ConfigWriteFormat
+  readonly filePath?: string
 }
 
 /**
  * Result of writing a config file.
  */
 export interface ConfigWriteResult {
-  filePath: string
-  format: ConfigFormat
+  readonly filePath: string
+  readonly format: ConfigWriteFormat
 }
 
 /**

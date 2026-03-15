@@ -1,5 +1,16 @@
 import { jsonStringify } from '@kidd-cli/utils/json'
 
+import { formatCodeFrame } from '@/lib/format/code-frame.js'
+import { formatDiagnostic } from '@/lib/format/diagnostic.js'
+import { formatResult } from '@/lib/format/result.js'
+import { formatSummary } from '@/lib/format/summary.js'
+import type {
+  CodeFrameInput,
+  DiagnosticInput,
+  ResultInput,
+  SummaryInput,
+} from '@/lib/format/types.js'
+
 import type { Output, OutputOptions } from './types.js'
 
 /**
@@ -11,11 +22,23 @@ import type { Output, OutputOptions } from './types.js'
  */
 export function createContextOutput(stream: NodeJS.WriteStream): Output {
   return {
+    codeFrame(input: CodeFrameInput): void {
+      stream.write(`${formatCodeFrame(input)}\n\n`)
+    },
+    diagnostic(input: DiagnosticInput): void {
+      stream.write(`${formatDiagnostic(input)}\n\n`)
+    },
     markdown(content: string): void {
       stream.write(`${content}\n`)
     },
     raw(content: string): void {
       stream.write(content)
+    },
+    result(input: ResultInput): void {
+      stream.write(`${formatResult(input)}\n`)
+    },
+    summary(input: SummaryInput): void {
+      stream.write(`\n${formatSummary(input)}\n`)
     },
     table(rows: Record<string, unknown>[], options?: OutputOptions): void {
       if (options && options.json) {

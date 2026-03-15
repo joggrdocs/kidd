@@ -64,17 +64,18 @@ export default command({
 
 Every handler and middleware receives a `Context` object with the following properties:
 
-| Property  | Description                                                        |
-| --------- | ------------------------------------------------------------------ |
-| `args`    | Parsed command arguments (typed by Zod schema)                     |
-| `config`  | Loaded config (typed by config schema, deeply readonly)            |
-| `logger`  | Pino-compatible structured logger (fatal through trace)            |
-| `prompts` | Interactive prompts (confirm, text, select, multiselect, password) |
-| `spinner` | Terminal spinner (start, stop, message)                            |
-| `output`  | Structured stdout (write, table, markdown, raw)                    |
-| `store`   | In-memory key-value store (mutable, for middleware data)           |
-| `errors`  | Redaction, sanitization, and `fail()` for user-facing errors       |
-| `meta`    | CLI name, version, and resolved command path                       |
+| Property  | Description                                                                             |
+| --------- | --------------------------------------------------------------------------------------- |
+| `args`    | Parsed command arguments (typed by Zod schema)                                          |
+| `config`  | Loaded config (typed by config schema, deeply readonly)                                 |
+| `logger`  | Structured terminal logger backed by @clack/prompts (info, success, error, warn, step)  |
+| `prompts` | Interactive prompts (confirm, text, select, multiselect, password)                      |
+| `spinner` | Terminal spinner (start, stop, message)                                                 |
+| `colors`  | Color formatting utilities (picocolors)                                                 |
+| `output`  | Structured stdout (write, table, markdown, raw, result, diagnostic, codeFrame, summary) |
+| `store`   | In-memory key-value store (mutable, for middleware data)                                |
+| `fail`    | Throw a user-facing error with clean exit                                               |
+| `meta`    | CLI name, version, and resolved command path                                            |
 
 All data properties (`args`, `config`, `meta`) are deeply readonly. The `store` is the only mutable property -- middleware uses it to pass typed data to handlers.
 
@@ -127,20 +128,29 @@ ctx.output.write({ key: 'value' }, { json: true })
 ctx.output.table(rows)
 ctx.output.markdown('# Title')
 ctx.output.raw('raw string')
+
+// Diagnostic and test output
+ctx.output.result({ status: 'pass', name: 'src/auth.test.ts', duration: 42 })
+ctx.output.diagnostic({ severity: 'error', rule: 'no-unused-vars', message: '...' })
+ctx.output.summary({
+  style: 'tally',
+  stats: [
+    { label: 'Tests', value: `${ctx.colors.green('3 passed')} ${ctx.colors.gray('(3)')}` },
+    { label: 'Duration', value: '45ms' },
+  ],
+})
 ```
 
 ### Errors
 
-User-facing error utilities:
+User-facing error utility:
 
 ```ts
-ctx.errors.fail('Config not found')
-ctx.errors.fail('Unauthorized', { code: 'AUTH_REQUIRED', exitCode: 1 })
-ctx.errors.sanitize(sensitiveString)
-ctx.errors.redact(sensitiveObject)
+ctx.fail('Config not found')
+ctx.fail('Unauthorized', { code: 'AUTH_REQUIRED', exitCode: 1 })
 ```
 
-`fail()` throws a `ContextError` that is caught at the CLI boundary for clean exit handling.
+`ctx.fail()` throws a `ContextError` that is caught at the CLI boundary for clean exit handling.
 
 ## Middleware
 
@@ -220,7 +230,7 @@ commands/
 Errors propagate from handlers to the terminal through a single path:
 
 ```
-Handler calls ctx.errors.fail(message)
+Handler calls ctx.fail(message)
   -> Throws ContextError { code, exitCode, message }
   -> Middleware chain unwinds (post-handler code skipped)
   -> CLI boundary catches ContextError

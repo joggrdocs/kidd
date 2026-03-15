@@ -35,3 +35,16 @@ examples/advanced/
         ├── preview.ts        # Deploy preview subcommand
         └── production.ts     # Deploy production subcommand
 ```
+
+## Diagnostic Output
+
+Demonstrates the `ctx.output` format methods for displaying linting, testing, and diagnostic results. Shows how to use `diagnostic()`, `result()`, `codeFrame()`, and `summary()` (with `style: 'tally'` and `style: 'inline'`) for structured terminal output, plus `ctx.colors` for coloring.
+
+```
+examples/diagnostic-output/
+├── index.ts                 # CLI entry point
+└── commands/
+    ├── lint.ts              # Linter output with diagnostics and summary
+    ├── test.ts              # Test runner output with results and tally summary
+    └── check.ts             # Combined lint + test output with ctx.colors
+```

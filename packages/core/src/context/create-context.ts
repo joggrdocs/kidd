@@ -1,4 +1,6 @@
 import * as clack from '@clack/prompts'
+import pc from 'picocolors'
+import type { Colors } from 'picocolors/types'
 
 import { createCliLogger } from '@/lib/logger.js'
 import type { CliLogger } from '@/lib/logger.js'
@@ -54,6 +56,7 @@ export function createContext<TArgs extends AnyRecord, TConfig extends AnyRecord
   // See `decorateContext` — they are intentionally absent here.
   return {
     args: options.args as Context<TArgs, TConfig>['args'],
+    colors: pc as Colors,
     config: options.config as Context<TArgs, TConfig>['config'],
     fail(message: string, failOptions?: { code?: string; exitCode?: number }): never {
       // Accepted exception: ctx.fail() is typed `never` and caught by the CLI boundary.

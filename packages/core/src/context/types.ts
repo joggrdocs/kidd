@@ -1,3 +1,11 @@
+import type { Colors } from 'picocolors/types'
+
+import type {
+  CodeFrameInput,
+  DiagnosticInput,
+  ResultInput,
+  SummaryInput,
+} from '@/lib/format/types.js'
 import type { CliLogger } from '@/lib/logger.js'
 import type {
   AnyRecord,
@@ -153,6 +161,24 @@ export interface Output {
    * Write raw string to stdout (no formatting).
    */
   raw(content: string): void
+  /**
+   * Write a single pass/fail/warn result row (vitest test file style).
+   */
+  result(input: ResultInput): void
+  /**
+   * Write a full diagnostic finding with optional code frame (oxlint style).
+   */
+  diagnostic(input: DiagnosticInput): void
+  /**
+   * Write an annotated code snippet (oxlint code frame style).
+   */
+  codeFrame(input: CodeFrameInput): void
+  /**
+   * Write a summary block. Use `style: 'tally'` for labeled count rows
+   * (vitest style) or `style: 'inline'` for a one-liner stats footer
+   * (oxlint style).
+   */
+  summary(input: SummaryInput): void
 }
 
 /**
@@ -195,6 +221,12 @@ export interface Context<
    * Parsed and validated args for this command. Deeply immutable.
    */
   readonly args: DeepReadonly<Merge<KiddArgs, TArgs>>
+
+  /**
+   * Color formatting utilities (picocolors). Use for coloring summary
+   * values, diagnostic output, and other terminal text.
+   */
+  readonly colors: Colors
 
   /**
    * Runtime config validated against the zod schema. Deeply immutable.

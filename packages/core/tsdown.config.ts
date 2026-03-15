@@ -7,6 +7,7 @@ export default defineConfig({
   entry: {
     index: 'src/index.ts',
     'lib/config': 'src/lib/config/index.ts',
+    'lib/format': 'src/lib/format/index.ts',
     'lib/logger': 'src/lib/logger.ts',
     'lib/project': 'src/lib/project/index.ts',
     'lib/store': 'src/lib/store/index.ts',

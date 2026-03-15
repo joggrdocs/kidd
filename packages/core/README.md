@@ -144,6 +144,24 @@ output.json({ status: 'ok' })
 output.write({ path: './out.json', content: output.toJson(data) })
 ```
 
+### `kidd/format`
+
+Standalone pure format functions for terminal output styling.
+
+```ts
+import {
+  formatResult,
+  formatDiagnostic,
+  formatSummary,
+  formatDuration,
+} from '@kidd-cli/core/format'
+
+console.log(formatResult({ status: 'pass', name: 'src/auth.test.ts', duration: 42 }))
+console.log(formatDiagnostic({ severity: 'error', rule: 'no-unused-vars', message: '...' }))
+console.log(formatSummary({ style: 'inline', stats: ['1 error', '3 warnings'] }))
+console.log(formatDuration(1234)) // "1.23s"
+```
+
 ### `kidd/errors`
 
 Error creation, formatting, and sanitization utilities.

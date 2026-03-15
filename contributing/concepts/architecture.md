@@ -116,33 +116,35 @@ The framework primitives:
 
 Shared utilities consumed by the core and extension layers:
 
-| Module        | Purpose                                              |
-| ------------- | ---------------------------------------------------- |
-| `config.ts`   | Config file discovery, parsing, Zod validation       |
-| `store.ts`    | File-backed JSON store (local and global)            |
-| `logger.ts`   | Structured logging with `@clack/prompts`             |
-| `output.ts`   | Structured stdout (write, table, markdown, raw)      |
-| `prompts.ts`  | Interactive prompts and spinner via `@clack/prompts` |
-| `errors.ts`   | Sensitive data redaction and sanitization            |
-| `result.ts`   | `Result<T, E>` type constructors (`ok`, `err`)       |
-| `validate.ts` | Zod schema validation returning Result tuples        |
-| `project.ts`  | Git project root detection and submodule handling    |
+| Module        | Purpose                                                                                 |
+| ------------- | --------------------------------------------------------------------------------------- |
+| `config.ts`   | Config file discovery, parsing, Zod validation                                          |
+| `store.ts`    | File-backed JSON store (local and global)                                               |
+| `logger.ts`   | Structured logging with `@clack/prompts`                                                |
+| `output.ts`   | Structured stdout (write, table, markdown, raw, result, diagnostic, codeFrame, summary) |
+| `format/`     | Pure format functions (result, diagnostic, code-frame, summary, duration)               |
+| `prompts.ts`  | Interactive prompts and spinner via `@clack/prompts`                                    |
+| `errors.ts`   | Sensitive data redaction and sanitization                                               |
+| `result.ts`   | `Result<T, E>` type constructors (`ok`, `err`)                                          |
+| `validate.ts` | Zod schema validation returning Result tuples                                           |
+| `project.ts`  | Git project root detection and submodule handling                                       |
 
 ## Context
 
 The `Context` is the central object threaded through every middleware and command handler. It carries all request-scoped data and utilities for a single CLI invocation.
 
-| Property  | Type                           | Mutable | Description                                     |
-| --------- | ------------------------------ | ------- | ----------------------------------------------- |
-| `args`    | `DeepReadonly<TArgs>`          | No      | Parsed and validated command arguments          |
-| `config`  | `DeepReadonly<TConfig>`        | No      | Loaded and validated config file contents       |
-| `logger`  | `CliLogger`                    | No      | Structured terminal logger via `@clack/prompts` |
-| `prompts` | `Prompts`                      | No      | Interactive input (confirm, text, select, etc.) |
-| `spinner` | `Spinner`                      | No      | Terminal spinner for long-running operations    |
-| `output`  | `Output`                       | No      | Structured stdout (write, table, markdown, raw) |
-| `store`   | `Store`                        | Yes     | In-memory key-value store for middleware data   |
-| `fail`    | `(message, options?) => never` | No      | Throw a user-facing error with clean exit       |
-| `meta`    | `DeepReadonly<Meta>`           | No      | CLI name, version, resolved command path        |
+| Property  | Type                           | Mutable | Description                                                                  |
+| --------- | ------------------------------ | ------- | ---------------------------------------------------------------------------- |
+| `args`    | `DeepReadonly<TArgs>`          | No      | Parsed and validated command arguments                                       |
+| `config`  | `DeepReadonly<TConfig>`        | No      | Loaded and validated config file contents                                    |
+| `logger`  | `CliLogger`                    | No      | Structured terminal logger via `@clack/prompts`                              |
+| `prompts` | `Prompts`                      | No      | Interactive input (confirm, text, select, etc.)                              |
+| `spinner` | `Spinner`                      | No      | Terminal spinner for long-running operations                                 |
+| `colors`  | `Colors`                       | No      | Color formatting utilities (picocolors)                                      |
+| `output`  | `Output`                       | No      | Structured stdout (write, table, markdown, raw, result, diagnostic, summary) |
+| `store`   | `Store`                        | Yes     | In-memory key-value store for middleware data                                |
+| `fail`    | `(message, options?) => never` | No      | Throw a user-facing error with clean exit                                    |
+| `meta`    | `DeepReadonly<Meta>`           | No      | CLI name, version, resolved command path                                     |
 
 All data properties (`args`, `config`, `meta`) are deeply readonly at the type level. The `store` is the only mutable property -- it exists for middleware-to-handler data flow.
 
@@ -313,7 +315,7 @@ const [error, config] = loadConfig(workspace)
 if (error) return [error, null]
 ```
 
-**ContextError** is used for user-facing errors via `ctx.errors.fail()`. It is the only thrown type, and is caught at the CLI boundary for clean exit handling.
+**ContextError** is used for user-facing errors via `ctx.fail()`. It is the only thrown type, and is caught at the CLI boundary for clean exit handling.
 
 ## Design Decisions
 

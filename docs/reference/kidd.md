@@ -122,7 +122,8 @@ The `Context` object is threaded through every handler and middleware. See [Cont
 | `logger`  | `CliLogger`                                | Structured terminal logger (info, success, error, warn, step, message, intro, outro, note, newline, print) |
 | `prompts` | `Prompts`                                  | Interactive prompts (confirm, text, select, multiselect, password)                                         |
 | `spinner` | `Spinner`                                  | Spinner for long-running operations (start, stop, message)                                                 |
-| `output`  | `Output`                                   | Structured output (write, table, markdown, raw)                                                            |
+| `colors`  | `Colors`                                   | Color formatting utilities (picocolors)                                                                    |
+| `output`  | `Output`                                   | Structured output (write, table, markdown, raw, result, diagnostic, codeFrame, summary)                    |
 | `store`   | `Store`                                    | Typed in-memory key-value store (get, set, has, delete, clear)                                             |
 | `fail`    | `(message, options?) => never`             | Throw a user-facing error                                                                                  |
 | `meta`    | `Meta`                                     | CLI metadata (name, version, command path)                                                                 |
@@ -207,6 +208,7 @@ Returns the same `ctx` reference with the new property attached.
 | `@kidd-cli/core/config`  | Config loading and validation (`createConfigClient`)                                                                                                  |
 | `@kidd-cli/core/store`   | File-backed JSON store (`createStore`)                                                                                                                |
 | `@kidd-cli/core/project` | Git root resolution, path utilities (`findProjectRoot`, `isInSubmodule`, `getParentRepoRoot`, `resolvePath`, `resolveLocalPath`, `resolveGlobalPath`) |
+| `@kidd-cli/core/format`  | Standalone format functions (`formatResult`, `formatDiagnostic`, `formatCodeFrame`, `formatSummary`, `formatDuration`)                                |
 | `@kidd-cli/core/auth`    | Auth middleware, credential types, strategies (`auth`)                                                                                                |
 | `@kidd-cli/core/http`    | Typed HTTP client middleware (`http`, `createHttpClient`)                                                                                             |
 

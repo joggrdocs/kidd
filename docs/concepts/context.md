@@ -7,6 +7,7 @@ The central API surface threaded through every handler and middleware. Provides 
 | Property  | Type                                       | Description                                                        |
 | --------- | ------------------------------------------ | ------------------------------------------------------------------ |
 | `args`    | `DeepReadonly<Merge<KiddArgs, TArgs>>`     | Parsed and validated command args                                  |
+| `colors`  | `Colors`                                   | Color formatting utilities (picocolors)                            |
 | `config`  | `DeepReadonly<Merge<KiddConfig, TConfig>>` | Validated runtime config                                           |
 | `logger`  | `CliLogger`                                | Structured terminal logger                                         |
 | `prompts` | `Prompts`                                  | Interactive terminal prompts                                       |
@@ -108,24 +109,71 @@ ctx.spinner.message('Compiling binaries...')
 ctx.spinner.stop('Build complete')
 ```
 
+## `ctx.colors`
+
+Color formatting utilities powered by [picocolors](https://github.com/nicedoc/picocolors). Use for coloring summary values, diagnostic output, and other terminal text.
+
+```ts
+const c = ctx.colors
+ctx.logger.info(`Status: ${c.green('passing')}`)
+
+ctx.output.summary({
+  style: 'inline',
+  stats: [c.red('1 error'), c.yellow('3 warnings'), c.dim('95 files')],
+})
+```
+
+Available formatters: `bold`, `dim`, `italic`, `underline`, `red`, `green`, `yellow`, `blue`, `magenta`, `cyan`, `white`, `gray`, and more.
+
 ## `ctx.output`
 
 Structured output methods for writing data to stdout.
 
-| Method                  | Description                                              |
-| ----------------------- | -------------------------------------------------------- |
-| `write(data, options?)` | Write a value; objects serialize as JSON when `json` set |
-| `table(rows, options?)` | Write a table from an array of objects                   |
-| `markdown(content)`     | Write a markdown-formatted string                        |
-| `raw(content)`          | Write a raw string (no formatting)                       |
+| Method                  | Description                                                                                |
+| ----------------------- | ------------------------------------------------------------------------------------------ |
+| `write(data, options?)` | Write a value; objects serialize as JSON when `json` set                                   |
+| `table(rows, options?)` | Write a table from an array of objects                                                     |
+| `markdown(content)`     | Write a markdown-formatted string                                                          |
+| `raw(content)`          | Write a raw string (no formatting)                                                         |
+| `result(input)`         | Write a single pass/fail/warn/skip/fix row (vitest test file style)                        |
+| `diagnostic(input)`     | Write a full diagnostic finding with optional code frame (oxlint style)                    |
+| `codeFrame(input)`      | Write an annotated code snippet (oxlint code frame style)                                  |
+| `summary(input)`        | Write a summary block (`style: 'tally'` for labeled rows, `style: 'inline'` for one-liner) |
 
-The optional `options` parameter accepts `{ json?: boolean }` to switch between human-readable and machine-parsable output.
+The optional `options` parameter on `write` and `table` accepts `{ json?: boolean }` to switch between human-readable and machine-parsable output.
 
 ```ts
+// Table output
 ctx.output.table([
   { name: 'deploy', status: 'success' },
   { name: 'migrate', status: 'skipped' },
 ])
+
+// Test results
+ctx.output.result({ status: 'pass', name: 'src/auth.test.ts', duration: 42 })
+ctx.output.result({ status: 'fail', name: 'src/api.test.ts', detail: 'timeout' })
+
+// Lint diagnostics
+ctx.output.diagnostic({
+  severity: 'error',
+  rule: 'no-unused-vars',
+  message: "'config' is defined but never used",
+})
+
+// Summary (tally style)
+ctx.output.summary({
+  style: 'tally',
+  stats: [
+    { label: 'Tests', value: `${ctx.colors.green('3 passed')} ${ctx.colors.gray('(3)')}` },
+    { label: 'Duration', value: '45ms' },
+  ],
+})
+
+// Summary (inline style)
+ctx.output.summary({
+  style: 'inline',
+  stats: [ctx.colors.red('1 error'), ctx.colors.dim('95 files'), ctx.colors.dim('in 142ms')],
+})
 ```
 
 ## `ctx.store`

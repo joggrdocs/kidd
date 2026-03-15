@@ -1,0 +1,16 @@
+import type { ConfigType } from '@kidd-cli/core'
+import { z } from 'zod'
+
+/**
+ * Runtime config schema for the {{ name }} CLI.
+ *
+ * This schema validates config files loaded at startup (e.g. `.{{ name }}.jsonc`).
+ * The inferred type is merged into `ctx.config` via module augmentation below.
+ */
+export const configSchema = z.object({
+  // Add your config fields here
+})
+
+declare module '@kidd-cli/core' {
+  interface CliConfig extends ConfigType<typeof configSchema> {}
+}

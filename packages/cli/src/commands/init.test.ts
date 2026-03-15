@@ -30,6 +30,7 @@ const mockedWriteFiles = vi.mocked(writeFiles)
 function makeContext(argOverrides: Record<string, unknown> = {}): Context {
   return {
     args: {
+      config: undefined,
       description: undefined,
       example: undefined,
       name: undefined,
@@ -86,7 +87,7 @@ describe('init command', () => {
     const ctx = makeContext()
     vi.mocked(ctx.prompts.text).mockResolvedValueOnce('my-cli').mockResolvedValueOnce('A test CLI')
     vi.mocked(ctx.prompts.select).mockResolvedValueOnce('pnpm')
-    vi.mocked(ctx.prompts.confirm).mockResolvedValueOnce(true)
+    vi.mocked(ctx.prompts.confirm).mockResolvedValueOnce(true).mockResolvedValueOnce(false)
     mockedRenderTemplate.mockResolvedValue([
       null,
       [{ content: '{}', relativePath: 'package.json' }],
@@ -98,11 +99,12 @@ describe('init command', () => {
 
     expect(ctx.prompts.text).toHaveBeenCalledTimes(2)
     expect(ctx.prompts.select).toHaveBeenCalledTimes(1)
-    expect(ctx.prompts.confirm).toHaveBeenCalledTimes(1)
+    expect(ctx.prompts.confirm).toHaveBeenCalledTimes(2)
   })
 
   it('should use provided args without prompting', async () => {
     const ctx = makeContext({
+      config: false,
       description: 'My CLI',
       example: false,
       name: 'my-cli',
@@ -124,6 +126,7 @@ describe('init command', () => {
 
   it('should render project templates with correct variables', async () => {
     const ctx = makeContext({
+      config: false,
       description: 'Test',
       example: true,
       name: 'test-cli',
@@ -141,6 +144,7 @@ describe('init command', () => {
           cliVersion: '1.2.3',
           coreVersion: '1.2.3',
           description: 'Test',
+          includeConfig: false,
           name: 'test-cli',
           packageManager: 'npm',
           tsdownVersion: '^0.21.1',
@@ -154,6 +158,7 @@ describe('init command', () => {
 
   it('should filter out hello command when example is false', async () => {
     const ctx = makeContext({
+      config: false,
       description: 'Test',
       example: false,
       name: 'test-cli',
@@ -178,6 +183,7 @@ describe('init command', () => {
 
   it('should call fail on render error', async () => {
     const ctx = makeContext({
+      config: false,
       description: 'Test',
       example: false,
       name: 'test-cli',

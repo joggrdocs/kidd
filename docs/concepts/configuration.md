@@ -56,6 +56,32 @@ cli({
 | `schema` | `ZodType` | --                  | Zod schema to validate the loaded config. Infers `ctx.config` type. |
 | `name`   | `string`  | Derived from `name` | Override the config file name for file discovery                    |
 
+## Typing `ctx.config`
+
+The Zod schema validates config at runtime, but TypeScript cannot automatically propagate the schema type to `ctx.config` in command handlers (commands are defined in separate files and dynamically imported). Use `ConfigType` with module augmentation to get compile-time safety:
+
+```ts
+// src/config.ts
+import type { ConfigType } from '@kidd-cli/core'
+import { z } from 'zod'
+
+export const configSchema = z.object({
+  apiUrl: z.string().url(),
+  org: z.string().min(1),
+})
+
+declare module '@kidd-cli/core' {
+  interface CliConfig extends ConfigType<typeof configSchema> {}
+}
+```
+
+This keeps the schema as the single source of truth — `CliConfig` is always derived from it, so they can never drift apart. Every command handler now sees `ctx.config.apiUrl` and `ctx.config.org` as fully typed properties.
+
+You can scaffold this setup automatically:
+
+- **New projects:** `kidd init --config`
+- **Existing projects:** `kidd add config`
+
 ## Config Client
 
 The `createConfigClient` factory (from `kidd/config`) provides a standalone API for loading, finding, and writing config files outside of the `cli()` bootstrap.

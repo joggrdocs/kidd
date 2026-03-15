@@ -131,7 +131,7 @@ After completing all steps:
 
 **Issue:** Properties on `ctx` are missing or mistyped.
 
-**Fix:** Verify the command uses `command()` from `@kidd-cli/core` (not a custom wrapper). Check that module augmentation interfaces (`KiddArgs`, `KiddConfig`, `KiddStore`) are correctly declared if using typed store keys or global args.
+**Fix:** Verify the command uses `command()` from `@kidd-cli/core` (not a custom wrapper). Check that module augmentation interfaces (`KiddArgs`, `CliConfig`, `KiddStore`) are correctly declared if using typed store keys or global args.
 
 ## References
 

@@ -215,9 +215,9 @@ async function detectMatchingFonts(): Promise<ReadonlyArray<string>> {
     const systemFonts = await getFonts({ disableQuoting: true })
     const lowerFonts = systemFonts.map((f) => f.toLowerCase())
 
-    return FONT_MAP
-      .filter(([pattern]) => lowerFonts.some((f) => f.includes(pattern)))
-      .map(([, nerdName]) => nerdName)
+    return FONT_MAP.filter(([pattern]) => lowerFonts.some((f) => f.includes(pattern))).map(
+      ([, nerdName]) => nerdName
+    )
   } catch {
     return []
   }
@@ -235,7 +235,7 @@ async function detectMatchingFonts(): Promise<ReadonlyArray<string>> {
  */
 function buildFontChoices(
   matches: ReadonlyArray<string>
-): ReadonlyArray<{ readonly value: string; readonly label: string; readonly hint?: string }> {
+): Array<{ value: string; label: string; hint?: string }> {
   const matchedSet = new Set(matches)
 
   const matchedChoices = matches.map((name) => ({
@@ -244,12 +244,10 @@ function buildFontChoices(
     value: name,
   }))
 
-  const popularChoices = POPULAR_FONTS
-    .filter((name) => !matchedSet.has(name))
-    .map((name) => ({
-      label: `${name} Nerd Font`,
-      value: name,
-    }))
+  const popularChoices = POPULAR_FONTS.filter((name) => !matchedSet.has(name)).map((name) => ({
+    label: `${name} Nerd Font`,
+    value: name,
+  }))
 
   return [...matchedChoices, ...popularChoices]
 }
@@ -310,11 +308,7 @@ async function showInstallCommands(
       '  fc-cache -fv',
       '',
     ])
-    .otherwise(() => [
-      '',
-      `Download the font from: ${url}`,
-      '',
-    ])
+    .otherwise(() => ['', `Download the font from: ${url}`, ''])
 
   lines.map((line) => ctx.logger.info(line))
 
@@ -355,10 +349,7 @@ async function installFontWithSpinner(
  * @param fontName - The Nerd Font release name (e.g. 'JetBrainsMono').
  * @returns A Result with true on success or an IconsError on failure.
  */
-async function installFont(
-  ctx: IconsCtx,
-  fontName: string
-): AsyncResult<boolean, IconsError> {
+async function installFont(ctx: IconsCtx, fontName: string): AsyncResult<boolean, IconsError> {
   return match(process.platform)
     .with('darwin', () => installDarwin(ctx, fontName))
     .with('linux', () => installLinux(ctx, fontName))
@@ -377,10 +368,7 @@ async function installFont(
  * @param fontName - The font family name (e.g. 'JetBrainsMono').
  * @returns A Result with true on success or an IconsError on failure.
  */
-async function installDarwin(
-  ctx: IconsCtx,
-  fontName: string
-): AsyncResult<boolean, IconsError> {
+async function installDarwin(ctx: IconsCtx, fontName: string): AsyncResult<boolean, IconsError> {
   const slug = fontNameToSlug(fontName)
   const hasBrew = await checkBrewAvailable()
 
@@ -399,10 +387,7 @@ async function installDarwin(
  * @param fontName - The font family name (e.g. 'JetBrainsMono').
  * @returns A Result with true on success or an IconsError on failure.
  */
-async function installLinux(
-  ctx: IconsCtx,
-  fontName: string
-): AsyncResult<boolean, IconsError> {
+async function installLinux(ctx: IconsCtx, fontName: string): AsyncResult<boolean, IconsError> {
   return installViaDownload(ctx, fontName)
 }
 
@@ -429,10 +414,7 @@ async function checkBrewAvailable(): Promise<boolean> {
  * @param slug - The Homebrew cask slug (e.g. 'jetbrains-mono').
  * @returns A Result with true on success or an IconsError on failure.
  */
-async function installViaBrew(
-  ctx: IconsCtx,
-  slug: string
-): AsyncResult<boolean, IconsError> {
+async function installViaBrew(ctx: IconsCtx, slug: string): AsyncResult<boolean, IconsError> {
   try {
     ctx.spinner.message(`Installing font-${slug}-nerd-font via Homebrew...`)
     await execAsync(`brew install --cask font-${slug}-nerd-font`)

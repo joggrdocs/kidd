@@ -19,11 +19,7 @@ describe('detectNerdFonts()', () => {
   })
 
   it('should detect when a Nerd Font is installed', async () => {
-    vi.mocked(getFonts).mockResolvedValue([
-      'Arial',
-      'JetBrainsMono Nerd Font',
-      'Helvetica',
-    ])
+    vi.mocked(getFonts).mockResolvedValue(['Arial', 'JetBrainsMono Nerd Font', 'Helvetica'])
 
     const result = await detectNerdFonts()
 
@@ -31,11 +27,7 @@ describe('detectNerdFonts()', () => {
   })
 
   it('should return false when no Nerd Fonts are installed', async () => {
-    vi.mocked(getFonts).mockResolvedValue([
-      'Arial',
-      'Helvetica',
-      'Courier New',
-    ])
+    vi.mocked(getFonts).mockResolvedValue(['Arial', 'Helvetica', 'Courier New'])
 
     const result = await detectNerdFonts()
 
@@ -43,9 +35,7 @@ describe('detectNerdFonts()', () => {
   })
 
   it('should match case-insensitively', async () => {
-    vi.mocked(getFonts).mockResolvedValue([
-      'FiraCode NERD Font Mono',
-    ])
+    vi.mocked(getFonts).mockResolvedValue(['FiraCode NERD Font Mono'])
 
     const result = await detectNerdFonts()
 
@@ -61,9 +51,7 @@ describe('detectNerdFonts()', () => {
   })
 
   it('should cache results after first call', async () => {
-    vi.mocked(getFonts).mockResolvedValue([
-      'Hack Nerd Font',
-    ])
+    vi.mocked(getFonts).mockResolvedValue(['Hack Nerd Font'])
 
     const first = await detectNerdFonts()
     const second = await detectNerdFonts()

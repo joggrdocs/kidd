@@ -130,10 +130,14 @@ async function resolveInstallStatus(
     return false
   }
 
-  const [, result] = await installNerdFont({
+  const [error, result] = await installNerdFont({
     ctx,
     font: resolved.font,
   })
+
+  if (error) {
+    ctx.logger.warn(`Auto-setup failed: ${error.message}`)
+  }
 
   return result === true
 }

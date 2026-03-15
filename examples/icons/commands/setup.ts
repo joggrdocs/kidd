@@ -13,6 +13,7 @@ export default command({
 
     if (error) {
       ctx.fail(error.message)
+      return
     }
 
     if (installed) {

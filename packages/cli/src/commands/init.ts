@@ -19,6 +19,7 @@ import { isKebabCase } from '../lib/validate.js'
 import { writeFiles } from '../lib/write.js'
 
 const args = z.object({
+  config: z.boolean().describe('Include config schema setup').optional(),
   description: z.string().describe('Project description').optional(),
   example: z.boolean().describe('Include example command').optional(),
   name: z.string().describe('Project name (kebab-case)').optional(),
@@ -35,6 +36,7 @@ const initCommand: Command = command({
     const projectDescription = await resolveDescription(ctx)
     const packageManager = await resolvePackageManager(ctx)
     const includeExample = await resolveIncludeExample(ctx)
+    const includeConfig = await resolveIncludeConfig(ctx)
 
     ctx.spinner.start('Scaffolding project...')
 
@@ -48,6 +50,7 @@ const initCommand: Command = command({
         cliVersion,
         coreVersion,
         description: projectDescription,
+        includeConfig,
         name: projectName,
         packageManager,
         tsdownVersion: TSDOWN_VERSION,
@@ -62,7 +65,7 @@ const initCommand: Command = command({
       return ctx.fail(renderError.message)
     }
 
-    const files = selectFiles(includeExample, rendered)
+    const files = selectFiles({ includeConfig, includeExample }, rendered)
 
     const outputDir = join(process.cwd(), projectName)
     const [writeError] = await writeFiles({ files, outputDir, overwrite: false })
@@ -170,32 +173,47 @@ async function resolveIncludeExample(ctx: Context<InitArgs>): Promise<boolean> {
 }
 
 /**
- * Select the rendered files to write, optionally excluding the example command.
+ * Resolve whether to include config schema setup from args or prompt.
  *
- * @param includeExample - Whether to include the example hello command.
+ * @param ctx - Command context.
+ * @returns True when the config schema file should be included.
+ * @private
+ */
+async function resolveIncludeConfig(ctx: Context<InitArgs>): Promise<boolean> {
+  if (ctx.args.config !== undefined) {
+    return ctx.args.config
+  }
+  return ctx.prompts.confirm({
+    initialValue: false,
+    message: 'Include config schema?',
+  })
+}
+
+/**
+ * Options for filtering the rendered file set.
+ *
+ * @private
+ */
+interface SelectFilesOptions {
+  readonly includeConfig: boolean
+  readonly includeExample: boolean
+}
+
+/**
+ * Select the rendered files to write, optionally excluding the example command and config.
+ *
+ * @param options - Flags controlling which optional files to include.
  * @param rendered - The full set of rendered files.
  * @returns The filtered file list.
  * @private
  */
 function selectFiles(
-  includeExample: boolean,
+  options: SelectFilesOptions,
   rendered: readonly RenderedFile[]
 ): readonly RenderedFile[] {
-  if (includeExample) {
-    return rendered
-  }
-  return rendered.filter(excludeHelloCommand)
-}
-
-/**
- * Filter predicate that excludes the hello.ts example command.
- *
- * @param file - A rendered file to check.
- * @returns True when the file is not the hello command.
- * @private
- */
-function excludeHelloCommand(file: RenderedFile): boolean {
-  return !file.relativePath.includes('commands/hello.ts')
+  return rendered
+    .filter((file) => options.includeExample || !file.relativePath.includes('commands/hello.ts'))
+    .filter((file) => options.includeConfig || !file.relativePath.includes('config.ts'))
 }
 
 const DEFAULT_VERSION = '0.0.0'

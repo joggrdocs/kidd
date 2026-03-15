@@ -11,7 +11,7 @@ import type {
   AnyRecord,
   DeepReadonly,
   KiddArgs,
-  KiddConfig,
+  CliConfig,
   KiddStore,
   Merge,
   StringKeyOf,
@@ -206,7 +206,7 @@ export interface Meta {
  * to mutate any nested property produces a compile-time error. Use `ctx.store`
  * for mutable state that flows between middleware and handlers.
  *
- * Register types (`KiddArgs`, `KiddConfig`, etc.) are merged with generics so
+ * Register types (`KiddArgs`, `CliConfig`, etc.) are merged with generics so
  * consumers can use module augmentation for project-wide defaults without
  * threading generics everywhere.
  *
@@ -231,7 +231,7 @@ export interface Context<
   /**
    * Runtime config validated against the zod schema. Deeply immutable.
    */
-  readonly config: DeepReadonly<Merge<KiddConfig, TConfig>>
+  readonly config: DeepReadonly<Merge<CliConfig, TConfig>>
 
   /**
    * Structured logger backed by @clack/prompts for styled terminal output.

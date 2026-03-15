@@ -121,19 +121,69 @@ cli({
 })
 ```
 
-### 6. Add a config file
+### 6. Add typed config
 
-Create a type-safe `kidd.config.ts`:
+Scaffold config setup with the CLI, or create the files manually.
+
+**Scaffold with the CLI:**
+
+```bash
+kidd add config
+```
+
+This creates `src/config.ts` with a Zod schema and `ConfigType` module augmentation. You can also include config setup when creating a new project:
+
+```bash
+kidd init --config
+```
+
+**Manual setup:**
+
+Create a config schema file with `ConfigType` to derive `CliConfig` from your Zod schema:
 
 ```ts
-import { defineConfig } from '@kidd-cli/core'
+// src/config.ts
+import type { ConfigType } from '@kidd-cli/core'
+import { z } from 'zod'
 
-export default defineConfig({
-  build: { out: 'dist' },
+export const configSchema = z.object({
+  apiUrl: z.string().url(),
+  region: z.string().default('us-east-1'),
+})
+
+declare module '@kidd-cli/core' {
+  interface CliConfig extends ConfigType<typeof configSchema> {}
+}
+```
+
+Pass the schema to `cli()`:
+
+```ts
+import { cli } from '@kidd-cli/core'
+import { configSchema } from './config.js'
+
+cli({
+  name: 'my-app',
+  version: '1.0.0',
+  config: { schema: configSchema },
+  commands: import.meta.dirname + '/commands',
 })
 ```
 
-Load and validate config from within commands using the config client:
+Commands now see fully typed `ctx.config`:
+
+```ts
+export default command({
+  async handler(ctx) {
+    ctx.config.apiUrl // string
+    ctx.config.region // string
+  },
+})
+```
+
+**Standalone config client:**
+
+For loading config outside the `cli()` bootstrap, use `createConfigClient`:
 
 ```ts
 import { createConfigClient } from '@kidd-cli/core/config'

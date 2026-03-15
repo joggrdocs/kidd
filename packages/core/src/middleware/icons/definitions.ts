@@ -18,6 +18,10 @@ import type { IconCategory, IconDefinition } from './types.js'
 /**
  * Git-related icons for version control operations.
  *
+ * Emoji values use Unicode escape sequences rather than literal emoji
+ * characters to avoid encoding issues across editors, terminals, and
+ * build tools that may not handle multi-byte characters correctly.
+ *
  * Nerd Font sources: nf-dev (Devicons), nf-fa (Font Awesome)
  */
 export const GIT_ICONS: Readonly<Record<string, IconDefinition>> = Object.freeze({

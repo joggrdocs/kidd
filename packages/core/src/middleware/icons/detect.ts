@@ -8,6 +8,7 @@
  * @module
  */
 
+import { attemptAsync } from '@kidd-cli/utils/fp'
 import { getFonts } from 'font-list'
 
 // ---------------------------------------------------------------------------
@@ -57,10 +58,11 @@ export function clearDetectionCache(): void {
  * @returns A promise that resolves to true when at least one Nerd Font is found.
  */
 async function queryFonts(): Promise<boolean> {
-  try {
-    const fonts = await getFonts({ disableQuoting: true })
-    return fonts.some((font) => /nerd/i.test(font))
-  } catch {
+  const [error, fonts] = await attemptAsync(() => getFonts({ disableQuoting: true }))
+
+  if (error || fonts === null) {
     return false
   }
+
+  return fonts.some((font) => /nerd/i.test(font))
 }

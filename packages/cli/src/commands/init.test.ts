@@ -11,7 +11,7 @@ vi.mock(import('../lib/template-versions.js'), () => ({
       [
         null,
         {
-          tsdownVersion: '^0.21.2',
+          tsdownVersion: '^0.21.3',
           typescriptVersion: '^5.9.3',
           vitestVersion: '^4.1.0',
           zodVersion: '^4.3.6',
@@ -168,7 +168,7 @@ describe('init command', () => {
           includeConfig: false,
           name: 'test-cli',
           packageManager: 'npm',
-          tsdownVersion: '^0.21.2',
+          tsdownVersion: '^0.21.3',
           typescriptVersion: '^5.9.3',
           vitestVersion: '^4.1.0',
           zodVersion: '^4.3.6',

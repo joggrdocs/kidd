@@ -31,7 +31,7 @@
   },
   "dependencies": {
     "@kidd-cli/utils": "workspace:*",
-    "c12": "4.0.0-beta.3",
+    "c12": "4.0.0-beta.4",
     "es-toolkit": "catalog:",
     "zod": "catalog:"
   },

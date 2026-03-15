@@ -1,7 +1,7 @@
 /**
  * Factory for the {@link IconsContext} object decorated onto `ctx.icons`.
  *
- * Builds a callable object that resolves icon names to glyphs based on
+ * Builds an object that resolves icon names to glyphs based on
  * whether Nerd Fonts are detected on the system.
  *
  * @module
@@ -47,15 +47,17 @@ export interface CreateIconsContextOptions {
 /**
  * Create an {@link IconsContext} value for `ctx.icons`.
  *
- * The returned object is callable — `ctx.icons('branch')` resolves the
- * icon. Additional methods (`get`, `has`, `installed`, `setup`, `category`)
- * are attached via `Object.assign`.
+ * The returned object exposes methods for resolving icons (`get`, `has`,
+ * `installed`, `setup`, `category`).
  *
  * @param options - Factory options.
  * @returns An IconsContext instance.
  */
 export function createIconsContext(options: CreateIconsContextOptions): IconsContext {
   const { ctx, icons, font, forceSetup } = options
+  // NOTE: Intentional mutable closure — mutating `state.isInstalled` after
+  // a successful setup() is required so that existing references to ctx.icons
+  // reflect the updated install status without replacing the object.
   const state = { isInstalled: options.isInstalled }
 
   return Object.freeze({
@@ -72,12 +74,10 @@ export function createIconsContext(options: CreateIconsContextOptions): IconsCon
     },
     get: (name: string): string => resolveIcon(icons, name, state.isInstalled),
     has: (name: string): boolean => name in icons,
-    installed: (): boolean => {
-      if (forceSetup === true) {
-        return false
-      }
-      return state.isInstalled
-    },
+    installed: (): boolean =>
+      match(forceSetup)
+        .with(true, () => false)
+        .otherwise(() => state.isInstalled),
     setup: async (): AsyncResult<boolean, IconsError> => {
       const [error, result] = await installNerdFont({ ctx, font })
 

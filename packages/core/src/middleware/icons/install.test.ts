@@ -5,7 +5,7 @@ vi.mock('font-list', () => ({
 }))
 
 vi.mock('node:child_process', () => ({
-  exec: vi.fn((_cmd: string, _opts: unknown, cb?: Function) => {
+  exec: vi.fn((_cmd: string, _opts: unknown, cb?: (...args: ReadonlyArray<unknown>) => void) => {
     const callback = cb ?? _opts
     if (typeof callback === 'function') {
       callback(null, { stderr: '', stdout: '' })
@@ -17,6 +17,8 @@ vi.mock('node:fs/promises', () => ({
   mkdir: vi.fn(async () => undefined),
   rm: vi.fn(async () => undefined),
 }))
+
+import { exec } from 'node:child_process'
 
 import { getFonts } from 'font-list'
 
@@ -202,6 +204,150 @@ describe('installNerdFont()', () => {
       expect(error).toBeNull()
       expect(value).toBe(false)
       expect(ctx.logger.info).toHaveBeenCalled()
+    })
+  })
+
+  describe('platform-specific installation (darwin)', () => {
+    const originalPlatform = process.platform
+
+    beforeEach(() => {
+      Object.defineProperty(process, 'platform', { value: 'darwin' })
+    })
+
+    afterEach(() => {
+      Object.defineProperty(process, 'platform', { value: originalPlatform })
+    })
+
+    it('should install via brew when brew is available', async () => {
+      const ctx = createMockCtx()
+      vi.mocked(ctx.prompts.confirm).mockResolvedValue(true)
+
+      const [error, value] = await installNerdFont({ ctx, font: 'Hack' })
+
+      expect(error).toBeNull()
+      expect(value).toBe(true)
+      expect(ctx.spinner.stop).toHaveBeenCalledWith(
+        expect.stringContaining('installed successfully')
+      )
+    })
+
+    it('should fall back to download when brew is unavailable', async () => {
+      const ctx = createMockCtx()
+      vi.mocked(ctx.prompts.confirm).mockResolvedValue(true)
+      vi.mocked(exec).mockImplementation(
+        (cmd: string, _opts: unknown, cb?: (...args: ReadonlyArray<unknown>) => void) => {
+          const callback = cb ?? _opts
+          if (typeof callback === 'function') {
+            if (typeof cmd === 'string' && cmd.includes('command -v brew')) {
+              callback(new Error('not found'), null, null)
+            } else {
+              callback(null, { stderr: '', stdout: '' })
+            }
+          }
+          return undefined as never
+        }
+      )
+
+      const [error, value] = await installNerdFont({ ctx, font: 'Hack' })
+
+      expect(error).toBeNull()
+      expect(value).toBe(true)
+      expect(ctx.spinner.message).toHaveBeenCalledWith(
+        expect.stringContaining('Downloading Hack Nerd Font')
+      )
+    })
+
+    it('should return error when brew install fails', async () => {
+      const ctx = createMockCtx()
+      vi.mocked(ctx.prompts.confirm).mockResolvedValue(true)
+      vi.mocked(exec).mockImplementation(
+        (cmd: string, _opts: unknown, cb?: (...args: ReadonlyArray<unknown>) => void) => {
+          const callback = cb ?? _opts
+          if (typeof callback === 'function') {
+            if (typeof cmd === 'string' && cmd.includes('brew install')) {
+              callback(new Error('brew failed'), null, null)
+            } else {
+              callback(null, { stderr: '', stdout: '' })
+            }
+          }
+          return undefined as never
+        }
+      )
+
+      const [error] = await installNerdFont({ ctx, font: 'Hack' })
+
+      expect(error).toMatchObject({ type: 'install_failed' })
+      expect(error?.message).toContain('Homebrew installation failed')
+    })
+  })
+
+  describe('platform-specific installation (linux)', () => {
+    const originalPlatform = process.platform
+
+    beforeEach(() => {
+      Object.defineProperty(process, 'platform', { value: 'linux' })
+    })
+
+    afterEach(() => {
+      Object.defineProperty(process, 'platform', { value: originalPlatform })
+    })
+
+    it('should install via download on linux', async () => {
+      const ctx = createMockCtx()
+      vi.mocked(ctx.prompts.confirm).mockResolvedValue(true)
+
+      const [error, value] = await installNerdFont({ ctx, font: 'Hack' })
+
+      expect(error).toBeNull()
+      expect(value).toBe(true)
+      expect(ctx.spinner.message).toHaveBeenCalledWith(
+        expect.stringContaining('Downloading Hack Nerd Font')
+      )
+    })
+
+    it('should return error when download fails', async () => {
+      const ctx = createMockCtx()
+      vi.mocked(ctx.prompts.confirm).mockResolvedValue(true)
+      vi.mocked(exec).mockImplementation(
+        (cmd: string, _opts: unknown, cb?: (...args: ReadonlyArray<unknown>) => void) => {
+          const callback = cb ?? _opts
+          if (typeof callback === 'function') {
+            if (typeof cmd === 'string' && cmd.includes('curl')) {
+              callback(new Error('download failed'), null, null)
+            } else {
+              callback(null, { stderr: '', stdout: '' })
+            }
+          }
+          return undefined as never
+        }
+      )
+
+      const [error] = await installNerdFont({ ctx, font: 'Hack' })
+
+      expect(error).toMatchObject({ type: 'install_failed' })
+      expect(error?.message).toContain('Failed to download')
+    })
+  })
+
+  describe('unsupported platform', () => {
+    const originalPlatform = process.platform
+
+    beforeEach(() => {
+      Object.defineProperty(process, 'platform', { value: 'win32' })
+    })
+
+    afterEach(() => {
+      Object.defineProperty(process, 'platform', { value: originalPlatform })
+    })
+
+    it('should return error for unsupported platforms', async () => {
+      const ctx = createMockCtx()
+      vi.mocked(ctx.prompts.confirm).mockResolvedValue(true)
+
+      const [error] = await installNerdFont({ ctx, font: 'Hack' })
+
+      expect(error).toMatchObject({ type: 'install_failed' })
+      expect(error?.message).toContain('Unsupported platform')
     })
   })
 })

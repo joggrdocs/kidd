@@ -9,24 +9,20 @@ export default command({
       ctx.logger.warn('Nerd Fonts not detected - showing emoji fallbacks')
     }
 
-    ctx.logger.info('')
-    ctx.logger.info('Git icons:')
-    const gitIcons = ctx.icons.category('git')
-    Object.entries(gitIcons).map(([name, glyph]) => ctx.logger.info(`  ${glyph}  ${name}`))
+    const categories = [
+      { label: 'Git icons:', name: 'git' as const },
+      { label: 'Status icons:', name: 'status' as const },
+      { label: 'DevOps icons:', name: 'devops' as const },
+      { label: 'File icons:', name: 'files' as const },
+    ]
 
-    ctx.logger.info('')
-    ctx.logger.info('Status icons:')
-    const statusIcons = ctx.icons.category('status')
-    Object.entries(statusIcons).map(([name, glyph]) => ctx.logger.info(`  ${glyph}  ${name}`))
-
-    ctx.logger.info('')
-    ctx.logger.info('DevOps icons:')
-    const devopsIcons = ctx.icons.category('devops')
-    Object.entries(devopsIcons).map(([name, glyph]) => ctx.logger.info(`  ${glyph}  ${name}`))
-
-    ctx.logger.info('')
-    ctx.logger.info('File icons:')
-    const fileIcons = ctx.icons.category('files')
-    Object.entries(fileIcons).map(([name, glyph]) => ctx.logger.info(`  ${glyph}  ${name}`))
+    const _logged = categories.map(({ label, name }) => {
+      ctx.logger.info('')
+      ctx.logger.info(label)
+      const icons = ctx.icons.category(name)
+      return Object.entries(icons).map(([iconName, glyph]) =>
+        ctx.logger.info(`  ${glyph}  ${iconName}`)
+      )
+    })
   },
 })

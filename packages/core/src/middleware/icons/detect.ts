@@ -9,18 +9,6 @@
 
 import { attemptAsync } from '@kidd-cli/utils/fp'
 import { getFonts } from 'font-list'
-import { z } from 'zod'
-
-// ---------------------------------------------------------------------------
-// Constants
-// ---------------------------------------------------------------------------
-
-/**
- * Schema for validating the font list returned by `getFonts()`.
- *
- * @private
- */
-const fontsSchema = z.array(z.string())
 
 // ---------------------------------------------------------------------------
 // Public API
@@ -41,11 +29,5 @@ export async function detectNerdFonts(): Promise<boolean> {
     return false
   }
 
-  const parsed = fontsSchema.safeParse(fonts)
-
-  if (!parsed.success) {
-    return false
-  }
-
-  return parsed.data.some((font) => /nerd/i.test(font))
+  return fonts.some((font) => /nerd/i.test(font))
 }

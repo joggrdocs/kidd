@@ -2,7 +2,7 @@
  * Icons middleware factory.
  *
  * Detects Nerd Font availability, optionally prompts for installation,
- * and decorates `ctx.icons` with a callable icon resolver.
+ * and decorates `ctx.icons` with an icon resolver.
  *
  * @module
  */
@@ -16,7 +16,7 @@ import { createIconsContext } from './context.js'
 import { createDefaultIcons } from './definitions.js'
 import { detectNerdFonts } from './detect.js'
 import { installNerdFont } from './install.js'
-import type { IconsFactory, IconsOptions } from './types.js'
+import type { IconsOptions } from './types.js'
 
 // ---------------------------------------------------------------------------
 // Public API
@@ -43,7 +43,7 @@ import type { IconsFactory, IconsOptions } from './types.js'
  * })
  * ```
  */
-function createIcons(options?: IconsOptions): Middleware {
+export function icons(options?: IconsOptions): Middleware {
   const resolved = resolveOptions(options)
   const frozenIcons = Object.freeze({ ...createDefaultIcons(), ...resolved.icons })
 
@@ -64,13 +64,6 @@ function createIcons(options?: IconsOptions): Middleware {
     return next()
   })
 }
-
-/**
- * Icons middleware factory.
- *
- * @see {@link createIcons}
- */
-export const icons: IconsFactory = createIcons
 
 // ---------------------------------------------------------------------------
 // Private helpers

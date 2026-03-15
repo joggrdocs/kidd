@@ -17,8 +17,8 @@ import { homedir } from 'node:os'
 import { join } from 'node:path'
 import { promisify } from 'node:util'
 
-import type { AsyncResult } from '@kidd-cli/utils/fp'
-import { ok } from '@kidd-cli/utils/fp'
+import type { AsyncResult, Result } from '@kidd-cli/utils/fp'
+import { attemptAsync, ok } from '@kidd-cli/utils/fp'
 import { getFonts } from 'font-list'
 import { match } from 'ts-pattern'
 import { z } from 'zod'
@@ -202,7 +202,7 @@ async function installWithSelection(ctx: IconsCtx): AsyncResult<boolean, IconsEr
     options: choices,
   })
 
-  if (selected === undefined) {
+  if (selected === undefined || typeof selected === 'symbol') {
     return ok(false)
   }
 
@@ -224,7 +224,7 @@ async function installWithSelection(ctx: IconsCtx): AsyncResult<boolean, IconsEr
     ],
   })
 
-  if (action === undefined) {
+  if (action === undefined || typeof action === 'symbol') {
     return ok(false)
   }
 
@@ -263,16 +263,17 @@ async function installWithConfirmation({
  * @returns An array of matched Nerd Font release names.
  */
 async function detectMatchingFonts(): Promise<ReadonlyArray<string>> {
-  try {
-    const systemFonts = await getFonts({ disableQuoting: true })
-    const lowerFonts = systemFonts.map((f) => f.toLowerCase())
+  const [error, systemFonts] = await attemptAsync(() => getFonts({ disableQuoting: true }))
 
-    return FONT_MAP.filter(([pattern]) => lowerFonts.some((f) => f.includes(pattern))).map(
-      ([, nerdName]) => nerdName
-    )
-  } catch {
+  if (error || systemFonts === null) {
     return []
   }
+
+  const lowerFonts = systemFonts.map((f) => f.toLowerCase())
+
+  return FONT_MAP.filter(([pattern]) => lowerFonts.some((f) => f.includes(pattern))).map(
+    ([, nerdName]) => nerdName
+  )
 }
 
 /**
@@ -287,7 +288,7 @@ async function detectMatchingFonts(): Promise<ReadonlyArray<string>> {
  */
 function buildFontChoices(
   matches: ReadonlyArray<string>
-): Array<{ value: string; label: string; hint?: string }> {
+): Array<{ readonly value: string; readonly label: string; readonly hint?: string }> {
   const matchedSet = new Set(matches)
 
   const matchedChoices = matches.map((name) => ({
@@ -361,9 +362,12 @@ async function showInstallCommands({
     ])
     .otherwise(() => ['', `Download the font from: ${url}`, ''])
 
-  lines.map((line) => ctx.logger.info(line))
-
-  return ok(false)
+  return ok(
+    lines.reduce((_acc, line) => {
+      ctx.logger.info(line)
+      return false
+    }, false)
+  )
 }
 
 /**
@@ -445,12 +449,8 @@ async function installLinux({ ctx, fontName }: CtxFontParams): AsyncResult<boole
  * @returns A promise resolving to true when the `brew` command is found.
  */
 async function checkBrewAvailable(): Promise<boolean> {
-  try {
-    await execAsync('which brew')
-    return true
-  } catch {
-    return false
-  }
+  const [error] = await attemptAsync(() => execAsync('command -v brew'))
+  return error === null
 }
 
 /**
@@ -593,8 +593,8 @@ function fontNameToSlug(name: string): string {
  *
  * @private
  * @param error - The icons error.
- * @returns A Result tuple `[IconsError, null]`.
+ * @returns A synchronous Result tuple `[IconsError, null]`.
  */
-function iconsError(error: IconsError): AsyncResult<never, IconsError> {
-  return Promise.resolve([error, null] as const)
+function iconsError(error: IconsError): Result<never, IconsError> {
+  return [error, null] as const
 }

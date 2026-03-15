@@ -1,7 +1,7 @@
 /**
  * Supported configuration file formats for reading.
  */
-export type ConfigFormat = 'json' | 'jsonc' | 'js' | 'ts' | 'yaml'
+export type ConfigFormat = 'json' | 'json5' | 'jsonc' | 'js' | 'toml' | 'ts' | 'yaml'
 
 /**
  * Supported configuration file formats for writing.

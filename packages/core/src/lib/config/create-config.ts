@@ -49,7 +49,10 @@ export function createConfigClient<TSchema extends ZodTypeAny>(
    * @param configFile - The base config file name (without extension).
    * @returns The c12 result, or null if nothing was found.
    */
-  async function resolveFromDir(cwd: string, configFile: string): Promise<C12Result | null> {
+  async function resolveFromDir(
+    cwd: string,
+    configFile: string
+  ): Promise<ConfigOperationResult<C12Result | null>> {
     const [loadError, loaded] = await attemptAsync(() =>
       c12LoadConfig({
         configFile,
@@ -61,10 +64,13 @@ export function createConfigClient<TSchema extends ZodTypeAny>(
         rcFile: false,
       })
     )
-    if (loadError || !loaded || !hasResolvedConfigFile(loaded.configFile)) {
-      return null
+    if (loadError) {
+      return err(`Failed to load config from ${cwd}: ${String(loadError)}`)
     }
-    return loaded
+    if (!loaded || !hasResolvedConfigFile(loaded.configFile)) {
+      return [null, null]
+    }
+    return [null, loaded]
   }
 
   /**
@@ -75,10 +81,17 @@ export function createConfigClient<TSchema extends ZodTypeAny>(
    * @param configFile - The base config file name (without extension).
    * @returns The c12 result, or null if nothing was found.
    */
-  async function resolveConfig(cwd: string, configFile: string): Promise<C12Result | null> {
+  async function resolveConfig(
+    cwd: string,
+    configFile: string
+  ): Promise<ConfigOperationResult<C12Result | null>> {
     if (searchPaths && searchPaths.length > 0) {
       const results = await Promise.all(searchPaths.map((dir) => resolveFromDir(dir, configFile)))
-      const found = results.find((r): r is NonNullable<typeof r> => r !== null)
+      const firstError = results.find(([e]) => e !== null)
+      if (firstError) {
+        return firstError
+      }
+      const found = results.find((r): r is readonly [null, C12Result] => r[1] !== null)
       if (found) {
         return found
       }
@@ -96,21 +109,27 @@ export function createConfigClient<TSchema extends ZodTypeAny>(
    * @param cwd - Working directory to search from.
    * @returns The c12 result, or null if nothing was found.
    */
-  async function loadConfig(cwd: string): Promise<C12Result | null> {
-    const longForm = await resolveConfig(cwd, `${name}.config`)
+  async function loadConfig(cwd: string): Promise<ConfigOperationResult<C12Result | null>> {
+    const [longError, longForm] = await resolveConfig(cwd, `${name}.config`)
+    if (longError) {
+      return [longError, null]
+    }
     if (longForm && hasResolvedConfigFile(longForm.configFile)) {
-      return longForm
+      return [null, longForm]
     }
 
-    const shortForm = await resolveConfig(cwd, name)
+    const [shortError, shortForm] = await resolveConfig(cwd, name)
+    if (shortError) {
+      return [shortError, null]
+    }
     if (shortForm && hasResolvedConfigFile(shortForm.configFile)) {
       if (!isDataExtension(shortForm.configFile)) {
-        return null
+        return [null, null]
       }
-      return shortForm
+      return [null, shortForm]
     }
 
-    return null
+    return [null, null]
   }
 
   /**
@@ -122,7 +141,7 @@ export function createConfigClient<TSchema extends ZodTypeAny>(
    */
   async function find(cwd?: string): Promise<string | null> {
     const resolvedCwd = cwd ?? process.cwd()
-    const result = await loadConfig(resolvedCwd)
+    const [, result] = await loadConfig(resolvedCwd)
     if (result && hasResolvedConfigFile(result.configFile)) {
       return result.configFile
     }
@@ -140,7 +159,10 @@ export function createConfigClient<TSchema extends ZodTypeAny>(
     cwd?: string
   ): Promise<ConfigOperationResult<ConfigResult<output<TSchema>>> | readonly [null, null]> {
     const resolvedCwd = cwd ?? process.cwd()
-    const result = await loadConfig(resolvedCwd)
+    const [loadError, result] = await loadConfig(resolvedCwd)
+    if (loadError) {
+      return [loadError, null]
+    }
     if (!result || !hasResolvedConfigFile(result.configFile)) {
       return [null, null]
     }
@@ -161,6 +183,15 @@ export function createConfigClient<TSchema extends ZodTypeAny>(
     data: output<TSchema>,
     writeOptions: ConfigWriteOptions = {}
   ): Promise<ConfigOperationResult<ConfigWriteResult>> {
+    if (writeOptions.filePath) {
+      const pathFormat = getFormat(writeOptions.filePath)
+      if (pathFormat === 'ts' || pathFormat === 'js') {
+        return err(
+          `Cannot write config to ${writeOptions.filePath}: TS/JS formats are not writable`
+        )
+      }
+    }
+
     const result = schema.safeParse(data)
     if (!result.success) {
       const { message } = formatZodIssues(result.error.issues, '\n')

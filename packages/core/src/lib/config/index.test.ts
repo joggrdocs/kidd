@@ -417,15 +417,16 @@ features:
       expect(result!.format).toBe('json')
     })
 
-    it('should fall back to jsonc for non-writable filePath extensions', async () => {
+    it('should reject TS/JS filePath extensions', async () => {
       const client = createConfigClient({ name: 'myapp', schema })
 
       const [error, result] = await client.write(validConfig, {
         filePath: join(tmpDir, 'config.ts'),
       })
 
-      expect(error).toBeNull()
-      expect(result!.format).toBe('jsonc')
+      expect(result).toBeNull()
+      expect(error).toBeInstanceOf(Error)
+      expect(error!.message).toContain('not writable')
     })
 
     it('should return Error when write target directory is unwritable', async () => {

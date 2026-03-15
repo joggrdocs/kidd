@@ -70,19 +70,10 @@ export interface IconsOptions {
 /**
  * Icons context decorated onto `ctx.icons` by the icons middleware.
  *
- * The context is callable — `ctx.icons('branch')` is shorthand for
- * `ctx.icons.get('branch')`. Both resolve the icon name to a glyph
- * string based on whether Nerd Fonts are installed.
+ * Provides methods to resolve icon names to glyphs, check installation
+ * status, and interactively install Nerd Fonts.
  */
 export interface IconsContext {
-  /**
-   * Resolve an icon name to its glyph string.
-   *
-   * @param name - The icon name to resolve.
-   * @returns The resolved glyph string, or empty string if not found.
-   */
-  (name: string): string
-
   /**
    * Resolve an icon name to its glyph string.
    *

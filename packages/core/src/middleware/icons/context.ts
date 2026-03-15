@@ -58,91 +58,40 @@ export function createIconsContext(options: CreateIconsContextOptions): IconsCon
   const { ctx, icons, font, forceSetup } = options
   const state = { isInstalled: options.isInstalled }
 
-  /**
-   * Resolve an icon name to its glyph string.
-   *
-   * @private
-   * @param name - The icon name.
-   * @returns The resolved glyph, or empty string if not found.
-   */
-  function getIcon(name: string): string {
-    return resolveIcon(icons, name, state.isInstalled)
-  }
-
-  /**
-   * Check whether an icon name is defined.
-   *
-   * @private
-   * @param name - The icon name.
-   * @returns True when the icon name exists.
-   */
-  function has(name: string): boolean {
-    return name in icons
-  }
-
-  /**
-   * Check whether Nerd Fonts are detected.
-   *
-   * When `forceSetup` is enabled, always returns false so that
-   * setup flows are not short-circuited.
-   *
-   * @private
-   * @returns True when Nerd Fonts are installed and forceSetup is not enabled.
-   */
-  function installed(): boolean {
-    if (forceSetup === true) {
-      return false
-    }
-
-    return state.isInstalled
-  }
-
-  /**
-   * Interactively prompt to install Nerd Fonts.
-   *
-   * @private
-   * @returns A Result with true on success or an IconsError on failure.
-   */
-  async function setup(): AsyncResult<boolean, IconsError> {
-    const [error, result] = await installNerdFont({ ctx, font })
-
-    if (error) {
-      return [error, null] as const
-    }
-
-    if (result) {
-      state.isInstalled = true
-    }
-
-    return [null, result] as const
-  }
-
-  /**
-   * Get all resolved icons for a given category.
-   *
-   * @private
-   * @param cat - The icon category.
-   * @returns A record mapping icon names to resolved glyph strings.
-   */
-  function category(cat: IconCategory): Readonly<Record<string, string>> {
-    const categoryIcons = getIconsByCategory(cat)
-    return Object.freeze(
-      Object.fromEntries(
-        Object.entries(categoryIcons).map(([name, def]) => [
-          name,
-          resolveIcon(icons, name, state.isInstalled, def),
-        ])
+  return Object.freeze({
+    category: (cat: IconCategory): Readonly<Record<string, string>> => {
+      const categoryIcons = getIconsByCategory(cat)
+      return Object.freeze(
+        Object.fromEntries(
+          Object.entries(categoryIcons).map(([name, def]) => [
+            name,
+            resolveIcon(icons, name, state.isInstalled, def),
+          ])
+        )
       )
-    )
-  }
+    },
+    get: (name: string): string => resolveIcon(icons, name, state.isInstalled),
+    has: (name: string): boolean => name in icons,
+    installed: (): boolean => {
+      if (forceSetup === true) {
+        return false
+      }
+      return state.isInstalled
+    },
+    setup: async (): AsyncResult<boolean, IconsError> => {
+      const [error, result] = await installNerdFont({ ctx, font })
 
-  return Object.assign(getIcon, {
-    category,
-    get: getIcon,
-    has,
-    installed,
-    setup,
-  }) as IconsContext
+      if (error) {
+        return [error, null] as const
+      }
+
+      if (result) {
+        state.isInstalled = true
+      }
+
+      return [null, result] as const
+    },
+  })
 }
 
 // ---------------------------------------------------------------------------

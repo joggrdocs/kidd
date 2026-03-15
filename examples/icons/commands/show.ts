@@ -13,7 +13,7 @@ export default command({
       ctx.fail(`Unknown icon: "${ctx.args.name}"`)
     }
 
-    const glyph = ctx.icons(ctx.args.name)
+    const glyph = ctx.icons.get(ctx.args.name)
     ctx.output.write(`${glyph}  ${ctx.args.name}`)
   },
 })

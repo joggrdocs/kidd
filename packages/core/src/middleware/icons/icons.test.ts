@@ -67,7 +67,7 @@ describe('icons()', () => {
     expect(hasTag(mw, 'Middleware')).toBeTruthy()
   })
 
-  it('should decorate ctx.icons as a callable function', async () => {
+  it('should decorate ctx.icons as an object', async () => {
     const ctx = createMockCtx()
     const mw = icons()
     const next = vi.fn()
@@ -75,19 +75,7 @@ describe('icons()', () => {
     await mw.handler(ctx as never, next)
 
     const iconsCtx = (ctx as Record<string, unknown>)['icons'] as IconsContext
-    expect(typeof iconsCtx).toBe('function')
-  })
-
-  it('should resolve icon via ctx.icons() shorthand', async () => {
-    const ctx = createMockCtx()
-    const mw = icons()
-    const next = vi.fn()
-
-    await mw.handler(ctx as never, next)
-
-    const iconsCtx = (ctx as Record<string, unknown>)['icons'] as IconsContext
-    const result = iconsCtx('branch')
-    expect(result).toBeTruthy()
+    expect(typeof iconsCtx).toBe('object')
   })
 
   it('should resolve icon via ctx.icons.get()', async () => {
@@ -98,7 +86,7 @@ describe('icons()', () => {
     await mw.handler(ctx as never, next)
 
     const iconsCtx = (ctx as Record<string, unknown>)['icons'] as IconsContext
-    expect(iconsCtx.get('branch')).toBe(iconsCtx('branch'))
+    expect(iconsCtx.get('branch')).toBeTruthy()
   })
 
   it('should return emoji when nerd fonts are not installed', async () => {
@@ -111,7 +99,7 @@ describe('icons()', () => {
     await mw.handler(ctx as never, next)
 
     const iconsCtx = (ctx as Record<string, unknown>)['icons'] as IconsContext
-    expect(iconsCtx('success')).toBe('\u{2705}')
+    expect(iconsCtx.get('success')).toBe('\u{2705}')
   })
 
   it('should return nerd font glyph when nerd fonts are installed', async () => {
@@ -124,7 +112,7 @@ describe('icons()', () => {
     await mw.handler(ctx as never, next)
 
     const iconsCtx = (ctx as Record<string, unknown>)['icons'] as IconsContext
-    expect(iconsCtx('success')).toBe('\uF05D')
+    expect(iconsCtx.get('success')).toBe('\uF05D')
   })
 
   it('should return empty string for unknown icon names', async () => {
@@ -135,7 +123,7 @@ describe('icons()', () => {
     await mw.handler(ctx as never, next)
 
     const iconsCtx = (ctx as Record<string, unknown>)['icons'] as IconsContext
-    expect(iconsCtx('nonexistent')).toBe('')
+    expect(iconsCtx.get('nonexistent')).toBe('')
   })
 
   it('should report has() correctly', async () => {
@@ -192,7 +180,7 @@ describe('icons()', () => {
 
     const iconsCtx = (ctx as Record<string, unknown>)['icons'] as IconsContext
     expect(iconsCtx.has('custom')).toBeTruthy()
-    expect(iconsCtx('custom')).toBe('\u{2B50}')
+    expect(iconsCtx.get('custom')).toBe('\u{2B50}')
     expect(iconsCtx.has('branch')).toBeTruthy()
   })
 

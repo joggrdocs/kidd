@@ -1,5 +1,13 @@
 # @kidd-cli/bundler
 
+## 0.2.1
+
+### Patch Changes
+
+- a86bacc: Update tsdown from 0.21.1 to 0.21.2
+- Updated dependencies [5f46e63]
+  - @kidd-cli/config@0.1.5
+
 ## 0.2.0
 
 ### Minor Changes

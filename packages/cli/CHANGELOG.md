@@ -1,5 +1,17 @@
 # kidd-cli
 
+## 0.3.1
+
+### Patch Changes
+
+- 06dfbf1: Read template versions from pnpm-workspace.yaml at runtime instead of hardcoded constants
+- 5f46e63: Update all dependencies to latest versions
+- Updated dependencies [a86bacc]
+- Updated dependencies [5f46e63]
+  - @kidd-cli/bundler@0.2.1
+  - @kidd-cli/config@0.1.5
+  - @kidd-cli/core@0.5.1
+
 ## 0.3.0
 
 ### Minor Changes

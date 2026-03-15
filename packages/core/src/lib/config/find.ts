@@ -5,6 +5,7 @@ import { fileExists } from '@kidd-cli/utils/fs'
 import { findProjectRoot } from '@/lib/project/index.js'
 
 import { DOTFILE_EXTENSIONS } from './constants.js'
+import type { FindConfigFileOptions, FindDotfileOptions } from './types.js'
 
 /**
  * Generate dotfile config names used as a fallback when c12 finds nothing.
@@ -28,16 +29,12 @@ export function getDotfileNames(name: string): readonly string[] {
  * @param options - Search options including cwd, file names, and optional search paths.
  * @returns The full path to the config file, or null if not found.
  */
-export async function findDotfileConfig(options: {
-  readonly cwd: string
-  readonly fileNames: readonly string[]
-  readonly searchPaths?: readonly string[]
-}): Promise<string | null> {
+export async function findDotfileConfig(options: FindDotfileOptions): Promise<string | null> {
   const { fileNames, cwd, searchPaths } = options
 
   if (searchPaths) {
     const searchResults = await Promise.all(
-      searchPaths.map((dir) => findConfigFile(dir, fileNames))
+      searchPaths.map((dir) => findConfigFile({ dir, fileNames }))
     )
     const found = searchResults.find((result): result is string => result !== null)
     if (found) {
@@ -45,14 +42,14 @@ export async function findDotfileConfig(options: {
     }
   }
 
-  const fromCwd = await findConfigFile(cwd, fileNames)
+  const fromCwd = await findConfigFile({ dir: cwd, fileNames })
   if (fromCwd) {
     return fromCwd
   }
 
   const projectRoot = findProjectRoot(cwd)
   if (projectRoot && projectRoot.path !== cwd) {
-    const fromRoot = await findConfigFile(projectRoot.path, fileNames)
+    const fromRoot = await findConfigFile({ dir: projectRoot.path, fileNames })
     if (fromRoot) {
       return fromRoot
     }
@@ -68,12 +65,15 @@ export async function findDotfileConfig(options: {
 /**
  * Search a single directory for the first matching config file name.
  *
- * @param dir - The directory to search in.
- * @param fileNames - Candidate config file names to look for.
+ * Checks each candidate file name in order and returns the path of the first
+ * one that exists on disk.
+ *
+ * @param options - The directory and candidate file names to search.
  * @returns The full path to the first matching config file, or null if none found.
  * @private
  */
-async function findConfigFile(dir: string, fileNames: readonly string[]): Promise<string | null> {
+async function findConfigFile(options: FindConfigFileOptions): Promise<string | null> {
+  const { dir, fileNames } = options
   const results = await Promise.all(
     fileNames.map(async (fileName) => {
       const filePath = join(dir, fileName)

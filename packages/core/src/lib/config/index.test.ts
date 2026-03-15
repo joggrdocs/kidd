@@ -1,4 +1,11 @@
-import { mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs'
+import {
+  chmodSync,
+  mkdirSync,
+  mkdtempSync,
+  realpathSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
@@ -129,6 +136,31 @@ describe('config', () => {
       const result = await client.find(tmpDir)
 
       expect(result).toBeNull()
+    })
+
+    it('should handle empty searchPaths array', async () => {
+      const client = createConfigClient({ name: 'myapp', schema, searchPaths: [] })
+      writeFileSync(join(tmpDir, 'myapp.config.json'), JSON.stringify(validConfig, null, 2))
+
+      const result = await client.find(tmpDir)
+
+      expect(result).toBe(join(tmpDir, 'myapp.config.json'))
+    })
+
+    it('should find dotfile in searchPaths when c12 finds nothing', async () => {
+      const searchDir = join(tmpDir, 'search-dotfile')
+      mkdirSync(searchDir, { recursive: true })
+      writeFileSync(join(searchDir, '.myapp.json'), JSON.stringify(validConfig, null, 2))
+
+      const client = createConfigClient({
+        name: 'myapp',
+        schema,
+        searchPaths: [searchDir],
+      })
+
+      const result = await client.find(tmpDir)
+
+      expect(result).toBe(join(searchDir, '.myapp.json'))
     })
   })
 
@@ -305,6 +337,70 @@ features:
       expect(error!.message).toContain('name')
       expect(error!.message).toContain('version')
     })
+
+    it('should return Error when dotfile exists but is unreadable', async () => {
+      const client = createConfigClient({ name: 'myapp', schema })
+      const filePath = join(tmpDir, '.myapp.json')
+      writeFileSync(filePath, JSON.stringify(validConfig))
+      chmodSync(filePath, 0o000)
+
+      const [error, result] = await client.load(tmpDir)
+
+      chmodSync(filePath, 0o644)
+      expect(result).toBeNull()
+      expect(error).toBeInstanceOf(Error)
+      expect(error!.message).toContain('Failed to read config')
+    })
+
+    it('should strip extra fields not in schema', async () => {
+      const client = createConfigClient({ name: 'myapp', schema })
+      writeFileSync(
+        join(tmpDir, 'myapp.config.json'),
+        JSON.stringify({ ...validConfig, extraField: 'should-be-stripped' })
+      )
+
+      const [error, result] = await client.load(tmpDir)
+
+      expect(error).toBeNull()
+      expect(result).not.toBeNull()
+      expect(result!.config).toEqual(validConfig)
+      expect((result!.config as Record<string, unknown>)['extraField']).toBeUndefined()
+    })
+
+    it('should gracefully handle c12 failure and fall back to dotfile', async () => {
+      const client = createConfigClient({
+        name: 'myapp',
+        schema,
+        searchPaths: ['/nonexistent/path/that/does/not/exist'],
+      })
+      writeFileSync(join(tmpDir, '.myapp.json'), JSON.stringify(validConfig, null, 2))
+
+      const [error, result] = await client.load(tmpDir)
+
+      expect(error).toBeNull()
+      expect(result).not.toBeNull()
+      expect(result!.config).toEqual(validConfig)
+      expect(result!.filePath).toBe(join(tmpDir, '.myapp.json'))
+    })
+
+    it('should load dotfile via searchPaths when c12 finds nothing', async () => {
+      const searchDir = join(tmpDir, 'search-dotfile')
+      mkdirSync(searchDir, { recursive: true })
+      writeFileSync(join(searchDir, '.myapp.json'), JSON.stringify(validConfig, null, 2))
+
+      const client = createConfigClient({
+        name: 'myapp',
+        schema,
+        searchPaths: [searchDir],
+      })
+
+      const [error, result] = await client.load(tmpDir)
+
+      expect(error).toBeNull()
+      expect(result).not.toBeNull()
+      expect(result!.config).toEqual(validConfig)
+      expect(result!.filePath).toBe(join(searchDir, '.myapp.json'))
+    })
   })
 
   describe('write', () => {
@@ -424,6 +520,45 @@ features:
       })
       expect(jsonError).toBeNull()
       expect(jsonResult!.format).toBe('json')
+    })
+
+    it('should prefer explicit format over filePath extension', async () => {
+      const client = createConfigClient({ name: 'myapp', schema })
+
+      const [error, result] = await client.write(validConfig, {
+        filePath: join(tmpDir, 'config.yaml'),
+        format: 'json',
+      })
+
+      expect(error).toBeNull()
+      expect(result!.format).toBe('json')
+    })
+
+    it('should fall back to jsonc for non-writable filePath extensions', async () => {
+      const client = createConfigClient({ name: 'myapp', schema })
+
+      const [error, result] = await client.write(validConfig, {
+        filePath: join(tmpDir, 'config.ts'),
+      })
+
+      expect(error).toBeNull()
+      expect(result!.format).toBe('jsonc')
+    })
+
+    it('should return Error when write target directory is unwritable', async () => {
+      const client = createConfigClient({ name: 'myapp', schema })
+      const readonlyDir = join(tmpDir, 'readonly')
+      mkdirSync(readonlyDir)
+      chmodSync(readonlyDir, 0o444)
+
+      const [error, result] = await client.write(validConfig, {
+        filePath: join(readonlyDir, 'sub', 'config.json'),
+      })
+
+      chmodSync(readonlyDir, 0o755)
+      expect(result).toBeNull()
+      expect(error).toBeInstanceOf(Error)
+      expect(error!.message).toContain('Failed to create directory')
     })
 
     it('should round-trip: write then load produces same data', async () => {

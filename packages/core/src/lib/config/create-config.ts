@@ -34,13 +34,15 @@ export function createConfigClient<TSchema extends ZodTypeAny>(
   const dotfileNames = getDotfileNames(name)
 
   /**
-   * Load config via c12 (`name.config.*`), searching optional searchPaths first.
+   * Load config using c12 (`name.config.*`), searching optional searchPaths first.
    *
    * @private
    * @param cwd - Working directory to search from.
    * @returns The c12 result, or null if nothing was found.
    */
-  async function loadViaC12(cwd: string): Promise<{ config: unknown; configFile?: string } | null> {
+  async function loadNamedConfig(
+    cwd: string
+  ): Promise<{ config: unknown; configFile?: string } | null> {
     if (searchPaths) {
       const results = await Promise.all(
         searchPaths.map(async (dir) => {
@@ -96,7 +98,7 @@ export function createConfigClient<TSchema extends ZodTypeAny>(
   async function find(cwd?: string): Promise<string | null> {
     const resolvedCwd = cwd ?? process.cwd()
 
-    const c12Result = await loadViaC12(resolvedCwd)
+    const c12Result = await loadNamedConfig(resolvedCwd)
     if (c12Result && hasResolvedConfigFile(c12Result.configFile)) {
       return c12Result.configFile
     }
@@ -123,7 +125,7 @@ export function createConfigClient<TSchema extends ZodTypeAny>(
   ): Promise<ConfigOperationResult<ConfigResult<output<TSchema>>> | readonly [null, null]> {
     const resolvedCwd = cwd ?? process.cwd()
 
-    const c12Result = await loadViaC12(resolvedCwd)
+    const c12Result = await loadNamedConfig(resolvedCwd)
     if (c12Result && hasResolvedConfigFile(c12Result.configFile)) {
       return validateAndReturn(c12Result.config, c12Result.configFile)
     }
@@ -211,8 +213,7 @@ export function createConfigClient<TSchema extends ZodTypeAny>(
 
     const [readError, content] = await attemptAsync(() => readFile(filePath, 'utf8'))
     if (readError || content === null) {
-      const errorDetail = resolveReadErrorDetail(readError)
-      return err(`Failed to read config at ${filePath}: ${errorDetail}`)
+      return err(`Failed to read config at ${filePath}: ${formatReadError(readError)}`)
     }
 
     const format = getFormat(filePath)
@@ -220,12 +221,12 @@ export function createConfigClient<TSchema extends ZodTypeAny>(
       return err(`Dotfile format not supported for ${filePath}: use name.config.ts instead`)
     }
 
-    const parsedResult = parseContent({ content, filePath, format })
-    if (parsedResult[0]) {
-      return [parsedResult[0], null]
+    const [parseError, parsed] = parseContent({ content, filePath, format })
+    if (parseError) {
+      return [parseError, null]
     }
 
-    return validateAndReturn(parsedResult[1], filePath)
+    return validateAndReturn(parsed, filePath)
   }
 
   /**
@@ -276,17 +277,19 @@ function hasResolvedConfigFile(configFile: string | undefined): configFile is st
 }
 
 /**
- * Resolve the error detail string from a read error.
+ * Format an error from a file read operation into a descriptive string.
  *
  * @private
  * @param readError - The error from the read operation, or null.
  * @returns A descriptive error string.
  */
-function resolveReadErrorDetail(readError: unknown): string {
-  if (readError) {
-    return String(readError)
-  }
-  return 'empty file'
+function formatReadError(readError: unknown): string {
+  return match(readError)
+    .when(
+      (e) => e !== null && e !== undefined,
+      (e) => String(e)
+    )
+    .otherwise(() => 'empty file')
 }
 
 /**

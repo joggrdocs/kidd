@@ -8,7 +8,14 @@ export type ConfigFormat = 'json' | 'jsonc' | 'js' | 'ts' | 'yaml'
  */
 export type ConfigWriteFormat = 'json' | 'jsonc' | 'yaml'
 
+/**
+ * Standard JSON indentation width.
+ */
 export { JSON_INDENT } from '@/utils/constants.js'
+
+/**
+ * Sentinel for empty-length checks.
+ */
 export const EMPTY_LENGTH = 0
 
 /**

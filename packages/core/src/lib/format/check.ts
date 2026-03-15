@@ -1,8 +1,16 @@
 import pc from 'picocolors'
 import { match } from 'ts-pattern'
+import { z } from 'zod'
 
 import { GLYPHS } from './constants.js'
 import type { CheckInput } from './types.js'
+
+/**
+ * Zod schema for validating a check status at the public API boundary.
+ *
+ * @private
+ */
+const CheckStatusSchema = z.enum(['pass', 'fail', 'warn', 'skip', 'fix'])
 
 /**
  * Format a single pass/fail/warn check row.
@@ -11,6 +19,11 @@ import type { CheckInput } from './types.js'
  * @returns A formatted check string.
  */
 export function formatCheck(input: CheckInput): string {
+  const parsedStatus = CheckStatusSchema.safeParse(input.status)
+  if (!parsedStatus.success) {
+    return `[Invalid check status: ${parsedStatus.error.issues.map((issue) => issue.message).join(', ')}]`
+  }
+
   const icon = match(input.status)
     .with('pass', () => pc.green(GLYPHS.check))
     .with('fail', () => pc.red(GLYPHS.cross))

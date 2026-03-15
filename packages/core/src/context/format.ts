@@ -9,12 +9,12 @@ import type { Format } from './types.js'
  * @returns A Format instance with json and table formatters.
  */
 export function createContextFormat(): Format {
-  return {
+  return Object.freeze({
     json(data: unknown): string {
       const [, json] = jsonStringify(data, { pretty: true })
       return `${json}\n`
     },
-    table(rows: Record<string, unknown>[]): string {
+    table(rows: readonly Record<string, unknown>[]): string {
       if (rows.length === 0) {
         return ''
       }
@@ -24,7 +24,7 @@ export function createContextFormat(): Format {
       }
       return formatTable(rows, Object.keys(firstRow))
     },
-  }
+  })
 }
 
 // ---------------------------------------------------------------------------
@@ -115,7 +115,7 @@ function createTableRow(options: TableRowOptions): string {
  * @param keys - The column keys.
  * @returns An array of column widths.
  */
-function computeColumnWidths(rows: Record<string, unknown>[], keys: string[]): number[] {
+function computeColumnWidths(rows: readonly Record<string, unknown>[], keys: string[]): number[] {
   return keys.map((key) => {
     const values = rows.map((row) => formatStringValue(row[key]))
     return Math.max(key.length, ...values.map((val) => val.length))
@@ -130,7 +130,7 @@ function computeColumnWidths(rows: Record<string, unknown>[], keys: string[]): n
  * @param keys - The column keys.
  * @returns The formatted table string.
  */
-function formatTable(rows: Record<string, unknown>[], keys: string[]): string {
+function formatTable(rows: readonly Record<string, unknown>[], keys: string[]): string {
   const widths = computeColumnWidths(rows, keys)
   const header = createTableHeader({ keys, widths })
   const separator = widths.map((width) => '-'.repeat(width)).join('  ')

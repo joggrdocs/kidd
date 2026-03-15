@@ -46,19 +46,14 @@ setupTestLifecycle()
 describe('examples/advanced/src/commands/deploy/preview', () => {
   describe('handler', () => {
     it('should output deploy info with correct URL', async () => {
-      let captured = ''
-      const writeSpy = vi
-        .spyOn(process.stdout, 'write')
-        .mockImplementation((chunk: string | Uint8Array) => {
-          captured += String(chunk)
-          return true
-        })
+      const writeSpy = vi.spyOn(process.stdout, 'write').mockImplementation(() => true)
 
       const ctx = createPreviewContext({
         args: { branch: 'feat-xyz', clean: false },
       })
       await previewCommand.handler(ctx)
 
+      const captured = writeSpy.mock.calls.map((call) => String(call[0])).join('')
       writeSpy.mockRestore()
 
       const parsed = JSON.parse(captured) as { branch: string; environment: string; url: string }
@@ -68,9 +63,7 @@ describe('examples/advanced/src/commands/deploy/preview', () => {
     })
 
     it('should log clean build when --clean', async () => {
-      const writeSpy = vi
-        .spyOn(process.stdout, 'write')
-        .mockImplementation(() => true)
+      const writeSpy = vi.spyOn(process.stdout, 'write').mockImplementation(() => true)
 
       const ctx = createPreviewContext({
         args: { branch: 'main', clean: true },
@@ -91,9 +84,7 @@ describe('examples/advanced/src/commands/deploy/preview', () => {
 describe('examples/advanced/src/commands/deploy/production', () => {
   describe('handler', () => {
     it('should skip prompt when --force', async () => {
-      const writeSpy = vi
-        .spyOn(process.stdout, 'write')
-        .mockImplementation(() => true)
+      const writeSpy = vi.spyOn(process.stdout, 'write').mockImplementation(() => true)
 
       const ctx = createProductionContext({
         args: { force: true, tag: 'v1.0.0' },
@@ -108,9 +99,7 @@ describe('examples/advanced/src/commands/deploy/production', () => {
 
     it('should prompt when force is false', async () => {
       vi.mocked(clack.confirm).mockResolvedValue(true)
-      const writeSpy = vi
-        .spyOn(process.stdout, 'write')
-        .mockImplementation(() => true)
+      const writeSpy = vi.spyOn(process.stdout, 'write').mockImplementation(() => true)
 
       const ctx = createProductionContext({
         args: { force: false, tag: 'v1.0.0' },
@@ -140,19 +129,14 @@ describe('examples/advanced/src/commands/deploy/production', () => {
     })
 
     it('should output deploy JSON on success', async () => {
-      let captured = ''
-      const writeSpy = vi
-        .spyOn(process.stdout, 'write')
-        .mockImplementation((chunk: string | Uint8Array) => {
-          captured += String(chunk)
-          return true
-        })
+      const writeSpy = vi.spyOn(process.stdout, 'write').mockImplementation(() => true)
 
       const ctx = createProductionContext({
         args: { force: true, tag: 'v2.3.1' },
       })
       await productionCommand.handler(ctx)
 
+      const captured = writeSpy.mock.calls.map((call) => String(call[0])).join('')
       writeSpy.mockRestore()
 
       const parsed = JSON.parse(captured) as {

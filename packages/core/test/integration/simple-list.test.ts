@@ -42,11 +42,10 @@ setupTestLifecycle()
 describe('examples/simple/commands/list', () => {
   describe('handler', () => {
     it('should render table with all 5 tasks', () => {
-      const writeSpy = mockStdoutWrite()
-      const ctx = createListContext({ args: { json: false, status: 'all' as const } })
-      listCommand.handler(ctx)
-      const result = capturedOutput(writeSpy)
-      writeSpy.mockRestore()
+      const result = withCapturedStdout(() => {
+        const ctx = createListContext({ args: { json: false, status: 'all' as const } })
+        listCommand.handler(ctx)
+      })
       expect(result).toContain('Set up CI pipeline')
       expect(result).toContain('Write integration tests')
       expect(result).toContain('Deploy to staging')
@@ -55,11 +54,10 @@ describe('examples/simple/commands/list', () => {
     })
 
     it('should filter to active tasks only', () => {
-      const writeSpy = mockStdoutWrite()
-      const ctx = createListContext({ args: { json: false, status: 'active' as const } })
-      listCommand.handler(ctx)
-      const result = capturedOutput(writeSpy)
-      writeSpy.mockRestore()
+      const result = withCapturedStdout(() => {
+        const ctx = createListContext({ args: { json: false, status: 'active' as const } })
+        listCommand.handler(ctx)
+      })
       expect(result).toContain('Write integration tests')
       expect(result).toContain('Deploy to staging')
       expect(result).toContain('Review security audit')
@@ -68,11 +66,10 @@ describe('examples/simple/commands/list', () => {
     })
 
     it('should filter to done tasks only', () => {
-      const writeSpy = mockStdoutWrite()
-      const ctx = createListContext({ args: { json: false, status: 'done' as const } })
-      listCommand.handler(ctx)
-      const result = capturedOutput(writeSpy)
-      writeSpy.mockRestore()
+      const result = withCapturedStdout(() => {
+        const ctx = createListContext({ args: { json: false, status: 'done' as const } })
+        listCommand.handler(ctx)
+      })
       expect(result).toContain('Set up CI pipeline')
       expect(result).toContain('Update README')
       expect(result).not.toContain('Write integration tests')
@@ -81,11 +78,10 @@ describe('examples/simple/commands/list', () => {
     })
 
     it('should output JSON array when --json', () => {
-      const writeSpy = mockStdoutWrite()
-      const ctx = createListContext({ args: { json: true, status: 'all' as const } })
-      listCommand.handler(ctx)
-      const result = capturedOutput(writeSpy)
-      writeSpy.mockRestore()
+      const result = withCapturedStdout(() => {
+        const ctx = createListContext({ args: { json: true, status: 'all' as const } })
+        listCommand.handler(ctx)
+      })
       const parsed = JSON.parse(result) as unknown[]
       expect(parsed).toHaveLength(5)
     })
@@ -127,10 +123,12 @@ function createListContext(overrides: { readonly args: ListArgs }): Context<List
   })
 }
 
-function mockStdoutWrite(): ReturnType<typeof vi.spyOn> {
-  return vi.spyOn(process.stdout, 'write').mockImplementation(() => true)
-}
-
-function capturedOutput(spy: ReturnType<typeof vi.spyOn>): string {
-  return spy.mock.calls.map((call) => String(call[0])).join('')
+function withCapturedStdout(fn: () => void): string {
+  const writeSpy = vi.spyOn(process.stdout, 'write').mockImplementation(() => true)
+  try {
+    fn()
+    return writeSpy.mock.calls.map((call) => String(call[0])).join('')
+  } finally {
+    writeSpy.mockRestore()
+  }
 }

@@ -20,7 +20,7 @@ Demonstrates the `ctx.logger` styled output methods for displaying linting, test
 
 ## Structure
 
-```
+```text
 examples/diagnostic-output/
 ├── kidd.config.ts           # CLI build config
 ├── src/

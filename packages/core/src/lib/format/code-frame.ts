@@ -30,7 +30,13 @@ export function formatCodeFrame(input: CodeFrameInput): string {
   }
 
   const { annotation, filePath, lines, startLine } = input
-  const gutterWidth = String(startLine + lines.length - 1).length
+
+  const lastLine = startLine + lines.length - 1
+  if (annotation.line < startLine || annotation.line > lastLine) {
+    return `[Invalid annotation: line ${String(annotation.line)} is out of range ${String(startLine)}–${String(lastLine)}]`
+  }
+
+  const gutterWidth = String(lastLine).length
 
   const header = `  ${pc.cyan(GLYPHS.arrow)} ${pc.cyan(`${filePath}:${String(annotation.line)}:${String(annotation.column)}`)}`
 
@@ -46,12 +52,14 @@ export function formatCodeFrame(input: CodeFrameInput): string {
   const pointer = ' '.repeat(annotation.column - 1) + pc.red('^'.repeat(annotation.length))
   const annotationRow = `  ${' '.repeat(gutterWidth)} ${pc.cyan(GLYPHS.pipe)} ${pointer} ${pc.red(annotation.message)}`
 
-  const outputLines = codeLines.reduce<readonly string[]>((acc, line, idx) =>
-    match(idx === annotationLineIdx)
-      .with(true, () => [...acc, line, annotationRow])
-      .with(false, () => [...acc, line])
-      .exhaustive()
-  , [])
+  const outputLines = codeLines.reduce<readonly string[]>(
+    (acc, line, idx) =>
+      match(idx === annotationLineIdx)
+        .with(true, () => [...acc, line, annotationRow])
+        .with(false, () => [...acc, line])
+        .exhaustive(),
+    []
+  )
 
   return [header, separator, ...outputLines, separator].join('\n')
 }

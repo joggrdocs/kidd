@@ -104,14 +104,10 @@ describe('resolveFromDeviceCode()', () => {
     const fetchSpy = vi.spyOn(globalThis, 'fetch')
 
     // First call: device auth
-    fetchSpy.mockResolvedValueOnce(
-      Response.json(DEVICE_AUTH_RESPONSE, { status: 200 })
-    )
+    fetchSpy.mockResolvedValueOnce(Response.json(DEVICE_AUTH_RESPONSE, { status: 200 }))
 
     // Second call: token (success immediately)
-    fetchSpy.mockResolvedValueOnce(
-      Response.json({ access_token: 'at-xyz' }, { status: 200 })
-    )
+    fetchSpy.mockResolvedValueOnce(Response.json({ access_token: 'at-xyz' }, { status: 200 }))
 
     const resultPromise = resolveFromDeviceCode(createDefaultOptions(prompts))
 
@@ -137,9 +133,7 @@ describe('resolveFromDeviceCode()', () => {
     const prompts = createMockPrompts()
     const fetchSpy = vi.spyOn(globalThis, 'fetch')
 
-    fetchSpy.mockResolvedValueOnce(
-      Response.json(DEVICE_AUTH_RESPONSE, { status: 200 })
-    )
+    fetchSpy.mockResolvedValueOnce(Response.json(DEVICE_AUTH_RESPONSE, { status: 200 }))
 
     // First poll: pending
     fetchSpy.mockResolvedValueOnce(
@@ -147,9 +141,7 @@ describe('resolveFromDeviceCode()', () => {
     )
 
     // Second poll: success
-    fetchSpy.mockResolvedValueOnce(
-      Response.json({ access_token: 'final-token' }, { status: 200 })
-    )
+    fetchSpy.mockResolvedValueOnce(Response.json({ access_token: 'final-token' }, { status: 200 }))
 
     const resultPromise = resolveFromDeviceCode(createDefaultOptions(prompts))
 
@@ -167,13 +159,9 @@ describe('resolveFromDeviceCode()', () => {
     const prompts = createMockPrompts()
     const fetchSpy = vi.spyOn(globalThis, 'fetch')
 
-    fetchSpy.mockResolvedValueOnce(
-      Response.json(DEVICE_AUTH_RESPONSE, { status: 200 })
-    )
+    fetchSpy.mockResolvedValueOnce(Response.json(DEVICE_AUTH_RESPONSE, { status: 200 }))
 
-    fetchSpy.mockResolvedValueOnce(
-      Response.json({ error: 'access_denied' }, { status: 400 })
-    )
+    fetchSpy.mockResolvedValueOnce(Response.json({ error: 'access_denied' }, { status: 400 }))
 
     const resultPromise = resolveFromDeviceCode(createDefaultOptions(prompts))
 
@@ -188,13 +176,9 @@ describe('resolveFromDeviceCode()', () => {
     const prompts = createMockPrompts()
     const fetchSpy = vi.spyOn(globalThis, 'fetch')
 
-    fetchSpy.mockResolvedValueOnce(
-      Response.json(DEVICE_AUTH_RESPONSE, { status: 200 })
-    )
+    fetchSpy.mockResolvedValueOnce(Response.json(DEVICE_AUTH_RESPONSE, { status: 200 }))
 
-    fetchSpy.mockResolvedValueOnce(
-      Response.json({ error: 'expired_token' }, { status: 400 })
-    )
+    fetchSpy.mockResolvedValueOnce(Response.json({ error: 'expired_token' }, { status: 400 }))
 
     const resultPromise = resolveFromDeviceCode(createDefaultOptions(prompts))
 
@@ -209,19 +193,13 @@ describe('resolveFromDeviceCode()', () => {
     const prompts = createMockPrompts()
     const fetchSpy = vi.spyOn(globalThis, 'fetch')
 
-    fetchSpy.mockResolvedValueOnce(
-      Response.json(DEVICE_AUTH_RESPONSE, { status: 200 })
-    )
+    fetchSpy.mockResolvedValueOnce(Response.json(DEVICE_AUTH_RESPONSE, { status: 200 }))
 
     // First poll: slow_down
-    fetchSpy.mockResolvedValueOnce(
-      Response.json({ error: 'slow_down' }, { status: 400 })
-    )
+    fetchSpy.mockResolvedValueOnce(Response.json({ error: 'slow_down' }, { status: 400 }))
 
     // Second poll: success (after increased interval)
-    fetchSpy.mockResolvedValueOnce(
-      Response.json({ access_token: 'slow-token' }, { status: 200 })
-    )
+    fetchSpy.mockResolvedValueOnce(Response.json({ access_token: 'slow-token' }, { status: 200 }))
 
     const resultPromise = resolveFromDeviceCode(createDefaultOptions(prompts))
 
@@ -239,9 +217,7 @@ describe('resolveFromDeviceCode()', () => {
     const prompts = createMockPrompts()
     const fetchSpy = vi.spyOn(globalThis, 'fetch')
 
-    fetchSpy.mockResolvedValueOnce(
-      Response.json(DEVICE_AUTH_RESPONSE, { status: 200 })
-    )
+    fetchSpy.mockResolvedValueOnce(Response.json(DEVICE_AUTH_RESPONSE, { status: 200 }))
 
     // Three pending responses
     fetchSpy.mockResolvedValueOnce(
@@ -269,13 +245,9 @@ describe('resolveFromDeviceCode()', () => {
     const prompts = createMockPrompts()
     const fetchSpy = vi.spyOn(globalThis, 'fetch')
 
-    fetchSpy.mockResolvedValueOnce(
-      Response.json(DEVICE_AUTH_RESPONSE, { status: 200 })
-    )
+    fetchSpy.mockResolvedValueOnce(Response.json(DEVICE_AUTH_RESPONSE, { status: 200 }))
 
-    fetchSpy.mockResolvedValueOnce(
-      Response.json({ access_token: 'grant-token' }, { status: 200 })
-    )
+    fetchSpy.mockResolvedValueOnce(Response.json({ access_token: 'grant-token' }, { status: 200 }))
 
     const resultPromise = resolveFromDeviceCode(createDefaultOptions(prompts))
 
@@ -297,14 +269,10 @@ describe('resolveFromDeviceCode()', () => {
     const prompts = createMockPrompts()
     const fetchSpy = vi.spyOn(globalThis, 'fetch')
 
-    fetchSpy.mockResolvedValueOnce(
-      Response.json(DEVICE_AUTH_RESPONSE, { status: 200 })
-    )
+    fetchSpy.mockResolvedValueOnce(Response.json(DEVICE_AUTH_RESPONSE, { status: 200 }))
 
     // Always return pending
-    fetchSpy.mockResolvedValue(
-      Response.json({ error: 'authorization_pending' }, { status: 400 })
-    )
+    fetchSpy.mockResolvedValue(Response.json({ error: 'authorization_pending' }, { status: 400 }))
 
     const resultPromise = resolveFromDeviceCode({
       ...createDefaultOptions(prompts),
@@ -330,9 +298,7 @@ describe('resolveFromDeviceCode()', () => {
       verification_uri: 'https://auth.example.com/activate',
     }
 
-    fetchSpy.mockResolvedValueOnce(
-      Response.json(responseWithoutInterval, { status: 200 })
-    )
+    fetchSpy.mockResolvedValueOnce(Response.json(responseWithoutInterval, { status: 200 }))
 
     fetchSpy.mockResolvedValueOnce(
       Response.json({ access_token: 'config-interval-token' }, { status: 200 })
@@ -355,13 +321,9 @@ describe('resolveFromDeviceCode()', () => {
     const prompts = createMockPrompts()
     const fetchSpy = vi.spyOn(globalThis, 'fetch')
 
-    fetchSpy.mockResolvedValueOnce(
-      Response.json(DEVICE_AUTH_RESPONSE, { status: 200 })
-    )
+    fetchSpy.mockResolvedValueOnce(Response.json(DEVICE_AUTH_RESPONSE, { status: 200 }))
 
-    fetchSpy.mockResolvedValueOnce(
-      Response.json({ access_token: 'scoped-token' }, { status: 200 })
-    )
+    fetchSpy.mockResolvedValueOnce(Response.json({ access_token: 'scoped-token' }, { status: 200 }))
 
     const resultPromise = resolveFromDeviceCode({
       ...createDefaultOptions(prompts),
@@ -397,9 +359,7 @@ describe('resolveFromDeviceCode()', () => {
     const fetchSpy = vi.spyOn(globalThis, 'fetch')
 
     // First call: device auth succeeds
-    fetchSpy.mockResolvedValueOnce(
-      Response.json(DEVICE_AUTH_RESPONSE, { status: 200 })
-    )
+    fetchSpy.mockResolvedValueOnce(Response.json(DEVICE_AUTH_RESPONSE, { status: 200 }))
 
     // Second call: token poll network error
     fetchSpy.mockRejectedValueOnce(new Error('network failure'))
@@ -417,9 +377,7 @@ describe('resolveFromDeviceCode()', () => {
     const prompts = createMockPrompts()
     const fetchSpy = vi.spyOn(globalThis, 'fetch')
 
-    fetchSpy.mockResolvedValueOnce(
-      Response.json(DEVICE_AUTH_RESPONSE, { status: 200 })
-    )
+    fetchSpy.mockResolvedValueOnce(Response.json(DEVICE_AUTH_RESPONSE, { status: 200 }))
 
     // Return non-JSON response body during polling
     fetchSpy.mockResolvedValueOnce(new Response('not-json-at-all', { status: 200 }))
@@ -438,9 +396,7 @@ describe('resolveFromDeviceCode()', () => {
     const prompts = createMockPrompts()
     const fetchSpy = vi.spyOn(globalThis, 'fetch')
 
-    fetchSpy.mockResolvedValueOnce(
-      Response.json(DEVICE_AUTH_RESPONSE, { status: 200 })
-    )
+    fetchSpy.mockResolvedValueOnce(Response.json(DEVICE_AUTH_RESPONSE, { status: 200 }))
 
     fetchSpy.mockResolvedValueOnce(
       Response.json({ access_token: 'browser-token' }, { status: 200 })

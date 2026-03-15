@@ -160,9 +160,9 @@ describe('resolveFromOAuth()', () => {
   })
 
   it('should return bearer credential when valid code is exchanged', async () => {
-    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
-      Response.json({ access_token: 'at-12345' }, { status: 200 })
-    )
+    const fetchSpy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue(Response.json({ access_token: 'at-12345' }, { status: 200 }))
 
     const resultPromise = resolveFromOAuth({
       authUrl: 'https://auth.example.com/authorize',
@@ -434,9 +434,7 @@ describe('resolveFromOAuth()', () => {
   it('should include redirect_uri in token exchange body', async () => {
     const fetchSpy = vi
       .spyOn(globalThis, 'fetch')
-      .mockResolvedValue(
-        Response.json({ access_token: 'redirect-uri-token' }, { status: 200 })
-      )
+      .mockResolvedValue(Response.json({ access_token: 'redirect-uri-token' }, { status: 200 }))
 
     const resultPromise = resolveFromOAuth({
       authUrl: 'https://auth.example.com/authorize',
@@ -465,9 +463,7 @@ describe('resolveFromOAuth()', () => {
   it('should work with custom callbackPath', async () => {
     const fetchSpy = vi
       .spyOn(globalThis, 'fetch')
-      .mockResolvedValue(
-        Response.json({ access_token: 'custom-path-token' }, { status: 200 })
-      )
+      .mockResolvedValue(Response.json({ access_token: 'custom-path-token' }, { status: 200 }))
 
     const resultPromise = resolveFromOAuth({
       authUrl: 'https://auth.example.com/authorize',

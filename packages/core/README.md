@@ -146,6 +146,20 @@ console.log(formatTally({ style: 'inline', stats: ['1 error', '3 warnings'] }))
 console.log(formatDuration(1234)) // "1.23s"
 ```
 
+#### Migration from `ctx.output`
+
+If you previously used the `ctx.output` API, migrate to the new methods:
+
+| Before                    | After                  |
+| ------------------------- | ---------------------- |
+| `ctx.output.result()`     | `ctx.logger.check()`   |
+| `ctx.output.diagnostic()` | `ctx.logger.finding()` |
+| `ctx.output.summary()`    | `ctx.logger.tally()`   |
+
+Format function renames: `formatResult` → `formatCheck`, `formatDiagnostic` → `formatFinding`, `formatSummary` → `formatTally`
+
+Type renames: `ResultInput` → `CheckInput`, `DiagnosticInput` → `FindingInput`, `SummaryInput` → `TallyInput`
+
 ### `kidd/errors`
 
 Error creation, formatting, and sanitization utilities.

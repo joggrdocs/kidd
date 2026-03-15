@@ -107,10 +107,10 @@ import { Writable } from 'node:stream'
 function createGreetContext(overrides: {
   readonly args: { readonly name: string; readonly shout: boolean }
 }): { ctx: Context<{ name: string; shout: boolean }>; output: () => string } {
-  let data = ''
+  const chunks: string[] = []
   const stream = new Writable({
     write(chunk: Buffer, _encoding: string, callback: () => void): void {
-      data += chunk.toString()
+      chunks.push(chunk.toString())
       callback()
     },
   }) as unknown as NodeJS.WriteStream
@@ -124,5 +124,5 @@ function createGreetContext(overrides: {
     meta: { command: ['greet'], name: 'tasks', version: '1.0.0' },
   })
 
-  return { ctx, output: () => data }
+  return { ctx, output: () => chunks.join('') }
 }

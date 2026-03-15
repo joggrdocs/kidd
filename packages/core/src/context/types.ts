@@ -132,7 +132,7 @@ export interface Format {
   /**
    * Format an array of objects as an aligned text table.
    */
-  table(rows: Record<string, unknown>[]): string
+  table(rows: readonly Record<string, unknown>[]): string
 }
 
 /**

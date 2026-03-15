@@ -45,7 +45,7 @@ export default command({
           label: 'Suites',
           value: `${ctx.colors.red('1 failed')} | ${ctx.colors.green('5 passed')} ${ctx.colors.gray('(6)')}`,
         },
-        { label: 'Duration', value: '5.63s' },
+        { label: 'Duration', value: '6.63s' },
       ],
       style: 'tally',
     })

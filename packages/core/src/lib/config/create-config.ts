@@ -76,7 +76,7 @@ export function createConfigClient<TSchema extends ZodTypeAny>(
    * @returns The c12 result, or null if nothing was found.
    */
   async function resolveConfig(cwd: string, configFile: string): Promise<C12Result | null> {
-    if (searchPaths) {
+    if (searchPaths && searchPaths.length > 0) {
       const results = await Promise.all(searchPaths.map((dir) => resolveFromDir(dir, configFile)))
       const found = results.find((r): r is NonNullable<typeof r> => r !== null)
       if (found) {

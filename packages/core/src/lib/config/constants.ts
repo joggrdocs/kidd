@@ -9,11 +9,6 @@ export type ConfigFormat = 'json' | 'jsonc' | 'js' | 'ts' | 'yaml'
 export type ConfigWriteFormat = 'json' | 'jsonc' | 'yaml'
 
 /**
- * Standard JSON indentation width.
- */
-export { JSON_INDENT } from '@/utils/constants.js'
-
-/**
  * File extensions allowed for the short config name (e.g. `jog.json`, `jog.yaml`).
  *
  * TS/JS extensions are excluded — use the `name.config.*` pattern for those.

@@ -36,22 +36,26 @@ export function getFormat(filePath: string): ConfigFormat {
  */
 export function serializeContent(data: unknown, format: ConfigWriteFormat): string {
   return match(format)
-    .with('json', () => {
-      const [serializeError, json] = jsonStringify(data, { pretty: true })
-      if (serializeError) {
-        return '{}\n'
-      }
-      return `${json}\n`
-    })
-    .with('jsonc', () => {
-      const [serializeError, json] = jsonStringify(data, { pretty: true })
-      if (serializeError) {
-        return '{}\n'
-      }
-      return `${json}\n`
-    })
+    .with('json', 'jsonc', () => serializeJson(data))
     .with('yaml', () => yamlStringify(data))
     .exhaustive()
+}
+
+// ---------------------------------------------------------------------------
+
+/**
+ * Serialize data as pretty-printed JSON with a trailing newline.
+ *
+ * @private
+ * @param data - The data to serialize.
+ * @returns The JSON string, or a fallback `'{}\n'` on serialization failure.
+ */
+function serializeJson(data: unknown): string {
+  const [serializeError, json] = jsonStringify(data, { pretty: true })
+  if (serializeError) {
+    return '{}\n'
+  }
+  return `${json}\n`
 }
 
 /**

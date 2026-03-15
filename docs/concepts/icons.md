@@ -1,6 +1,6 @@
 # Icons
 
-The icons system for kidd CLIs. Provides Nerd Font glyph resolution with automatic emoji fallback, font detection, interactive installation prompts, and categorized icon definitions.
+The icons system provides Nerd Font glyph resolution with automatic emoji fallback, font detection, interactive installation prompts, and categorized icon definitions for kidd CLIs.
 
 Icons is a sub-export of the `@kidd-cli/core` package (`@kidd-cli/core/icons`), not a separate package. It ships as middleware that decorates `ctx.icons` with methods for resolving icon names to glyphs, checking font availability, and triggering installation.
 
@@ -19,12 +19,12 @@ This means commands never need to check font availability themselves. Call `ctx.
 
 Icons are organized into four categories:
 
-| Category | Description                    | Examples                                     |
-| -------- | ------------------------------ | -------------------------------------------- |
-| `git`    | Version control operations     | `branch`, `commit`, `merge`, `pr`, `tag`     |
-| `devops` | Infrastructure and CI/CD       | `deploy`, `docker`, `kubernetes`, `terminal` |
-| `status` | Status indicators              | `success`, `error`, `warning`, `pending`     |
-| `files`  | File types and filesystem      | `file`, `folder`, `typescript`, `json`       |
+| Category | Description                | Examples                                     |
+| -------- | -------------------------- | -------------------------------------------- |
+| `git`    | Version control operations | `branch`, `commit`, `merge`, `pr`, `tag`     |
+| `devops` | Infrastructure and CI/CD   | `deploy`, `docker`, `kubernetes`, `terminal` |
+| `status` | Status indicators          | `success`, `error`, `warning`, `pending`     |
+| `files`  | File types and filesystem  | `file`, `folder`, `typescript`, `json`       |
 
 ### Auto-Setup
 
@@ -39,9 +39,7 @@ import { icons } from '@kidd-cli/core/icons'
 cli({
   name: 'my-app',
   version: '1.0.0',
-  middleware: [
-    icons(),
-  ],
+  middleware: [icons()],
   commands: `${import.meta.dirname}/commands`,
 })
 ```
@@ -57,33 +55,36 @@ icons({
 
 ## IconsOptions
 
-| Option       | Type                              | Default            | Description                                                  |
-| ------------ | --------------------------------- | ------------------ | ------------------------------------------------------------ |
-| `icons`      | `Record<string, IconDefinition>`  | Built-in defaults  | Custom icon definitions to merge with defaults               |
-| `autoSetup`  | `boolean`                         | `false`            | Prompt to install Nerd Fonts if not detected                 |
-| `font`       | `string`                          | `'JetBrainsMono'`  | The Nerd Font family to install                              |
-| `forceSetup` | `boolean`                         | `false`            | Always show the install prompt, even if fonts are detected   |
+| Option       | Type                             | Default           | Description                                                |
+| ------------ | -------------------------------- | ----------------- | ---------------------------------------------------------- |
+| `icons`      | `Record<string, IconDefinition>` | Built-in defaults | Custom icon definitions to merge with defaults             |
+| `autoSetup`  | `boolean`                        | `false`           | Prompt to install Nerd Fonts if not detected               |
+| `font`       | `string`                         | `'JetBrainsMono'` | The Nerd Font family to install                            |
+| `forceSetup` | `boolean`                        | `false`           | Always show the install prompt, even if fonts are detected |
 
 ## IconsContext
 
-The icons middleware decorates `ctx.icons` with an `IconsContext`:
+The icons middleware decorates `ctx.icons` with an `IconsContext`. The context is both callable and has methods — `ctx.icons('branch')` is equivalent to `ctx.icons.get('branch')`.
 
-| Method         | Type                                            | Description                                      |
-| -------------- | ----------------------------------------------- | ------------------------------------------------ |
-| `get(name)`    | `(name: string) => string`                      | Resolve an icon name to its glyph string         |
-| `has(name)`    | `(name: string) => boolean`                     | Check whether an icon name is defined            |
-| `installed()`  | `() => boolean`                                 | Whether Nerd Fonts are detected on the system    |
-| `setup()`      | `() => AsyncResult<boolean, IconsError>`        | Interactively prompt to install Nerd Fonts       |
-| `category(cat)`| `(cat: IconCategory) => Record<string, string>` | Get all resolved icons for a given category      |
+| Method / Call     | Type                                            | Description                                                   |
+| ----------------- | ----------------------------------------------- | ------------------------------------------------------------- |
+| `ctx.icons(name)` | `(name: string) => string`                      | Resolve an icon name to its glyph string (callable shorthand) |
+| `get(name)`       | `(name: string) => string`                      | Resolve an icon name to its glyph string                      |
+| `has(name)`       | `(name: string) => boolean`                     | Check whether an icon name is defined                         |
+| `installed()`     | `() => boolean`                                 | Whether Nerd Fonts are detected on the system                 |
+| `setup()`         | `() => AsyncResult<boolean, IconsError>`        | Interactively prompt to install Nerd Fonts                    |
+| `category(cat)`   | `(cat: IconCategory) => Record<string, string>` | Get all resolved icons for a given category                   |
 
-### `ctx.icons.get()`
+### `ctx.icons(name)` / `ctx.icons.get()`
 
-Resolve an icon name to its display string. Returns the Nerd Font glyph when fonts are installed, the emoji fallback otherwise. Returns an empty string when the name is not found.
+Resolve an icon name to its display string. Returns the Nerd Font glyph when fonts are installed, the emoji fallback otherwise. Returns an empty string when the name is not found. Both `ctx.icons('branch')` and `ctx.icons.get('branch')` return the same result.
 
 ```ts
 export default command({
   async handler(ctx) {
-    const icon = ctx.icons.get('branch')
+    // Both forms are equivalent
+    const icon = ctx.icons('branch')
+    const same = ctx.icons.get('branch')
     ctx.logger.info(`${icon} Current branch: main`)
   },
 })
@@ -136,10 +137,10 @@ if (!ctx.icons.installed()) {
 
 ### IconsError
 
-| `type`              | Description                              |
-| ------------------- | ---------------------------------------- |
-| `'detection_failed'`| Nerd Font detection check failed         |
-| `'install_failed'`  | Font installation failed                 |
+| `type`               | Description                      |
+| -------------------- | -------------------------------- |
+| `'detection_failed'` | Nerd Font detection check failed |
+| `'install_failed'`   | Font installation failed         |
 
 ## Custom Icons
 

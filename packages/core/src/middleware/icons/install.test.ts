@@ -7,7 +7,9 @@ vi.mock('font-list', () => ({
 vi.mock('node:child_process', () => ({
   exec: vi.fn((_cmd: string, _opts: unknown, cb?: Function) => {
     const callback = cb ?? _opts
-    if (typeof callback === 'function') callback(null, { stdout: '', stderr: '' })
+    if (typeof callback === 'function') {
+      callback(null, { stderr: '', stdout: '' })
+    }
   }),
 }))
 

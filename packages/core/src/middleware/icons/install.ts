@@ -520,14 +520,72 @@ async function installViaDownload({
 }
 
 /**
+ * Canonical mapping of Nerd Font release names to Homebrew cask slugs.
+ *
+ * The generic regex-based conversion produces incorrect slugs for
+ * abbreviations (e.g. IBM, DejaVu) and compound names. This map
+ * provides the correct slugs for all fonts in {@link FONT_MAP}.
+ *
+ * @private
+ */
+const BREW_SLUG_MAP: Readonly<Record<string, string>> = Object.freeze({
+  '0xProto': '0xproto',
+  AnonymousPro: 'anonymous-pro',
+  AtkinsonHyperlegibleMono: 'atkinson-hyperlegible-mono',
+  CascadiaCode: 'cascadia-code',
+  CascadiaMono: 'cascadia-mono',
+  ComicShannsMono: 'comic-shanns-mono',
+  CommitMono: 'commit-mono',
+  DejaVuSansMono: 'dejavu-sans-mono',
+  DepartureMono: 'departure-mono',
+  DroidSansMono: 'droid-sans-mono',
+  FiraCode: 'fira-code',
+  FiraMono: 'fira-mono',
+  'Go-Mono': 'go-mono',
+  GeistMono: 'geist-mono',
+  Hack: 'hack',
+  Hasklig: 'hasklig',
+  Hermit: 'hermit',
+  IBMPlexMono: 'ibm-plex-mono',
+  Inconsolata: 'inconsolata',
+  IntelOneMono: 'intone-mono',
+  Iosevka: 'iosevka',
+  JetBrainsMono: 'jetbrains-mono',
+  Lilex: 'lilex',
+  MartianMono: 'martian-mono',
+  Meslo: 'meslo-lg',
+  Monaspace: 'monaspace',
+  Mononoki: 'mononoki',
+  Noto: 'noto',
+  Overpass: 'overpass',
+  Recursive: 'recursive',
+  RobotoMono: 'roboto-mono',
+  SourceCodePro: 'sauce-code-pro',
+  SpaceMono: 'space-mono',
+  UbuntuMono: 'ubuntu-mono',
+  UbuntuSans: 'ubuntu-sans',
+  VictorMono: 'victor-mono',
+  ZedMono: 'zed-mono',
+})
+
+/**
  * Convert a font family name to a Homebrew cask slug.
+ *
+ * Uses the canonical {@link BREW_SLUG_MAP} when available, falling
+ * back to a regex-based conversion for unknown font names.
  *
  * @private
  * @param name - The font family name (e.g. 'JetBrainsMono').
  * @returns The slug (e.g. 'jetbrains-mono').
  */
 function fontNameToSlug(name: string): string {
-  return name.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase()
+  const mapped = BREW_SLUG_MAP[name]
+
+  if (mapped !== undefined) {
+    return mapped
+  }
+
+  return name.replaceAll(/([a-z])([A-Z])/g, '$1-$2').toLowerCase()
 }
 
 /**

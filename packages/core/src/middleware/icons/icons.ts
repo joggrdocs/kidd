@@ -45,17 +45,17 @@ import type { IconsFactory, IconsOptions } from './types.js'
  */
 function createIcons(options?: IconsOptions): Middleware {
   const resolved = resolveOptions(options)
+  const frozenIcons = Object.freeze({ ...createDefaultIcons(), ...resolved.icons })
 
   return middleware(async (ctx, next) => {
     const isDetected = await detectNerdFonts()
-    const mergedIcons = { ...createDefaultIcons(), ...resolved.icons }
     const isInstalled = await resolveInstallStatus({ isDetected, resolved, ctx })
 
     const iconsContext = createIconsContext({
       ctx,
       font: resolved.font,
       forceSetup: resolved.forceSetup,
-      icons: mergedIcons,
+      icons: frozenIcons,
       isInstalled,
     })
 

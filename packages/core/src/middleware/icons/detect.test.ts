@@ -6,12 +6,11 @@ vi.mock(import('font-list'), () => ({
 
 import { getFonts } from 'font-list'
 
-import { clearDetectionCache, detectNerdFonts } from './detect.js'
+import { detectNerdFonts } from './detect.js'
 
 describe('detectNerdFonts()', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    clearDetectionCache()
   })
 
   afterEach(() => {
@@ -48,16 +47,6 @@ describe('detectNerdFonts()', () => {
     const result = await detectNerdFonts()
 
     expect(result).toBeFalsy()
-  })
-
-  it('should cache results after first call', async () => {
-    vi.mocked(getFonts).mockResolvedValue(['Hack Nerd Font'])
-
-    const first = await detectNerdFonts()
-    const second = await detectNerdFonts()
-
-    expect(first).toBe(second)
-    expect(getFonts).toHaveBeenCalledTimes(1)
   })
 
   it('should pass disableQuoting option to getFonts', async () => {

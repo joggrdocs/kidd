@@ -14,7 +14,7 @@ const { catalog } = parse(workspaceContent) as {
   catalog: { tsdown: string; typescript: string; vitest: string; zod: string }
 }
 
-describe('normalizeVersion', () => {
+describe('normalizeVersion()', () => {
   it('should return version as-is when it starts with ^', () => {
     expect(normalizeVersion('^1.2.3')).toBe('^1.2.3')
   })
@@ -40,7 +40,7 @@ describe('normalizeVersion', () => {
   })
 })
 
-describe('readTemplateVersions', () => {
+describe('readTemplateVersions()', () => {
   it('should return versions matching the workspace catalog', () => {
     const [error, versions] = readTemplateVersions()
     expect(error).toBeNull()

@@ -1,4 +1,5 @@
 import { cli } from '@kidd-cli/core'
+import type { ConfigType } from '@kidd-cli/core'
 import { http } from '@kidd-cli/core/http'
 import type { HttpClient } from '@kidd-cli/core/http'
 import { z } from 'zod'
@@ -6,17 +7,19 @@ import { z } from 'zod'
 import telemetry from './middleware/telemetry.js'
 import timing from './middleware/timing.js'
 
-declare module '@kidd-cli/core' {
-  interface Context {
-    readonly api: HttpClient
-  }
-}
-
 const configSchema = z.object({
   apiUrl: z.string().url(),
   defaultEnvironment: z.string().default('staging'),
   org: z.string().min(1),
 })
+
+declare module '@kidd-cli/core' {
+  interface Context {
+    readonly api: HttpClient
+  }
+
+  interface CliConfig extends ConfigType<typeof configSchema> {}
+}
 
 cli({
   commands: {

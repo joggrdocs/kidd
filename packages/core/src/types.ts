@@ -14,8 +14,17 @@ export interface KiddArgs {}
 
 /**
  * Global config merged into every ctx.config.
+ *
+ * Extend via module augmentation with {@link ConfigType} to derive the
+ * shape from your Zod schema:
+ *
+ * ```ts
+ * declare module '@kidd-cli/core' {
+ *   interface CliConfig extends ConfigType<typeof configSchema> {}
+ * }
+ * ```
  */
-export interface KiddConfig {}
+export interface CliConfig {}
 
 /**
  * Global store keys merged into every ctx.store.
@@ -30,6 +39,22 @@ export interface KiddStore {}
  * Extract the inferred output type from a zod schema, or fall back to a plain object.
  */
 export type InferSchema<TSchema> = TSchema extends z.ZodType<infer TOutput> ? TOutput : AnyRecord
+
+/**
+ * Derive the config type from a Zod schema for use in module augmentation.
+ *
+ * Use this in a `declare module` block to keep `CliConfig` in sync with
+ * your Zod config schema, eliminating manual type duplication:
+ *
+ * ```ts
+ * import type { ConfigType } from '@kidd-cli/core'
+ *
+ * declare module '@kidd-cli/core' {
+ *   interface CliConfig extends ConfigType<typeof configSchema> {}
+ * }
+ * ```
+ */
+export type ConfigType<TSchema extends z.ZodType> = z.infer<TSchema>
 
 /**
  * Merge two types, with TBase overriding TOverride.

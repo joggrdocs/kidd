@@ -1,8 +1,13 @@
 import { cli } from '@kidd-cli/core'
-
+{% if includeConfig %}
+import { configSchema } from './config.js'
+{% endif %}
 void cli({
   name: '{{ name }}',
   version: '0.0.0',
   description: '{{ description }}',
   commands: import.meta.dirname + '/commands',
-})
+{% if includeConfig %}  config: {
+    schema: configSchema,
+  },
+{% endif %}})

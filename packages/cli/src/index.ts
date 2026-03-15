@@ -2,7 +2,11 @@ import { cli } from '@kidd-cli/core'
 
 import { loadCLIManifest } from './manifest.js'
 
-const manifest = await loadCLIManifest(import.meta.dirname)
+const [manifestError, manifest] = await loadCLIManifest(import.meta.dirname)
+if (manifestError) {
+  console.error(manifestError.message)
+  process.exit(1)
+}
 
 await cli({
   commands: `${import.meta.dirname}/commands`,

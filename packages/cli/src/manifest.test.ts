@@ -31,8 +31,9 @@ describe('loadCLIManifest()', () => {
       },
     ])
 
-    const result = await loadCLIManifest('/project/dist')
+    const [error, result] = await loadCLIManifest('/project/dist')
 
+    expect(error).toBeNull()
     expect(result).toEqual({
       description: 'A test CLI tool',
       name: 'my-cli',
@@ -41,15 +42,19 @@ describe('loadCLIManifest()', () => {
     expect(mockReadManifest).toHaveBeenCalledWith('/project')
   })
 
-  it('should throw when readManifest returns error', async () => {
+  it('should return error when readManifest returns error', async () => {
     mockReadManifest.mockResolvedValue([new Error('read failed'), null])
 
-    await expect(loadCLIManifest('/project/dist')).rejects.toThrow(
-      'Failed to read CLI manifest: read failed'
-    )
+    const [error] = await loadCLIManifest('/project/dist')
+
+    expect(error).toBeInstanceOf(Error)
+    if (error === null) {
+      return
+    }
+    expect(error.message).toContain('Failed to read CLI manifest: read failed')
   })
 
-  it('should throw when name is missing', async () => {
+  it('should return error when name is missing', async () => {
     mockReadManifest.mockResolvedValue([
       null,
       {
@@ -65,12 +70,16 @@ describe('loadCLIManifest()', () => {
       },
     ])
 
-    await expect(loadCLIManifest('/project/dist')).rejects.toThrow(
-      'CLI manifest is missing required field: name'
-    )
+    const [error] = await loadCLIManifest('/project/dist')
+
+    expect(error).toBeInstanceOf(Error)
+    if (error === null) {
+      return
+    }
+    expect(error.message).toContain('CLI manifest is missing required field: name')
   })
 
-  it('should throw when version is missing', async () => {
+  it('should return error when version is missing', async () => {
     mockReadManifest.mockResolvedValue([
       null,
       {
@@ -86,12 +95,16 @@ describe('loadCLIManifest()', () => {
       },
     ])
 
-    await expect(loadCLIManifest('/project/dist')).rejects.toThrow(
-      'CLI manifest is missing required field: version'
-    )
+    const [error] = await loadCLIManifest('/project/dist')
+
+    expect(error).toBeInstanceOf(Error)
+    if (error === null) {
+      return
+    }
+    expect(error.message).toContain('CLI manifest is missing required field: version')
   })
 
-  it('should throw when description is missing', async () => {
+  it('should return error when description is missing', async () => {
     mockReadManifest.mockResolvedValue([
       null,
       {
@@ -107,8 +120,12 @@ describe('loadCLIManifest()', () => {
       },
     ])
 
-    await expect(loadCLIManifest('/project/dist')).rejects.toThrow(
-      'CLI manifest is missing required field: description'
-    )
+    const [error] = await loadCLIManifest('/project/dist')
+
+    expect(error).toBeInstanceOf(Error)
+    if (error === null) {
+      return
+    }
+    expect(error.message).toContain('CLI manifest is missing required field: description')
   })
 })

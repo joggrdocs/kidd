@@ -232,6 +232,7 @@ async function resolveSelfVersion(): Promise<string> {
   const packageDir = join(import.meta.dirname, '..', '..')
   const [error, manifest] = await readManifest(packageDir)
   if (error || !manifest.version) {
+    console.warn('Warning: Could not resolve CLI version, using fallback 0.0.0')
     return DEFAULT_VERSION
   }
   return manifest.version
@@ -252,12 +253,14 @@ async function resolveDependencyVersion(packageName: string): Promise<string> {
   const require = createRequire(import.meta.url)
   const [resolveError, entryPath] = attempt(() => require.resolve(packageName))
   if (resolveError || entryPath === null) {
+    console.warn(`Warning: Could not resolve version for ${packageName}, using fallback 0.0.0`)
     return DEFAULT_VERSION
   }
 
   const packageDir = join(dirname(entryPath), '..')
   const [manifestError, manifest] = await readManifest(packageDir)
   if (manifestError || !manifest.version) {
+    console.warn(`Warning: Could not resolve version for ${packageName}, using fallback 0.0.0`)
     return DEFAULT_VERSION
   }
 

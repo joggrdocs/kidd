@@ -16,34 +16,35 @@ export interface CLIManifest {
  *
  * Reads package.json one directory above `baseDir` (the dist output sits
  * one level below the package root) and ensures all required fields are
- * present. Throws immediately if the manifest cannot be read or any
- * required field is missing — this is an unrecoverable entry-point guard.
+ * present. Returns an error Result if the manifest cannot be read or any
+ * required field is missing.
  *
  * @param baseDir - The directory the CLI entry file lives in (typically `import.meta.dirname`).
- * @returns A validated {@link CLIManifest} with all required fields.
+ * @returns A Result tuple: error on failure, validated {@link CLIManifest} on success.
  */
-export async function loadCLIManifest(baseDir: string): Promise<CLIManifest> {
+export async function loadCLIManifest(
+  baseDir: string
+): Promise<readonly [Error, null] | readonly [null, CLIManifest]> {
   const [manifestError, manifest] = await readManifest(join(baseDir, '..'))
 
   if (manifestError) {
-    throw new Error(`Failed to read CLI manifest: ${manifestError.message}`)
+    return [new Error(`Failed to read CLI manifest: ${manifestError.message}`), null] as const
   }
 
   if (!manifest.name) {
-    throw new Error('CLI manifest is missing required field: name')
+    return [new Error('CLI manifest is missing required field: name'), null] as const
   }
 
   if (!manifest.version) {
-    throw new Error('CLI manifest is missing required field: version')
+    return [new Error('CLI manifest is missing required field: version'), null] as const
   }
 
   if (!manifest.description) {
-    throw new Error('CLI manifest is missing required field: description')
+    return [new Error('CLI manifest is missing required field: description'), null] as const
   }
 
-  return {
-    description: manifest.description,
-    name: manifest.name,
-    version: manifest.version,
-  }
+  return [
+    null,
+    { description: manifest.description, name: manifest.name, version: manifest.version },
+  ] as const
 }

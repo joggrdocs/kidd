@@ -5,11 +5,19 @@ vi.mock(import('@kidd-cli/utils/manifest'), () => ({
   readManifest: vi.fn(),
 }))
 
-vi.mock(import('../generated/template-versions.js'), () => ({
-  TSDOWN_VERSION: '^0.21.3' as const,
-  TYPESCRIPT_VERSION: '^5.9.3' as const,
-  VITEST_VERSION: '^4.1.0' as const,
-  ZOD_VERSION: '^4.3.6' as const,
+vi.mock(import('../lib/template-versions.js'), () => ({
+  readTemplateVersions: vi.fn(
+    () =>
+      [
+        null,
+        {
+          tsdownVersion: '^0.21.3',
+          typescriptVersion: '^5.9.3',
+          vitestVersion: '^4.1.0',
+          zodVersion: '^4.3.6',
+        },
+      ] as const
+  ),
 }))
 
 vi.mock(import('../lib/render.js'), () => ({
@@ -21,9 +29,11 @@ vi.mock(import('../lib/write.js'), () => ({
 }))
 
 const { readManifest } = await import('@kidd-cli/utils/manifest')
+const { readTemplateVersions } = await import('../lib/template-versions.js')
 const { renderTemplate } = await import('../lib/render.js')
 const { writeFiles } = await import('../lib/write.js')
 const mockedReadManifest = vi.mocked(readManifest)
+const mockedReadTemplateVersions = vi.mocked(readTemplateVersions)
 const mockedRenderTemplate = vi.mocked(renderTemplate)
 const mockedWriteFiles = vi.mocked(writeFiles)
 
@@ -207,5 +217,22 @@ describe('init command', () => {
 
     const mod = await import('./init.js')
     await expect(mod.default.handler!(ctx)).rejects.toThrow('bad template')
+  })
+
+  it('should call fail when template versions cannot be read', async () => {
+    const ctx = makeContext({
+      config: false,
+      description: 'Test',
+      example: false,
+      name: 'test-cli',
+      pm: 'pnpm',
+    })
+    mockedReadTemplateVersions.mockReturnValueOnce([
+      new Error('Could not locate pnpm-workspace.yaml'),
+      null,
+    ])
+
+    const mod = await import('./init.js')
+    await expect(mod.default.handler!(ctx)).rejects.toThrow('Could not locate pnpm-workspace.yaml')
   })
 })

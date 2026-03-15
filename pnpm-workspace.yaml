@@ -1,17 +1,15 @@
 packages:
-  - 'packages/*'
-  - 'examples/*'
+  - packages/*
+  - examples/*
 
 catalog:
-  # runtime
-  zod: ^4.3.6
+  '@types/node': ^25.5.0
+  '@vitest/coverage-v8': ^4.1.0
   es-toolkit: ^1.45.1
-  ts-pattern: ^5.9.0
   liquidjs: ^10.25.0
-  # dev
+  ts-pattern: ^5.9.0
+  tsdown: 0.21.3
+  tsx: ^4.21.0
   typescript: ^5.9.3
   vitest: ^4.1.0
-  '@vitest/coverage-v8': ^4.1.0
-  tsdown: 0.21.2
-  '@types/node': ^25.5.0
-  tsx: ^4.21.0
+  zod: ^4.3.6

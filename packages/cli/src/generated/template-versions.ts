@@ -23,4 +23,4 @@ export const VITEST_VERSION = '^4.1.0'
 /**
  * Tsdown version from the workspace catalog.
  */
-export const TSDOWN_VERSION = '^0.21.2'
+export const TSDOWN_VERSION = '^0.21.3'

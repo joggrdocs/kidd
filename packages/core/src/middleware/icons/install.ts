@@ -21,6 +21,7 @@ import type { AsyncResult } from '@kidd-cli/utils/fp'
 import { ok } from '@kidd-cli/utils/fp'
 import { getFonts } from 'font-list'
 import { match } from 'ts-pattern'
+import { z } from 'zod'
 
 import type { IconsCtx } from './context.js'
 import type { IconsError } from './types.js'
@@ -30,6 +31,17 @@ import type { IconsError } from './types.js'
 // ---------------------------------------------------------------------------
 
 const execAsync = promisify(exec)
+
+/**
+ * Zod schema for validating font names before shell interpolation.
+ *
+ * Restricts to alphanumeric characters and hyphens to prevent command injection.
+ *
+ * @private
+ */
+const fontNameSchema = z
+  .string()
+  .regex(/^[A-Za-z0-9-]+$/, 'Font name must be alphanumeric or hyphen')
 
 /**
  * Maps base font family name patterns to their Nerd Font release names.
@@ -127,10 +139,43 @@ export async function installNerdFont(
   const { ctx, font } = options
 
   if (font !== undefined) {
-    return installWithConfirmation(ctx, font)
+    const parsed = fontNameSchema.safeParse(font)
+
+    if (!parsed.success) {
+      return iconsError({
+        message: `Invalid font name: ${parsed.error.message}`,
+        type: 'install_failed',
+      })
+    }
+
+    return installWithConfirmation({ ctx, fontName: parsed.data })
   }
 
   return installWithSelection(ctx)
+}
+
+// ---------------------------------------------------------------------------
+// Private types
+// ---------------------------------------------------------------------------
+
+/**
+ * Parameters for functions that operate on a context and font name.
+ *
+ * @private
+ */
+interface CtxFontParams {
+  readonly ctx: IconsCtx
+  readonly fontName: string
+}
+
+/**
+ * Parameters for functions that operate on a context and slug.
+ *
+ * @private
+ */
+interface CtxSlugParams {
+  readonly ctx: IconsCtx
+  readonly slug: string
 }
 
 // ---------------------------------------------------------------------------
@@ -162,6 +207,14 @@ async function installWithSelection(ctx: IconsCtx): AsyncResult<boolean, IconsEr
   }
 
   const fontName = String(selected)
+  const parsed = fontNameSchema.safeParse(fontName)
+
+  if (!parsed.success) {
+    return iconsError({
+      message: `Invalid font name: ${parsed.error.message}`,
+      type: 'install_failed',
+    })
+  }
 
   const action = await ctx.prompts.select({
     message: 'How would you like to install?',
@@ -176,8 +229,8 @@ async function installWithSelection(ctx: IconsCtx): AsyncResult<boolean, IconsEr
   }
 
   return match(String(action))
-    .with('auto', () => installFontWithSpinner(ctx, fontName))
-    .with('commands', () => showInstallCommands(ctx, fontName))
+    .with('auto', () => installFontWithSpinner({ ctx, fontName: parsed.data }))
+    .with('commands', () => showInstallCommands({ ctx, fontName: parsed.data }))
     .otherwise(() => ok(false))
 }
 
@@ -185,14 +238,13 @@ async function installWithSelection(ctx: IconsCtx): AsyncResult<boolean, IconsEr
  * Confirm and install a specific font by name.
  *
  * @private
- * @param ctx - The icons context with prompts, spinner, and logger.
- * @param fontName - The Nerd Font release name to install.
+ * @param params - The icons context and font name.
  * @returns A Result with true on success or an IconsError on failure.
  */
-async function installWithConfirmation(
-  ctx: IconsCtx,
-  fontName: string
-): AsyncResult<boolean, IconsError> {
+async function installWithConfirmation({
+  ctx,
+  fontName,
+}: CtxFontParams): AsyncResult<boolean, IconsError> {
   const confirmed = await ctx.prompts.confirm({
     message: `Nerd Fonts not detected. Install ${fontName} Nerd Font?`,
   })
@@ -201,7 +253,7 @@ async function installWithConfirmation(
     return ok(false)
   }
 
-  return installFontWithSpinner(ctx, fontName)
+  return installFontWithSpinner({ ctx, fontName })
 }
 
 /**
@@ -260,14 +312,13 @@ function buildFontChoices(
  * Print the install commands for the user to run manually.
  *
  * @private
- * @param ctx - The icons context with logger.
- * @param fontName - The Nerd Font release name (e.g. 'JetBrainsMono').
+ * @param params - The icons context and font name.
  * @returns A Result with false since nothing was installed.
  */
-async function showInstallCommands(
-  ctx: IconsCtx,
-  fontName: string
-): AsyncResult<boolean, IconsError> {
+async function showInstallCommands({
+  ctx,
+  fontName,
+}: CtxFontParams): AsyncResult<boolean, IconsError> {
   const slug = fontNameToSlug(fontName)
   const url = `https://github.com/ryanoasis/nerd-fonts/releases/latest/download/${fontName}.zip`
   const fontDir = match(process.platform)
@@ -319,17 +370,16 @@ async function showInstallCommands(
  * Install a Nerd Font with spinner feedback.
  *
  * @private
- * @param ctx - The icons context with spinner.
- * @param fontName - The Nerd Font release name (e.g. 'JetBrainsMono').
+ * @param params - The icons context and font name.
  * @returns A Result with true on success or an IconsError on failure.
  */
-async function installFontWithSpinner(
-  ctx: IconsCtx,
-  fontName: string
-): AsyncResult<boolean, IconsError> {
+async function installFontWithSpinner({
+  ctx,
+  fontName,
+}: CtxFontParams): AsyncResult<boolean, IconsError> {
   ctx.spinner.start(`Installing ${fontName} Nerd Font...`)
 
-  const result = await installFont(ctx, fontName)
+  const result = await installFont({ ctx, fontName })
   const [error] = result
 
   if (error) {
@@ -345,14 +395,13 @@ async function installFontWithSpinner(
  * Install a Nerd Font by name, dispatching to the platform-appropriate method.
  *
  * @private
- * @param ctx - The icons context with spinner.
- * @param fontName - The Nerd Font release name (e.g. 'JetBrainsMono').
+ * @param params - The icons context and font name.
  * @returns A Result with true on success or an IconsError on failure.
  */
-async function installFont(ctx: IconsCtx, fontName: string): AsyncResult<boolean, IconsError> {
+async function installFont({ ctx, fontName }: CtxFontParams): AsyncResult<boolean, IconsError> {
   return match(process.platform)
-    .with('darwin', () => installDarwin(ctx, fontName))
-    .with('linux', () => installLinux(ctx, fontName))
+    .with('darwin', () => installDarwin({ ctx, fontName }))
+    .with('linux', () => installLinux({ ctx, fontName }))
     .otherwise(() =>
       Promise.resolve(
         iconsError({ message: `Unsupported platform: ${process.platform}`, type: 'install_failed' })
@@ -364,31 +413,29 @@ async function installFont(ctx: IconsCtx, fontName: string): AsyncResult<boolean
  * Install a Nerd Font on macOS via Homebrew or direct download.
  *
  * @private
- * @param ctx - The icons context with spinner.
- * @param fontName - The font family name (e.g. 'JetBrainsMono').
+ * @param params - The icons context and font name.
  * @returns A Result with true on success or an IconsError on failure.
  */
-async function installDarwin(ctx: IconsCtx, fontName: string): AsyncResult<boolean, IconsError> {
+async function installDarwin({ ctx, fontName }: CtxFontParams): AsyncResult<boolean, IconsError> {
   const slug = fontNameToSlug(fontName)
   const hasBrew = await checkBrewAvailable()
 
   if (hasBrew) {
-    return installViaBrew(ctx, slug)
+    return installViaBrew({ ctx, slug })
   }
 
-  return installViaDownload(ctx, fontName)
+  return installViaDownload({ ctx, fontName })
 }
 
 /**
  * Install a Nerd Font on Linux via direct download.
  *
  * @private
- * @param ctx - The icons context with spinner.
- * @param fontName - The font family name (e.g. 'JetBrainsMono').
+ * @param params - The icons context and font name.
  * @returns A Result with true on success or an IconsError on failure.
  */
-async function installLinux(ctx: IconsCtx, fontName: string): AsyncResult<boolean, IconsError> {
-  return installViaDownload(ctx, fontName)
+async function installLinux({ ctx, fontName }: CtxFontParams): AsyncResult<boolean, IconsError> {
+  return installViaDownload({ ctx, fontName })
 }
 
 /**
@@ -410,11 +457,10 @@ async function checkBrewAvailable(): Promise<boolean> {
  * Install a Nerd Font via Homebrew cask.
  *
  * @private
- * @param ctx - The icons context with spinner.
- * @param slug - The Homebrew cask slug (e.g. 'jetbrains-mono').
+ * @param params - The icons context and cask slug.
  * @returns A Result with true on success or an IconsError on failure.
  */
-async function installViaBrew(ctx: IconsCtx, slug: string): AsyncResult<boolean, IconsError> {
+async function installViaBrew({ ctx, slug }: CtxSlugParams): AsyncResult<boolean, IconsError> {
   try {
     ctx.spinner.message(`Installing font-${slug}-nerd-font via Homebrew...`)
     await execAsync(`brew install --cask font-${slug}-nerd-font`)
@@ -434,14 +480,13 @@ async function installViaBrew(ctx: IconsCtx, slug: string): AsyncResult<boolean,
  * and refreshes the font cache on Linux.
  *
  * @private
- * @param ctx - The icons context with spinner.
- * @param fontName - The font family name (e.g. 'JetBrainsMono').
+ * @param params - The icons context and font name.
  * @returns A Result with true on success or an IconsError on failure.
  */
-async function installViaDownload(
-  ctx: IconsCtx,
-  fontName: string
-): AsyncResult<boolean, IconsError> {
+async function installViaDownload({
+  ctx,
+  fontName,
+}: CtxFontParams): AsyncResult<boolean, IconsError> {
   const fontDir = match(process.platform)
     .with('darwin', () => join(homedir(), 'Library', 'Fonts'))
     .otherwise(() => join(homedir(), '.local', 'share', 'fonts'))

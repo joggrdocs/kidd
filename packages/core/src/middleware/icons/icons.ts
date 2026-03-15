@@ -49,7 +49,7 @@ function createIcons(options?: IconsOptions): Middleware {
   return middleware(async (ctx, next) => {
     const isDetected = await detectNerdFonts()
     const mergedIcons = { ...createDefaultIcons(), ...resolved.icons }
-    const isInstalled = await resolveInstallStatus(isDetected, resolved, ctx)
+    const isInstalled = await resolveInstallStatus({ isDetected, resolved, ctx })
 
     const iconsContext = createIconsContext({
       ctx,
@@ -109,19 +109,28 @@ function resolveOptions(options: IconsOptions | undefined): ResolvedOptions {
 }
 
 /**
+ * Parameters for {@link resolveInstallStatus}.
+ *
+ * @private
+ */
+interface ResolveInstallStatusParams {
+  readonly isDetected: boolean
+  readonly resolved: ResolvedOptions
+  readonly ctx: IconsCtx
+}
+
+/**
  * Determine final install status, triggering auto-setup if configured.
  *
  * @private
- * @param isDetected - Whether fonts were detected on the system.
- * @param resolved - Resolved middleware options.
- * @param ctx - The middleware context.
+ * @param params - Detection state, resolved options, and middleware context.
  * @returns Whether Nerd Fonts should be considered installed.
  */
-async function resolveInstallStatus(
-  isDetected: boolean,
-  resolved: ResolvedOptions,
-  ctx: IconsCtx
-): Promise<boolean> {
+async function resolveInstallStatus({
+  isDetected,
+  resolved,
+  ctx,
+}: ResolveInstallStatusParams): Promise<boolean> {
   if (isDetected) {
     return true
   }

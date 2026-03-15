@@ -1,4 +1,5 @@
 import { command } from '@kidd-cli/core'
+import { match } from 'ts-pattern'
 
 export default command({
   description: 'Interactively install Nerd Fonts',
@@ -16,10 +17,9 @@ export default command({
       return
     }
 
-    if (installed) {
-      ctx.logger.success('Nerd Fonts installed successfully')
-    } else {
-      ctx.logger.info('Installation skipped')
-    }
+    match(installed)
+      .with(true, () => ctx.logger.success('Nerd Fonts installed successfully'))
+      .with(false, () => ctx.logger.info('Installation skipped'))
+      .exhaustive()
   },
 })

@@ -8,7 +8,7 @@ import type { ConfigFormat, ConfigWriteFormat } from './constants.js'
 export interface ConfigOptions<TSchema extends ZodTypeAny> {
   readonly name: string
   readonly schema: TSchema
-  readonly searchPaths?: string[]
+  readonly searchPaths?: readonly string[]
 }
 
 /**
@@ -46,10 +46,12 @@ export type ConfigOperationResult<TResult> = readonly [Error, null] | readonly [
  * Config client for loading, finding, and writing config files.
  */
 export interface Config<TConfig> {
-  load(cwd?: string): Promise<ConfigOperationResult<ConfigResult<TConfig>> | readonly [null, null]>
-  find(cwd?: string): Promise<string | null>
-  write(
+  readonly load: (
+    cwd?: string
+  ) => Promise<ConfigOperationResult<ConfigResult<TConfig>> | readonly [null, null]>
+  readonly find: (cwd?: string) => Promise<string | null>
+  readonly write: (
     data: TConfig,
     options?: ConfigWriteOptions
-  ): Promise<ConfigOperationResult<ConfigWriteResult>>
+  ) => Promise<ConfigOperationResult<ConfigWriteResult>>
 }

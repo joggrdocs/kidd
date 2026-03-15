@@ -14,7 +14,7 @@ import { DOTFILE_EXTENSIONS } from './constants.js'
  * @param name - The CLI name used to derive config file names.
  * @returns An array of dotfile config file names.
  */
-export function getDotfileNames(name: string): string[] {
+export function getDotfileNames(name: string): readonly string[] {
   return DOTFILE_EXTENSIONS.map((ext) => `.${name}${ext}`)
 }
 
@@ -29,9 +29,9 @@ export function getDotfileNames(name: string): string[] {
  * @returns The full path to the config file, or null if not found.
  */
 export async function findDotfileConfig(options: {
-  cwd: string
-  fileNames: string[]
-  searchPaths?: string[]
+  readonly cwd: string
+  readonly fileNames: readonly string[]
+  readonly searchPaths?: readonly string[]
 }): Promise<string | null> {
   const { fileNames, cwd, searchPaths } = options
 

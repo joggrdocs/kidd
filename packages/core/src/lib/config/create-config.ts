@@ -77,7 +77,7 @@ export function createConfigClient<TSchema extends ZodTypeAny>(
       })
     )
 
-    if (loadError || !loaded) {
+    if (loadError || !loaded || !hasResolvedConfigFile(loaded.configFile)) {
       return null
     }
 
@@ -256,7 +256,7 @@ export function createConfigClient<TSchema extends ZodTypeAny>(
     ]
   }
 
-  return { find, load, write }
+  return Object.freeze({ find, load, write })
 }
 
 // ---------------------------------------------------------------------------

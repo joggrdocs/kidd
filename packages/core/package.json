@@ -52,6 +52,10 @@
     "./http": {
       "types": "./dist/middleware/http.d.ts",
       "default": "./dist/middleware/http.js"
+    },
+    "./icons": {
+      "types": "./dist/middleware/icons.d.ts",
+      "default": "./dist/middleware/icons.js"
     }
   },
   "scripts": {
@@ -70,6 +74,7 @@
     "@pinojs/redact": "^0.4.0",
     "dotenv": "^17.3.1",
     "es-toolkit": "catalog:",
+    "font-list": "^2.0.2",
     "jsonc-parser": "^3.3.1",
     "liquidjs": "catalog:",
     "picocolors": "^1.1.1",

@@ -17,10 +17,8 @@ interface RegisterCommandArgsOptions {
  * and wires them as yargs options on the given builder instance. When positional
  * definitions are provided, they are registered via `builder.positional()`.
  *
- * @param options - Registration options.
- * @param options.builder - The yargs Argv instance to register options on.
- * @param options.args - Argument definitions from a Command.
- * @param options.positionals - Optional positional argument definitions.
+ * @param options - Builder instance, argument definitions, and optional positional definitions.
+ * @returns Nothing; mutates the yargs builder in place.
  */
 export function registerCommandArgs({
   builder,

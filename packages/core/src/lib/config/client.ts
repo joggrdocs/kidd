@@ -6,13 +6,13 @@ import { formatZodIssues } from '@kidd-cli/utils/validate'
 import { loadConfig as c12LoadConfig } from 'c12'
 import type { ZodTypeAny, output } from 'zod'
 
-import { DATA_EXTENSIONS } from './constants.js'
-import { getExtension, getFormat, serializeContent } from './parse.js'
+import { CONFIG_DATA_EXTENSIONS } from './constants.js'
+import { getExtension, getFormat, serializeContent } from './serialize.js'
 import type {
-  Config,
+  ConfigClient,
+  ConfigLoadOptions,
+  ConfigLoadResult,
   ConfigOperationResult,
-  ConfigOptions,
-  ConfigResult,
   ConfigWriteOptions,
   ConfigWriteResult,
 } from './types.js'
@@ -34,11 +34,11 @@ interface C12Result {
  * 2. `name.*` — data formats only (JSON, JSONC, YAML, TOML)
  *
  * @param options - Config client options including name and Zod schema.
- * @returns A {@link Config} client instance.
+ * @returns A {@link ConfigClient} client instance.
  */
 export function createConfigClient<TSchema extends ZodTypeAny>(
-  options: ConfigOptions<TSchema>
-): Config<output<TSchema>> {
+  options: ConfigLoadOptions<TSchema>
+): ConfigClient<output<TSchema>> {
   const { name, schema, searchPaths } = options
 
   /**
@@ -157,7 +157,7 @@ export function createConfigClient<TSchema extends ZodTypeAny>(
    */
   async function load(
     cwd?: string
-  ): Promise<ConfigOperationResult<ConfigResult<output<TSchema>> | null>> {
+  ): Promise<ConfigOperationResult<ConfigLoadResult<output<TSchema>> | null>> {
     const resolvedCwd = cwd ?? process.cwd()
     const [loadError, result] = await loadConfig(resolvedCwd)
     if (loadError) {
@@ -251,7 +251,7 @@ export function createConfigClient<TSchema extends ZodTypeAny>(
   function validateAndReturn(
     data: unknown,
     filePath: string
-  ): ConfigOperationResult<ConfigResult<output<TSchema>>> {
+  ): ConfigOperationResult<ConfigLoadResult<output<TSchema>>> {
     const result = schema.safeParse(data)
     if (!result.success) {
       const { message } = formatZodIssues(result.error.issues, '\n')
@@ -296,7 +296,7 @@ function hasResolvedConfigFile(configFile: string | undefined): configFile is st
  */
 function isDataExtension(configFile: string): boolean {
   const ext = extname(configFile)
-  return DATA_EXTENSIONS.has(ext)
+  return CONFIG_DATA_EXTENSIONS.has(ext)
 }
 
 /**

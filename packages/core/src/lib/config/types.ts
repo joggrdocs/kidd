@@ -1,11 +1,19 @@
 import type { ZodTypeAny } from 'zod'
 
-import type { ConfigFormat, ConfigWriteFormat } from './constants.js'
+/**
+ * Supported configuration file formats for reading.
+ */
+export type ConfigFormat = 'json' | 'json5' | 'jsonc' | 'js' | 'toml' | 'ts' | 'yaml'
+
+/**
+ * Supported configuration file formats for writing.
+ */
+export type ConfigWriteFormat = 'json' | 'jsonc' | 'yaml'
 
 /**
  * Options for creating a config client.
  */
-export interface ConfigOptions<TSchema extends ZodTypeAny> {
+export interface ConfigLoadOptions<TSchema extends ZodTypeAny> {
   readonly name: string
   readonly schema: TSchema
   readonly searchPaths?: readonly string[]
@@ -14,7 +22,7 @@ export interface ConfigOptions<TSchema extends ZodTypeAny> {
 /**
  * Result of loading a config file: the parsed config, its path, and format.
  */
-export interface ConfigResult<TConfig> {
+export interface ConfigLoadResult<TConfig> {
   readonly config: TConfig
   readonly filePath: string
   readonly format: ConfigFormat
@@ -45,8 +53,8 @@ export type ConfigOperationResult<TResult> = readonly [Error, null] | readonly [
 /**
  * Config client for loading, finding, and writing config files.
  */
-export interface Config<TConfig> {
-  readonly load: (cwd?: string) => Promise<ConfigOperationResult<ConfigResult<TConfig> | null>>
+export interface ConfigClient<TConfig> {
+  readonly load: (cwd?: string) => Promise<ConfigOperationResult<ConfigLoadResult<TConfig> | null>>
   readonly find: (cwd?: string) => Promise<string | null>
   readonly write: (
     data: TConfig,

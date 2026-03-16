@@ -1,10 +1,11 @@
-export type { ConfigFormat, ConfigWriteFormat } from './constants.js'
 export type {
-  Config,
+  ConfigClient,
+  ConfigFormat,
+  ConfigLoadOptions,
+  ConfigLoadResult,
   ConfigOperationResult,
-  ConfigOptions,
-  ConfigResult,
+  ConfigWriteFormat,
   ConfigWriteOptions,
   ConfigWriteResult,
 } from './types.js'
-export { createConfigClient } from './create-config.js'
+export { createConfigClient } from './client.js'

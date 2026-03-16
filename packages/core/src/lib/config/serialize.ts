@@ -4,8 +4,7 @@ import { attempt, err, match, ok } from '@kidd-cli/utils/fp'
 import { jsonStringify } from '@kidd-cli/utils/json'
 import { stringify as yamlStringify } from 'yaml'
 
-import type { ConfigFormat, ConfigWriteFormat } from './constants.js'
-import type { ConfigOperationResult } from './types.js'
+import type { ConfigFormat, ConfigOperationResult, ConfigWriteFormat } from './types.js'
 
 /**
  * Determine the config format from a file path's extension.

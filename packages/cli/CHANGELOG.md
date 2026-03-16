@@ -1,5 +1,20 @@
 # kidd-cli
 
+## 0.4.0
+
+### Minor Changes
+
+- 440fc58: Replace `args` with separate `options` and `positionals` fields on command definitions.
+
+  **Breaking:** The `args` field on `command()` has been removed. Use `options` for flags and `positionals` for positional arguments. Both accept a Zod object schema or a yargs-native record. The `PositionalDef` type has been removed. `ctx.args` remains unchanged at runtime — options and positionals are merged under the hood.
+
+### Patch Changes
+
+- Updated dependencies [b1c8e9e]
+- Updated dependencies [e81d3a8]
+- Updated dependencies [440fc58]
+  - @kidd-cli/core@0.6.0
+
 ## 0.3.1
 
 ### Patch Changes
@@ -19,11 +34,13 @@
 - 6d8889a: Add `ConfigType` utility type and `CliConfig` augmentation interface for typed `ctx.config`.
 
   **@kidd-cli/core:**
+
   - Add `ConfigType<TSchema>` utility type to derive `CliConfig` from a Zod schema
   - Rename `KiddConfig` augmentation interface to `CliConfig` to avoid confusion with the build config type in `@kidd-cli/config`
   - Export `CliConfig` and `ConfigType` from `@kidd-cli/core`
 
   **@kidd-cli/cli:**
+
   - Add `--config` flag to `kidd init` to scaffold config schema setup during project creation
   - Add `kidd add config` command to scaffold config into existing projects
   - Scaffolded config includes Zod schema with `ConfigType` module augmentation wiring

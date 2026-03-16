@@ -66,8 +66,12 @@ export async function loadConfig(
     })
   )
 
-  if (loadError || !loaded) {
+  if (loadError) {
     return err(`Failed to load kidd config: ${toError(loadError).message}`)
+  }
+
+  if (!loaded) {
+    return err('Failed to load kidd config: no configuration was returned')
   }
 
   const [validateError, config] = validateConfig(loaded.config)

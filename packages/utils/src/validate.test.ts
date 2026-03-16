@@ -156,10 +156,10 @@ describe('validate() default error factory', () => {
 describe('factory receives formatted details', () => {
   it('passes formatted issues to the factory function', () => {
     const schema = z.object({ age: z.number(), name: z.string() })
-    let capturedIssues: readonly ZodIssue[] = []
+    const captured: { issues: readonly ZodIssue[] } = { issues: [] }
 
     function factory({ issues }: { readonly issues: readonly ZodIssue[] }): Error {
-      capturedIssues = issues
+      captured.issues = issues
       return new Error('test')
     }
 
@@ -167,15 +167,15 @@ describe('factory receives formatted details', () => {
     expect(data).toBeNull()
     expect(error).toBeInstanceOf(Error)
 
-    expect(capturedIssues.length).toBe(2)
+    expect(captured.issues.length).toBe(2)
   })
 
   it('formatted issues contain dot-joined paths', () => {
     const schema = z.object({ email: z.string().email() })
-    let capturedIssues: readonly ZodIssue[] = []
+    const captured: { issues: readonly ZodIssue[] } = { issues: [] }
 
     function factory({ issues }: { readonly issues: readonly ZodIssue[] }): Error {
-      capturedIssues = issues
+      captured.issues = issues
       return new Error('test')
     }
 
@@ -183,15 +183,15 @@ describe('factory receives formatted details', () => {
     expect(data).toBeNull()
     expect(error).toBeInstanceOf(Error)
 
-    expect(capturedIssues[0]!.path).toBe('email')
+    expect(captured.issues[0]!.path).toBe('email')
   })
 
   it('formatted issues have empty path for root-level schema failures', () => {
     const schema = z.string()
-    let capturedIssues: readonly ZodIssue[] = []
+    const captured: { issues: readonly ZodIssue[] } = { issues: [] }
 
     function factory({ issues }: { readonly issues: readonly ZodIssue[] }): Error {
-      capturedIssues = issues
+      captured.issues = issues
       return new Error('test')
     }
 
@@ -199,7 +199,7 @@ describe('factory receives formatted details', () => {
     expect(data).toBeNull()
     expect(error).toBeInstanceOf(Error)
 
-    expect(capturedIssues[0]!.path).toBe('')
+    expect(captured.issues[0]!.path).toBe('')
   })
 })
 

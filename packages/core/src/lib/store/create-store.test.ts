@@ -4,7 +4,7 @@ import { join } from 'node:path'
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { createStore } from './index.js'
+import { createStore } from './create-store.js'
 
 /*
  * We mock `node:os` so that `homedir()` returns our controlled temp directory.

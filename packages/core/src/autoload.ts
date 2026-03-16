@@ -5,7 +5,7 @@ import { basename, extname, join, resolve } from 'node:path'
 import { isPlainObject, isString } from '@kidd-cli/utils/fp'
 import { hasTag, withTag } from '@kidd-cli/utils/tag'
 
-import type { AutoloadOptions, Command, CommandMap } from './types.js'
+import type { AutoloadOptions, Command, CommandMap } from './types/index.js'
 
 const VALID_EXTENSIONS = new Set(['.ts', '.js', '.mjs'])
 const INDEX_NAME = 'index'
@@ -19,7 +19,7 @@ const INDEX_NAME = 'index'
 export async function autoload(options?: AutoloadOptions): Promise<CommandMap> {
   const dir = resolveDir(options)
   const entries = await readdir(dir, { withFileTypes: true })
-  return buildCommandMapFromEntries(dir, entries)
+  return resolveCommandMapFromEntries(dir, entries)
 }
 
 // ---------------------------------------------------------------------------
@@ -51,10 +51,10 @@ function resolveDir(options?: AutoloadOptions): string {
  * @param dir - Absolute path to the subdirectory.
  * @returns A tuple of [name, Command] or undefined if the directory is empty.
  */
-async function buildDirCommand(dir: string): Promise<[string, Command] | undefined> {
+async function resolveDirCommand(dir: string): Promise<[string, Command] | undefined> {
   const dirName = basename(dir)
   const dirEntries = await readdir(dir, { withFileTypes: true })
-  const subCommands = await buildCommandMapFromEntries(dir, dirEntries)
+  const subCommands = await resolveCommandMapFromEntries(dir, dirEntries)
   const indexFile = findIndexInEntries(dirEntries)
 
   if (indexFile) {
@@ -75,7 +75,7 @@ async function buildDirCommand(dir: string): Promise<[string, Command] | undefin
 /**
  * Build a CommandMap from pre-read directory entries.
  *
- * Shared by both `autoload` and `buildDirCommand` to avoid duplicating
+ * Shared by both `autoload` and `resolveDirCommand` to avoid duplicating
  * the file/dir fan-out and result-filtering logic.
  *
  * @private
@@ -83,7 +83,7 @@ async function buildDirCommand(dir: string): Promise<[string, Command] | undefin
  * @param entries - Pre-read directory entries for that directory.
  * @returns A CommandMap built from the entries.
  */
-async function buildCommandMapFromEntries(dir: string, entries: Dirent[]): Promise<CommandMap> {
+async function resolveCommandMapFromEntries(dir: string, entries: Dirent[]): Promise<CommandMap> {
   const fileEntries = entries.filter(isCommandFile)
   const dirEntries = entries.filter(isCommandDir)
 
@@ -99,7 +99,7 @@ async function buildCommandMapFromEntries(dir: string, entries: Dirent[]): Promi
   )
 
   const dirResults = await Promise.all(
-    dirEntries.map((entry) => buildDirCommand(join(dir, entry.name)))
+    dirEntries.map((entry) => resolveDirCommand(join(dir, entry.name)))
   )
 
   const allResults = [...fileResults, ...dirResults]
@@ -154,10 +154,10 @@ function isCommandExport(mod: unknown): mod is { default: Command } {
   if (typeof mod !== 'object' || mod === null) {
     return false
   }
-  if (!('default' in mod)) {
+  if (!Object.hasOwn(mod as object, 'default')) {
     return false
   }
-  const def: unknown = mod.default
+  const def: unknown = (mod as Record<string, unknown>).default
   if (!isPlainObject(def)) {
     return false
   }

@@ -1,11 +1,5 @@
-/**
- * Enforcement gate middleware that requires authentication.
- *
- * @module
- */
-
 import { middleware } from '@/middleware.js'
-import type { Middleware } from '@/types.js'
+import type { Middleware } from '@/types/index.js'
 
 const DEFAULT_MESSAGE = 'Authentication required.'
 
@@ -64,7 +58,7 @@ export function createAuthRequire(options?: AuthRequireOptions): Middleware {
  * @returns True when the property exists on the object.
  */
 function hasProperty(obj: unknown, key: string): boolean {
-  return typeof obj === 'object' && obj !== null && key in obj
+  return typeof obj === 'object' && obj !== null && Object.hasOwn(obj as object, key)
 }
 
 /**

@@ -6,11 +6,11 @@ vi.mock(import('@kidd-cli/utils/manifest'), () => ({
 
 import { readManifest } from '@kidd-cli/utils/manifest'
 
-import { loadCLIManifest } from './manifest.js'
+import { readCLIManifest } from './manifest.js'
 
 const mockReadManifest = vi.mocked(readManifest)
 
-describe('loadCLIManifest()', () => {
+describe('readCLIManifest()', () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })
@@ -31,7 +31,7 @@ describe('loadCLIManifest()', () => {
       },
     ])
 
-    const [error, result] = await loadCLIManifest('/project/dist')
+    const [error, result] = await readCLIManifest('/project/dist')
 
     expect(error).toBeNull()
     expect(result).toEqual({
@@ -45,7 +45,7 @@ describe('loadCLIManifest()', () => {
   it('should return error when readManifest returns error', async () => {
     mockReadManifest.mockResolvedValue([new Error('read failed'), null])
 
-    const [error] = await loadCLIManifest('/project/dist')
+    const [error] = await readCLIManifest('/project/dist')
 
     expect(error).toBeInstanceOf(Error)
     if (error === null) {
@@ -70,7 +70,7 @@ describe('loadCLIManifest()', () => {
       },
     ])
 
-    const [error] = await loadCLIManifest('/project/dist')
+    const [error] = await readCLIManifest('/project/dist')
 
     expect(error).toBeInstanceOf(Error)
     if (error === null) {
@@ -95,7 +95,7 @@ describe('loadCLIManifest()', () => {
       },
     ])
 
-    const [error] = await loadCLIManifest('/project/dist')
+    const [error] = await readCLIManifest('/project/dist')
 
     expect(error).toBeInstanceOf(Error)
     if (error === null) {
@@ -120,7 +120,7 @@ describe('loadCLIManifest()', () => {
       },
     ])
 
-    const [error] = await loadCLIManifest('/project/dist')
+    const [error] = await readCLIManifest('/project/dist')
 
     expect(error).toBeInstanceOf(Error)
     if (error === null) {

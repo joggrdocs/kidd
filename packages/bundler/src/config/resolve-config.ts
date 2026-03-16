@@ -11,8 +11,8 @@ import {
   DEFAULT_OUT_DIR,
   DEFAULT_SOURCEMAP,
   DEFAULT_TARGET,
-} from './constants.js'
-import type { ResolvedBundlerConfig } from './types.js'
+} from '../constants.js'
+import type { ResolvedBundlerConfig } from '../types.js'
 
 /**
  * Known entry file names produced by tsdown for ESM builds, in preference order.

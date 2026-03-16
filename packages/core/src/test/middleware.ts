@@ -1,4 +1,4 @@
-import type { AnyRecord, Middleware } from '@/types.js'
+import type { AnyRecord, Middleware } from '@/types/index.js'
 
 import { createTestContext } from './context.js'
 import type { MiddlewareResult, RunMiddlewareOptions } from './types.js'

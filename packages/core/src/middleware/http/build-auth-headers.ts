@@ -1,12 +1,3 @@
-/**
- * Convert auth credentials into HTTP headers.
- *
- * Uses exhaustive pattern matching to map each credential variant to
- * the appropriate header format.
- *
- * @module
- */
-
 import { Buffer } from 'node:buffer'
 
 import { match } from 'ts-pattern'

@@ -5,7 +5,7 @@ import { resolve } from 'node:path'
 import { hasTag, withTag } from '@kidd-cli/utils/tag'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { autoload } from './autoloader.js'
+import { autoload } from './autoload.js'
 
 vi.mock(import('node:fs/promises'), () => ({
   readdir: vi.fn(),

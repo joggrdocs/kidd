@@ -4,7 +4,7 @@ import yargs from 'yargs'
 import { z } from 'zod'
 
 import { command } from '@/command.js'
-import type { CommandMap } from '@/types.js'
+import type { CommandMap } from '@/types/index.js'
 
 import type { ErrorRef } from './register.js'
 import { registerCommands } from './register.js'

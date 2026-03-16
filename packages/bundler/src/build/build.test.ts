@@ -2,11 +2,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock(import('node:fs'))
 vi.mock(import('tsdown'))
-vi.mock(import('./read-version.js'))
+vi.mock(import('../config/read-version.js'))
 
 const { existsSync } = await import('node:fs')
 const { build: tsdownBuild } = await import('tsdown')
-const { readVersion } = await import('./read-version.js')
+const { readVersion } = await import('../config/read-version.js')
 const { build } = await import('./build.js')
 
 const mockExistsSync = vi.mocked(existsSync)

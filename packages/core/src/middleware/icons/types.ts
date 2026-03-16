@@ -1,15 +1,6 @@
-/**
- * Type definitions for the icons middleware.
- *
- * Defines icon definitions, categories, the {@link IconsContext} exposed
- * on `ctx.icons`, and the top-level {@link IconsOptions} interface.
- *
- * @module
- */
-
 import type { AsyncResult } from '@kidd-cli/utils/fp'
 
-import type { Middleware } from '@/types.js'
+import type { Middleware } from '@/types/index.js'
 
 // ---------------------------------------------------------------------------
 // Icon definition

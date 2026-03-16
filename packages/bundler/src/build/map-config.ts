@@ -3,9 +3,9 @@ import { createRequire } from 'node:module'
 import { match } from 'ts-pattern'
 import type { InlineConfig } from 'tsdown'
 
-import { createAutoloadPlugin } from './autoload-plugin.js'
-import { ALWAYS_BUNDLE, NODE_BUILTINS, SHEBANG } from './constants.js'
-import type { ResolvedBundlerConfig } from './types.js'
+import { createAutoloadPlugin } from '../autoloader/autoload-plugin.js'
+import { ALWAYS_BUNDLE, NODE_BUILTINS, SHEBANG } from '../constants.js'
+import type { ResolvedBundlerConfig } from '../types.js'
 
 /**
  * Map a resolved bundler config to a tsdown InlineConfig for production builds.

@@ -2,6 +2,17 @@
   "name": "@kidd-cli/bundler",
   "version": "0.2.1",
   "description": "Programmatic bundler for kidd CLI tools powered by tsdown",
+  "keywords": [
+    "bundler",
+    "cli",
+    "kidd",
+    "tsdown",
+    "typescript"
+  ],
+  "homepage": "https://github.com/joggrdocs/kidd/tree/main/packages/bundler",
+  "bugs": {
+    "url": "https://github.com/joggrdocs/kidd/issues"
+  },
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -12,6 +23,7 @@
     "dist"
   ],
   "type": "module",
+  "sideEffects": false,
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -32,11 +44,11 @@
     "@kidd-cli/utils": "workspace:*",
     "es-toolkit": "catalog:",
     "ts-pattern": "catalog:",
-    "tsdown": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {
     "@types/node": "catalog:",
+    "tsdown": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
   }

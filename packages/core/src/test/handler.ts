@@ -1,7 +1,7 @@
 import { attemptAsync } from 'es-toolkit'
 import { match } from 'ts-pattern'
 
-import type { AnyRecord } from '@/types.js'
+import type { AnyRecord } from '@/types/index.js'
 
 import { createTestContext } from './context.js'
 import { normalizeError } from './normalize-error.js'

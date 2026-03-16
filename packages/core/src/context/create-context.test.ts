@@ -1,8 +1,9 @@
 import * as clack from '@clack/prompts'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { createContext, createContextError, isContextError } from './index.js'
-import type { ContextError } from './index.js'
+import { createContext } from './create-context.js'
+import type { ContextError } from './error.js'
+import { isContextError } from './error.js'
 
 const mockSpinnerInstance = vi.hoisted(() => ({
   message: vi.fn(),
@@ -463,42 +464,5 @@ describe('createContext()', () => {
         expect((error as ContextError).code).toBe('PROMPT_CANCELLED')
       }
     })
-  })
-})
-
-describe(createContextError, () => {
-  it('is an instance of Error', () => {
-    const err = createContextError('test')
-    expect(err).toBeInstanceOf(Error)
-  })
-
-  it('has name "ContextError"', () => {
-    const err = createContextError('test')
-    expect(err.name).toBe('ContextError')
-  })
-
-  it('has default exitCode of 1', () => {
-    const err = createContextError('test')
-    expect(err.exitCode).toBe(1)
-  })
-
-  it('accepts a custom exitCode', () => {
-    const err = createContextError('test', { exitCode: 2 })
-    expect(err.exitCode).toBe(2)
-  })
-
-  it('accepts a code string', () => {
-    const err = createContextError('test', { code: 'ERR_TEST' })
-    expect(err.code).toBe('ERR_TEST')
-  })
-
-  it('has undefined code by default', () => {
-    const err = createContextError('test')
-    expect(err.code).toBeUndefined()
-  })
-
-  it('preserves the message', () => {
-    const err = createContextError('something went wrong')
-    expect(err.message).toBe('something went wrong')
   })
 })

@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from 'vitest'
 
-import { NODE_BUILTINS, SHEBANG } from './constants.js'
+import { NODE_BUILTINS, SHEBANG } from '../constants.js'
 import { mapToBuildConfig, mapToWatchConfig } from './map-config.js'
-import type { ResolvedBundlerConfig } from './types.js'
+import type { ResolvedBundlerConfig } from '../types.js'
 
 const config: ResolvedBundlerConfig = {
   build: {

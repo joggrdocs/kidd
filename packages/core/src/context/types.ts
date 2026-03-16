@@ -9,7 +9,7 @@ import type {
   KiddStore,
   Merge,
   StringKeyOf,
-} from '@/types.js'
+} from '@/types/index.js'
 
 /**
  * Typed in-memory key-value store shape carried on `ctx.store`.

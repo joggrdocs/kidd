@@ -2,7 +2,7 @@ import { attemptAsync } from 'es-toolkit'
 import { match } from 'ts-pattern'
 import { vi } from 'vitest'
 
-import type { CliOptions } from '@/types.js'
+import type { CliOptions } from '@/types/index.js'
 
 import { normalizeError } from './normalize-error.js'
 import type { CommandResult, RunCommandOptions } from './types.js'

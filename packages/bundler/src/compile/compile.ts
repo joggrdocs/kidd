@@ -6,9 +6,9 @@ import type { CompileTarget } from '@kidd-cli/config'
 import { err, ok } from '@kidd-cli/utils/fp'
 import type { AsyncResult } from '@kidd-cli/utils/fp'
 
-import { DEFAULT_COMPILE_TARGETS } from './constants.js'
-import { detectBuildEntry, resolveConfig } from './resolve-config.js'
-import type { CompileOutput, CompileParams, CompiledBinary } from './types.js'
+import { detectBuildEntry, resolveConfig } from '../config/resolve-config.js'
+import { DEFAULT_COMPILE_TARGETS } from '../constants.js'
+import type { CompileOutput, CompileParams, CompiledBinary } from '../types.js'
 
 /**
  * Packages to externalize during `bun build --compile`.

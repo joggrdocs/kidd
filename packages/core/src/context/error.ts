@@ -1,9 +1,10 @@
 import type { Tagged } from '@kidd-cli/utils/tag'
 import { TAG, hasTag, withTag } from '@kidd-cli/utils/tag'
 
-import { DEFAULT_EXIT_CODE } from '@/utils/constants.js'
-
-export { DEFAULT_EXIT_CODE }
+/**
+ * Default process exit code for error conditions.
+ */
+export const DEFAULT_EXIT_CODE = 1
 
 /**
  * Plain data representation of a ContextError (no Error prototype).

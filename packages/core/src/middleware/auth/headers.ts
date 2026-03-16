@@ -1,9 +1,3 @@
-/**
- * Factory for a header-resolver function that reads credentials from `ctx.auth`.
- *
- * @module
- */
-
 import type { Context } from '@/context/types.js'
 
 import { buildAuthHeaders } from '../http/build-auth-headers.js'
@@ -20,7 +14,7 @@ import type { AuthContext } from './types.js'
  */
 export function createAuthHeaders(): (ctx: Context) => Readonly<Record<string, string>> {
   return function resolveHeaders(ctx: Context): Readonly<Record<string, string>> {
-    if (!('auth' in ctx)) {
+    if (!Object.hasOwn(ctx, 'auth')) {
       return {}
     }
 

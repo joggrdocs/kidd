@@ -1,13 +1,3 @@
-/**
- * Auth credential and strategy types for the auth middleware.
- *
- * Defines discriminated unions for credential formats and strategy
- * configurations, the {@link AuthContext} exposed on `ctx.auth`,
- * and the top-level {@link AuthOptions} interface.
- *
- * @module
- */
-
 import type { AsyncResult } from '@kidd-cli/utils/fp'
 
 // ---------------------------------------------------------------------------

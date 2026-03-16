@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { command } from '@/command.js'
 import type { Context } from '@/context/types.js'
 import { middleware } from '@/middleware.js'
-import type { CommandMap } from '@/types.js'
+import type { CommandMap } from '@/types/index.js'
 
 const mockSpinnerInstance = vi.hoisted(() => ({
   message: vi.fn(),

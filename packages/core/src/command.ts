@@ -8,7 +8,7 @@ import type {
   Middleware,
   MiddlewareEnv,
   Command as CommandType,
-} from './types.js'
+} from './types/index.js'
 
 /**
  * Check whether a value is a structured {@link CommandsConfig} object.
@@ -25,8 +25,8 @@ export function isCommandsConfig(value: unknown): value is CommandsConfig {
     return false
   }
   return (
-    ('order' in value && Array.isArray((value as CommandsConfig).order)) ||
-    ('path' in value && typeof (value as CommandsConfig).path === 'string')
+    (Object.hasOwn(value, 'order') && Array.isArray((value as CommandsConfig).order)) ||
+    (Object.hasOwn(value, 'path') && typeof (value as CommandsConfig).path === 'string')
   )
 }
 

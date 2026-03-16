@@ -1,7 +1,7 @@
 import type { Context } from '@/context/types.js'
-import type { Middleware } from '@/types.js'
+import type { Middleware } from '@/types/index.js'
 
-import type { Runner } from './types.js'
+import type { MiddlewareExecutor } from './types.js'
 
 /**
  * Create a runner that executes root and command middleware chains.
@@ -18,9 +18,9 @@ import type { Runner } from './types.js'
  * ```
  *
  * @param rootMiddleware - Root-level middleware from `cli({ middleware })`.
- * @returns A Runner with an execute method.
+ * @returns A MiddlewareExecutor with an execute method.
  */
-export function createRunner(rootMiddleware: Middleware[]): Runner {
+export function createMiddlewareExecutor(rootMiddleware: Middleware[]): MiddlewareExecutor {
   return {
     async execute({ ctx, handler, middleware }): Promise<void> {
       const commandHandler = async (innerCtx: Context): Promise<void> => {
@@ -28,7 +28,7 @@ export function createRunner(rootMiddleware: Middleware[]): Runner {
       }
       await runMiddlewareChain(rootMiddleware, ctx, commandHandler)
     },
-  }
+  } satisfies MiddlewareExecutor
 }
 
 // ---------------------------------------------------------------------------

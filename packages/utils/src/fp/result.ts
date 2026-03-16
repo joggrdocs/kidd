@@ -26,9 +26,13 @@ export function ok<TValue>(value?: TValue): Result<TValue | void, never> {
 }
 
 /**
- * Construct a failure Result tuple, coercing the value to an Error via {@link toError}.
+ * Construct a failure Result tuple.
  *
- * @param error - The error value (coerced to Error if not already one).
+ * Coerces any value to an `Error` via {@link toError} and returns `[Error, null]`.
+ * For domain-specific error types (e.g. `AuthError`, `IconsError`), use raw
+ * tuple literals instead: `[domainError, null] as const`.
+ *
+ * @param error - The error value (coerced to Error).
  * @returns A Result tuple `[Error, null]`.
  */
 export function err(error: unknown): Result<never> {

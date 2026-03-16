@@ -1,10 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock(import('tsdown'))
-vi.mock(import('./read-version.js'))
+vi.mock(import('../config/read-version.js'))
 
 const { build: tsdownBuild } = await import('tsdown')
-const { readVersion } = await import('./read-version.js')
+const { readVersion } = await import('../config/read-version.js')
 const { watch } = await import('./watch.js')
 
 const mockTsdownBuild = vi.mocked(tsdownBuild)

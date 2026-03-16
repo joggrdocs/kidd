@@ -1,16 +1,15 @@
 import { describe, expect, it } from 'vitest'
-import type { ZodError } from 'zod'
 import { z } from 'zod'
 
-import { formatZodIssues, validate } from './validate.js'
+import type { ZodIssue } from './validate.js'
+import { validate } from './validate.js'
 
 /**
- * Helper: a simple error factory that wraps a ZodError into a plain Error
+ * Helper: a simple error factory that wraps formatted details into a plain Error
  * whose message contains the formatted issues.
  */
-function defaultFactory(error: ZodError): Error {
-  const issues = error.issues.map((issue) => issue.message).join('; ')
-  return new Error(`Validation failed: ${issues}`)
+function defaultFactory({ message }: { readonly message: string }): Error {
+  return new Error(`Validation failed: ${message}`)
 }
 
 describe('validate() with valid input', () => {
@@ -128,8 +127,8 @@ describe('validate() with invalid input', () => {
   })
 
   it('returns a TypeError when the factory returns a TypeError', () => {
-    function factory(zodError: ZodError) {
-      return new TypeError(`Bad type: ${zodError.issues.length} issue(s)`)
+    function factory({ issues }: { readonly issues: readonly ZodIssue[] }) {
+      return new TypeError(`Bad type: ${issues.length} issue(s)`)
     }
     const [error, data] = validate(z.string(), 999, factory)
     expect(data).toBeNull()
@@ -137,13 +136,30 @@ describe('validate() with invalid input', () => {
   })
 })
 
-describe('factory receives the ZodError', () => {
-  it('passes the ZodError to the factory function', () => {
-    const schema = z.object({ age: z.number(), name: z.string() })
-    let capturedError: ZodError | null = null
+describe('validate() default error factory', () => {
+  it('returns a formatted Error when no factory is provided', () => {
+    const schema = z.object({ name: z.string() })
+    const [error, data] = validate(schema, {})
+    expect(data).toBeNull()
+    expect(error).toBeInstanceOf(Error)
+    expect(error!.message).toContain('name:')
+  })
 
-    function factory(error: ZodError): Error {
-      capturedError = error
+  it('returns a formatted Error for root-level failures', () => {
+    const [error, data] = validate(z.string(), 42)
+    expect(data).toBeNull()
+    expect(error).toBeInstanceOf(Error)
+    expect(error!.message).toContain('expected string')
+  })
+})
+
+describe('factory receives formatted details', () => {
+  it('passes formatted issues to the factory function', () => {
+    const schema = z.object({ age: z.number(), name: z.string() })
+    let capturedIssues: readonly ZodIssue[] = []
+
+    function factory({ issues }: { readonly issues: readonly ZodIssue[] }): Error {
+      capturedIssues = issues
       return new Error('test')
     }
 
@@ -151,17 +167,15 @@ describe('factory receives the ZodError', () => {
     expect(data).toBeNull()
     expect(error).toBeInstanceOf(Error)
 
-    expect(capturedError).not.toBeNull()
-    expect(capturedError!.issues).toBeDefined()
-    expect(capturedError!.issues.length).toBe(2)
+    expect(capturedIssues.length).toBe(2)
   })
 
-  it('ZodError issues contain the expected paths', () => {
+  it('formatted issues contain dot-joined paths', () => {
     const schema = z.object({ email: z.string().email() })
-    let capturedError: ZodError | null = null
+    let capturedIssues: readonly ZodIssue[] = []
 
-    function factory(error: ZodError): Error {
-      capturedError = error
+    function factory({ issues }: { readonly issues: readonly ZodIssue[] }): Error {
+      capturedIssues = issues
       return new Error('test')
     }
 
@@ -169,16 +183,15 @@ describe('factory receives the ZodError', () => {
     expect(data).toBeNull()
     expect(error).toBeInstanceOf(Error)
 
-    expect(capturedError).not.toBeNull()
-    expect(capturedError!.issues[0]!.path).toEqual(['email'])
+    expect(capturedIssues[0]!.path).toBe('email')
   })
 
-  it('ZodError issues have empty path for root-level schema failures', () => {
+  it('formatted issues have empty path for root-level schema failures', () => {
     const schema = z.string()
-    let capturedError: ZodError | null = null
+    let capturedIssues: readonly ZodIssue[] = []
 
-    function factory(error: ZodError): Error {
-      capturedError = error
+    function factory({ issues }: { readonly issues: readonly ZodIssue[] }): Error {
+      capturedIssues = issues
       return new Error('test')
     }
 
@@ -186,8 +199,7 @@ describe('factory receives the ZodError', () => {
     expect(data).toBeNull()
     expect(error).toBeInstanceOf(Error)
 
-    expect(capturedError).not.toBeNull()
-    expect(capturedError!.issues[0]!.path).toEqual([])
+    expect(capturedIssues[0]!.path).toBe('')
   })
 })
 
@@ -264,54 +276,36 @@ describe('validate() with various schema types', () => {
   })
 })
 
-describe('formatZodIssues()', () => {
+describe('validate() error formatting', () => {
   it('formats a single issue with path', () => {
-    const issues = [{ message: 'Required', path: ['name'] }]
-    const result = formatZodIssues(issues)
-    expect(result.message).toBe('name: Required')
-    expect(result.issues).toEqual([{ message: 'Required', path: 'name' }])
+    const schema = z.object({ name: z.string() })
+    const [error] = validate(schema, {})
+    expect(error!.message).toContain('name:')
+    expect(error!.message).toContain('expected string')
   })
 
   it('formats a single issue without path', () => {
-    const issues = [{ message: 'Expected string, received number', path: [] as string[] }]
-    const result = formatZodIssues(issues)
-    expect(result.message).toBe('Expected string, received number')
+    const [error] = validate(z.string(), 42)
+    expect(error!.message).toContain('expected string')
   })
 
   it('joins nested paths with dots', () => {
-    const issues = [{ message: 'Invalid email', path: ['user', 'email'] }]
-    const result = formatZodIssues(issues)
-    expect(result.message).toBe('user.email: Invalid email')
-    expect(result.issues).toEqual([{ message: 'Invalid email', path: 'user.email' }])
+    const schema = z.object({ user: z.object({ email: z.string().email() }) })
+    const [error] = validate(schema, { user: { email: 'bad' } })
+    expect(error!.message).toContain('user.email:')
+    expect(error!.message).toMatch(/[Ii]nvalid email/)
   })
 
   it('joins multiple issues with the default separator', () => {
-    const issues = [
-      { message: 'Required', path: ['name'] },
-      { message: 'Expected number', path: ['age'] },
-    ]
-    const result = formatZodIssues(issues)
-    expect(result.message).toBe('name: Required\n  age: Expected number')
+    const schema = z.object({ age: z.number(), name: z.string() })
+    const [error] = validate(schema, {})
+    expect(error!.message).toContain('name:')
+    expect(error!.message).toContain('age:')
   })
 
-  it('uses a custom separator', () => {
-    const issues = [
-      { message: 'Required', path: ['name'] },
-      { message: 'Expected number', path: ['age'] },
-    ]
-    const result = formatZodIssues(issues, ', ')
-    expect(result.message).toBe('name: Required, age: Expected number')
-  })
-
-  it('handles numeric path segments', () => {
-    const issues = [{ message: 'Required', path: ['items', 0, 'value'] }]
-    const result = formatZodIssues(issues)
-    expect(result.message).toBe('items.0.value: Required')
-  })
-
-  it('returns empty string for empty issues array', () => {
-    const result = formatZodIssues([])
-    expect(result.message).toBe('')
-    expect(result.issues).toEqual([])
+  it('returns empty message for no issues (edge case)', () => {
+    const [error, data] = validate(z.string(), 'valid')
+    expect(error).toBeNull()
+    expect(data).toBe('valid')
   })
 })

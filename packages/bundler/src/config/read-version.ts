@@ -1,6 +1,7 @@
+import { err, ok } from '@kidd-cli/utils/fp'
 import { readManifest } from '@kidd-cli/utils/manifest'
 
-import type { AsyncBundlerResult } from './types.js'
+import type { AsyncBundlerResult } from '../types.js'
 
 /**
  * Read the version string from a project's package.json.
@@ -16,8 +17,8 @@ export async function readVersion(cwd: string): AsyncBundlerResult<string | unde
   const [manifestError, manifest] = await readManifest(cwd)
 
   if (manifestError) {
-    return [new Error(`Failed to read version: ${manifestError.message}`), null]
+    return err(new Error(`Failed to read version: ${manifestError.message}`))
   }
 
-  return [null, manifest.version]
+  return ok(manifest.version)
 }

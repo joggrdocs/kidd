@@ -10,7 +10,7 @@ import {
   DEFAULT_OUT_DIR,
   DEFAULT_SOURCEMAP,
   DEFAULT_TARGET,
-} from './constants.js'
+} from '../constants.js'
 import { normalizeCompileOptions, resolveConfig } from './resolve-config.js'
 
 describe('config resolution', () => {

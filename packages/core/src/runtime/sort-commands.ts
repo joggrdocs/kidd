@@ -1,7 +1,7 @@
 import { err, ok } from '@kidd-cli/utils/fp'
 import type { Result } from '@kidd-cli/utils/fp'
 
-import type { Command } from '@/types.js'
+import type { Command } from '@/types/index.js'
 
 /**
  * Validate that every name in the order array exists in the provided command names.

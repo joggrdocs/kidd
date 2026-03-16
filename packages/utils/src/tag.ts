@@ -8,22 +8,22 @@
 export const TAG: unique symbol = Symbol('kidd.tag')
 
 /**
- * Symbol-keyed brand carrying a tag string.
+ * Nominal type brand that carries a tag string on the {@link TAG} symbol property.
  *
  * @private
  */
-interface TagBrand<TTag extends string> {
+interface NominalTag<TTag extends string> {
   readonly [TAG]: TTag
 }
 
 /**
- * Intersect a plain object type with a symbol-based tag brand.
+ * Intersect a plain object type with a nominal tag brand.
  *
  * Used to brand plain data objects with a discriminator that is hidden from
  * enumeration, serialization, and spread — while remaining accessible via
  * the {@link TAG} symbol for runtime type-narrowing.
  */
-export type Tagged<TObj extends object, TTag extends string> = TObj & TagBrand<TTag>
+export type Tagged<TObj extends object, TTag extends string> = TObj & NominalTag<TTag>
 
 /**
  * Create a shallow copy of `obj` with a non-enumerable {@link TAG} property.
@@ -56,7 +56,7 @@ export function withTag<TTag extends string, TObj extends object>(
  * @param tag - The expected tag string.
  * @returns `true` when `value` is a non-null object whose `[TAG]` equals `tag`.
  */
-export function hasTag<TTag extends string>(value: unknown, tag: TTag): value is TagBrand<TTag> {
+export function hasTag<TTag extends string>(value: unknown, tag: TTag): value is NominalTag<TTag> {
   if (typeof value !== 'object' || value === null) {
     return false
   }

@@ -1,4 +1,4 @@
-import type { ScanResult, ScannedDir, ScannedFile } from './types.js'
+import type { ScanResult, ScannedDir, ScannedFile } from '../types.js'
 
 /**
  * Parameters for generating a static autoloader module.

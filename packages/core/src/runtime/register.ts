@@ -3,7 +3,7 @@ import { match } from 'ts-pattern'
 import type { Argv } from 'yargs'
 
 import type { Context } from '@/context/types.js'
-import type { ArgsDef, Command, CommandMap, Middleware, YargsArgDef } from '@/types.js'
+import type { ArgsDef, Command, CommandMap, Middleware, YargsArgDef } from '@/types/index.js'
 
 import { registerCommandArgs } from './args/index.js'
 import { isZodSchema, zodSchemaToPositionalMeta } from './args/zod.js'
@@ -49,7 +49,7 @@ export function registerCommands(options: RegisterCommandsOptions): void {
   const sorted = sortCommandEntries({ entries: commandEntries, order })
 
   sorted.map(([name, entry]) =>
-    registerResolvedCommand({
+    registerSingleCommand({
       builder: instance,
       cmd: entry,
       errorRef,
@@ -74,7 +74,7 @@ export interface ErrorRef {
 // Private
 // ---------------------------------------------------------------------------
 
-interface RegisterResolvedCommandOptions {
+interface RegisterSingleCommandOptions {
   builder: Argv
   cmd: Command
   errorRef?: ErrorRef
@@ -103,11 +103,11 @@ interface RegisterCommandsOptions {
  * @private
  * @param options - Command registration context.
  */
-function registerResolvedCommand(options: RegisterResolvedCommandOptions): void {
+function registerSingleCommand(options: RegisterSingleCommandOptions): void {
   const { instance, name, cmd, resolved, parentPath, errorRef } = options
   const description = cmd.description ?? ''
-  const commandString = buildCommandString(name, cmd.positionals)
-  const commandSpec = buildCommandSpec(commandString, cmd.aliases)
+  const commandString = formatCommandString(name, cmd.positionals)
+  const commandSpec = formatCommandSpec(commandString, cmd.aliases)
 
   instance.command(
     commandSpec,
@@ -136,7 +136,7 @@ function registerResolvedCommand(options: RegisterResolvedCommandOptions): void 
         const sortedSubs = sortCommandEntries({ entries: subCommands, order: cmd.order })
 
         sortedSubs.map(([subName, subEntry]) =>
-          registerResolvedCommand({
+          registerSingleCommand({
             builder,
             cmd: subEntry,
             errorRef,
@@ -183,7 +183,7 @@ function registerResolvedCommand(options: RegisterResolvedCommandOptions): void 
  * @param positionals - Optional positional definitions (Zod schema or yargs-native record).
  * @returns The command string with positional placeholders appended.
  */
-function buildCommandString(name: string, positionals: ArgsDef | undefined): string {
+function formatCommandString(name: string, positionals: ArgsDef | undefined): string {
   if (!positionals) {
     return name
   }
@@ -240,7 +240,7 @@ function formatPlaceholder(meta: PositionalMeta): string {
  * @param aliases - Optional alternative names for the command.
  * @returns A string or string array suitable for `yargs.command()`.
  */
-function buildCommandSpec(
+function formatCommandSpec(
   commandString: string,
   aliases: readonly string[] | undefined
 ): string | string[] {

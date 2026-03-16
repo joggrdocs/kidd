@@ -9,7 +9,7 @@
 
 import { decorateContext } from '@/context/decorate.js'
 import { middleware } from '@/middleware.js'
-import type { Middleware } from '@/types.js'
+import type { Middleware } from '@/types/index.js'
 
 import type { IconsCtx } from './context.js'
 import { createIconsContext } from './context.js'

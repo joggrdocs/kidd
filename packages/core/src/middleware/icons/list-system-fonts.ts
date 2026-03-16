@@ -1,13 +1,3 @@
-/**
- * Platform-native system font listing.
- *
- * Queries installed font families using shell commands instead of
- * native Node.js addons, ensuring compatibility with bundlers
- * (tsdown/rolldown) and compiled binaries (SEA).
- *
- * @module
- */
-
 import { exec } from 'node:child_process'
 import { promisify } from 'node:util'
 
@@ -48,6 +38,9 @@ const DARWIN_FAMILY_RE = /^\s+Family:\s*(.+)/
 
 /**
  * List installed system font family names using platform-native commands.
+ *
+ * Uses shell commands instead of native Node.js addons to ensure
+ * compatibility with bundlers (tsdown/rolldown) and compiled binaries (SEA).
  *
  * - **macOS**: Parses `system_profiler SPFontsDataType` output.
  * - **Linux**: Parses `fc-list : family` output.

@@ -1,9 +1,9 @@
-import { err, ok } from '@kidd-cli/utils/fp'
+import { ok } from '@kidd-cli/utils/fp'
 import type { Result } from '@kidd-cli/utils/fp'
-import { formatZodIssues } from '@kidd-cli/utils/validate'
+import { validate } from '@kidd-cli/utils/validate'
 import type { z } from 'zod'
 
-import type { ArgsDef } from '@/types.js'
+import type { ArgsDef } from '@/types/index.js'
 
 import type { ArgsParser } from '../types.js'
 import { isZodSchema } from './zod.js'
@@ -30,7 +30,7 @@ export function createArgsParser(defs: CreateArgsParserOptions): ArgsParser {
       const cleaned = cleanParsedArgs(rawArgs)
       return validateArgs(mergedSchema, cleaned)
     },
-  }
+  } satisfies ArgsParser
 }
 
 // ---------------------------------------------------------------------------
@@ -101,9 +101,9 @@ function validateArgs(
   if (!schema) {
     return ok(parsedArgs)
   }
-  const result = schema.safeParse(parsedArgs)
-  if (!result.success) {
-    return err(new Error(`Invalid arguments:\n  ${formatZodIssues(result.error.issues).message}`))
-  }
-  return ok(result.data as Record<string, unknown>)
+  return validate(
+    schema,
+    parsedArgs,
+    ({ message }) => new Error(`Invalid arguments:\n  ${message}`)
+  )
 }

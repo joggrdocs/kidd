@@ -1,12 +1,3 @@
-/**
- * Typed HTTP client factory.
- *
- * Creates a closure-based {@link HttpClient} with pre-configured base URL
- * and default headers. All methods delegate to a shared request executor.
- *
- * @module
- */
-
 import { attemptAsync } from '@kidd-cli/utils/fp'
 
 import type { HttpClient, RequestOptions, TypedResponse } from './types.js'
@@ -88,7 +79,7 @@ export function createHttpClient(options: CreateHttpClientOptions): HttpClient {
         resolveHeaders,
         requestOptions
       ),
-  }
+  } satisfies HttpClient
 }
 
 // ---------------------------------------------------------------------------

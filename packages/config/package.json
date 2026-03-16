@@ -2,6 +2,17 @@
   "name": "@kidd-cli/config",
   "version": "0.1.5",
   "description": "Build-time configuration for kidd CLIs",
+  "keywords": [
+    "cli",
+    "config",
+    "configuration",
+    "kidd",
+    "typescript"
+  ],
+  "homepage": "https://github.com/joggrdocs/kidd/tree/main/packages/config",
+  "bugs": {
+    "url": "https://github.com/joggrdocs/kidd/issues"
+  },
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -12,6 +23,7 @@
     "dist"
   ],
   "type": "module",
+  "sideEffects": false,
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",

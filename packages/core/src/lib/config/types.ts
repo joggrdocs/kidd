@@ -1,3 +1,4 @@
+import type { Result } from '@kidd-cli/utils/fp'
 import type { ZodTypeAny } from 'zod'
 
 /**
@@ -48,7 +49,7 @@ export interface ConfigWriteResult {
 /**
  * Result type for config operations.
  */
-export type ConfigOperationResult<TResult> = readonly [Error, null] | readonly [null, TResult]
+export type ConfigOperationResult<TResult> = Result<TResult>
 
 /**
  * Config client for loading, finding, and writing config files.

@@ -2,7 +2,7 @@ import type { Dirent } from 'node:fs'
 import { readdir } from 'node:fs/promises'
 import { basename, extname, join } from 'node:path'
 
-import type { ScanResult, ScannedDir, ScannedFile } from './types.js'
+import type { ScanResult, ScannedDir, ScannedFile } from '../types.js'
 
 const VALID_EXTENSIONS = new Set(['.ts', '.js', '.mjs'])
 const INDEX_NAME = 'index'

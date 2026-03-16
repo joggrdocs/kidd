@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { command } from '@/command.js'
-import type { Command } from '@/types.js'
+import type { Command } from '@/types/index.js'
 
 import { sortCommandEntries, validateCommandOrder } from './sort-commands.js'
 

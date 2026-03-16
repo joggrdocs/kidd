@@ -1,5 +1,7 @@
 import { join } from 'node:path'
 
+import type { AsyncResult } from '@kidd-cli/utils/fp'
+import { err, ok } from '@kidd-cli/utils/fp'
 import { readManifest } from '@kidd-cli/utils/manifest'
 
 /**
@@ -22,29 +24,24 @@ export interface CLIManifest {
  * @param baseDir - The directory the CLI entry file lives in (typically `import.meta.dirname`).
  * @returns A Result tuple: error on failure, validated {@link CLIManifest} on success.
  */
-export async function loadCLIManifest(
-  baseDir: string
-): Promise<readonly [Error, null] | readonly [null, CLIManifest]> {
+export async function readCLIManifest(baseDir: string): AsyncResult<CLIManifest> {
   const [manifestError, manifest] = await readManifest(join(baseDir, '..'))
 
   if (manifestError) {
-    return [new Error(`Failed to read CLI manifest: ${manifestError.message}`), null] as const
+    return err(new Error(`Failed to read CLI manifest: ${manifestError.message}`))
   }
 
   if (!manifest.name) {
-    return [new Error('CLI manifest is missing required field: name'), null] as const
+    return err(new Error('CLI manifest is missing required field: name'))
   }
 
   if (!manifest.version) {
-    return [new Error('CLI manifest is missing required field: version'), null] as const
+    return err(new Error('CLI manifest is missing required field: version'))
   }
 
   if (!manifest.description) {
-    return [new Error('CLI manifest is missing required field: description'), null] as const
+    return err(new Error('CLI manifest is missing required field: description'))
   }
 
-  return [
-    null,
-    { description: manifest.description, name: manifest.name, version: manifest.version },
-  ] as const
+  return ok({ description: manifest.description, name: manifest.name, version: manifest.version })
 }

@@ -1,12 +1,3 @@
-/**
- * HTTP middleware types.
- *
- * Defines the typed HTTP client interface, request/response wrappers,
- * and configuration options for the {@link http} middleware factory.
- *
- * @module
- */
-
 import type { Context } from '@/context/types.js'
 
 // ---------------------------------------------------------------------------

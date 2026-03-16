@@ -132,7 +132,7 @@ export function createCliLogger(options: CliLoggerOptions = {}): CliLogger {
     warn(message: string): void {
       clack.log.warn(message)
     },
-  }
+  } satisfies CliLogger
 }
 
 /**

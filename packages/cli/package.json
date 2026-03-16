@@ -8,6 +8,10 @@
     "kidd",
     "scaffolding"
   ],
+  "homepage": "https://github.com/joggrdocs/kidd/tree/main/packages/cli",
+  "bugs": {
+    "url": "https://github.com/joggrdocs/kidd/issues"
+  },
   "license": "MIT",
   "repository": {
     "type": "git",

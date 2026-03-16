@@ -1,7 +1,7 @@
 import type { AnyRecord, Middleware } from '@/types.js'
 
 import { createTestContext } from './context.js'
-import type { MiddlewareResult, TestContextOptions } from './types.js'
+import type { MiddlewareResult, RunMiddlewareOptions } from './types.js'
 
 /**
  * Execute a middleware chain with a test context and a terminal no-op handler.
@@ -9,17 +9,16 @@ import type { MiddlewareResult, TestContextOptions } from './types.js'
  * Creates a test context, runs each middleware in order, and invokes a
  * no-op final handler. Returns the decorated context and captured output.
  *
- * @param middlewares - Ordered array of middleware to execute.
- * @param overrides - Optional test context overrides.
+ * @param options - The middlewares and optional test context overrides.
  * @returns A MiddlewareResult with the context and captured stdout.
  */
 export async function runMiddleware<
   TArgs extends AnyRecord = AnyRecord,
   TConfig extends AnyRecord = AnyRecord,
->(
-  middlewares: readonly Middleware[],
-  overrides?: TestContextOptions<TArgs, TConfig>
-): Promise<MiddlewareResult<TArgs, TConfig>> {
+>({
+  middlewares,
+  overrides,
+}: RunMiddlewareOptions<TArgs, TConfig>): Promise<MiddlewareResult<TArgs, TConfig>> {
   const { ctx, stdout } = createTestContext<TArgs, TConfig>(overrides)
 
   await executeChain(middlewares, 0, ctx, async () => {})

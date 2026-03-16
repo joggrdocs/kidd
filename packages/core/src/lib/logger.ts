@@ -13,7 +13,7 @@ export interface CliLoggerOptions {
    * Writable stream for raw output methods like {@link CliLogger.print} and {@link CliLogger.newline}.
    * Defaults to `process.stderr`.
    */
-  readonly output?: NodeJS.WriteStream
+  readonly output?: NodeJS.WritableStream
 }
 
 /**

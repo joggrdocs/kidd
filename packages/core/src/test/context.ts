@@ -1,3 +1,5 @@
+import type { Writable } from 'node:stream'
+
 import { match } from 'ts-pattern'
 import { vi } from 'vitest'
 
@@ -89,7 +91,7 @@ export function mockPrompts(responses: PromptResponses): Prompts {
  * @param stream - The writable capture stream.
  * @returns A CliLogger instance.
  */
-function resolveLogger(opts: TestContextOptions, stream: NodeJS.WriteStream) {
+function resolveLogger(opts: TestContextOptions, stream: Writable) {
   return match(opts.logger)
     .when(
       (logger): logger is CliLogger => logger !== undefined,

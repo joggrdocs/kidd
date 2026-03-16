@@ -16,14 +16,14 @@ export function setupTestLifecycle(): TestLifecycle {
 
   // eslint-disable-next-line jest/no-hooks -- lifecycle encapsulation for test helpers
   beforeEach(() => {
-    state.originalArgv = process.argv
+    state.originalArgv = [...process.argv]
     state.exitSpy = vi.spyOn(process, 'exit').mockImplementation((() => {}) as () => never)
     vi.clearAllMocks()
   })
 
   // eslint-disable-next-line jest/no-hooks -- lifecycle encapsulation for test helpers
   afterEach(() => {
-    process.argv = state.originalArgv
+    process.argv = [...state.originalArgv]
     if (state.exitSpy) {
       state.exitSpy.mockRestore()
     }

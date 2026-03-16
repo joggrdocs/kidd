@@ -2,7 +2,7 @@ import type { vi } from 'vitest'
 
 import type { Context, Prompts, Spinner } from '@/context/types.js'
 import type { CliLogger } from '@/lib/logger.js'
-import type { AnyRecord, CliConfigOptions, CommandMap, Middleware } from '@/types.js'
+import type { AnyRecord, CliConfigOptions, Command, CommandMap, Middleware } from '@/types.js'
 
 /**
  * Overrides for constructing a test context via {@link createTestContext}.
@@ -78,6 +78,34 @@ export interface PromptResponses {
   readonly select?: readonly unknown[]
   readonly multiselect?: readonly unknown[][]
   readonly password?: readonly string[]
+}
+
+/**
+ * Options for {@link runHandler}.
+ *
+ * @typeParam TArgs - Parsed args type for the context.
+ * @typeParam TConfig - Config type for the context.
+ */
+export interface RunHandlerOptions<
+  TArgs extends AnyRecord = AnyRecord,
+  TConfig extends AnyRecord = AnyRecord,
+> {
+  readonly cmd: Command
+  readonly overrides?: TestContextOptions<TArgs, TConfig>
+}
+
+/**
+ * Options for {@link runMiddleware}.
+ *
+ * @typeParam TArgs - Parsed args type for the context.
+ * @typeParam TConfig - Config type for the context.
+ */
+export interface RunMiddlewareOptions<
+  TArgs extends AnyRecord = AnyRecord,
+  TConfig extends AnyRecord = AnyRecord,
+> {
+  readonly middlewares: readonly Middleware[]
+  readonly overrides?: TestContextOptions<TArgs, TConfig>
 }
 
 /**

@@ -13,7 +13,7 @@ describe('run middleware utility', () => {
       await next()
     })
 
-    const { stdout } = await runMiddleware([mw])
+    const { stdout } = await runMiddleware({ middlewares: [mw] })
     expect(stdout()).toBe('middleware ran\n')
   })
 
@@ -28,7 +28,7 @@ describe('run middleware utility', () => {
       await next()
     })
 
-    const { stdout } = await runMiddleware([first, second])
+    const { stdout } = await runMiddleware({ middlewares: [first, second] })
     expect(stdout()).toBe('first\nsecond\n')
   })
 
@@ -38,13 +38,13 @@ describe('run middleware utility', () => {
       await next()
     })
 
-    const { ctx } = await runMiddleware([mw])
+    const { ctx } = await runMiddleware({ middlewares: [mw] })
     const decorated = ctx as Context & Readonly<{ user: string }>
     expect(decorated.user).toBe('Alice')
   })
 
   it('should handle empty middleware array', async () => {
-    const { ctx } = await runMiddleware([])
+    const { ctx } = await runMiddleware({ middlewares: [] })
     expect(ctx.args).toEqual({})
   })
 
@@ -54,7 +54,10 @@ describe('run middleware utility', () => {
       await next()
     })
 
-    const { stdout } = await runMiddleware([mw], { args: { name: 'Bob' } })
+    const { stdout } = await runMiddleware({
+      middlewares: [mw],
+      overrides: { args: { name: 'Bob' } },
+    })
     expect(stdout()).toBe('name=Bob\n')
   })
 
@@ -68,7 +71,7 @@ describe('run middleware utility', () => {
       await next()
     })
 
-    const { stdout } = await runMiddleware([blocker, second])
+    const { stdout } = await runMiddleware({ middlewares: [blocker, second] })
     expect(stdout()).toBe('')
   })
 })

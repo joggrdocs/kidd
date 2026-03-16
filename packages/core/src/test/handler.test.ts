@@ -12,7 +12,7 @@ describe('run handler utility', () => {
       },
     })
 
-    const { stdout } = await runHandler(cmd, { args: { name: 'Alice' } })
+    const { stdout } = await runHandler({ cmd, overrides: { args: { name: 'Alice' } } })
     expect(stdout()).toBe('name=Alice\n')
   })
 
@@ -23,7 +23,7 @@ describe('run handler utility', () => {
       },
     })
 
-    const { error } = await runHandler(cmd)
+    const { error } = await runHandler({ cmd })
     expect(error).toBeDefined()
     expect(error?.message).toBe('something went wrong')
   })
@@ -33,14 +33,14 @@ describe('run handler utility', () => {
       handler() {},
     })
 
-    const { error } = await runHandler(cmd)
+    const { error } = await runHandler({ cmd })
     expect(error).toBeUndefined()
   })
 
   it('should handle commands without a handler', async () => {
     const cmd = command({})
 
-    const { error } = await runHandler(cmd)
+    const { error } = await runHandler({ cmd })
     expect(error).toBeUndefined()
   })
 
@@ -51,7 +51,7 @@ describe('run handler utility', () => {
       },
     })
 
-    const { error } = await runHandler(cmd)
+    const { error } = await runHandler({ cmd })
     expect(error).toBeDefined()
     expect(error?.message).toBe('async failure')
   })

@@ -5,7 +5,7 @@ import { Writable } from 'node:stream'
  */
 export interface WritableCapture {
   readonly output: () => string
-  readonly stream: NodeJS.WriteStream
+  readonly stream: Writable
 }
 
 /**
@@ -21,6 +21,6 @@ export function createWritableCapture(): WritableCapture {
       chunks.push(chunk.toString())
       callback()
     },
-  }) as unknown as NodeJS.WriteStream
+  })
   return { output: () => chunks.join(''), stream }
 }

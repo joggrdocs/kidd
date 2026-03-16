@@ -1,3 +1,5 @@
+import { attemptAsync } from 'es-toolkit'
+import { match } from 'ts-pattern'
 import { vi } from 'vitest'
 
 import type { CliOptions } from '@/types.js'
@@ -17,24 +19,23 @@ const ANSI_ESCAPE_RE = /\u001B\[[0-9;]*[a-zA-Z]/g
  *
  * Note: stdout capture is not available for integration tests because the
  * CLI creates its own logger internally. Use `runHandler` for output assertions.
+ * Note: This function mutates `process.argv` and stubs `process.exit` for the
+ * duration of the call. Parallel invocations are not safe.
  *
  * @param options - CLI invocation options including args, commands, and middleware.
  * @returns A CommandResult with exit code and any error.
  */
 export async function runCommand(options: RunCommandOptions): Promise<CommandResult> {
-  const originalArgv = process.argv
-  const captured: { exitCode: number | undefined; error: Error | undefined } = {
-    error: undefined,
-    exitCode: undefined,
-  }
+  const originalArgv = [...process.argv]
+  const exitCapture: { exitCode: number | undefined } = { exitCode: undefined }
 
   const exitSpy = vi.spyOn(process, 'exit').mockImplementation(((code?: number) => {
-    captured.exitCode = code ?? 0
+    exitCapture.exitCode = code ?? 0
   }) as () => never)
 
   process.argv = ['node', 'test', ...options.args]
 
-  try {
+  const [error] = await attemptAsync(async () => {
     const { cli } = await import('@/cli.js')
 
     const cliOptions: CliOptions = {
@@ -46,14 +47,17 @@ export async function runCommand(options: RunCommandOptions): Promise<CommandRes
     }
 
     await cli(cliOptions)
-  } catch (error: unknown) {
-    captured.error = normalizeError(error)
-  } finally {
-    process.argv = originalArgv
-    exitSpy.mockRestore()
-  }
+  })
 
-  return { error: captured.error, exitCode: captured.exitCode }
+  process.argv = [...originalArgv]
+  exitSpy.mockRestore()
+
+  return {
+    error: match(error)
+      .with(null, () => undefined)
+      .otherwise(normalizeError),
+    exitCode: exitCapture.exitCode,
+  }
 }
 
 // ---------------------------------------------------------------------------

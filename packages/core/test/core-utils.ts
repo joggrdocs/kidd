@@ -21,6 +21,8 @@ export type {
   MiddlewareResult,
   PromptResponses,
   RunCommandOptions,
+  RunHandlerOptions,
+  RunMiddlewareOptions,
   TestContextOptions,
   TestContextResult,
   TestLifecycle,

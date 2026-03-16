@@ -1,13 +1,8 @@
 import { command } from '@kidd-cli/core'
-import { z } from 'zod'
-
-const args = z.object({
-  name: z.string().describe('Icon name to look up'),
-})
 
 export default command({
-  args,
   description: 'Show a single icon by name',
+  positionals: [{ name: 'name', type: 'string', description: 'Icon name to look up', required: true }],
   handler: (ctx) => {
     if (!ctx.icons.has(ctx.args.name)) {
       ctx.fail(`Unknown icon: "${ctx.args.name}"`)

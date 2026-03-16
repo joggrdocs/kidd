@@ -1,4 +1,5 @@
 import { hasTag } from '@kidd-cli/utils/tag'
+import { match } from 'ts-pattern'
 import type { Argv } from 'yargs'
 
 import type { Context } from '@/context/types.js'
@@ -109,7 +110,7 @@ function registerResolvedCommand(options: RegisterResolvedCommandOptions): void 
     commandString,
     description,
     (builder: Argv) => {
-      registerCommandArgs(builder, cmd.args, cmd.positionals)
+      registerCommandArgs({ builder, args: cmd.args, positionals: cmd.positionals })
 
       if (cmd.commands) {
         const subCommands = Object.entries(cmd.commands).filter((pair): pair is [string, Command] =>
@@ -181,23 +182,27 @@ function buildCommandString(
   name: string,
   positionals: readonly PositionalDef[] | undefined
 ): string {
-  if (!positionals || positionals.length === 0) {
-    return name
-  }
-  const placeholders = positionals.map((p) => formatPositionalPlaceholder(p))
-  return [name, ...placeholders].join(' ')
+  return match(positionals)
+    .with(undefined, () => name)
+    .otherwise((p) =>
+      match(p.length)
+        .with(0, () => name)
+        .otherwise(() => [name, ...p.map(formatPositionalPlaceholder)].join(' '))
+    )
 }
 
 /**
  * Format a single positional definition as a yargs placeholder string.
+ *
+ * Treats a positional as required only when `def.required === true`, matching
+ * the behavior of `positionalDefToOptions` (`demandOption: def.required ?? false`).
  *
  * @private
  * @param def - The positional definition.
  * @returns `<name>` for required positionals, `[name]` for optional ones.
  */
 function formatPositionalPlaceholder(def: PositionalDef): string {
-  if (def.required === false) {
-    return `[${def.name}]`
-  }
-  return `<${def.name}>`
+  return match(def.required)
+    .with(true, () => `<${def.name}>`)
+    .otherwise(() => `[${def.name}]`)
 }

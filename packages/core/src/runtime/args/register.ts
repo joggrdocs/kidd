@@ -4,6 +4,12 @@ import type { Command, PositionalDef, YargsArgDef } from '@/types.js'
 
 import { isZodSchema, zodSchemaToYargsOptions } from './zod.js'
 
+interface RegisterCommandArgsOptions {
+  readonly builder: Argv
+  readonly args: Command['args']
+  readonly positionals?: readonly PositionalDef[]
+}
+
 /**
  * Register argument definitions on a yargs builder.
  *
@@ -11,15 +17,14 @@ import { isZodSchema, zodSchemaToYargsOptions } from './zod.js'
  * and wires them as yargs options on the given builder instance. When positional
  * definitions are provided, they are registered via `builder.positional()`.
  *
- * @param builder - The yargs Argv instance to register options on.
- * @param args - Argument definitions from a Command.
- * @param positionals - Optional positional argument definitions.
+ * @param options - Builder instance, argument definitions, and optional positional definitions.
+ * @returns Nothing; mutates the yargs builder in place.
  */
-export function registerCommandArgs(
-  builder: Argv,
-  args: Command['args'],
-  positionals?: readonly PositionalDef[]
-): void {
+export function registerCommandArgs({
+  builder,
+  args,
+  positionals,
+}: RegisterCommandArgsOptions): void {
   if (positionals && positionals.length > 0) {
     positionals.map((p) => builder.positional(p.name, positionalDefToOptions(p)))
   }
@@ -91,23 +96,6 @@ function yargsArgDefToPositional(def: YargsArgDef): PositionalOptions {
 }
 
 /**
- * Map a yargs arg type to a valid positional type.
- *
- * Positionals only support `'string'` and `'number'`. The `'array'` and
- * `'boolean'` types fall back to `'string'`.
- *
- * @private
- * @param type - The yargs arg type.
- * @returns A positional-compatible type.
- */
-function resolvePositionalType(type: YargsArgDef['type']): 'string' | 'number' {
-  if (type === 'number') {
-    return 'number'
-  }
-  return 'string'
-}
-
-/**
  * Convert a {@link PositionalDef} into yargs positional options.
  *
  * @private
@@ -122,4 +110,21 @@ function positionalDefToOptions(def: PositionalDef): PositionalOptions {
     describe: def.description,
     type: def.type ?? 'string',
   }
+}
+
+/**
+ * Map a yargs arg type to a valid positional type.
+ *
+ * Positionals only support `'string'` and `'number'`. The `'array'` and
+ * `'boolean'` types fall back to `'string'`.
+ *
+ * @private
+ * @param type - The yargs arg type.
+ * @returns A positional-compatible type.
+ */
+function resolvePositionalType(type: YargsArgDef['type']): 'string' | 'number' {
+  if (type === 'number') {
+    return 'number'
+  }
+  return 'string'
 }

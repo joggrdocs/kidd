@@ -9,11 +9,11 @@ import { z } from 'zod'
 import type { CheckContext, CheckResult, CheckStatus, FixResult } from '../lib/checks.js'
 import { CHECKS, createCheckContext, readRawPackageJson } from '../lib/checks.js'
 
-const args = z.object({
+const options = z.object({
   fix: z.boolean().describe('Auto-fix issues where possible').optional(),
 })
 
-type DoctorArgs = z.infer<typeof args>
+type DoctorArgs = z.infer<typeof options>
 
 /**
  * Diagnose common kidd project issues.
@@ -22,7 +22,7 @@ type DoctorArgs = z.infer<typeof args>
  * and catches anything that could cause build or runtime failures.
  */
 const doctorCommand: Command = command({
-  args,
+  options,
   description: 'Diagnose common kidd project issues',
   handler: async (ctx: Context<DoctorArgs>) => {
     const cwd = process.cwd()

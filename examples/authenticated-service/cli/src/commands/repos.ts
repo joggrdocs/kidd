@@ -25,7 +25,7 @@ function formatPrivate(isPrivate: boolean): string {
 }
 
 export default command({
-  args: options,
+  options,
   description: '[auth] List repositories for the authenticated user',
   middleware: [requireAuth],
   handler: async (ctx) => {

@@ -1,5 +1,25 @@
 # kidd
 
+## 0.6.0
+
+### Minor Changes
+
+- b1c8e9e: Refactor config client to use c12 for all config file resolution
+  - Support `name.config.*` patterns (TS, JS, JSON, JSONC, YAML, TOML) via c12
+  - Support `name.*` short-form patterns for data formats only (JSON, JSONC, YAML, TOML)
+  - Long form (`name.config.*`) takes priority over short form (`name.*`)
+  - Change `write()` default path from `.name.jsonc` to `name.config.jsonc`
+  - Expand `ConfigFormat` to include `'ts' | 'js'` for TS/JS config files
+  - Add `ConfigWriteFormat` type for write-only formats (`'json' | 'jsonc' | 'yaml'`)
+
+- 440fc58: Replace `args` with separate `options` and `positionals` fields on command definitions.
+
+  **Breaking:** The `args` field on `command()` has been removed. Use `options` for flags and `positionals` for positional arguments. Both accept a Zod object schema or a yargs-native record. The `PositionalDef` type has been removed. `ctx.args` remains unchanged at runtime — options and positionals are merged under the hood.
+
+### Patch Changes
+
+- e81d3a8: Replace `font-list` native module with platform-native shell commands for Nerd Font detection, fixing bundling failures caused by `font-list`'s internal `require("./libs/core")` not being preserved by tsdown/rolldown
+
 ## 0.5.1
 
 ### Patch Changes

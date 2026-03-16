@@ -7,7 +7,7 @@ const options = z.object({
 })
 
 export default command({
-  args: options,
+  options,
   description: 'Deploy to production',
   handler: async (ctx) => {
     if (!ctx.args.force) {

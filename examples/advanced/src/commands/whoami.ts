@@ -7,7 +7,7 @@ const options = z.object({
 })
 
 export default command({
-  args: options,
+  options,
   description: 'Display the current user',
   handler: (ctx) => {
     match(ctx.args.json)

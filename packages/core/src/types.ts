@@ -192,22 +192,6 @@ export interface YargsArgDef {
   readonly default?: unknown
   readonly alias?: string | string[]
   readonly choices?: readonly string[]
-  readonly positional?: boolean
-}
-
-/**
- * Definition for a positional argument on a command.
- *
- * Positional args appear in the command string (e.g. `create <name>`) and are
- * parsed by yargs via `builder.positional()`.
- */
-export interface PositionalDef {
-  readonly name: string
-  readonly type?: 'string' | 'number'
-  readonly description?: string
-  readonly required?: boolean
-  readonly default?: unknown
-  readonly choices?: readonly string[]
 }
 
 /**
@@ -247,6 +231,25 @@ export type InferArgs<TDef extends ArgsDef> =
     : TDef extends Record<string, YargsArgDef>
       ? { [Key in keyof TDef]: YargsArgValue<TDef[Key]> }
       : AnyRecord
+
+/**
+ * Merge inferred types from options and positionals into a single args type.
+ *
+ * Produces the intersection of both inferred types, giving the handler a
+ * unified `ctx.args` containing all flags and positional values.
+ */
+export type InferArgsMerged<
+  TOptionsDef extends ArgsDef,
+  TPositionalsDef extends ArgsDef,
+> = InferSingleArgsDef<TOptionsDef> & InferSingleArgsDef<TPositionalsDef>
+
+/**
+ * Infer the parsed type from a single args definition.
+ *
+ * Handles the Zod vs yargs-native distinction for a single `ArgsDef`.
+ */
+type InferSingleArgsDef<TDef extends ArgsDef> =
+  TDef extends z.ZodObject<z.ZodRawShape> ? z.infer<TDef> : InferArgs<TDef & ArgsDef>
 
 /**
  * Handler function for a command. Receives the fully typed context.
@@ -291,12 +294,14 @@ export interface CommandsConfig {
 /**
  * Options passed to `command()`.
  *
- * @typeParam TArgsDef - Arg definitions type.
+ * @typeParam TOptionsDef - Option (flag) definitions type.
+ * @typeParam TPositionalsDef - Positional argument definitions type.
  * @typeParam TConfig - Config type.
  * @typeParam TMiddleware - Tuple of typed middleware, preserving per-element `TEnv`.
  */
 export interface CommandDef<
-  TArgsDef extends ArgsDef = ArgsDef,
+  TOptionsDef extends ArgsDef = ArgsDef,
+  TPositionalsDef extends ArgsDef = ArgsDef,
   TConfig extends AnyRecord = AnyRecord,
   TMiddleware extends readonly Middleware<MiddlewareEnv>[] = readonly Middleware<MiddlewareEnv>[],
 > {
@@ -318,17 +323,22 @@ export interface CommandDef<
   description?: string
 
   /**
-   * Arg definitions -- zod object schema (recommended) or yargs-native format.
+   * Option (flag) definitions -- zod object schema (recommended) or yargs-native format.
+   *
+   * These are registered as named `--flag` options on the command.
    */
-  args?: TArgsDef
+  options?: TOptionsDef
 
   /**
-   * Positional argument definitions.
+   * Positional argument definitions -- zod object schema (recommended) or yargs-native format.
    *
-   * Each entry generates a `<name>` (required) or `[name]` (optional) placeholder
-   * in the yargs command string and is registered via `builder.positional()`.
+   * Each key becomes a positional placeholder in the command string. Key order
+   * from the schema determines positional order. Required fields produce
+   * `<name>` placeholders; optional fields produce `[name]`.
+   *
+   * Both `options` and `positionals` are merged into `ctx.args` at runtime.
    */
-  positionals?: readonly PositionalDef[]
+  positionals?: TPositionalsDef
 
   /**
    * Command-level middleware. Runs inside the root middleware chain, wrapping the handler.
@@ -345,7 +355,7 @@ export interface CommandDef<
    * The command handler.
    */
   handler?: HandlerFn<
-    TArgsDef extends z.ZodObject<z.ZodRawShape> ? z.infer<TArgsDef> : InferArgs<TArgsDef & ArgsDef>,
+    InferArgsMerged<TOptionsDef, TPositionalsDef>,
     TConfig,
     InferVariables<TMiddleware>
   >
@@ -355,7 +365,8 @@ export interface CommandDef<
  * A resolved command object. Returned by command().
  */
 export type Command<
-  TArgsDef extends ArgsDef = ArgsDef,
+  TOptionsDef extends ArgsDef = ArgsDef,
+  TPositionalsDef extends ArgsDef = ArgsDef,
   TConfig extends AnyRecord = AnyRecord,
   TMiddleware extends readonly Middleware<MiddlewareEnv>[] = readonly Middleware<MiddlewareEnv>[],
 > = Tagged<
@@ -363,15 +374,13 @@ export type Command<
     readonly name?: string
     readonly aliases?: readonly string[]
     readonly description?: string
-    readonly args?: TArgsDef
-    readonly positionals?: readonly PositionalDef[]
+    readonly options?: TOptionsDef
+    readonly positionals?: TPositionalsDef
     readonly middleware?: TMiddleware
     readonly commands?: CommandMap | Promise<CommandMap>
     readonly order?: readonly string[]
     readonly handler?: HandlerFn<
-      TArgsDef extends z.ZodObject<z.ZodRawShape>
-        ? z.infer<TArgsDef>
-        : InferArgs<TArgsDef & ArgsDef>,
+      InferArgsMerged<TOptionsDef, TPositionalsDef>,
       TConfig,
       InferVariables<TMiddleware>
     >
@@ -484,12 +493,13 @@ export type CliFn = <TSchema extends z.ZodType = z.ZodType>(
  * Signature of the `command()` factory function.
  */
 export type CommandFn = <
-  TArgsDef extends ArgsDef = ArgsDef,
+  TOptionsDef extends ArgsDef = ArgsDef,
+  TPositionalsDef extends ArgsDef = ArgsDef,
   TConfig extends AnyRecord = AnyRecord,
   const TMiddleware extends readonly Middleware<MiddlewareEnv>[] =
     readonly Middleware<MiddlewareEnv>[],
 >(
-  def: CommandDef<TArgsDef, TConfig, TMiddleware>
+  def: CommandDef<TOptionsDef, TPositionalsDef, TConfig, TMiddleware>
 ) => Command
 
 /**

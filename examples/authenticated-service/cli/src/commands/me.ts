@@ -15,7 +15,7 @@ interface User {
 }
 
 export default command({
-  args: options,
+  options,
   description: '[auth] Display the authenticated user',
   middleware: [requireAuth],
   handler: async (ctx) => {

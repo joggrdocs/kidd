@@ -1,6 +1,14 @@
 import { match } from 'ts-pattern'
-import type { Options as YargsOptions } from 'yargs'
+import type { Options as YargsOptions, PositionalOptions } from 'yargs'
 import type { z } from 'zod'
+
+/**
+ * Metadata for a single positional argument extracted from a Zod schema.
+ */
+export interface PositionalMeta {
+  readonly name: string
+  readonly isOptional: boolean
+}
 
 /**
  * Type guard that checks whether a value is a zod object schema.
@@ -28,13 +36,44 @@ export function isZodSchema(args: unknown): args is z.ZodObject<z.ZodRawShape> {
 export function zodSchemaToYargsOptions(
   schema: z.ZodObject<z.ZodRawShape>
 ): Record<string, YargsOptions> {
-  const shape = schema.shape as Record<string, z.ZodTypeAny>
-  return Object.fromEntries(
-    Object.entries(shape).map(([key, fieldSchema]): [string, YargsOptions] => [
-      key,
-      getZodTypeOption(fieldSchema),
-    ])
-  )
+  return mapSchemaShape(schema, (fieldSchema) =>
+    buildZodFieldOption(fieldSchema, resolveZodYargsType)
+  ) as Record<string, YargsOptions>
+}
+
+/**
+ * Extract positional metadata from a zod object schema.
+ *
+ * Returns an ordered array of positional names with their required/optional status.
+ * Key order from `Object.keys(schema.shape)` determines positional order.
+ *
+ * @param schema - The zod object schema for positionals.
+ * @returns An ordered array of positional metadata.
+ */
+export function zodSchemaToPositionalMeta(
+  schema: z.ZodObject<z.ZodRawShape>
+): readonly PositionalMeta[] {
+  return getShapeEntries(schema).map(([key, fieldSchema]): PositionalMeta => {
+    const { isOptional } = unwrapZodType(fieldSchema)
+    return { isOptional, name: key }
+  })
+}
+
+/**
+ * Convert a zod object schema into a record of yargs positional options.
+ *
+ * Each field in the schema becomes a positional argument. Positionals support
+ * `string`, `number`, and `boolean` types — other types fall back to `string`.
+ *
+ * @param schema - The zod object schema for positionals.
+ * @returns A record mapping field names to yargs positional option definitions.
+ */
+export function zodSchemaToYargsPositionals(
+  schema: z.ZodObject<z.ZodRawShape>
+): Record<string, PositionalOptions> {
+  return mapSchemaShape(schema, (fieldSchema) =>
+    buildZodFieldOption(fieldSchema, resolvePositionalType)
+  ) as Record<string, PositionalOptions>
 }
 
 // ---------------------------------------------------------------------------
@@ -63,6 +102,38 @@ interface UnwrapRecursiveOptions {
   current: z.ZodTypeAny
   isOptional: boolean
   defaultValue: unknown
+}
+
+/**
+ * Extract typed shape entries from a zod object schema.
+ *
+ * @private
+ * @param schema - The zod object schema.
+ * @returns An array of [key, fieldSchema] pairs.
+ */
+function getShapeEntries(schema: z.ZodObject<z.ZodRawShape>): readonly [string, z.ZodTypeAny][] {
+  const shape = schema.shape as Record<string, z.ZodTypeAny>
+  return Object.entries(shape)
+}
+
+/**
+ * Map every field in a zod object schema through a converter, returning a record.
+ *
+ * @private
+ * @param schema - The zod object schema.
+ * @param converter - A function converting a single zod field schema to a yargs option.
+ * @returns A record mapping field names to converted option definitions.
+ */
+function mapSchemaShape<TOption>(
+  schema: z.ZodObject<z.ZodRawShape>,
+  converter: (fieldSchema: z.ZodTypeAny) => TOption
+): Record<string, TOption> {
+  return Object.fromEntries(
+    getShapeEntries(schema).map(([key, fieldSchema]): [string, TOption] => [
+      key,
+      converter(fieldSchema),
+    ])
+  )
 }
 
 /**
@@ -164,6 +235,25 @@ function resolveZodYargsType(
 }
 
 /**
+ * Map a type name to a valid yargs positional type.
+ *
+ * Positionals support `'string'`, `'number'`, and `'boolean'`.
+ * All other types fall back to `'string'`. Used for both Zod and
+ * yargs-native positional definitions.
+ *
+ * @param typeName - The type name to resolve.
+ * @returns A positional-compatible type.
+ */
+export function resolvePositionalType(
+  typeName: string | undefined
+): 'string' | 'number' | 'boolean' {
+  return match(typeName)
+    .with('number', () => 'number' as const)
+    .with('boolean', () => 'boolean' as const)
+    .otherwise(() => 'string' as const)
+}
+
+/**
  * Build a base yargs option from a zod schema's description and default.
  *
  * @private
@@ -172,30 +262,37 @@ function resolveZodYargsType(
  * @returns A partial yargs option object.
  */
 function buildBaseOption(inner: z.ZodTypeAny, defaultValue: unknown): YargsOptions {
-  const base: YargsOptions = {}
   const { description } = inner as { description?: string }
+  const base: Record<string, unknown> = {}
   if (description) {
     base.describe = description
   }
   if (defaultValue !== undefined) {
     base.default = defaultValue
   }
-  return base
+  return base as YargsOptions
 }
 
 /**
- * Convert a single zod field schema into a complete yargs option definition.
+ * Convert a single zod field schema into a yargs option or positional definition.
+ *
+ * Accepts a type resolver to support both full options (string/number/boolean/array)
+ * and positionals (string/number only).
  *
  * @private
  * @param schema - A single zod field type.
- * @returns A complete yargs option object.
+ * @param typeResolver - Function to map zod type name to a yargs-compatible type.
+ * @returns A yargs option/positional object.
  */
-function getZodTypeOption(schema: z.ZodTypeAny): YargsOptions {
+function buildZodFieldOption(
+  schema: z.ZodTypeAny,
+  typeResolver: (typeName: string | undefined) => string
+): Record<string, unknown> {
   const { inner, isOptional, defaultValue } = unwrapZodType(schema)
   const innerDef = (inner as { _def: ZodDef })._def
   const base = {
     ...buildBaseOption(inner, defaultValue),
-    type: resolveZodYargsType(innerDef.type),
+    type: typeResolver(innerDef.type),
   }
   if (!isOptional) {
     return { ...base, demandOption: true }

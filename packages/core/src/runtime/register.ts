@@ -3,9 +3,11 @@ import { match } from 'ts-pattern'
 import type { Argv } from 'yargs'
 
 import type { Context } from '@/context/types.js'
-import type { Command, CommandMap, Middleware, PositionalDef } from '@/types.js'
+import type { ArgsDef, Command, CommandMap, Middleware, YargsArgDef } from '@/types.js'
 
 import { registerCommandArgs } from './args/index.js'
+import { isZodSchema, zodSchemaToPositionalMeta } from './args/zod.js'
+import type { PositionalMeta } from './args/zod.js'
 import { sortCommandEntries, validateCommandOrder } from './sort-commands.js'
 import type { ResolvedCommand, ResolvedRef } from './types.js'
 
@@ -111,7 +113,7 @@ function registerResolvedCommand(options: RegisterResolvedCommandOptions): void 
     commandSpec,
     description,
     (builder: Argv) => {
-      registerCommandArgs({ builder, args: cmd.args, positionals: cmd.positionals })
+      registerCommandArgs({ builder, options: cmd.options, positionals: cmd.positionals })
 
       if (cmd.commands) {
         const subCommands = Object.entries(cmd.commands).filter((pair): pair is [string, Command] =>
@@ -159,10 +161,11 @@ function registerResolvedCommand(options: RegisterResolvedCommandOptions): void 
       // The `as` casts are accepted exceptions — generic handler/middleware types
       // Cannot be narrowed further inside the yargs callback boundary.
       resolved.ref = {
-        args: cmd.args,
         commandPath: [...parentPath, name],
         handler: cmd.handler as ((ctx: Context) => Promise<void> | void) | undefined,
         middleware: (cmd.middleware ?? []) as Middleware[],
+        options: cmd.options,
+        positionals: cmd.positionals,
       }
     }
   )
@@ -171,41 +174,59 @@ function registerResolvedCommand(options: RegisterResolvedCommandOptions): void 
 /**
  * Build a yargs command string with positional placeholders.
  *
- * Required positionals use `<name>` and optional positionals use `[name]`.
- * When no positionals are defined, returns the bare command name.
+ * Normalizes both Zod and yargs-native positional definitions to a common
+ * intermediate representation, then formats each as `<name>` (required) or
+ * `[name]` (optional).
  *
  * @private
  * @param name - The base command name.
- * @param positionals - Optional positional definitions.
+ * @param positionals - Optional positional definitions (Zod schema or yargs-native record).
  * @returns The command string with positional placeholders appended.
  */
-function buildCommandString(
-  name: string,
-  positionals: readonly PositionalDef[] | undefined
-): string {
-  return match(positionals)
-    .with(undefined, () => name)
-    .otherwise((p) =>
-      match(p.length)
-        .with(0, () => name)
-        .otherwise(() => [name, ...p.map(formatPositionalPlaceholder)].join(' '))
-    )
+function buildCommandString(name: string, positionals: ArgsDef | undefined): string {
+  if (!positionals) {
+    return name
+  }
+
+  const meta = extractPositionalMeta(positionals)
+  return match(meta.length)
+    .with(0, () => name)
+    .otherwise(() => [name, ...meta.map(formatPlaceholder)].join(' '))
 }
 
 /**
- * Format a single positional definition as a yargs placeholder string.
+ * Normalize an `ArgsDef` into an ordered array of positional metadata.
  *
- * Treats a positional as required only when `def.required === true`, matching
- * the behavior of `positionalDefToOptions` (`demandOption: def.required ?? false`).
+ * Handles both Zod schemas (via `zodSchemaToPositionalMeta`) and yargs-native
+ * records (via `Object.entries` with `required` check).
  *
  * @private
- * @param def - The positional definition.
+ * @param positionals - The positional definitions.
+ * @returns An ordered array of positional metadata.
+ */
+function extractPositionalMeta(positionals: ArgsDef): readonly PositionalMeta[] {
+  if (isZodSchema(positionals)) {
+    return zodSchemaToPositionalMeta(positionals)
+  }
+  return Object.entries(positionals).map(
+    ([key, def]: [string, YargsArgDef]): PositionalMeta => ({
+      isOptional: def.required !== true,
+      name: key,
+    })
+  )
+}
+
+/**
+ * Format a positional metadata entry as a yargs placeholder string.
+ *
+ * @private
+ * @param meta - The positional metadata.
  * @returns `<name>` for required positionals, `[name]` for optional ones.
  */
-function formatPositionalPlaceholder(def: PositionalDef): string {
-  return match(def.required)
-    .with(true, () => `<${def.name}>`)
-    .otherwise(() => `[${def.name}]`)
+function formatPlaceholder(meta: PositionalMeta): string {
+  return match(meta.isOptional)
+    .with(true, () => `[${meta.name}]`)
+    .otherwise(() => `<${meta.name}>`)
 }
 
 /**

@@ -21,6 +21,7 @@ You are a strict functional programmer. You write pure, immutable, declarative T
 - Add JSDoc on all exported functions, types, and interfaces
 - Mark all public properties `readonly`
 - Run commands from root with filters: `pnpm <cmd> --filter=<package>`
+- Add a changeset (`pnpm changeset`) for every PR unless the change is dev-only (e.g. CI config, tooling scripts). While pre-1.0, use `minor` for breaking changes (never `major`). After 1.0, use standard semver (`major` for breaking).
 
 ### Never
 

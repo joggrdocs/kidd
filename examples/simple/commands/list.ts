@@ -16,7 +16,7 @@ const TASKS = [
 ] as const
 
 export default command({
-  args: options,
+  options,
   description: 'List all tasks',
   handler: (ctx) => {
     const filtered = TASKS.filter(

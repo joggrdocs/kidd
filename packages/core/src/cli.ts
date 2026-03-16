@@ -99,10 +99,11 @@ export async function cli<TSchema extends z.ZodType = z.ZodType>(
     }
 
     const [executeError] = await runtime.execute({
-      args: resolved.ref.args,
       commandPath: resolved.ref.commandPath,
       handler: resolved.ref.handler,
       middleware: resolved.ref.middleware,
+      options: resolved.ref.options,
+      positionals: resolved.ref.positionals,
       rawArgs: argv,
     })
 

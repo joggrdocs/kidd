@@ -9,15 +9,15 @@ import { renderTemplate } from '../../lib/render.js'
 import { isKebabCase } from '../../lib/validate.js'
 import { writeFiles } from '../../lib/write.js'
 
-const args = z.object({
+const options = z.object({
   description: z.string().describe('Middleware description').optional(),
   name: z.string().describe('Middleware name (kebab-case)').optional(),
 })
 
-type AddMiddlewareArgs = z.infer<typeof args>
+type AddMiddlewareArgs = z.infer<typeof options>
 
 const addMiddlewareCommand: Command = command({
-  args,
+  options,
   description: 'Add a new middleware to your project',
   handler: async (ctx: Context<AddMiddlewareArgs>) => {
     const [detectError, project] = await detectProject(process.cwd())

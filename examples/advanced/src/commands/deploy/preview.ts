@@ -6,7 +6,7 @@ const options = z.object({
 })
 
 export default command({
-  args: options,
+  options,
   description: 'Deploy a preview environment',
   positionals: [
     { name: 'branch', type: 'string', description: 'Branch to deploy', default: 'main' },

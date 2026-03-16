@@ -22,7 +22,7 @@ interface Repo {
 }
 
 export default command({
-  args: options,
+  options,
   description: '[auth] Create a new repository',
   middleware: [requireAuth],
   handler: async (ctx) => {

@@ -1,5 +1,20 @@
 # kidd-cli
 
+## 0.4.0
+
+### Minor Changes
+
+- 440fc58: Replace `args` with separate `options` and `positionals` fields on command definitions.
+
+  **Breaking:** The `args` field on `command()` has been removed. Use `options` for flags and `positionals` for positional arguments. Both accept a Zod object schema or a yargs-native record. The `PositionalDef` type has been removed. `ctx.args` remains unchanged at runtime — options and positionals are merged under the hood.
+
+### Patch Changes
+
+- Updated dependencies [b1c8e9e]
+- Updated dependencies [e81d3a8]
+- Updated dependencies [440fc58]
+  - @kidd-cli/core@0.6.0
+
 ## 0.3.1
 
 ### Patch Changes

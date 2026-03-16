@@ -1,4 +1,5 @@
 import { attemptAsync } from 'es-toolkit'
+import { match } from 'ts-pattern'
 
 import type { AnyRecord, Command } from '@/types.js'
 
@@ -29,7 +30,14 @@ export async function runHandler<
     return { ctx, error: undefined, stdout }
   }
 
-  const [error] = await attemptAsync(async () => cmd.handler!(ctx))
+  const handler = cmd.handler
+  const [error] = await attemptAsync(async () => handler(ctx))
 
-  return { ctx, error: error ? normalizeError(error) : undefined, stdout }
+  return {
+    ctx,
+    error: match(error)
+      .with(null, () => undefined)
+      .otherwise(normalizeError),
+    stdout,
+  }
 }

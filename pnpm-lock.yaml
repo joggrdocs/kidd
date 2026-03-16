@@ -319,9 +319,6 @@ importers:
       es-toolkit:
         specifier: 'catalog:'
         version: 1.45.1
-      font-list:
-        specifier: ^2.0.2
-        version: 2.0.2
       jsonc-parser:
         specifier: ^3.3.1
         version: 3.3.1
@@ -2072,9 +2069,6 @@ packages:
 
   flatted@3.4.1:
     resolution: {integrity: sha512-IxfVbRFVlV8V/yRaGzk0UVIcsKKHMSfYw66T/u4nTwlWteQePsxe//LjudR1AMX4tZW3WFCh3Zqa/sjlqpbURQ==}
-
-  font-list@2.0.2:
-    resolution: {integrity: sha512-kNG2sY5+Nh5bbWL9kgAi+k8tuXfZ3m+6fjNGF4iUITTyex2S6wITREgr9ZqY1xw2+mFM6Bi5NPEPpRB6jLLOnw==}
 
   fs-extra@11.3.4:
     resolution: {integrity: sha512-CTXd6rk/M3/ULNQj8FBqBWHYBVYybQ3VPBw0xGKFe3tuH7ytT6ACnvzpIQ3UZtB8yvUKC2cXn1a+x+5EVQLovA==}
@@ -4520,8 +4514,6 @@ snapshots:
       keyv: 4.5.4
 
   flatted@3.4.1: {}
-
-  font-list@2.0.2: {}
 
   fs-extra@11.3.4:
     dependencies:

@@ -1,12 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-vi.mock(import('font-list'), () => ({
-  getFonts: vi.fn(async () => []),
+vi.mock(import('./list-fonts.js'), () => ({
+  listSystemFonts: vi.fn(async () => []),
 }))
 
-import { getFonts } from 'font-list'
-
 import { detectNerdFonts } from './detect.js'
+import { listSystemFonts } from './list-fonts.js'
 
 describe('detectNerdFonts()', () => {
   beforeEach(() => {
@@ -18,7 +17,7 @@ describe('detectNerdFonts()', () => {
   })
 
   it('should detect when a Nerd Font is installed', async () => {
-    vi.mocked(getFonts).mockResolvedValue(['Arial', 'JetBrainsMono Nerd Font', 'Helvetica'])
+    vi.mocked(listSystemFonts).mockResolvedValue(['Arial', 'JetBrainsMono Nerd Font', 'Helvetica'])
 
     const result = await detectNerdFonts()
 
@@ -26,7 +25,7 @@ describe('detectNerdFonts()', () => {
   })
 
   it('should return false when no Nerd Fonts are installed', async () => {
-    vi.mocked(getFonts).mockResolvedValue(['Arial', 'Helvetica', 'Courier New'])
+    vi.mocked(listSystemFonts).mockResolvedValue(['Arial', 'Helvetica', 'Courier New'])
 
     const result = await detectNerdFonts()
 
@@ -34,26 +33,18 @@ describe('detectNerdFonts()', () => {
   })
 
   it('should match case-insensitively', async () => {
-    vi.mocked(getFonts).mockResolvedValue(['FiraCode NERD Font Mono'])
+    vi.mocked(listSystemFonts).mockResolvedValue(['FiraCode NERD Font Mono'])
 
     const result = await detectNerdFonts()
 
     expect(result).toBeTruthy()
   })
 
-  it('should return false when getFonts throws', async () => {
-    vi.mocked(getFonts).mockRejectedValue(new Error('failed'))
+  it('should return false when listSystemFonts returns empty', async () => {
+    vi.mocked(listSystemFonts).mockResolvedValue([])
 
     const result = await detectNerdFonts()
 
     expect(result).toBeFalsy()
-  })
-
-  it('should pass disableQuoting option to getFonts', async () => {
-    vi.mocked(getFonts).mockResolvedValue([])
-
-    await detectNerdFonts()
-
-    expect(getFonts).toHaveBeenCalledWith({ disableQuoting: true })
   })
 })

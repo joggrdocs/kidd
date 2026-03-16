@@ -109,7 +109,7 @@ function registerResolvedCommand(options: RegisterResolvedCommandOptions): void 
     commandString,
     description,
     (builder: Argv) => {
-      registerCommandArgs(builder, cmd.args, cmd.positionals)
+      registerCommandArgs({ builder, args: cmd.args, positionals: cmd.positionals })
 
       if (cmd.commands) {
         const subCommands = Object.entries(cmd.commands).filter((pair): pair is [string, Command] =>

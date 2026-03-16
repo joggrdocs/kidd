@@ -4,6 +4,12 @@ import type { Command, PositionalDef, YargsArgDef } from '@/types.js'
 
 import { isZodSchema, zodSchemaToYargsOptions } from './zod.js'
 
+interface RegisterCommandArgsOptions {
+  readonly builder: Argv
+  readonly args: Command['args']
+  readonly positionals?: readonly PositionalDef[]
+}
+
 /**
  * Register argument definitions on a yargs builder.
  *
@@ -11,15 +17,16 @@ import { isZodSchema, zodSchemaToYargsOptions } from './zod.js'
  * and wires them as yargs options on the given builder instance. When positional
  * definitions are provided, they are registered via `builder.positional()`.
  *
- * @param builder - The yargs Argv instance to register options on.
- * @param args - Argument definitions from a Command.
- * @param positionals - Optional positional argument definitions.
+ * @param options - Registration options.
+ * @param options.builder - The yargs Argv instance to register options on.
+ * @param options.args - Argument definitions from a Command.
+ * @param options.positionals - Optional positional argument definitions.
  */
-export function registerCommandArgs(
-  builder: Argv,
-  args: Command['args'],
-  positionals?: readonly PositionalDef[]
-): void {
+export function registerCommandArgs({
+  builder,
+  args,
+  positionals,
+}: RegisterCommandArgsOptions): void {
   if (positionals && positionals.length > 0) {
     positionals.map((p) => builder.positional(p.name, positionalDefToOptions(p)))
   }

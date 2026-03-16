@@ -1,8 +1,13 @@
 /**
- * Supported configuration file formats.
+ * File extensions allowed for the short config name (e.g. `jog.json`, `jog.yaml`).
+ *
+ * TS/JS extensions are excluded — use the `name.config.*` pattern for those.
  */
-export type ConfigFormat = 'json' | 'jsonc' | 'yaml'
-
-export { JSON_INDENT } from '@/utils/constants.js'
-export const EMPTY_LENGTH = 0
-export const CONFIG_EXTENSIONS = ['.jsonc', '.json', '.yaml'] as const
+export const CONFIG_DATA_EXTENSIONS: ReadonlySet<string> = new Set([
+  '.json',
+  '.jsonc',
+  '.json5',
+  '.yaml',
+  '.yml',
+  '.toml',
+])

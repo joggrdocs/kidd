@@ -256,3 +256,156 @@ describe('AutoloadMarker handling', () => {
     expect(handler).toHaveBeenCalledTimes(1)
   })
 })
+
+describe('positional argument support', () => {
+  it('should register command with required positional placeholder', () => {
+    const commands: CommandMap = {
+      create: command({
+        description: 'Create a workspace',
+        positionals: [{ name: 'workspace', required: true }],
+      }),
+    }
+
+    const resolved: ResolvedRef = { ref: undefined }
+    const errorRef: ErrorRef = { error: undefined }
+    const instance = yargs([])
+
+    const registeredNames: string[] = []
+    const originalCommand = instance.command.bind(instance)
+    vi.spyOn(instance, 'command').mockImplementation((name: unknown, ...rest: unknown[]) => {
+      registeredNames.push(name as string)
+      return originalCommand(name as string, ...(rest as [string]))
+    })
+
+    registerCommands({
+      commands,
+      errorRef,
+      instance,
+      parentPath: [],
+      resolved,
+    })
+
+    expect(registeredNames).toEqual(['create <workspace>'])
+    expect(errorRef.error).toBeUndefined()
+  })
+
+  it('should register command with optional positional placeholder', () => {
+    const commands: CommandMap = {
+      list: command({
+        description: 'List items',
+        positionals: [{ name: 'filter', required: false }],
+      }),
+    }
+
+    const resolved: ResolvedRef = { ref: undefined }
+    const errorRef: ErrorRef = { error: undefined }
+    const instance = yargs([])
+
+    const registeredNames: string[] = []
+    const originalCommand = instance.command.bind(instance)
+    vi.spyOn(instance, 'command').mockImplementation((name: unknown, ...rest: unknown[]) => {
+      registeredNames.push(name as string)
+      return originalCommand(name as string, ...(rest as [string]))
+    })
+
+    registerCommands({
+      commands,
+      errorRef,
+      instance,
+      parentPath: [],
+      resolved,
+    })
+
+    expect(registeredNames).toEqual(['list [filter]'])
+  })
+
+  it('should register command with multiple positionals', () => {
+    const commands: CommandMap = {
+      copy: command({
+        description: 'Copy files',
+        positionals: [
+          { name: 'source', required: true },
+          { name: 'dest', required: true },
+          { name: 'flags', required: false },
+        ],
+      }),
+    }
+
+    const resolved: ResolvedRef = { ref: undefined }
+    const errorRef: ErrorRef = { error: undefined }
+    const instance = yargs([])
+
+    const registeredNames: string[] = []
+    const originalCommand = instance.command.bind(instance)
+    vi.spyOn(instance, 'command').mockImplementation((name: unknown, ...rest: unknown[]) => {
+      registeredNames.push(name as string)
+      return originalCommand(name as string, ...(rest as [string]))
+    })
+
+    registerCommands({
+      commands,
+      errorRef,
+      instance,
+      parentPath: [],
+      resolved,
+    })
+
+    expect(registeredNames).toEqual(['copy <source> <dest> [flags]'])
+  })
+
+  it('should register command with no positionals as bare name', () => {
+    const commands: CommandMap = {
+      status: command({
+        description: 'Show status',
+      }),
+    }
+
+    const resolved: ResolvedRef = { ref: undefined }
+    const errorRef: ErrorRef = { error: undefined }
+    const instance = yargs([])
+
+    const registeredNames: string[] = []
+    const originalCommand = instance.command.bind(instance)
+    vi.spyOn(instance, 'command').mockImplementation((name: unknown, ...rest: unknown[]) => {
+      registeredNames.push(name as string)
+      return originalCommand(name as string, ...(rest as [string]))
+    })
+
+    registerCommands({
+      commands,
+      errorRef,
+      instance,
+      parentPath: [],
+      resolved,
+    })
+
+    expect(registeredNames).toEqual(['status'])
+  })
+
+  it('should execute command handler with positional arg value', async () => {
+    const handler = vi.fn()
+    const commands: CommandMap = {
+      greet: command({
+        description: 'Greet someone',
+        handler,
+        positionals: [{ name: 'name', required: true }],
+      }),
+    }
+
+    setArgv('greet', 'world')
+    await runTestCli({
+      commands,
+      name: 'test-cli',
+      version: '1.0.0',
+    })
+
+    expect(handler).toHaveBeenCalledTimes(1)
+    expect(handler).toHaveBeenCalledWith(
+      expect.objectContaining({
+        args: expect.objectContaining({
+          name: 'world',
+        }),
+      })
+    )
+  })
+})

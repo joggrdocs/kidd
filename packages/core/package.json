@@ -72,6 +72,7 @@
     "@kidd-cli/config": "workspace:*",
     "@kidd-cli/utils": "workspace:*",
     "@pinojs/redact": "^0.4.0",
+    "c12": "4.0.0-beta.4",
     "dotenv": "^17.3.1",
     "es-toolkit": "catalog:",
     "font-list": "^2.0.2",
@@ -91,9 +92,13 @@
     "vitest": "catalog:"
   },
   "peerDependencies": {
+    "jiti": ">=2.0.0",
     "pino": ">=9.0.0"
   },
   "peerDependenciesMeta": {
+    "jiti": {
+      "optional": true
+    },
     "pino": {
       "optional": true
     }

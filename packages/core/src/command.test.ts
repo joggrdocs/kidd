@@ -14,13 +14,13 @@ describe('command()', () => {
     expect(cmd.description).toBe('Deploy the app')
   })
 
-  it('preserves yargs-style args', () => {
-    const args = {
+  it('preserves yargs-style options', () => {
+    const options = {
       name: { description: 'Name', required: true, type: 'string' as const },
       verbose: { default: false, type: 'boolean' as const },
     }
-    const cmd = command({ args })
-    expect(cmd.args).toBe(args)
+    const cmd = command({ options })
+    expect(cmd.options).toBe(options)
   })
 
   it('preserves the handler function', () => {
@@ -43,7 +43,7 @@ describe('command()', () => {
     const cmd = command({})
     expect(cmd[TAG]).toBe('Command')
     expect(cmd.description).toBeUndefined()
-    expect(cmd.args).toBeUndefined()
+    expect(cmd.options).toBeUndefined()
     expect(cmd.handler).toBeUndefined()
     expect(cmd.commands).toBeUndefined()
   })
@@ -51,18 +51,18 @@ describe('command()', () => {
   it('works with all options provided', () => {
     async function handler(): Promise<void> {}
     const sub = command({ description: 'child' })
-    const args = { port: { type: 'number' as const } }
+    const options = { port: { type: 'number' as const } }
 
     const cmd = command({
-      args,
       commands: { sub },
       description: 'full command',
       handler,
+      options,
     })
 
     expect(cmd[TAG]).toBe('Command')
     expect(cmd.description).toBe('full command')
-    expect(cmd.args).toBe(args)
+    expect(cmd.options).toBe(options)
     expect(cmd.handler).toBe(handler)
     expect(cmd.commands!['sub']).toBe(sub)
   })

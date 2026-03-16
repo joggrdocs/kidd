@@ -1,14 +1,18 @@
 import { command } from '@kidd-cli/core'
 import { z } from 'zod'
 
-const args = z.object({
+const options = z.object({
   shout: z.boolean().default(false).describe('Print the greeting in uppercase'),
 })
 
+const positionals = z.object({
+  name: z.string().describe('Name of the person to greet'),
+})
+
 export default command({
-  args,
   description: 'Greet someone by name',
-  positionals: [{ name: 'name', type: 'string', description: 'Name of the person to greet', required: true }],
+  options,
+  positionals,
   handler: (ctx) => {
     const greeting = `Hello, ${ctx.args.name}!`
 

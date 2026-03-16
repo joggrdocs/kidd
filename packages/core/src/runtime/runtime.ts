@@ -31,7 +31,10 @@ export async function createRuntime<TSchema extends z.ZodType>(
 
   const runtime: Runtime = {
     async execute(command): AsyncResult<void, Error> {
-      const parser = createArgsParser(command.args)
+      const parser = createArgsParser({
+        options: command.options,
+        positionals: command.positionals,
+      })
       const [argsError, validatedArgs] = parser.parse(command.rawArgs)
       if (argsError) {
         return err(argsError)

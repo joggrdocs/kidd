@@ -11,16 +11,16 @@ import { renderTemplate } from '../../lib/render.js'
 import { isKebabCase } from '../../lib/validate.js'
 import { writeFiles } from '../../lib/write.js'
 
-const args = z.object({
+const options = z.object({
   args: z.boolean().describe('Include args schema').optional(),
   description: z.string().describe('Command description').optional(),
   name: z.string().describe('Command name (kebab-case)').optional(),
 })
 
-type AddCommandArgs = z.infer<typeof args>
+type AddCommandArgs = z.infer<typeof options>
 
 const addCommandCommand: Command = command({
-  args,
+  options,
   description: 'Add a new command to your project',
   handler: async (ctx: Context<AddCommandArgs>) => {
     const cwd = process.cwd()

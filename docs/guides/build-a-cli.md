@@ -19,7 +19,7 @@ import { z } from 'zod'
 
 const deploy = command({
   description: 'Deploy the application',
-  args: z.object({
+  options: z.object({
     env: z.enum(['staging', 'production']).describe('Target environment'),
     dryRun: z.boolean().default(false).describe('Preview without applying'),
   }),

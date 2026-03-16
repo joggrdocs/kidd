@@ -6,12 +6,12 @@ Core CLI framework for Node.js built on yargs and Zod. Provides structured comma
 
 ### Commands
 
-A command definition pairs a description, typed arguments, and a handler function.
+A command definition pairs a description, typed options (flags), optional positionals, and a handler function.
 
 ```ts
 const deploy = command({
   description: 'Deploy the application',
-  args: z.object({
+  options: z.object({
     env: z.enum(['staging', 'production']).describe('Target environment'),
     dryRun: z.boolean().default(false).describe('Preview without applying'),
   }),
@@ -23,12 +23,12 @@ const deploy = command({
 
 #### Yargs-native arg format
 
-As an alternative to Zod, commands accept a yargs-native arg format via `YargsArgDef`. Both produce the same typed `ctx.args` -- the yargs format is converted to Zod internally before parsing.
+As an alternative to Zod, commands accept a yargs-native arg format via `YargsArgDef` for both `options` and `positionals`. Both produce the same typed `ctx.args` -- the yargs format is converted to Zod internally before parsing.
 
 ```ts
 const deploy = command({
   description: 'Deploy the application',
-  args: {
+  options: {
     env: {
       type: 'string',
       description: 'Target environment',

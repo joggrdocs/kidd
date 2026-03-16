@@ -62,7 +62,7 @@ describe('examples/simple/commands/greet', () => {
         greet: command({ ...greetCommand, handler }),
       }
 
-      setArgv('greet', '--name', 'Alice')
+      setArgv('greet', 'Alice')
       await runTestCli({ commands, name: 'tasks', version: '1.0.0' })
 
       expect(handler).toHaveBeenCalledTimes(1)
@@ -76,7 +76,7 @@ describe('examples/simple/commands/greet', () => {
         greet: command({ ...greetCommand, handler }),
       }
 
-      setArgv('greet', '--name', 'Alice')
+      setArgv('greet', 'Alice')
       await runTestCli({ commands, name: 'tasks', version: '1.0.0' })
 
       const ctx = handler.mock.calls[0]![0] as Context<{ name: string; shout: boolean }>
@@ -89,7 +89,7 @@ describe('examples/simple/commands/greet', () => {
         greet: command({ ...greetCommand, handler }),
       }
 
-      setArgv('greet', '--name', 'Alice')
+      setArgv('greet', 'Alice')
       await runTestCli({ commands, name: 'tasks', version: '1.0.0' })
 
       const ctx = handler.mock.calls[0]![0] as Context

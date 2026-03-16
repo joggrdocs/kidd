@@ -24,7 +24,7 @@ Deeply readonly parsed args for the matched command. The type is a merge of `Kid
 
 ```ts
 const deploy = command({
-  args: z.object({
+  options: z.object({
     env: z.enum(['staging', 'production']).describe('Target environment'),
   }),
   async handler(ctx) {

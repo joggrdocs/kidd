@@ -40,7 +40,7 @@ const buildCommand: Command = command({
 
     if (buildError) {
       ctx.spinner.stop('Bundle failed')
-      ctx.fail(buildError.message)
+      return ctx.fail(buildError.message)
     }
 
     const shouldCompile = resolveCompileIntent({
@@ -75,7 +75,7 @@ const buildCommand: Command = command({
 
     if (compileError) {
       ctx.spinner.stop('Compile failed')
-      ctx.fail(compileError.message)
+      return ctx.fail(compileError.message)
     }
 
     ctx.spinner.stop('Build complete')

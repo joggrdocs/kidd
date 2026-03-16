@@ -204,18 +204,18 @@ export function createConfigClient<TSchema extends ZodTypeAny>(
     const resolvedFormat = match(writeOptions)
       .when(
         (opts) => opts.format !== null && opts.format !== undefined,
-        (opts) => opts.format ?? ('jsonc' as const)
+        (opts) => opts.format as NonNullable<typeof opts.format>
       )
       .when(
         (opts) => opts.filePath !== null && opts.filePath !== undefined,
-        (opts) => getWriteFormat(opts.filePath ?? '')
+        (opts) => getWriteFormat(opts.filePath as string)
       )
       .otherwise(() => 'jsonc' as const)
 
     const resolvedFilePath = match(writeOptions.filePath)
       .when(
         (fp) => fp !== null && fp !== undefined,
-        (fp) => fp ?? ''
+        (fp) => fp as string
       )
       .otherwise(() => {
         const dir = writeOptions.dir ?? process.cwd()

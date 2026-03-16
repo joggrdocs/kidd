@@ -223,16 +223,26 @@ function isCommandDir(entry: Dirent): boolean {
 function deduplicateCommandPairs(
   pairs: readonly (readonly [string, Command])[]
 ): readonly (readonly [string, Command])[] {
-  const seen = new Set<string>()
+  const { result } = pairs.reduce<{
+    readonly seen: ReadonlySet<string>
+    readonly result: readonly (readonly [string, Command])[]
+  }>(
+    (acc, pair) => {
+      const [name] = pair
+      if (acc.seen.has(name)) {
+        console.warn(
+          `[kidd] duplicate command name "${name}" — first definition wins, later definition ignored`
+        )
+        return acc
+      }
 
-  return pairs.filter(([name]) => {
-    if (seen.has(name)) {
-      console.warn(
-        `[kidd] duplicate command name "${name}" — first definition wins, later definition ignored`
-      )
-      return false
-    }
-    seen.add(name)
-    return true
-  })
+      return {
+        result: [...acc.result, pair],
+        seen: new Set([...acc.seen, name]),
+      }
+    },
+    { result: [], seen: new Set<string>() }
+  )
+
+  return result
 }

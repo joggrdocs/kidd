@@ -444,7 +444,7 @@ async function fixModuleType(context: CheckContext): Promise<FixResult> {
  */
 async function fixKiddDependency(context: CheckContext): Promise<FixResult> {
   const [updateError] = await updatePackageJson(context.cwd, (pkg) => {
-    const deps = pkg.dependencies as Record<string, string> | undefined
+    const deps = pkg.dependencies ?? {}
     return {
       ...pkg,
       dependencies: { ...deps, '@kidd-cli/core': 'latest' },

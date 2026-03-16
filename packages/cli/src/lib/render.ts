@@ -1,7 +1,7 @@
 import { readdir, readFile } from 'node:fs/promises'
 import { join, relative } from 'node:path'
 
-import { ok, toErrorMessage } from '@kidd-cli/utils/fp'
+import { attemptAsync, ok, toError } from '@kidd-cli/utils/fp'
 import type { AsyncResult } from '@kidd-cli/utils/fp'
 import { Liquid } from 'liquidjs'
 
@@ -82,21 +82,23 @@ async function renderSingleFile(
   absolutePath: string,
   variables: Record<string, unknown>
 ): AsyncResult<string, GenerateError> {
-  try {
+  const [renderError, content] = await attemptAsync(async () => {
     const template = await readFile(absolutePath, 'utf8')
-    const content = await engine.parseAndRender(template, variables)
-    return ok(content)
-  } catch (error: unknown) {
-    const message = toErrorMessage(error)
+    return engine.parseAndRender(template, variables)
+  })
+
+  if (renderError) {
     return [
       {
-        message: `Failed to render template: ${message}`,
+        message: `Failed to render template: ${toError(renderError).message}`,
         path: absolutePath,
         type: 'render_error' as const,
       },
       null,
     ]
   }
+
+  return ok(content)
 }
 
 /**

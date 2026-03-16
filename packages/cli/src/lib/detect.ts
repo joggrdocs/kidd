@@ -1,9 +1,10 @@
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 
-import { attemptAsync, ok, toErrorMessage } from '@kidd-cli/utils/fp'
+import { attemptAsync, ok, toError } from '@kidd-cli/utils/fp'
 import type { AsyncResult } from '@kidd-cli/utils/fp'
 import { fileExists } from '@kidd-cli/utils/fs'
+import { jsonParse } from '@kidd-cli/utils/json'
 
 import type { GenerateError, ProjectInfo } from './types.js'
 
@@ -77,10 +78,10 @@ interface PackageJson {
  */
 async function readPackageJson(filePath: string): AsyncResult<PackageJson, GenerateError> {
   const [readError, content] = await attemptAsync(() => readFile(filePath, 'utf8'))
-  if (readError || content === null || content === undefined) {
+  if (readError) {
     return [
       {
-        message: `Failed to read package.json: ${toErrorMessage(readError)}`,
+        message: `Failed to read package.json: ${toError(readError).message}`,
         path: filePath,
         type: 'read_error' as const,
       },
@@ -88,17 +89,17 @@ async function readPackageJson(filePath: string): AsyncResult<PackageJson, Gener
     ]
   }
 
-  try {
-    const data = JSON.parse(content) as PackageJson
-    return ok(data)
-  } catch (error: unknown) {
+  const [parseError, data] = jsonParse(content as string)
+  if (parseError) {
     return [
       {
-        message: `Failed to parse package.json: ${toErrorMessage(error)}`,
+        message: `Failed to parse package.json: ${toError(parseError).message}`,
         path: filePath,
         type: 'read_error' as const,
       },
       null,
     ]
   }
+
+  return ok(data as PackageJson)
 }

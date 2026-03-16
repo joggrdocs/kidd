@@ -1,10 +1,11 @@
 import { execFile as execFileCb } from 'node:child_process'
-import { readdirSync, unlinkSync } from 'node:fs'
+import { readdir, unlink } from 'node:fs/promises'
 import { join } from 'node:path'
 
 import type { CompileTarget } from '@kidd-cli/config'
 import { err, ok } from '@kidd-cli/utils/fp'
 import type { AsyncResult } from '@kidd-cli/utils/fp'
+import { attemptAsync } from 'es-toolkit'
 
 import { detectBuildEntry, resolveConfig } from '../config/resolve-config.js'
 import { DEFAULT_COMPILE_TARGETS } from '../constants.js'
@@ -67,7 +68,7 @@ export async function compile(params: CompileParams): AsyncResult<CompileOutput>
         target,
       })
 
-      if (params.onTargetComplete) {
+      if (result[0] === null && params.onTargetComplete) {
         await params.onTargetComplete(target)
       }
 
@@ -75,14 +76,11 @@ export async function compile(params: CompileParams): AsyncResult<CompileOutput>
     })
   )
 
-  cleanBunBuildArtifacts(resolved.cwd)
+  await cleanBunBuildArtifacts(resolved.cwd)
 
   const failedResult = results.find((r) => r[0] !== null)
   if (failedResult) {
-    const [failedError] = failedResult
-    if (failedError) {
-      return err(failedError)
-    }
+    return err(failedResult[0])
   }
 
   const binaries: readonly CompiledBinary[] = results
@@ -221,9 +219,15 @@ function execBunBuild(args: readonly string[]): AsyncResult<string> {
  * @private
  * @param cwd - The working directory to clean.
  */
-function cleanBunBuildArtifacts(cwd: string): void {
-  readdirSync(cwd)
+async function cleanBunBuildArtifacts(cwd: string): Promise<void> {
+  const [readError, entries] = await attemptAsync(() => readdir(cwd))
+  if (readError || !entries) {
+    return
+  }
+
+  const artifacts = entries
     .filter((name) => name.endsWith('.bun-build'))
     .map((name) => join(cwd, name))
-    .map(unlinkSync)
+
+  await Promise.all(artifacts.map((filePath) => unlink(filePath)))
 }

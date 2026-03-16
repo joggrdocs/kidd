@@ -1,7 +1,7 @@
 import { mkdir, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 
-import { ok, toErrorMessage } from '@kidd-cli/utils/fp'
+import { attemptAsync, ok, toError } from '@kidd-cli/utils/fp'
 import type { AsyncResult } from '@kidd-cli/utils/fp'
 import { fileExists } from '@kidd-cli/utils/fs'
 
@@ -71,24 +71,36 @@ async function writeSingleFile(
   overwrite: boolean
 ): AsyncResult<FileWriteStatus, GenerateError> {
   const targetPath = join(outputDir, file.relativePath)
-  try {
-    const exists = await fileExists(targetPath)
-    if (exists && !overwrite) {
-      return ok({ action: 'skipped' as const, path: file.relativePath })
-    }
-    const parentDir = dirname(targetPath)
-    await mkdir(parentDir, { recursive: true })
-    await writeFile(targetPath, file.content, 'utf8')
-    return ok({ action: 'written' as const, path: file.relativePath })
-  } catch (error: unknown) {
-    const message = toErrorMessage(error)
+
+  const exists = await fileExists(targetPath)
+  if (exists && !overwrite) {
+    return ok({ action: 'skipped' as const, path: file.relativePath })
+  }
+
+  const parentDir = dirname(targetPath)
+  const [mkdirError] = await attemptAsync(() => mkdir(parentDir, { recursive: true }))
+  if (mkdirError) {
     return [
       {
-        message: `Failed to write file: ${message}`,
+        message: `Failed to write file: ${toError(mkdirError).message}`,
         path: targetPath,
         type: 'write_error' as const,
       },
       null,
     ]
   }
+
+  const [writeError] = await attemptAsync(() => writeFile(targetPath, file.content, 'utf8'))
+  if (writeError) {
+    return [
+      {
+        message: `Failed to write file: ${toError(writeError).message}`,
+        path: targetPath,
+        type: 'write_error' as const,
+      },
+      null,
+    ]
+  }
+
+  return ok({ action: 'written' as const, path: file.relativePath })
 }

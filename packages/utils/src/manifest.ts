@@ -4,7 +4,7 @@ import { resolve } from 'node:path'
 import { attemptAsync } from 'es-toolkit'
 import { z } from 'zod'
 
-import type { AsyncResult, Result } from './fp/result.js'
+import type { AsyncResult } from './fp/result.js'
 import { err, ok } from './fp/result.js'
 import { jsonParse } from './json.js'
 
@@ -70,11 +70,7 @@ export async function readManifest(dir?: string): ManifestResult {
   if (readError) {
     return err(readError)
   }
-  if (raw === null) {
-    return err(`Failed to read ${filePath}`)
-  }
-
-  const [parseError, data] = parseManifestJson(raw)
+  const [parseError, data] = jsonParse(raw)
   if (parseError) {
     return err(parseError)
   }
@@ -107,21 +103,6 @@ async function readManifestFile(filePath: string): AsyncResult<string> {
 }
 
 /**
- * Parse a JSON string, forwarding any error message.
- *
- * @private
- * @param raw - The raw JSON string.
- * @returns A Result tuple with the parsed value or an error message.
- */
-function parseManifestJson(raw: string): Result<unknown> {
-  const [error, data] = jsonParse(raw)
-  if (error) {
-    return err(error)
-  }
-  return ok(data)
-}
-
-/**
  * Convert validated schema output to a Manifest.
  *
  * @private
@@ -134,7 +115,7 @@ function toManifest(data: z.infer<typeof ManifestSchema>): Manifest {
     bin: normalizeBin(data.bin),
     description: data.description,
     homepage: data.homepage,
-    keywords: data.keywords || [],
+    keywords: data.keywords ?? [],
     license: data.license,
     name: data.name,
     repository: normalizeRepository(data.repository),

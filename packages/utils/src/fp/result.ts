@@ -1,4 +1,4 @@
-import { toError } from './predicates.js'
+import { toError } from './transform.js'
 
 /**
  * A Result tuple representing either success `[null, TValue]` or failure `[TError, null]`.

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { toError, toErrorMessage } from './predicates.js'
+import { toError } from './transform.js'
 
 describe(toError, () => {
   it('should return the same Error instance when given an Error', () => {
@@ -44,37 +44,5 @@ describe(toError, () => {
     const result = toError(original)
     expect(result).toBe(original)
     expect(result).toBeInstanceOf(TypeError)
-  })
-})
-
-describe(toErrorMessage, () => {
-  it('should return the message from an Error', () => {
-    const result = toErrorMessage(new Error('something broke'))
-    expect(result).toBe('something broke')
-  })
-
-  it('should return the string representation of a string value', () => {
-    const result = toErrorMessage('raw string error')
-    expect(result).toBe('raw string error')
-  })
-
-  it('should return the string representation of a number', () => {
-    const result = toErrorMessage(500)
-    expect(result).toBe('500')
-  })
-
-  it('should return "null" for null', () => {
-    const result = toErrorMessage(null)
-    expect(result).toBe('null')
-  })
-
-  it('should return "undefined" for undefined', () => {
-    const result = toErrorMessage(undefined)
-    expect(result).toBe('undefined')
-  })
-
-  it('should return the message from an Error subclass', () => {
-    const result = toErrorMessage(new TypeError('bad type'))
-    expect(result).toBe('bad type')
   })
 })

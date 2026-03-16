@@ -78,7 +78,7 @@ function formatZodIssues(
   )
   const message = formatted
     .map((item: ZodIssue) => {
-      if (item.path) {
+      if (item.path.length > 0) {
         return `${item.path}: ${item.message}`
       }
       return item.message

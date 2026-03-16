@@ -1,4 +1,4 @@
-export { err, ok, toError, toErrorMessage } from './fp/index.js'
+export { err, ok, toError } from './fp/index.js'
 export type { AsyncResult, Result } from './fp/index.js'
 export { fileExists } from './fs.js'
 export { jsonParse, jsonStringify } from './json.js'

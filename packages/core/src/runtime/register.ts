@@ -2,7 +2,7 @@ import { hasTag } from '@kidd-cli/utils/tag'
 import type { Argv } from 'yargs'
 
 import type { Context } from '@/context/types.js'
-import type { Command, CommandMap, Middleware } from '@/types.js'
+import type { Command, CommandMap, Middleware, PositionalDef } from '@/types.js'
 
 import { registerCommandArgs } from './args/index.js'
 import { sortCommandEntries, validateCommandOrder } from './sort-commands.js'
@@ -103,12 +103,13 @@ interface RegisterCommandsOptions {
 function registerResolvedCommand(options: RegisterResolvedCommandOptions): void {
   const { instance, name, cmd, resolved, parentPath, errorRef } = options
   const description = cmd.description ?? ''
+  const commandString = buildCommandString(name, cmd.positionals)
 
   instance.command(
-    name,
+    commandString,
     description,
     (builder: Argv) => {
-      registerCommandArgs(builder, cmd.args)
+      registerCommandArgs(builder, cmd.args, cmd.positionals)
 
       if (cmd.commands) {
         const subCommands = Object.entries(cmd.commands).filter((pair): pair is [string, Command] =>
@@ -163,4 +164,40 @@ function registerResolvedCommand(options: RegisterResolvedCommandOptions): void 
       }
     }
   )
+}
+
+/**
+ * Build a yargs command string with positional placeholders.
+ *
+ * Required positionals use `<name>` and optional positionals use `[name]`.
+ * When no positionals are defined, returns the bare command name.
+ *
+ * @private
+ * @param name - The base command name.
+ * @param positionals - Optional positional definitions.
+ * @returns The command string with positional placeholders appended.
+ */
+function buildCommandString(
+  name: string,
+  positionals: readonly PositionalDef[] | undefined
+): string {
+  if (!positionals || positionals.length === 0) {
+    return name
+  }
+  const placeholders = positionals.map((p) => formatPositionalPlaceholder(p))
+  return [name, ...placeholders].join(' ')
+}
+
+/**
+ * Format a single positional definition as a yargs placeholder string.
+ *
+ * @private
+ * @param def - The positional definition.
+ * @returns `<name>` for required positionals, `[name]` for optional ones.
+ */
+function formatPositionalPlaceholder(def: PositionalDef): string {
+  if (def.required === false) {
+    return `[${def.name}]`
+  }
+  return `<${def.name}>`
 }

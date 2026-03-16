@@ -8,7 +8,9 @@ const args = z.object({
 export default command({
   args,
   description: 'Greet someone by name',
-  positionals: [{ name: 'name', type: 'string', description: 'Name of the person to greet', required: true }],
+  positionals: [
+    { name: 'name', type: 'string', description: 'Name of the person to greet', required: true },
+  ],
   handler: (ctx) => {
     const greeting = `Hello, ${ctx.args.name}!`
 

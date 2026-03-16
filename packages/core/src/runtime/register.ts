@@ -105,9 +105,10 @@ function registerResolvedCommand(options: RegisterResolvedCommandOptions): void 
   const { instance, name, cmd, resolved, parentPath, errorRef } = options
   const description = cmd.description ?? ''
   const commandString = buildCommandString(name, cmd.positionals)
+  const commandSpec = buildCommandSpec(commandString, cmd.aliases)
 
   instance.command(
-    commandString,
+    commandSpec,
     description,
     (builder: Argv) => {
       registerCommandArgs({ builder, args: cmd.args, positionals: cmd.positionals })
@@ -205,4 +206,28 @@ function formatPositionalPlaceholder(def: PositionalDef): string {
   return match(def.required)
     .with(true, () => `<${def.name}>`)
     .otherwise(() => `[${def.name}]`)
+}
+
+/**
+ * Build the first argument to `yargs.command()`.
+ *
+ * Returns a plain string when there are no aliases, or a `[commandString, ...aliases]`
+ * array when aliases are present — both forms are accepted by yargs.
+ *
+ * @private
+ * @param commandString - The primary command string (may include positional placeholders).
+ * @param aliases - Optional alternative names for the command.
+ * @returns A string or string array suitable for `yargs.command()`.
+ */
+function buildCommandSpec(
+  commandString: string,
+  aliases: readonly string[] | undefined
+): string | string[] {
+  return match(aliases)
+    .with(undefined, () => commandString)
+    .otherwise((a) =>
+      match(a.length)
+        .with(0, () => commandString)
+        .otherwise(() => [commandString, ...a])
+    )
 }

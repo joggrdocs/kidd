@@ -52,7 +52,7 @@ function resolveDir(options?: AutoloadOptions): string {
  * @returns A tuple of [name, Command] or undefined if the directory is empty.
  */
 async function buildDirCommand(dir: string): Promise<[string, Command] | undefined> {
-  const name = basename(dir)
+  const dirName = basename(dir)
   const dirEntries = await readdir(dir, { withFileTypes: true })
   const subCommands = await buildCommandMapFromEntries(dir, dirEntries)
   const indexFile = findIndexInEntries(dirEntries)
@@ -60,6 +60,7 @@ async function buildDirCommand(dir: string): Promise<[string, Command] | undefin
   if (indexFile) {
     const parentCommand = await importCommand(join(dir, indexFile.name))
     if (parentCommand) {
+      const name = parentCommand.name ?? dirName
       return [name, withTag({ ...parentCommand, commands: subCommands }, 'Command')]
     }
   }
@@ -68,7 +69,7 @@ async function buildDirCommand(dir: string): Promise<[string, Command] | undefin
     return undefined
   }
 
-  return [name, withTag({ commands: subCommands }, 'Command')]
+  return [dirName, withTag({ commands: subCommands }, 'Command')]
 }
 
 /**
@@ -92,7 +93,8 @@ async function buildCommandMapFromEntries(dir: string, entries: Dirent[]): Promi
       if (!cmd) {
         return undefined
       }
-      return [deriveCommandName(entry), cmd]
+      const name = cmd.name ?? deriveCommandName(entry)
+      return [name, cmd]
     })
   )
 

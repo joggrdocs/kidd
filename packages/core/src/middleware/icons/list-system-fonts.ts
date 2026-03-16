@@ -21,6 +21,20 @@ import { match } from 'ts-pattern'
 const execAsync = promisify(exec)
 
 /**
+ * Timeout (ms) for font-listing shell commands.
+ *
+ * @private
+ */
+const FONT_CMD_TIMEOUT_MS = 15_000
+
+/**
+ * Maximum stdout buffer size (bytes) for font-listing shell commands.
+ *
+ * @private
+ */
+const FONT_CMD_MAX_BUFFER = 10 * 1024 * 1024
+
+/**
  * Regex to extract the font family name from a macOS `system_profiler` "Family:" line.
  *
  * @private
@@ -96,7 +110,12 @@ interface RunFontCommandParams {
  * @returns Parsed font family names.
  */
 async function runFontCommand(params: RunFontCommandParams): Promise<readonly string[]> {
-  const [error, result] = await attemptAsync(() => execAsync(params.command))
+  const [error, result] = await attemptAsync(() =>
+    execAsync(params.command, {
+      timeout: FONT_CMD_TIMEOUT_MS,
+      maxBuffer: FONT_CMD_MAX_BUFFER,
+    })
+  )
 
   if (error || result === null) {
     return []

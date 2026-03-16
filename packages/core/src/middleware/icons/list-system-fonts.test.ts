@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock(import('node:child_process'), () => ({
-  exec: vi.fn((_cmd: string, cb?: (...args: readonly unknown[]) => void) => {
+  exec: vi.fn((_cmd: string, _opts: unknown, cb?: (...args: readonly unknown[]) => void) => {
     if (typeof cb === 'function') {
       cb(null, { stderr: '', stdout: '' })
     }
@@ -31,7 +31,7 @@ describe('listSystemFonts()', () => {
 
     it('should parse font families from system_profiler output', async () => {
       vi.mocked(exec).mockImplementation(
-        (_cmd: string, cb?: (...args: readonly unknown[]) => void) => {
+        (_cmd: string, _opts: unknown, cb?: (...args: readonly unknown[]) => void) => {
           if (typeof cb === 'function') {
             cb(null, {
               stderr: '',
@@ -61,12 +61,16 @@ describe('listSystemFonts()', () => {
     it('should invoke system_profiler SPFontsDataType', async () => {
       await listSystemFonts()
 
-      expect(exec).toHaveBeenCalledWith('system_profiler SPFontsDataType', expect.any(Function))
+      expect(exec).toHaveBeenCalledWith(
+        'system_profiler SPFontsDataType',
+        expect.objectContaining({ timeout: 15_000 }),
+        expect.any(Function)
+      )
     })
 
     it('should return empty array when system_profiler fails', async () => {
       vi.mocked(exec).mockImplementation(
-        (_cmd: string, cb?: (...args: readonly unknown[]) => void) => {
+        (_cmd: string, _opts: unknown, cb?: (...args: readonly unknown[]) => void) => {
           if (typeof cb === 'function') {
             cb(new Error('command failed'), null, null)
           }
@@ -81,7 +85,7 @@ describe('listSystemFonts()', () => {
 
     it('should ignore non-Family lines from system_profiler', async () => {
       vi.mocked(exec).mockImplementation(
-        (_cmd: string, cb?: (...args: readonly unknown[]) => void) => {
+        (_cmd: string, _opts: unknown, cb?: (...args: readonly unknown[]) => void) => {
           if (typeof cb === 'function') {
             cb(null, {
               stderr: '',
@@ -110,7 +114,7 @@ describe('listSystemFonts()', () => {
 
     it('should parse font families from fc-list output', async () => {
       vi.mocked(exec).mockImplementation(
-        (_cmd: string, cb?: (...args: readonly unknown[]) => void) => {
+        (_cmd: string, _opts: unknown, cb?: (...args: readonly unknown[]) => void) => {
           if (typeof cb === 'function') {
             cb(null, {
               stderr: '',
@@ -129,12 +133,16 @@ describe('listSystemFonts()', () => {
     it('should invoke fc-list : family', async () => {
       await listSystemFonts()
 
-      expect(exec).toHaveBeenCalledWith('fc-list : family', expect.any(Function))
+      expect(exec).toHaveBeenCalledWith(
+        'fc-list : family',
+        expect.objectContaining({ timeout: 15_000 }),
+        expect.any(Function)
+      )
     })
 
     it('should return empty array when fc-list fails', async () => {
       vi.mocked(exec).mockImplementation(
-        (_cmd: string, cb?: (...args: readonly unknown[]) => void) => {
+        (_cmd: string, _opts: unknown, cb?: (...args: readonly unknown[]) => void) => {
           if (typeof cb === 'function') {
             cb(new Error('command failed'), null, null)
           }
@@ -155,7 +163,7 @@ describe('listSystemFonts()', () => {
 
     it('should parse font families from powershell output', async () => {
       vi.mocked(exec).mockImplementation(
-        (_cmd: string, cb?: (...args: readonly unknown[]) => void) => {
+        (_cmd: string, _opts: unknown, cb?: (...args: readonly unknown[]) => void) => {
           if (typeof cb === 'function') {
             cb(null, {
               stderr: '',
@@ -173,7 +181,7 @@ describe('listSystemFonts()', () => {
 
     it('should handle Windows CRLF line endings', async () => {
       vi.mocked(exec).mockImplementation(
-        (_cmd: string, cb?: (...args: readonly unknown[]) => void) => {
+        (_cmd: string, _opts: unknown, cb?: (...args: readonly unknown[]) => void) => {
           if (typeof cb === 'function') {
             cb(null, {
               stderr: '',
@@ -191,7 +199,7 @@ describe('listSystemFonts()', () => {
 
     it('should return empty array when powershell fails', async () => {
       vi.mocked(exec).mockImplementation(
-        (_cmd: string, cb?: (...args: readonly unknown[]) => void) => {
+        (_cmd: string, _opts: unknown, cb?: (...args: readonly unknown[]) => void) => {
           if (typeof cb === 'function') {
             cb(new Error('command failed'), null, null)
           }
@@ -209,6 +217,7 @@ describe('listSystemFonts()', () => {
 
       expect(exec).toHaveBeenCalledWith(
         expect.stringContaining('powershell -NoProfile'),
+        expect.objectContaining({ timeout: 15_000 }),
         expect.any(Function)
       )
     })

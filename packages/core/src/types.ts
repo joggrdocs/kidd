@@ -309,13 +309,13 @@ export interface CommandDef<
    * Explicit command name. When provided, overrides the filename-derived name
    * used by `autoload()` or the key in a `CommandMap`.
    */
-  name?: string
+  readonly name?: string
 
   /**
    * Alternative names for this command (e.g. `['ws']` for `workspace`).
    * Registered as yargs command aliases.
    */
-  aliases?: readonly string[]
+  readonly aliases?: readonly string[]
 
   /**
    * Human-readable description shown in help text.

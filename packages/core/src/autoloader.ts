@@ -105,6 +105,8 @@ async function buildCommandMapFromEntries(dir: string, entries: Dirent[]): Promi
   const allResults = [...fileResults, ...dirResults]
   const validPairs = allResults.filter((pair): pair is [string, Command] => pair !== undefined)
 
+  warnDuplicateNames(validPairs)
+
   return Object.fromEntries(validPairs)
 }
 
@@ -207,4 +209,27 @@ function isCommandDir(entry: Dirent): boolean {
     return false
   }
   return !entry.name.startsWith('_') && !entry.name.startsWith('.')
+}
+
+/**
+ * Warn when multiple commands resolve to the same name.
+ *
+ * `Object.fromEntries` silently keeps the last entry for duplicate keys.
+ * This helper detects collisions so the user gets a visible diagnostic
+ * instead of a silent override.
+ *
+ * @private
+ * @param pairs - The resolved [name, Command] tuples.
+ */
+function warnDuplicateNames(pairs: ReadonlyArray<readonly [string, Command]>): void {
+  const names = pairs.map(([name]) => name)
+  const duplicates = [...new Set(names.filter((name, idx) => names.indexOf(name) !== idx))]
+
+  if (duplicates.length > 0) {
+    console.warn(
+      duplicates
+        .map((name) => `[kidd] duplicate command name "${name}" — last definition wins`)
+        .join('\n')
+    )
+  }
 }

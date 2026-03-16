@@ -56,6 +56,10 @@
     "./icons": {
       "types": "./dist/middleware/icons.d.ts",
       "default": "./dist/middleware/icons.js"
+    },
+    "./test": {
+      "types": "./dist/test/index.d.ts",
+      "default": "./dist/test/index.js"
     }
   },
   "scripts": {
@@ -92,13 +96,17 @@
   },
   "peerDependencies": {
     "jiti": ">=2.0.0",
-    "pino": ">=9.0.0"
+    "pino": ">=9.0.0",
+    "vitest": ">=2.0.0"
   },
   "peerDependenciesMeta": {
     "jiti": {
       "optional": true
     },
     "pino": {
+      "optional": true
+    },
+    "vitest": {
       "optional": true
     }
   }

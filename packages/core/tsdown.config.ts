@@ -14,6 +14,7 @@ export default defineConfig({
     'middleware/auth': 'src/middleware/auth/index.ts',
     'middleware/http': 'src/middleware/http/index.ts',
     'middleware/icons': 'src/middleware/icons/index.ts',
+    'test/index': 'src/test/index.ts',
   },
   fixedExtension: false,
   format: 'esm',

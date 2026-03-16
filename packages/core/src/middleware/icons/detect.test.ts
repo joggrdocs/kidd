@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock(import('./list-system-fonts.js'), () => ({
-  listSystemFonts: vi.fn(async () => []),
+  listSystemFonts: vi.fn(async () => [null, []]),
 }))
 
 import { detectNerdFonts } from './detect.js'
@@ -17,7 +17,10 @@ describe('detectNerdFonts()', () => {
   })
 
   it('should detect when a Nerd Font is installed', async () => {
-    vi.mocked(listSystemFonts).mockResolvedValue(['Arial', 'JetBrainsMono Nerd Font', 'Helvetica'])
+    vi.mocked(listSystemFonts).mockResolvedValue([
+      null,
+      ['Arial', 'JetBrainsMono Nerd Font', 'Helvetica'],
+    ])
 
     const result = await detectNerdFonts()
 
@@ -25,7 +28,7 @@ describe('detectNerdFonts()', () => {
   })
 
   it('should return false when no Nerd Fonts are installed', async () => {
-    vi.mocked(listSystemFonts).mockResolvedValue(['Arial', 'Helvetica', 'Courier New'])
+    vi.mocked(listSystemFonts).mockResolvedValue([null, ['Arial', 'Helvetica', 'Courier New']])
 
     const result = await detectNerdFonts()
 
@@ -33,7 +36,7 @@ describe('detectNerdFonts()', () => {
   })
 
   it('should match case-insensitively', async () => {
-    vi.mocked(listSystemFonts).mockResolvedValue(['FiraCode NERD Font Mono'])
+    vi.mocked(listSystemFonts).mockResolvedValue([null, ['FiraCode NERD Font Mono']])
 
     const result = await detectNerdFonts()
 
@@ -41,7 +44,15 @@ describe('detectNerdFonts()', () => {
   })
 
   it('should return false when no fonts are available', async () => {
-    vi.mocked(listSystemFonts).mockResolvedValue([])
+    vi.mocked(listSystemFonts).mockResolvedValue([null, []])
+
+    const result = await detectNerdFonts()
+
+    expect(result).toBeFalsy()
+  })
+
+  it('should return false when font listing fails', async () => {
+    vi.mocked(listSystemFonts).mockResolvedValue([new Error('command failed'), null])
 
     const result = await detectNerdFonts()
 

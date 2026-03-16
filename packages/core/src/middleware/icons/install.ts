@@ -259,11 +259,17 @@ async function installWithConfirmation({
 /**
  * Detect system fonts and match them to available Nerd Font equivalents.
  *
+ * Returns an empty array when font listing fails.
+ *
  * @private
  * @returns An array of matched Nerd Font release names.
  */
 async function detectMatchingFonts(): Promise<readonly string[]> {
-  const systemFonts = await listSystemFonts()
+  const [error, systemFonts] = await listSystemFonts()
+
+  if (error) {
+    return []
+  }
 
   const lowerFonts = systemFonts.map((f) => f.toLowerCase())
 

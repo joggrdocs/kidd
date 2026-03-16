@@ -17,12 +17,17 @@ import { listSystemFonts } from './list-system-fonts.js'
  * Detect whether Nerd Fonts are installed on the system.
  *
  * Uses platform-native commands to query installed font families and
- * checks for any family name containing "Nerd".
+ * checks for any family name containing "Nerd". Returns `false` when
+ * font listing fails.
  *
  * @returns A promise that resolves to true when at least one Nerd Font is found.
  */
 export async function detectNerdFonts(): Promise<boolean> {
-  const fonts = await listSystemFonts()
+  const [error, fonts] = await listSystemFonts()
+
+  if (error) {
+    return false
+  }
 
   return fonts.some((font) => /nerd/i.test(font))
 }

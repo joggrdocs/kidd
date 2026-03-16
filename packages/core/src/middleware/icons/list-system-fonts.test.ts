@@ -53,9 +53,10 @@ describe('listSystemFonts()', () => {
         }
       )
 
-      const result = await listSystemFonts()
+      const [error, fonts] = await listSystemFonts()
 
-      expect(result).toEqual(['Arial', 'JetBrainsMono Nerd Font'])
+      expect(error).toBeNull()
+      expect(fonts).toEqual(['Arial', 'JetBrainsMono Nerd Font'])
     })
 
     it('should invoke system_profiler SPFontsDataType', async () => {
@@ -68,7 +69,7 @@ describe('listSystemFonts()', () => {
       )
     })
 
-    it('should return empty array when system_profiler fails', async () => {
+    it('should return error result when system_profiler fails', async () => {
       vi.mocked(exec).mockImplementation(
         (_cmd: string, _opts: unknown, cb?: (...args: readonly unknown[]) => void) => {
           if (typeof cb === 'function') {
@@ -78,9 +79,10 @@ describe('listSystemFonts()', () => {
         }
       )
 
-      const result = await listSystemFonts()
+      const [error, fonts] = await listSystemFonts()
 
-      expect(result).toEqual([])
+      expect(error).toBeInstanceOf(Error)
+      expect(fonts).toBeNull()
     })
 
     it('should ignore non-Family lines from system_profiler', async () => {
@@ -101,9 +103,10 @@ describe('listSystemFonts()', () => {
         }
       )
 
-      const result = await listSystemFonts()
+      const [error, fonts] = await listSystemFonts()
 
-      expect(result).toEqual(['Arial'])
+      expect(error).toBeNull()
+      expect(fonts).toEqual(['Arial'])
     })
   })
 
@@ -125,9 +128,10 @@ describe('listSystemFonts()', () => {
         }
       )
 
-      const result = await listSystemFonts()
+      const [error, fonts] = await listSystemFonts()
 
-      expect(result).toEqual(['Arial', 'Helvetica', 'JetBrainsMono Nerd Font'])
+      expect(error).toBeNull()
+      expect(fonts).toEqual(['Arial', 'Helvetica', 'JetBrainsMono Nerd Font'])
     })
 
     it('should invoke fc-list : family', async () => {
@@ -140,7 +144,7 @@ describe('listSystemFonts()', () => {
       )
     })
 
-    it('should return empty array when fc-list fails', async () => {
+    it('should return error result when fc-list fails', async () => {
       vi.mocked(exec).mockImplementation(
         (_cmd: string, _opts: unknown, cb?: (...args: readonly unknown[]) => void) => {
           if (typeof cb === 'function') {
@@ -150,9 +154,10 @@ describe('listSystemFonts()', () => {
         }
       )
 
-      const result = await listSystemFonts()
+      const [error, fonts] = await listSystemFonts()
 
-      expect(result).toEqual([])
+      expect(error).toBeInstanceOf(Error)
+      expect(fonts).toBeNull()
     })
   })
 
@@ -174,9 +179,10 @@ describe('listSystemFonts()', () => {
         }
       )
 
-      const result = await listSystemFonts()
+      const [error, fonts] = await listSystemFonts()
 
-      expect(result).toEqual(['Arial', 'Courier New', 'Hack Nerd Font'])
+      expect(error).toBeNull()
+      expect(fonts).toEqual(['Arial', 'Courier New', 'Hack Nerd Font'])
     })
 
     it('should handle Windows CRLF line endings', async () => {
@@ -192,12 +198,13 @@ describe('listSystemFonts()', () => {
         }
       )
 
-      const result = await listSystemFonts()
+      const [error, fonts] = await listSystemFonts()
 
-      expect(result).toEqual(['Arial', 'Courier New', 'Hack Nerd Font'])
+      expect(error).toBeNull()
+      expect(fonts).toEqual(['Arial', 'Courier New', 'Hack Nerd Font'])
     })
 
-    it('should return empty array when powershell fails', async () => {
+    it('should return error result when powershell fails', async () => {
       vi.mocked(exec).mockImplementation(
         (_cmd: string, _opts: unknown, cb?: (...args: readonly unknown[]) => void) => {
           if (typeof cb === 'function') {
@@ -207,9 +214,10 @@ describe('listSystemFonts()', () => {
         }
       )
 
-      const result = await listSystemFonts()
+      const [error, fonts] = await listSystemFonts()
 
-      expect(result).toEqual([])
+      expect(error).toBeInstanceOf(Error)
+      expect(fonts).toBeNull()
     })
 
     it('should invoke powershell with -NoProfile', async () => {
@@ -224,12 +232,13 @@ describe('listSystemFonts()', () => {
   })
 
   describe('unsupported platform', () => {
-    it('should return empty array for unknown platforms', async () => {
+    it('should return success with empty array for unknown platforms', async () => {
       Object.defineProperty(process, 'platform', { value: 'freebsd' })
 
-      const result = await listSystemFonts()
+      const [error, fonts] = await listSystemFonts()
 
-      expect(result).toEqual([])
+      expect(error).toBeNull()
+      expect(fonts).toEqual([])
     })
   })
 })

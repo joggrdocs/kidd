@@ -11,7 +11,8 @@
 import { exec } from 'node:child_process'
 import { promisify } from 'node:util'
 
-import { attemptAsync } from '@kidd-cli/utils/fp'
+import type { AsyncResult } from '@kidd-cli/utils/fp'
+import { attemptAsync, err, ok } from '@kidd-cli/utils/fp'
 import { match } from 'ts-pattern'
 
 // ---------------------------------------------------------------------------
@@ -52,12 +53,12 @@ const DARWIN_FAMILY_RE = /^\s+Family:\s*(.+)/
  * - **Linux**: Parses `fc-list : family` output.
  * - **Windows**: Queries fonts via PowerShell and .NET `InstalledFontCollection`.
  *
- * Returns an empty array on unsupported platforms or when the system
- * command fails.
+ * Returns an empty array on unsupported platforms. Propagates errors from
+ * the underlying shell command as a Result tuple.
  *
- * @returns A promise resolving to an array of font family names.
+ * @returns A Result tuple with font family names on success, or an Error on failure.
  */
-export async function listSystemFonts(): Promise<readonly string[]> {
+export async function listSystemFonts(): AsyncResult<readonly string[]> {
   return match(process.platform)
     .with('darwin', () =>
       runFontCommand({
@@ -77,7 +78,7 @@ export async function listSystemFonts(): Promise<readonly string[]> {
         parseLine: trimLine,
       })
     )
-    .otherwise(() => Promise.resolve([]))
+    .otherwise(() => Promise.resolve(ok([] as readonly string[])))
 }
 
 // ---------------------------------------------------------------------------
@@ -102,14 +103,14 @@ interface RunFontCommandParams {
  * Execute a shell command and parse its stdout into font family names.
  *
  * Runs the given command, splits stdout by newlines, applies a per-line
- * parser, and filters out empty results. Returns an empty array when the
- * command fails.
+ * parser, and filters out empty results. Propagates errors from the
+ * shell command as a Result tuple.
  *
  * @private
  * @param params - The command to run and a line-parsing function.
- * @returns Parsed font family names.
+ * @returns A Result tuple with parsed font family names on success, or an Error on failure.
  */
-async function runFontCommand(params: RunFontCommandParams): Promise<readonly string[]> {
+async function runFontCommand(params: RunFontCommandParams): AsyncResult<readonly string[]> {
   const [error, result] = await attemptAsync(() =>
     execAsync(params.command, {
       timeout: FONT_CMD_TIMEOUT_MS,
@@ -117,14 +118,20 @@ async function runFontCommand(params: RunFontCommandParams): Promise<readonly st
     })
   )
 
-  if (error || result === null) {
-    return []
+  if (error) {
+    return err(error)
   }
 
-  return result.stdout
+  if (result === null) {
+    return err(new Error(`Font command returned no output: ${params.command}`))
+  }
+
+  const fonts = result.stdout
     .split('\n')
     .map(params.parseLine)
     .filter((name) => name.length > 0)
+
+  return ok(fonts)
 }
 
 /**

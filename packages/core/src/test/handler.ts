@@ -1,3 +1,5 @@
+import { attemptAsync } from 'es-toolkit'
+
 import type { AnyRecord, Command } from '@/types.js'
 
 import { createTestContext } from './context.js'
@@ -22,15 +24,12 @@ export async function runHandler<
   overrides?: TestContextOptions<TArgs, TConfig>
 ): Promise<HandlerResult<TArgs, TConfig>> {
   const { ctx, stdout } = createTestContext<TArgs, TConfig>(overrides)
-  const captured: { error: Error | undefined } = { error: undefined }
 
-  if (cmd.handler) {
-    try {
-      await cmd.handler(ctx)
-    } catch (error: unknown) {
-      captured.error = normalizeError(error)
-    }
+  if (!cmd.handler) {
+    return { ctx, error: undefined, stdout }
   }
 
-  return { ctx, error: captured.error, stdout }
+  const [error] = await attemptAsync(async () => cmd.handler!(ctx))
+
+  return { ctx, error: error ? normalizeError(error) : undefined, stdout }
 }

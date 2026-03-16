@@ -19,11 +19,11 @@ import { promisify } from 'node:util'
 
 import type { AsyncResult, Result } from '@kidd-cli/utils/fp'
 import { attemptAsync, ok } from '@kidd-cli/utils/fp'
-import { getFonts } from 'font-list'
 import { match } from 'ts-pattern'
 import { z } from 'zod'
 
 import type { IconsCtx } from './context.js'
+import { listSystemFonts } from './list-system-fonts.js'
 import type { IconsError } from './types.js'
 
 // ---------------------------------------------------------------------------
@@ -259,13 +259,15 @@ async function installWithConfirmation({
 /**
  * Detect system fonts and match them to available Nerd Font equivalents.
  *
+ * Returns an empty array when font listing fails.
+ *
  * @private
  * @returns An array of matched Nerd Font release names.
  */
 async function detectMatchingFonts(): Promise<readonly string[]> {
-  const [error, systemFonts] = await attemptAsync(() => getFonts({ disableQuoting: true }))
+  const [error, systemFonts] = await listSystemFonts()
 
-  if (error || systemFonts === null) {
+  if (error) {
     return []
   }
 

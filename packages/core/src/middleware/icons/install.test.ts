@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-vi.mock(import('font-list'), () => ({
-  getFonts: vi.fn(async () => []),
+vi.mock(import('./list-system-fonts.js'), () => ({
+  listSystemFonts: vi.fn(async () => [null, []]),
 }))
 
 vi.mock(import('node:child_process'), () => ({
@@ -20,9 +20,8 @@ vi.mock(import('node:fs/promises'), () => ({
 
 import { exec } from 'node:child_process'
 
-import { getFonts } from 'font-list'
-
 import { installNerdFont } from './install.js'
+import { listSystemFonts } from './list-system-fonts.js'
 
 function createMockCtx() {
   return {
@@ -141,7 +140,7 @@ describe('installNerdFont()', () => {
   describe('without font option (selection flow)', () => {
     it('should detect matching fonts and show selection prompt', async () => {
       const ctx = createMockCtx()
-      vi.mocked(getFonts).mockResolvedValue(['JetBrains Mono', 'Arial'])
+      vi.mocked(listSystemFonts).mockResolvedValue([null, ['JetBrains Mono', 'Arial']])
       vi.mocked(ctx.prompts.select).mockResolvedValue(undefined)
 
       await installNerdFont({ ctx })
@@ -152,7 +151,7 @@ describe('installNerdFont()', () => {
 
     it('should return ok(false) when user cancels font selection', async () => {
       const ctx = createMockCtx()
-      vi.mocked(getFonts).mockResolvedValue([])
+      vi.mocked(listSystemFonts).mockResolvedValue([null, []])
       vi.mocked(ctx.prompts.select).mockResolvedValue(undefined)
 
       const [error, value] = await installNerdFont({ ctx })
@@ -163,7 +162,7 @@ describe('installNerdFont()', () => {
 
     it('should return ok(false) when user cancels action selection', async () => {
       const ctx = createMockCtx()
-      vi.mocked(getFonts).mockResolvedValue([])
+      vi.mocked(listSystemFonts).mockResolvedValue([null, []])
       vi.mocked(ctx.prompts.select)
         .mockResolvedValueOnce('JetBrainsMono')
         .mockResolvedValueOnce(undefined)
@@ -178,7 +177,7 @@ describe('installNerdFont()', () => {
   describe('selection flow with auto install', () => {
     it('should show spinner and attempt installation when auto is selected', async () => {
       const ctx = createMockCtx()
-      vi.mocked(getFonts).mockResolvedValue([])
+      vi.mocked(listSystemFonts).mockResolvedValue([null, []])
       vi.mocked(ctx.prompts.select)
         .mockResolvedValueOnce('JetBrainsMono')
         .mockResolvedValueOnce('auto')
@@ -194,7 +193,7 @@ describe('installNerdFont()', () => {
   describe('selection flow with show commands', () => {
     it('should display install commands when commands is selected', async () => {
       const ctx = createMockCtx()
-      vi.mocked(getFonts).mockResolvedValue([])
+      vi.mocked(listSystemFonts).mockResolvedValue([null, []])
       vi.mocked(ctx.prompts.select)
         .mockResolvedValueOnce('JetBrainsMono')
         .mockResolvedValueOnce('commands')

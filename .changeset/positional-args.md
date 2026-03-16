@@ -1,6 +1,6 @@
 ---
-'@kidd-cli/core': major
-'@kidd-cli/cli': patch
+'@kidd-cli/core': minor
+'@kidd-cli/cli': minor
 ---
 
 Replace `args` with separate `options` and `positionals` fields on command definitions.

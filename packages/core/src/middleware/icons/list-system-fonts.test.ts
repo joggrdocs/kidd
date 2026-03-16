@@ -10,7 +10,7 @@ vi.mock(import('node:child_process'), () => ({
 
 import { exec } from 'node:child_process'
 
-import { listSystemFonts } from './list-fonts.js'
+import { listSystemFonts } from './list-system-fonts.js'
 
 describe('listSystemFonts()', () => {
   const originalPlatform = process.platform

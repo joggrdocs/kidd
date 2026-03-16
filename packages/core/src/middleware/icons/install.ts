@@ -23,7 +23,7 @@ import { match } from 'ts-pattern'
 import { z } from 'zod'
 
 import type { IconsCtx } from './context.js'
-import { listSystemFonts } from './list-fonts.js'
+import { listSystemFonts } from './list-system-fonts.js'
 import type { IconsError } from './types.js'
 
 // ---------------------------------------------------------------------------

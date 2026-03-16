@@ -1,11 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-vi.mock(import('./list-fonts.js'), () => ({
+vi.mock(import('./list-system-fonts.js'), () => ({
   listSystemFonts: vi.fn(async () => []),
 }))
 
 import { detectNerdFonts } from './detect.js'
-import { listSystemFonts } from './list-fonts.js'
+import { listSystemFonts } from './list-system-fonts.js'
 
 describe('detectNerdFonts()', () => {
   beforeEach(() => {
@@ -40,7 +40,7 @@ describe('detectNerdFonts()', () => {
     expect(result).toBeTruthy()
   })
 
-  it('should return false when listSystemFonts returns empty', async () => {
+  it('should return false when no fonts are available', async () => {
     vi.mocked(listSystemFonts).mockResolvedValue([])
 
     const result = await detectNerdFonts()

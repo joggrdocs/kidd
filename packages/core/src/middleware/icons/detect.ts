@@ -7,7 +7,7 @@
  * @module
  */
 
-import { listSystemFonts } from './list-fonts.js'
+import { listSystemFonts } from './list-system-fonts.js'
 
 // ---------------------------------------------------------------------------
 // Public API

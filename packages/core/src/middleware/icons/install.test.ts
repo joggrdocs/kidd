@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-vi.mock(import('./list-fonts.js'), () => ({
+vi.mock(import('./list-system-fonts.js'), () => ({
   listSystemFonts: vi.fn(async () => []),
 }))
 
@@ -21,7 +21,7 @@ vi.mock(import('node:fs/promises'), () => ({
 import { exec } from 'node:child_process'
 
 import { installNerdFont } from './install.js'
-import { listSystemFonts } from './list-fonts.js'
+import { listSystemFonts } from './list-system-fonts.js'
 
 function createMockCtx() {
   return {

@@ -75,7 +75,7 @@ export async function listSystemFonts(): Promise<readonly string[]> {
  *
  * @private
  */
-interface FontCommandParams {
+interface RunFontCommandParams {
   readonly command: string
   readonly parseLine: (line: string) => string
 }
@@ -95,7 +95,7 @@ interface FontCommandParams {
  * @param params - The command to run and a line-parsing function.
  * @returns Parsed font family names.
  */
-async function runFontCommand(params: FontCommandParams): Promise<readonly string[]> {
+async function runFontCommand(params: RunFontCommandParams): Promise<readonly string[]> {
   const [error, result] = await attemptAsync(() => execAsync(params.command))
 
   if (error || result === null) {

@@ -56,6 +56,10 @@
     "./icons": {
       "types": "./dist/middleware/icons.d.ts",
       "default": "./dist/middleware/icons.js"
+    },
+    "./test": {
+      "types": "./dist/test/index.d.ts",
+      "default": "./dist/test/index.js"
     }
   },
   "scripts": {

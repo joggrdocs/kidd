@@ -16,15 +16,17 @@ import type { Context, Format, Meta, Prompts, Spinner, Store, StoreMap } from '.
  * Options for creating a {@link Context} instance via {@link createContext}.
  *
  * Carries the parsed args, validated config, and CLI metadata needed to
- * assemble a fully-wired context. An optional `logger` override allows
- * callers to inject a custom {@link CliLogger}; when omitted a default
- * @clack/prompts-backed instance is used.
+ * assemble a fully-wired context. Optional overrides allow callers to inject
+ * custom {@link CliLogger}, {@link Prompts}, and {@link Spinner} implementations;
+ * when omitted, default @clack/prompts-backed instances are used.
  */
 export interface CreateContextOptions<TArgs extends AnyRecord, TConfig extends AnyRecord> {
   readonly args: TArgs
   readonly config: TConfig
   readonly meta: { readonly name: string; readonly version: string; readonly command: string[] }
   readonly logger?: CliLogger
+  readonly prompts?: Prompts
+  readonly spinner?: Spinner
 }
 
 /**
@@ -41,10 +43,10 @@ export function createContext<TArgs extends AnyRecord, TConfig extends AnyRecord
   options: CreateContextOptions<TArgs, TConfig>
 ): Context<TArgs, TConfig> {
   const ctxLogger: CliLogger = options.logger ?? createCliLogger()
-  const ctxSpinner: Spinner = clack.spinner()
+  const ctxSpinner: Spinner = options.spinner ?? clack.spinner()
   const ctxFormat: Format = createContextFormat()
   const ctxStore: Store<Merge<KiddStore, StoreMap>> = createMemoryStore()
-  const ctxPrompts: Prompts = createContextPrompts()
+  const ctxPrompts: Prompts = options.prompts ?? createContextPrompts()
   const ctxMeta: Meta = {
     command: options.meta.command,
     name: options.meta.name,

@@ -2,7 +2,7 @@ import { command } from '@kidd-cli/core'
 import { match } from 'ts-pattern'
 import { z } from 'zod'
 
-const args = z.object({
+const options = z.object({
   json: z.boolean().default(false).describe('Output as JSON'),
   status: z.enum(['all', 'active', 'done']).default('all').describe('Filter tasks by status'),
 })
@@ -16,7 +16,7 @@ const TASKS = [
 ] as const
 
 export default command({
-  args,
+  options,
   description: 'List all tasks',
   handler: (ctx) => {
     const filtered = TASKS.filter(

@@ -10,12 +10,12 @@ import { z } from 'zod'
 
 import { extractConfig } from '../lib/config-helpers.js'
 
-const args = z.object({
+const options = z.object({
   compile: z.boolean().optional().describe('Compile to standalone binaries after bundling'),
   targets: z.array(z.string()).optional().describe('Compile targets (implies --compile)'),
 })
 
-type BuildArgs = z.infer<typeof args>
+type BuildArgs = z.infer<typeof options>
 
 /**
  * Build a kidd CLI project for production using tsdown.
@@ -26,7 +26,7 @@ type BuildArgs = z.infer<typeof args>
  * to standalone binaries via Bun.
  */
 const buildCommand: Command = command({
-  args,
+  options,
   description: 'Build a kidd CLI project for production',
   handler: async (ctx: Context<BuildArgs>) => {
     const cwd = process.cwd()

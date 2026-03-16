@@ -1,6 +1,7 @@
 import { runTestCli, setArgv, setupTestLifecycle } from '@test/core-utils.js'
 import { describe, expect, it, vi } from 'vitest'
 import yargs from 'yargs'
+import { z } from 'zod'
 
 import { command } from '@/command.js'
 import type { CommandMap } from '@/types.js'
@@ -262,7 +263,7 @@ describe('positional argument support', () => {
     const commands: CommandMap = {
       create: command({
         description: 'Create a workspace',
-        positionals: [{ name: 'workspace', required: true }],
+        positionals: z.object({ workspace: z.string() }),
       }),
     }
 
@@ -293,7 +294,7 @@ describe('positional argument support', () => {
     const commands: CommandMap = {
       list: command({
         description: 'List items',
-        positionals: [{ name: 'filter', required: false }],
+        positionals: z.object({ filter: z.string().optional() }),
       }),
     }
 
@@ -323,11 +324,11 @@ describe('positional argument support', () => {
     const commands: CommandMap = {
       copy: command({
         description: 'Copy files',
-        positionals: [
-          { name: 'source', required: true },
-          { name: 'dest', required: true },
-          { name: 'flags', required: false },
-        ],
+        positionals: z.object({
+          source: z.string(),
+          dest: z.string(),
+          flags: z.string().optional(),
+        }),
       }),
     }
 
@@ -388,7 +389,7 @@ describe('positional argument support', () => {
       greet: command({
         description: 'Greet someone',
         handler,
-        positionals: [{ name: 'name', required: true }],
+        positionals: z.object({ name: z.string() }),
       }),
     }
 

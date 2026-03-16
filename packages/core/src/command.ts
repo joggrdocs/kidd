@@ -31,7 +31,7 @@ export function isCommandsConfig(value: unknown): value is CommandsConfig {
 }
 
 /**
- * Define a CLI command with typed args, config, and handler.
+ * Define a CLI command with typed options, positionals, config, and handler.
  *
  * The `const TMiddleware` generic preserves the middleware tuple as a literal type,
  * enabling TypeScript to extract and intersect `Variables` from each middleware
@@ -41,15 +41,16 @@ export function isCommandsConfig(value: unknown): value is CommandsConfig {
  * normalizes it into flat `commands` and `order` fields on the output
  * `Command` object so downstream consumers never need to handle the grouped form.
  *
- * @param def - Command definition including description, args schema, middleware, and handler.
+ * @param def - Command definition including description, options, positionals, middleware, and handler.
  * @returns A resolved Command object for registration in the command map.
  */
 export function command<
-  TArgsDef extends ArgsDef = ArgsDef,
+  TOptionsDef extends ArgsDef = ArgsDef,
+  TPositionalsDef extends ArgsDef = ArgsDef,
   TConfig extends Record<string, unknown> = Record<string, unknown>,
   const TMiddleware extends readonly Middleware<MiddlewareEnv>[] =
     readonly Middleware<MiddlewareEnv>[],
->(def: CommandDef<TArgsDef, TConfig, TMiddleware>): CommandType {
+>(def: CommandDef<TOptionsDef, TPositionalsDef, TConfig, TMiddleware>): CommandType {
   return match(def.commands)
     .when(isCommandsConfig, (cfg) => {
       const { order, commands: innerCommands } = cfg

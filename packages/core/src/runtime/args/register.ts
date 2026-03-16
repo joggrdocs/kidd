@@ -1,42 +1,53 @@
 import type { Argv, Options as YargsOptions, PositionalOptions } from 'yargs'
+import type { z } from 'zod'
 
-import type { Command, PositionalDef, YargsArgDef } from '@/types.js'
+import type { ArgsDef, YargsArgDef } from '@/types.js'
 
-import { isZodSchema, zodSchemaToYargsOptions } from './zod.js'
+import {
+  isZodSchema,
+  resolvePositionalType,
+  zodSchemaToYargsOptions,
+  zodSchemaToYargsPositionals,
+} from './zod.js'
 
 interface RegisterCommandArgsOptions {
   readonly builder: Argv
-  readonly args: Command['args']
-  readonly positionals?: readonly PositionalDef[]
+  readonly options: ArgsDef | undefined
+  readonly positionals: ArgsDef | undefined
 }
 
 /**
- * Register argument definitions on a yargs builder.
+ * Register option and positional definitions on a yargs builder.
  *
- * Accepts either a zod object schema or a record of yargs-native arg definitions
- * and wires them as yargs options on the given builder instance. When positional
- * definitions are provided, they are registered via `builder.positional()`.
+ * Accepts `options` (flags) and `positionals` as either zod object schemas or
+ * records of yargs-native arg definitions. Options are registered via
+ * `builder.option()` and positionals via `builder.positional()`.
  *
- * @param options - Builder instance, argument definitions, and optional positional definitions.
+ * @param params - Builder instance, option definitions, and positional definitions.
  * @returns Nothing; mutates the yargs builder in place.
  */
 export function registerCommandArgs({
   builder,
-  args,
+  options,
   positionals,
 }: RegisterCommandArgsOptions): void {
-  if (positionals && positionals.length > 0) {
-    positionals.map((p) => builder.positional(p.name, positionalDefToOptions(p)))
+  if (positionals) {
+    registerArgsDef({
+      builder,
+      def: positionals,
+      register: (b, key, opt) => b.positional(key, opt),
+      toYargsNative: yargsArgDefToPositional,
+      toZod: zodSchemaToYargsPositionals,
+    })
   }
-
-  if (!args) {
-    return
-  }
-  if (isZodSchema(args)) {
-    const options = zodSchemaToYargsOptions(args)
-    Object.entries(options).map(([key, opt]) => builder.option(key, opt))
-  } else {
-    Object.entries(args).map(([key, def]) => registerSingleArg(builder, key, def))
+  if (options) {
+    registerArgsDef({
+      builder,
+      def: options,
+      register: (b, key, opt) => b.option(key, opt),
+      toYargsNative: yargsArgDefToOption,
+      toZod: zodSchemaToYargsOptions,
+    })
   }
 }
 
@@ -44,20 +55,28 @@ export function registerCommandArgs({
 // Private
 // ---------------------------------------------------------------------------
 
+interface RegisterArgsDefOptions<TOption> {
+  readonly builder: Argv
+  readonly def: ArgsDef
+  readonly register: (builder: Argv, key: string, opt: TOption) => Argv
+  readonly toZod: (schema: z.ZodObject<z.ZodRawShape>) => Record<string, TOption>
+  readonly toYargsNative: (def: YargsArgDef) => TOption
+}
+
 /**
- * Register a single yargs arg definition as either a positional or an option.
+ * Register an `ArgsDef` (Zod or yargs-native) on a yargs builder.
  *
  * @private
- * @param builder - The yargs Argv instance.
- * @param key - The argument name.
- * @param def - The yargs arg definition.
+ * @param params - Registration parameters including the builder, definition, and converters.
  */
-function registerSingleArg(builder: Argv, key: string, def: YargsArgDef): void {
-  if (def.positional) {
-    builder.positional(key, yargsArgDefToPositional(def))
-    return
+function registerArgsDef<TOption>(params: RegisterArgsDefOptions<TOption>): void {
+  const { builder, def, register, toZod, toYargsNative } = params
+  if (isZodSchema(def)) {
+    const opts = toZod(def)
+    Object.entries(opts).map(([key, opt]) => register(builder, key, opt))
+  } else {
+    Object.entries(def).map(([key, argDef]) => register(builder, key, toYargsNative(argDef)))
   }
-  builder.option(key, yargsArgDefToOption(def))
 }
 
 /**
@@ -79,10 +98,10 @@ function yargsArgDefToOption(def: YargsArgDef): YargsOptions {
 }
 
 /**
- * Convert a {@link YargsArgDef} with `positional: true` into yargs positional options.
+ * Convert a yargs-native arg definition into a yargs positional option object.
  *
  * @private
- * @param def - The yargs arg definition marked as positional.
+ * @param def - The yargs arg definition for a positional.
  * @returns A yargs positional option object.
  */
 function yargsArgDefToPositional(def: YargsArgDef): PositionalOptions {
@@ -93,38 +112,4 @@ function yargsArgDefToPositional(def: YargsArgDef): PositionalOptions {
     describe: def.description,
     type: resolvePositionalType(def.type),
   }
-}
-
-/**
- * Convert a {@link PositionalDef} into yargs positional options.
- *
- * @private
- * @param def - The positional definition.
- * @returns A yargs positional option object.
- */
-function positionalDefToOptions(def: PositionalDef): PositionalOptions {
-  return {
-    choices: def.choices as string[],
-    default: def.default,
-    demandOption: def.required ?? false,
-    describe: def.description,
-    type: def.type ?? 'string',
-  }
-}
-
-/**
- * Map a yargs arg type to a valid positional type.
- *
- * Positionals only support `'string'` and `'number'`. The `'array'` and
- * `'boolean'` types fall back to `'string'`.
- *
- * @private
- * @param type - The yargs arg type.
- * @returns A positional-compatible type.
- */
-function resolvePositionalType(type: YargsArgDef['type']): 'string' | 'number' {
-  if (type === 'number') {
-    return 'number'
-  }
-  return 'string'
 }

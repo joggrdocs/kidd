@@ -13,7 +13,7 @@ import type { RenderedFile } from '../lib/types.js'
 import { isKebabCase } from '../lib/validate.js'
 import { writeFiles } from '../lib/write.js'
 
-const args = z.object({
+const options = z.object({
   config: z.boolean().describe('Include config schema setup').optional(),
   description: z.string().describe('Project description').optional(),
   example: z.boolean().describe('Include example command').optional(),
@@ -21,10 +21,10 @@ const args = z.object({
   pm: z.enum(['pnpm', 'yarn', 'npm']).describe('Package manager').optional(),
 })
 
-type InitArgs = z.infer<typeof args>
+type InitArgs = z.infer<typeof options>
 
 const initCommand: Command = command({
-  args,
+  options,
   description: 'Scaffold a new kidd CLI project',
   handler: async (ctx: Context<InitArgs>) => {
     const projectName = await resolveProjectName(ctx)
@@ -206,12 +206,14 @@ interface SelectFilesOptions {
  * @private
  */
 function selectFiles(
-  options: SelectFilesOptions,
+  selectionOptions: SelectFilesOptions,
   rendered: readonly RenderedFile[]
 ): readonly RenderedFile[] {
   return rendered
-    .filter((file) => options.includeExample || !file.relativePath.includes('commands/hello.ts'))
-    .filter((file) => options.includeConfig || !file.relativePath.includes('config.ts'))
+    .filter(
+      (file) => selectionOptions.includeExample || !file.relativePath.includes('commands/hello.ts')
+    )
+    .filter((file) => selectionOptions.includeConfig || !file.relativePath.includes('config.ts'))
 }
 
 const DEFAULT_VERSION = '0.0.0'

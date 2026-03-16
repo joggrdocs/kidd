@@ -32,10 +32,11 @@ const mockedCreateRunner = vi.mocked(createRunner)
 
 function makeExecution(overrides: Partial<ResolvedExecution> = {}): ResolvedExecution {
   return {
-    args: undefined,
     commandPath: ['test'],
     handler: vi.fn(),
     middleware: [],
+    options: undefined,
+    positionals: undefined,
     rawArgs: {},
     ...overrides,
   }

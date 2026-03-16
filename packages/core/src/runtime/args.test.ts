@@ -42,10 +42,10 @@ describe('args with zod schema', () => {
     const handler = vi.fn()
     const commands: CommandMap = {
       greet: command({
-        args: z.object({
+        description: 'Greet someone',
+        options: z.object({
           name: z.string(),
         }),
-        description: 'Greet someone',
         handler,
       }),
     }
@@ -66,11 +66,11 @@ describe('args with zod schema', () => {
     const handler = vi.fn()
     const commands: CommandMap = {
       greet: command({
-        args: z.object({
+        description: 'Greet someone',
+        options: z.object({
           loud: z.boolean().optional(),
           name: z.string(),
         }),
-        description: 'Greet someone',
         handler,
       }),
     }
@@ -91,11 +91,11 @@ describe('args with zod schema', () => {
     const handler = vi.fn()
     const commands: CommandMap = {
       greet: command({
-        args: z.object({
+        description: 'Greet someone',
+        options: z.object({
           greeting: z.string().default('hello'),
           name: z.string(),
         }),
-        description: 'Greet someone',
         handler,
       }),
     }
@@ -116,10 +116,10 @@ describe('args with zod schema', () => {
     const handler = vi.fn()
     const commands: CommandMap = {
       count: command({
-        args: z.object({
+        description: 'Count things',
+        options: z.object({
           count: z.number(),
         }),
-        description: 'Count things',
         handler,
       }),
     }
@@ -140,10 +140,10 @@ describe('args with zod schema', () => {
     const handler = vi.fn()
     const commands: CommandMap = {
       run: command({
-        args: z.object({
+        description: 'Run with verbose',
+        options: z.object({
           verbose: z.boolean(),
         }),
-        description: 'Run with verbose',
         handler,
       }),
     }
@@ -166,10 +166,10 @@ describe('args with yargs native format', () => {
     const handler = vi.fn()
     const commands: CommandMap = {
       greet: command({
-        args: {
+        description: 'Greet someone',
+        options: {
           name: { description: 'Name to greet', required: true, type: 'string' as const },
         },
-        description: 'Greet someone',
         handler,
       }),
     }
@@ -190,10 +190,10 @@ describe('args with yargs native format', () => {
     const handler = vi.fn()
     const commands: CommandMap = {
       run: command({
-        args: {
+        description: 'Run something',
+        options: {
           verbose: { description: 'Verbose output', type: 'boolean' as const },
         },
-        description: 'Run something',
         handler,
       }),
     }

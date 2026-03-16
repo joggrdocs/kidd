@@ -1,27 +1,34 @@
 import { err, ok } from '@kidd-cli/utils/fp'
 import type { Result } from '@kidd-cli/utils/fp'
 import { formatZodIssues } from '@kidd-cli/utils/validate'
+import type { z } from 'zod'
 
-import type { Command } from '@/types.js'
+import type { ArgsDef } from '@/types.js'
 
 import type { ArgsParser } from '../types.js'
 import { isZodSchema } from './zod.js'
 
+interface CreateArgsParserOptions {
+  readonly options: ArgsDef | undefined
+  readonly positionals: ArgsDef | undefined
+}
+
 /**
  * Create an args parser that cleans and validates raw parsed arguments.
  *
- * Captures the argument definition in a closure and returns an ArgsParser
- * whose `parse` method strips yargs-internal keys and validates against
- * a zod schema when one is defined.
+ * Captures both option and positional definitions in a closure and returns an
+ * ArgsParser whose `parse` method strips yargs-internal keys and validates
+ * against a merged zod schema when one is defined.
  *
- * @param argsDef - The argument definition from the command.
+ * @param defs - The option and positional definitions from the command.
  * @returns An ArgsParser with a parse method.
  */
-export function createArgsParser(argsDef: Command['args']): ArgsParser {
+export function createArgsParser(defs: CreateArgsParserOptions): ArgsParser {
+  const mergedSchema = buildMergedSchema(defs.options, defs.positionals)
   return {
     parse(rawArgs: Record<string, unknown>): Result<Record<string, unknown>, Error> {
       const cleaned = cleanParsedArgs(rawArgs)
-      return validateArgs(argsDef, cleaned)
+      return validateArgs(mergedSchema, cleaned)
     },
   }
 }
@@ -29,6 +36,36 @@ export function createArgsParser(argsDef: Command['args']): ArgsParser {
 // ---------------------------------------------------------------------------
 // Private
 // ---------------------------------------------------------------------------
+
+/**
+ * Build a merged Zod schema from options and positionals definitions.
+ *
+ * When both are Zod schemas, merges them into a single schema for validation.
+ * When only one is a Zod schema, returns that schema. When neither is Zod,
+ * returns undefined (no validation).
+ *
+ * @private
+ * @param options - Option definitions (flags).
+ * @param positionals - Positional argument definitions.
+ * @returns A merged Zod schema or undefined.
+ */
+function buildMergedSchema(
+  options: ArgsDef | undefined,
+  positionals: ArgsDef | undefined
+): z.ZodObject<z.ZodRawShape> | undefined {
+  const optionsIsZod = options && isZodSchema(options)
+  const positionalsIsZod = positionals && isZodSchema(positionals)
+  if (optionsIsZod && positionalsIsZod) {
+    return options.merge(positionals)
+  }
+  if (optionsIsZod) {
+    return options
+  }
+  if (positionalsIsZod) {
+    return positionals
+  }
+  return undefined
+}
 
 /**
  * Strip yargs-internal keys (`_`, `$0`) and camelCase-duplicated hyphenated keys
@@ -47,23 +84,23 @@ function cleanParsedArgs(argv: Record<string, unknown>): Record<string, unknown>
 /**
  * Validate parsed arguments against a zod schema when one is defined.
  *
- * If the command uses yargs-native args (no zod schema), the parsed args are
- * returned as-is. When a zod schema is present, validation is performed and
- * a Result error is returned on failure.
+ * When no zod schema is present, the parsed args are returned as-is.
+ * When a zod schema is present, validation is performed and a Result error
+ * is returned on failure.
  *
  * @private
- * @param argsDef - The argument definition from the command.
+ * @param schema - The merged zod schema or undefined.
  * @param parsedArgs - The cleaned parsed arguments.
  * @returns A Result containing validated arguments (zod-parsed when applicable).
  */
 function validateArgs(
-  argsDef: Command['args'],
+  schema: z.ZodObject<z.ZodRawShape> | undefined,
   parsedArgs: Record<string, unknown>
 ): Result<Record<string, unknown>, Error> {
-  if (!argsDef || !isZodSchema(argsDef)) {
+  if (!schema) {
     return ok(parsedArgs)
   }
-  const result = argsDef.safeParse(parsedArgs)
+  const result = schema.safeParse(parsedArgs)
   if (!result.success) {
     return err(new Error(`Invalid arguments:\n  ${formatZodIssues(result.error.issues).message}`))
   }

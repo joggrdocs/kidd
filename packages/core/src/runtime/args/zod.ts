@@ -62,8 +62,8 @@ export function zodSchemaToPositionalMeta(
 /**
  * Convert a zod object schema into a record of yargs positional options.
  *
- * Each field in the schema becomes a positional argument. Positionals only
- * support `string` and `number` types — other types fall back to `string`.
+ * Each field in the schema becomes a positional argument. Positionals support
+ * `string`, `number`, and `boolean` types — other types fall back to `string`.
  *
  * @param schema - The zod object schema for positionals.
  * @returns A record mapping field names to yargs positional option definitions.

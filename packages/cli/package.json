@@ -1,6 +1,6 @@
 {
   "name": "@kidd-cli/cli",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "description": "DX companion CLI for the kidd framework",
   "keywords": [
     "cli",

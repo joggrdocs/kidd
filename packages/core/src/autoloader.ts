@@ -221,8 +221,8 @@ function isCommandDir(entry: Dirent): boolean {
  * @returns Deduplicated pairs with only the first occurrence of each name.
  */
 function deduplicateCommandPairs(
-  pairs: ReadonlyArray<readonly [string, Command]>
-): ReadonlyArray<readonly [string, Command]> {
+  pairs: readonly (readonly [string, Command])[]
+): readonly (readonly [string, Command])[] {
   const seen = new Set<string>()
 
   return pairs.filter(([name]) => {

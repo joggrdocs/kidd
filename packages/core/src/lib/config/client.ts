@@ -18,7 +18,7 @@ import type {
 } from './types.js'
 
 /**
- * c12 resolution result containing the loaded config and resolved file path.
+ * C12 resolution result containing the loaded config and resolved file path.
  */
 interface C12Result {
   readonly config: unknown

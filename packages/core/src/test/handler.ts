@@ -26,7 +26,7 @@ export async function runHandler<
     return { ctx, error: undefined, stdout }
   }
 
-  const handler = cmd.handler
+  const { handler } = cmd
   const [error] = await attemptAsync(async () => handler(ctx))
 
   return {

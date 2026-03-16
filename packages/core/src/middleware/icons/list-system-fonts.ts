@@ -151,7 +151,7 @@ function parseDarwinLine(line: string): string {
     return ''
   }
 
-  const family = m[1]
+  const [, family] = m
 
   if (family === undefined) {
     return ''

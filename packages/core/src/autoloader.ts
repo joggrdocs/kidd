@@ -105,9 +105,7 @@ async function buildCommandMapFromEntries(dir: string, entries: Dirent[]): Promi
   const allResults = [...fileResults, ...dirResults]
   const validPairs = allResults.filter((pair): pair is [string, Command] => pair !== undefined)
 
-  warnDuplicateNames(validPairs)
-
-  return Object.fromEntries(validPairs)
+  return Object.fromEntries(deduplicateCommandPairs(validPairs))
 }
 
 /**
@@ -212,24 +210,29 @@ function isCommandDir(entry: Dirent): boolean {
 }
 
 /**
- * Warn when multiple commands resolve to the same name.
+ * Deduplicate command pairs by name, keeping the first occurrence.
  *
- * `Object.fromEntries` silently keeps the last entry for duplicate keys.
- * This helper detects collisions so the user gets a visible diagnostic
- * instead of a silent override.
+ * When multiple commands resolve to the same name (e.g. via explicit `name`
+ * overrides), this ensures a deterministic first-wins policy and emits a
+ * warning for every collision so the user can fix the conflict.
  *
  * @private
  * @param pairs - The resolved [name, Command] tuples.
+ * @returns Deduplicated pairs with only the first occurrence of each name.
  */
-function warnDuplicateNames(pairs: ReadonlyArray<readonly [string, Command]>): void {
-  const names = pairs.map(([name]) => name)
-  const duplicates = [...new Set(names.filter((name, idx) => names.indexOf(name) !== idx))]
+function deduplicateCommandPairs(
+  pairs: ReadonlyArray<readonly [string, Command]>
+): ReadonlyArray<readonly [string, Command]> {
+  const seen = new Set<string>()
 
-  if (duplicates.length > 0) {
-    console.warn(
-      duplicates
-        .map((name) => `[kidd] duplicate command name "${name}" — last definition wins`)
-        .join('\n')
-    )
-  }
+  return pairs.filter(([name]) => {
+    if (seen.has(name)) {
+      console.warn(
+        `[kidd] duplicate command name "${name}" — first definition wins, later definition ignored`
+      )
+      return false
+    }
+    seen.add(name)
+    return true
+  })
 }

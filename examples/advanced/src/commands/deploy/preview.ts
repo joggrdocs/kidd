@@ -8,7 +8,9 @@ const args = z.object({
 export default command({
   args,
   description: 'Deploy a preview environment',
-  positionals: [{ name: 'branch', type: 'string', description: 'Branch to deploy', default: 'main' }],
+  positionals: [
+    { name: 'branch', type: 'string', description: 'Branch to deploy', default: 'main' },
+  ],
   handler: async (ctx) => {
     ctx.spinner.start(`Deploying preview from ${ctx.args.branch}`)
 

@@ -46,9 +46,7 @@ export type ConfigOperationResult<TResult> = readonly [Error, null] | readonly [
  * Config client for loading, finding, and writing config files.
  */
 export interface Config<TConfig> {
-  readonly load: (
-    cwd?: string
-  ) => Promise<ConfigOperationResult<ConfigResult<TConfig>> | readonly [null, null]>
+  readonly load: (cwd?: string) => Promise<ConfigOperationResult<ConfigResult<TConfig> | null>>
   readonly find: (cwd?: string) => Promise<string | null>
   readonly write: (
     data: TConfig,

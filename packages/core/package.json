@@ -92,9 +92,13 @@
     "vitest": "catalog:"
   },
   "peerDependencies": {
+    "jiti": ">=2.0.0",
     "pino": ">=9.0.0"
   },
   "peerDependenciesMeta": {
+    "jiti": {
+      "optional": true
+    },
     "pino": {
       "optional": true
     }

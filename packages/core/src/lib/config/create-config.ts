@@ -1,7 +1,7 @@
 import { mkdir, writeFile } from 'node:fs/promises'
 import { dirname, extname, isAbsolute, join } from 'node:path'
 
-import { attemptAsync, err, match } from '@kidd-cli/utils/fp'
+import { attemptAsync, err, match, ok } from '@kidd-cli/utils/fp'
 import { formatZodIssues } from '@kidd-cli/utils/validate'
 import { loadConfig as c12LoadConfig } from 'c12'
 import type { ZodTypeAny, output } from 'zod'
@@ -68,9 +68,9 @@ export function createConfigClient<TSchema extends ZodTypeAny>(
       return err(`Failed to load config from ${cwd}: ${String(loadError)}`)
     }
     if (!loaded || !hasResolvedConfigFile(loaded.configFile)) {
-      return [null, null]
+      return ok(null)
     }
-    return [null, loaded]
+    return ok(loaded)
   }
 
   /**
@@ -112,24 +112,24 @@ export function createConfigClient<TSchema extends ZodTypeAny>(
   async function loadConfig(cwd: string): Promise<ConfigOperationResult<C12Result | null>> {
     const [longError, longForm] = await resolveConfig(cwd, `${name}.config`)
     if (longError) {
-      return [longError, null]
+      return err(longError)
     }
     if (longForm && hasResolvedConfigFile(longForm.configFile)) {
-      return [null, longForm]
+      return ok(longForm)
     }
 
     const [shortError, shortForm] = await resolveConfig(cwd, name)
     if (shortError) {
-      return [shortError, null]
+      return err(shortError)
     }
     if (shortForm && hasResolvedConfigFile(shortForm.configFile)) {
       if (!isDataExtension(shortForm.configFile)) {
-        return [null, null]
+        return ok(null)
       }
-      return [null, shortForm]
+      return ok(shortForm)
     }
 
-    return [null, null]
+    return ok(null)
   }
 
   /**
@@ -153,18 +153,18 @@ export function createConfigClient<TSchema extends ZodTypeAny>(
    *
    * @private
    * @param cwd - Working directory to search from.
-   * @returns A ConfigOperationResult with the loaded config, or [null, null] if not found.
+   * @returns A ConfigOperationResult with the loaded config, or null if not found.
    */
   async function load(
     cwd?: string
-  ): Promise<ConfigOperationResult<ConfigResult<output<TSchema>>> | readonly [null, null]> {
+  ): Promise<ConfigOperationResult<ConfigResult<output<TSchema>> | null>> {
     const resolvedCwd = cwd ?? process.cwd()
     const [loadError, result] = await loadConfig(resolvedCwd)
     if (loadError) {
-      return [loadError, null]
+      return err(loadError)
     }
     if (!result || !hasResolvedConfigFile(result.configFile)) {
-      return [null, null]
+      return ok(null)
     }
     return validateAndReturn(result.config, result.configFile)
   }
@@ -220,7 +220,10 @@ export function createConfigClient<TSchema extends ZodTypeAny>(
         return join(dir, `${name}.config${ext}`)
       })
 
-    const serialized = serializeContent(result.data, resolvedFormat)
+    const [serializeError, serialized] = serializeContent(result.data, resolvedFormat)
+    if (serializeError) {
+      return [serializeError, null]
+    }
 
     const [mkdirError] = await attemptAsync(() =>
       mkdir(dirname(resolvedFilePath), { recursive: true })
@@ -234,7 +237,7 @@ export function createConfigClient<TSchema extends ZodTypeAny>(
       return err(`Failed to write config to ${resolvedFilePath}: ${String(writeError)}`)
     }
 
-    return [null, { filePath: resolvedFilePath, format: resolvedFormat }]
+    return ok({ filePath: resolvedFilePath, format: resolvedFormat })
   }
 
   /**
@@ -255,14 +258,11 @@ export function createConfigClient<TSchema extends ZodTypeAny>(
       return err(`Invalid config in ${filePath}:\n${message}`)
     }
 
-    return [
-      null,
-      {
-        config: result.data,
-        filePath,
-        format: getFormat(filePath),
-      },
-    ]
+    return ok({
+      config: result.data,
+      filePath,
+      format: getFormat(filePath),
+    })
   }
 
   return Object.freeze({ find, load, write })

@@ -1,10 +1,11 @@
 import { extname } from 'node:path'
 
-import { match } from '@kidd-cli/utils/fp'
+import { attempt, err, match, ok } from '@kidd-cli/utils/fp'
 import { jsonStringify } from '@kidd-cli/utils/json'
 import { stringify as yamlStringify } from 'yaml'
 
 import type { ConfigFormat, ConfigWriteFormat } from './constants.js'
+import type { ConfigOperationResult } from './types.js'
 
 /**
  * Determine the config format from a file path's extension.
@@ -29,30 +30,16 @@ export function getFormat(filePath: string): ConfigFormat {
  *
  * @param data - The data to serialize.
  * @param format - The target config format.
- * @returns The serialized string representation.
+ * @returns A ConfigOperationResult with the serialized string or an error.
  */
-export function serializeContent(data: unknown, format: ConfigWriteFormat): string {
+export function serializeContent(
+  data: unknown,
+  format: ConfigWriteFormat
+): ConfigOperationResult<string> {
   return match(format)
     .with('json', 'jsonc', () => serializeJson(data))
-    .with('yaml', () => yamlStringify(data))
+    .with('yaml', () => serializeYaml(data))
     .exhaustive()
-}
-
-// ---------------------------------------------------------------------------
-
-/**
- * Serialize data as pretty-printed JSON with a trailing newline.
- *
- * @private
- * @param data - The data to serialize.
- * @returns The JSON string, or a fallback `'{}\n'` on serialization failure.
- */
-function serializeJson(data: unknown): string {
-  const [serializeError, json] = jsonStringify(data, { pretty: true })
-  if (serializeError) {
-    return '{}\n'
-  }
-  return `${json}\n`
 }
 
 /**
@@ -67,4 +54,37 @@ export function getExtension(format: ConfigWriteFormat): string {
     .with('jsonc', () => '.jsonc')
     .with('yaml', () => '.yaml')
     .exhaustive()
+}
+
+// ---------------------------------------------------------------------------
+
+/**
+ * Serialize data as pretty-printed JSON with a trailing newline.
+ *
+ * @private
+ * @param data - The data to serialize.
+ * @returns A ConfigOperationResult with the JSON string or a serialization error.
+ */
+function serializeJson(data: unknown): ConfigOperationResult<string> {
+  const [serializeError, json] = jsonStringify(data, { pretty: true })
+  if (serializeError) {
+    return err(`Failed to serialize config as JSON: ${serializeError.message}`)
+  }
+  return ok(`${json}\n`)
+}
+
+/**
+ * Serialize data as YAML.
+ *
+ * @private
+ * @param data - The data to serialize.
+ * @returns A ConfigOperationResult with the YAML string or a serialization error.
+ */
+function serializeYaml(data: unknown): ConfigOperationResult<string> {
+  const [yamlError, yaml] = attempt(() => yamlStringify(data))
+  if (yamlError) {
+    return err(`Failed to serialize config as YAML: ${String(yamlError)}`)
+  }
+  // After the error guard, yaml is guaranteed to be a string
+  return ok(yaml as string)
 }

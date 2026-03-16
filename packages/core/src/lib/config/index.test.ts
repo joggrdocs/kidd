@@ -429,21 +429,24 @@ features:
       expect(error!.message).toContain('not writable')
     })
 
-    it('should return Error when write target directory is unwritable', async () => {
-      const client = createConfigClient({ name: 'myapp', schema })
-      const readonlyDir = join(tmpDir, 'readonly')
-      mkdirSync(readonlyDir)
-      chmodSync(readonlyDir, 0o444)
+    it.skipIf(process.platform === 'win32')(
+      'should return Error when write target directory is unwritable',
+      async () => {
+        const client = createConfigClient({ name: 'myapp', schema })
+        const readonlyDir = join(tmpDir, 'readonly')
+        mkdirSync(readonlyDir)
+        chmodSync(readonlyDir, 0o444)
 
-      const [error, result] = await client.write(validConfig, {
-        filePath: join(readonlyDir, 'sub', 'config.json'),
-      })
+        const [error, result] = await client.write(validConfig, {
+          filePath: join(readonlyDir, 'sub', 'config.json'),
+        })
 
-      chmodSync(readonlyDir, 0o755)
-      expect(result).toBeNull()
-      expect(error).toBeInstanceOf(Error)
-      expect(error!.message).toContain('Failed to create directory')
-    })
+        chmodSync(readonlyDir, 0o755)
+        expect(result).toBeNull()
+        expect(error).toBeInstanceOf(Error)
+        expect(error!.message).toContain('Failed to create directory')
+      }
+    )
 
     it('should round-trip: write then load produces same data', async () => {
       const client = createConfigClient({ name: 'myapp', schema })

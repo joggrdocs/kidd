@@ -50,10 +50,7 @@ describe('config', () => {
 
     it('should find myapp.config.jsonc via c12 (long form)', async () => {
       const client = createConfigClient({ name: 'myapp', schema })
-      writeFileSync(
-        join(tmpDir, 'myapp.config.jsonc'),
-        JSON.stringify(validConfig, null, 2)
-      )
+      writeFileSync(join(tmpDir, 'myapp.config.jsonc'), JSON.stringify(validConfig, null, 2))
 
       const result = await client.find(tmpDir)
 
@@ -92,10 +89,7 @@ describe('config', () => {
 
     it('should reject myapp.ts via short form (TS not allowed)', async () => {
       const client = createConfigClient({ name: 'myapp', schema })
-      writeFileSync(
-        join(tmpDir, 'myapp.ts'),
-        'export default { name: "test-app", version: 1 }'
-      )
+      writeFileSync(join(tmpDir, 'myapp.ts'), 'export default { name: "test-app", version: 1 }')
 
       const result = await client.find(tmpDir)
 
@@ -104,10 +98,7 @@ describe('config', () => {
 
     it('should prefer name.config.* over name.*', async () => {
       const client = createConfigClient({ name: 'myapp', schema })
-      writeFileSync(
-        join(tmpDir, 'myapp.json'),
-        JSON.stringify({ name: 'short', version: 1 })
-      )
+      writeFileSync(join(tmpDir, 'myapp.json'), JSON.stringify({ name: 'short', version: 1 }))
       writeFileSync(join(tmpDir, 'myapp.config.json'), JSON.stringify(validConfig, null, 2))
 
       const result = await client.find(tmpDir)
@@ -233,10 +224,7 @@ features:
 
     it('should prefer long form over short form when loading', async () => {
       const client = createConfigClient({ name: 'myapp', schema })
-      writeFileSync(
-        join(tmpDir, 'myapp.json'),
-        JSON.stringify({ name: 'short', version: 1 })
-      )
+      writeFileSync(join(tmpDir, 'myapp.json'), JSON.stringify({ name: 'short', version: 1 }))
       writeFileSync(join(tmpDir, 'myapp.config.json'), JSON.stringify(validConfig, null, 2))
 
       const [error, result] = await client.load(tmpDir)
@@ -249,10 +237,7 @@ features:
 
     it('should not load short-form TS files', async () => {
       const client = createConfigClient({ name: 'myapp', schema })
-      writeFileSync(
-        join(tmpDir, 'myapp.ts'),
-        'export default { name: "test-app", version: 1 }'
-      )
+      writeFileSync(join(tmpDir, 'myapp.ts'), 'export default { name: "test-app", version: 1 }')
 
       const [error, result] = await client.load(tmpDir)
 

@@ -186,12 +186,28 @@ export type Middleware<TEnv extends MiddlewareEnv = MiddlewareEnv> = Tagged<
  * Converted to a zod schema internally before parsing.
  */
 export interface YargsArgDef {
-  type: 'string' | 'number' | 'boolean' | 'array'
-  description?: string
-  required?: boolean
-  default?: unknown
-  alias?: string | string[]
-  choices?: readonly string[]
+  readonly type: 'string' | 'number' | 'boolean' | 'array'
+  readonly description?: string
+  readonly required?: boolean
+  readonly default?: unknown
+  readonly alias?: string | string[]
+  readonly choices?: readonly string[]
+  readonly positional?: boolean
+}
+
+/**
+ * Definition for a positional argument on a command.
+ *
+ * Positional args appear in the command string (e.g. `create <name>`) and are
+ * parsed by yargs via `builder.positional()`.
+ */
+export interface PositionalDef {
+  readonly name: string
+  readonly type?: 'string' | 'number'
+  readonly description?: string
+  readonly required?: boolean
+  readonly default?: unknown
+  readonly choices?: readonly string[]
 }
 
 /**
@@ -295,6 +311,14 @@ export interface CommandDef<
   args?: TArgsDef
 
   /**
+   * Positional argument definitions.
+   *
+   * Each entry generates a `<name>` (required) or `[name]` (optional) placeholder
+   * in the yargs command string and is registered via `builder.positional()`.
+   */
+  positionals?: readonly PositionalDef[]
+
+  /**
    * Command-level middleware. Runs inside the root middleware chain, wrapping the handler.
    */
   middleware?: TMiddleware
@@ -326,6 +350,7 @@ export type Command<
   {
     readonly description?: string
     readonly args?: TArgsDef
+    readonly positionals?: readonly PositionalDef[]
     readonly middleware?: TMiddleware
     readonly commands?: CommandMap | Promise<CommandMap>
     readonly order?: readonly string[]

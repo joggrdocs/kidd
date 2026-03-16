@@ -1,13 +1,13 @@
 import { command } from '@kidd-cli/core'
 import { z } from 'zod'
 
-const args = z.object({
+const options = z.object({
   force: z.boolean().default(false).describe('Skip confirmation prompt'),
   tag: z.string().describe('Release tag to deploy (e.g. v1.2.3)'),
 })
 
 export default command({
-  args,
+  options,
   description: 'Deploy to production',
   handler: async (ctx) => {
     if (!ctx.args.force) {

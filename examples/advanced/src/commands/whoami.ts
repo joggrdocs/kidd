@@ -2,12 +2,12 @@ import { command } from '@kidd-cli/core'
 import { match } from 'ts-pattern'
 import { z } from 'zod'
 
-const args = z.object({
+const options = z.object({
   json: z.boolean().default(false).describe('Output as JSON'),
 })
 
 export default command({
-  args,
+  options,
   description: 'Display the current user',
   handler: (ctx) => {
     match(ctx.args.json)

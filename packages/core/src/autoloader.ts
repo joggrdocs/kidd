@@ -52,7 +52,7 @@ function resolveDir(options?: AutoloadOptions): string {
  * @returns A tuple of [name, Command] or undefined if the directory is empty.
  */
 async function buildDirCommand(dir: string): Promise<[string, Command] | undefined> {
-  const name = basename(dir)
+  const dirName = basename(dir)
   const dirEntries = await readdir(dir, { withFileTypes: true })
   const subCommands = await buildCommandMapFromEntries(dir, dirEntries)
   const indexFile = findIndexInEntries(dirEntries)
@@ -60,6 +60,7 @@ async function buildDirCommand(dir: string): Promise<[string, Command] | undefin
   if (indexFile) {
     const parentCommand = await importCommand(join(dir, indexFile.name))
     if (parentCommand) {
+      const name = parentCommand.name ?? dirName
       return [name, withTag({ ...parentCommand, commands: subCommands }, 'Command')]
     }
   }
@@ -68,7 +69,7 @@ async function buildDirCommand(dir: string): Promise<[string, Command] | undefin
     return undefined
   }
 
-  return [name, withTag({ commands: subCommands }, 'Command')]
+  return [dirName, withTag({ commands: subCommands }, 'Command')]
 }
 
 /**
@@ -92,7 +93,8 @@ async function buildCommandMapFromEntries(dir: string, entries: Dirent[]): Promi
       if (!cmd) {
         return undefined
       }
-      return [deriveCommandName(entry), cmd]
+      const name = cmd.name ?? deriveCommandName(entry)
+      return [name, cmd]
     })
   )
 
@@ -103,7 +105,7 @@ async function buildCommandMapFromEntries(dir: string, entries: Dirent[]): Promi
   const allResults = [...fileResults, ...dirResults]
   const validPairs = allResults.filter((pair): pair is [string, Command] => pair !== undefined)
 
-  return Object.fromEntries(validPairs)
+  return Object.fromEntries(deduplicateCommandPairs(validPairs))
 }
 
 /**
@@ -205,4 +207,32 @@ function isCommandDir(entry: Dirent): boolean {
     return false
   }
   return !entry.name.startsWith('_') && !entry.name.startsWith('.')
+}
+
+/**
+ * Deduplicate command pairs by name, keeping the first occurrence.
+ *
+ * When multiple commands resolve to the same name (e.g. via explicit `name`
+ * overrides), this ensures a deterministic first-wins policy and emits a
+ * warning for every collision so the user can fix the conflict.
+ *
+ * @private
+ * @param pairs - The resolved [name, Command] tuples.
+ * @returns Deduplicated pairs with only the first occurrence of each name.
+ */
+function deduplicateCommandPairs(
+  pairs: ReadonlyArray<readonly [string, Command]>
+): ReadonlyArray<readonly [string, Command]> {
+  const seen = new Set<string>()
+
+  return pairs.filter(([name]) => {
+    if (seen.has(name)) {
+      console.warn(
+        `[kidd] duplicate command name "${name}" — first definition wins, later definition ignored`
+      )
+      return false
+    }
+    seen.add(name)
+    return true
+  })
 }

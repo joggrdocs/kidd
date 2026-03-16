@@ -1,12 +1,12 @@
 import { command } from '@kidd-cli/core'
 import { z } from 'zod'
 
-const args = z.object({
+const options = z.object({
   clean: z.boolean().default(false).describe('Clean build before deploying'),
 })
 
 export default command({
-  args,
+  options,
   description: 'Deploy a preview environment',
   positionals: [
     { name: 'branch', type: 'string', description: 'Branch to deploy', default: 'main' },

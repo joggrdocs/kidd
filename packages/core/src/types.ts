@@ -306,6 +306,18 @@ export interface CommandDef<
   TMiddleware extends readonly Middleware<MiddlewareEnv>[] = readonly Middleware<MiddlewareEnv>[],
 > {
   /**
+   * Explicit command name. When provided, overrides the filename-derived name
+   * used by `autoload()` or the key in a `CommandMap`.
+   */
+  readonly name?: string
+
+  /**
+   * Alternative names for this command (e.g. `['ws']` for `workspace`).
+   * Registered as yargs command aliases.
+   */
+  readonly aliases?: readonly string[]
+
+  /**
    * Human-readable description shown in help text.
    */
   description?: string
@@ -359,6 +371,8 @@ export type Command<
   TMiddleware extends readonly Middleware<MiddlewareEnv>[] = readonly Middleware<MiddlewareEnv>[],
 > = Tagged<
   {
+    readonly name?: string
+    readonly aliases?: readonly string[]
     readonly description?: string
     readonly options?: TOptionsDef
     readonly positionals?: TPositionalsDef

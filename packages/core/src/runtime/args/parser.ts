@@ -41,7 +41,8 @@ export function createArgsParser(defs: CreateArgsParserOptions): ArgsParser {
  * Build a merged Zod schema from options and positionals definitions.
  *
  * When both are Zod schemas, merges them into a single schema for validation.
- * When only one is a Zod schema, returns that schema. When neither is Zod,
+ * When only one is a Zod schema, returns that schema with `.passthrough()` so
+ * yargs-native keys from the other side are preserved. When neither is Zod,
  * returns undefined (no validation).
  *
  * @private
@@ -59,10 +60,10 @@ function buildMergedSchema(
     return options.merge(positionals)
   }
   if (optionsIsZod) {
-    return options
+    return options.passthrough()
   }
   if (positionalsIsZod) {
-    return positionals
+    return positionals.passthrough()
   }
   return undefined
 }

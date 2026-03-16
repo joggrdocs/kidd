@@ -237,15 +237,19 @@ function resolveZodYargsType(
 /**
  * Map a type name to a valid yargs positional type.
  *
- * Positionals only support `'string'` and `'number'`. All other types fall
- * back to `'string'`. Used for both Zod and yargs-native positional definitions.
+ * Positionals support `'string'`, `'number'`, and `'boolean'`.
+ * All other types fall back to `'string'`. Used for both Zod and
+ * yargs-native positional definitions.
  *
  * @param typeName - The type name to resolve.
  * @returns A positional-compatible type.
  */
-export function resolvePositionalType(typeName: string | undefined): 'string' | 'number' {
+export function resolvePositionalType(
+  typeName: string | undefined
+): 'string' | 'number' | 'boolean' {
   return match(typeName)
     .with('number', () => 'number' as const)
+    .with('boolean', () => 'boolean' as const)
     .otherwise(() => 'string' as const)
 }
 

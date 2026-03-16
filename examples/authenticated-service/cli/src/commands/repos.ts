@@ -3,7 +3,7 @@ import { z } from 'zod'
 
 import requireAuth from '../middleware/require-auth.js'
 
-const args = z.object({
+const options = z.object({
   json: z.boolean().default(false).describe('Output as JSON'),
 })
 
@@ -25,7 +25,7 @@ function formatPrivate(isPrivate: boolean): string {
 }
 
 export default command({
-  args,
+  args: options,
   description: '[auth] List repositories for the authenticated user',
   middleware: [requireAuth],
   handler: async (ctx) => {

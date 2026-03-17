@@ -35,6 +35,6 @@ export default defineConfig({
         statements: 60,
       },
     },
-    include: ['src/**/*.test.ts', 'test/**/*.test.ts'],
+    include: ['src/**/*.test.ts'],
   },
 })

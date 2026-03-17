@@ -1,4 +1,5 @@
-import { runTestCli, setArgv, setupTestLifecycle } from '@test/core-utils.js'
+import { Writable } from 'node:stream'
+
 import { describe, expect, it, vi } from 'vitest'
 
 import { command } from '@/command.js'
@@ -7,7 +8,8 @@ import type { Context } from '@/context/types.js'
 import { createCliLogger } from '@/lib/logger.js'
 import type { CommandMap } from '@/types.js'
 
-import greetCommand from '../../../../examples/simple/commands/greet.js'
+import greetCommand from '../../examples/simple/commands/greet.js'
+import { runTestCli, setArgv, setupTestLifecycle } from '../helpers/core-utils.js'
 
 const mockSpinnerInstance = vi.hoisted(() => ({
   message: vi.fn(),
@@ -101,8 +103,6 @@ describe('examples/simple/commands/greet', () => {
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
-
-import { Writable } from 'node:stream'
 
 function createGreetContext(overrides: {
   readonly args: { readonly name: string; readonly shout: boolean }

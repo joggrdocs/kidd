@@ -60,7 +60,7 @@ async function runMiddlewareChain(
       return Promise.resolve()
     }
 
-    return Promise.resolve(middlewares[index].handler(ctx, () => run(index + 1)))
+    return Promise.resolve(middlewares[index]!.handler(ctx, () => run(index + 1)))
   }
 
   await run(0)

@@ -1,5 +1,30 @@
 # kidd
 
+## 0.7.1
+
+### Patch Changes
+
+- 0d0c61f: Comprehensive code review cleanup and refactoring across all packages:
+
+  - Reorganize bundler into `build/`, `compile/`, `autoloader/`, `config/` subdirectories
+  - Split core `types.ts` into `types/utility`, `types/middleware`, `types/command`, `types/cli`
+  - Create shared `tsdown.base.mjs` config for all packages
+  - Replace Result tuple literals with `ok()`/`err()` helpers
+  - Replace custom type checks with `es-toolkit` equivalents
+  - Fix missing `return` after `ctx.fail()` in CLI commands
+  - Fix `onTargetComplete` firing on compile errors, convert sync I/O to async
+  - Fix regex `lastIndex` mutation in sanitize via `replaceAll`
+  - Remove dead code: duplicate `formatDurationInline`, unreachable guards, passthrough wrappers
+  - Remove `toErrorMessage` in favor of `toError().message`, rename `fp/predicates` to `fp/transform`
+  - Replace mutation inside `.filter()` with `.reduce()` in autoload and commands
+  - Fix `command.name` override being ignored during registration (map key always took precedence)
+  - Add README for all published packages
+  - Add 80+ tests for runtime/args (zod, parser, register)
+
+- Updated dependencies [0d0c61f]
+  - @kidd-cli/utils@0.1.5
+  - @kidd-cli/config@0.1.6
+
 ## 0.7.0
 
 ### Minor Changes
@@ -12,6 +37,7 @@
 ### Minor Changes
 
 - b1c8e9e: Refactor config client to use c12 for all config file resolution
+
   - Support `name.config.*` patterns (TS, JS, JSON, JSONC, YAML, TOML) via c12
   - Support `name.*` short-form patterns for data formats only (JSON, JSONC, YAML, TOML)
   - Long form (`name.config.*`) takes priority over short form (`name.*`)
@@ -42,11 +68,13 @@
 - 6d8889a: Add `ConfigType` utility type and `CliConfig` augmentation interface for typed `ctx.config`.
 
   **@kidd-cli/core:**
+
   - Add `ConfigType<TSchema>` utility type to derive `CliConfig` from a Zod schema
   - Rename `KiddConfig` augmentation interface to `CliConfig` to avoid confusion with the build config type in `@kidd-cli/config`
   - Export `CliConfig` and `ConfigType` from `@kidd-cli/core`
 
   **@kidd-cli/cli:**
+
   - Add `--config` flag to `kidd init` to scaffold config schema setup during project creation
   - Add `kidd add config` command to scaffold config into existing projects
   - Scaffolded config includes Zod schema with `ConfigType` module augmentation wiring
@@ -54,12 +82,14 @@
 - 70deba8: Redesign output API: replace `ctx.output` with `ctx.format` and add styled logger methods.
 
   **Breaking changes:**
+
   - Remove `ctx.output` from the Context (replaced by `ctx.format` and `ctx.logger`)
   - Rename `SYMBOLS`/`Symbols` to `GLYPHS`/`Glyphs`
   - Rename format types: `ResultInput` to `CheckInput`, `DiagnosticInput` to `FindingInput`, `SummaryInput` to `TallyInput`, `TallySummaryInput` to `TallyBlockInput`, `InlineSummaryInput` to `TallyInlineInput`, `ResultStatus` to `CheckStatus`, `DiagnosticSeverity` to `FindingSeverity`
   - Rename format functions: `formatResult` to `formatCheck`, `formatDiagnostic` to `formatFinding`, `formatSummary` to `formatTally`
 
   **New features:**
+
   - Add `ctx.format.json(data)` and `ctx.format.table(rows)` — pure string formatters (no I/O)
   - Add `ctx.logger.check(input)` — write a pass/fail/warn/skip/fix row (vitest style)
   - Add `ctx.logger.finding(input)` — write a full finding with optional code frame (oxlint style)
@@ -69,13 +99,13 @@
 
   ```ts
   // Before
-  ctx.output.result(input) // → ctx.logger.check(input)
-  ctx.output.diagnostic(input) // → ctx.logger.finding(input)
-  ctx.output.summary(input) // → ctx.logger.tally(input)
-  ctx.output.write(data) // → process.stdout.write(ctx.format.json(data))
-  ctx.output.table(rows) // → process.stdout.write(ctx.format.table(rows))
-  ctx.output.raw(text) // → ctx.logger.print(text)
-  ctx.output.markdown(text) // → ctx.logger.print(text)
+  ctx.output.result(input); // → ctx.logger.check(input)
+  ctx.output.diagnostic(input); // → ctx.logger.finding(input)
+  ctx.output.summary(input); // → ctx.logger.tally(input)
+  ctx.output.write(data); // → process.stdout.write(ctx.format.json(data))
+  ctx.output.table(rows); // → process.stdout.write(ctx.format.table(rows))
+  ctx.output.raw(text); // → ctx.logger.print(text)
+  ctx.output.markdown(text); // → ctx.logger.print(text)
   ```
 
 ### Patch Changes
@@ -139,6 +169,7 @@
   **Auth HTTP integration:** `auth({ http: { baseUrl, namespace } })` creates authenticated HTTP clients with automatic credential header injection. Supports single or multiple clients via an array.
 
   **Breaking changes:**
+
   - `http()` no longer auto-reads `ctx.auth.credential()`. Use `auth({ http })` for authenticated clients or pass `headers` explicitly.
   - `HttpOptions.defaultHeaders` renamed to `headers` and now accepts a function `(ctx) => Record<string, string>` in addition to a static record.
 
@@ -146,9 +177,9 @@
 
   ```ts
   middleware: [
-    auth({ resolvers: [{ source: 'env' }] }),
-    http({ baseUrl: 'https://api.example.com', namespace: 'api' }),
-  ]
+    auth({ resolvers: [{ source: "env" }] }),
+    http({ baseUrl: "https://api.example.com", namespace: "api" }),
+  ];
   ```
 
   After:
@@ -157,9 +188,9 @@
   middleware: [
     auth({
       resolvers: [auth.env()],
-      http: { baseUrl: 'https://api.example.com', namespace: 'api' },
+      http: { baseUrl: "https://api.example.com", namespace: "api" },
     }),
-  ]
+  ];
   ```
 
 - f48ad38: Replace non-standard OAuth flow with spec-compliant PKCE (RFC 7636) and add Device Authorization Grant (RFC 8628)

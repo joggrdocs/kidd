@@ -1,5 +1,6 @@
 import { Writable } from 'node:stream'
 
+import { runTestCli, setArgv, setupTestLifecycle } from '@kidd-cli/core/test'
 import { describe, expect, it, vi } from 'vitest'
 
 import { command } from '@/command.js'
@@ -9,7 +10,6 @@ import { createCliLogger } from '@/lib/logger.js'
 import type { CommandMap } from '@/types.js'
 
 import greetCommand from '../../examples/simple/commands/greet.js'
-import { runTestCli, setArgv, setupTestLifecycle } from '../helpers/core-utils.js'
 
 const mockSpinnerInstance = vi.hoisted(() => ({
   message: vi.fn(),

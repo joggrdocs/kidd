@@ -5,7 +5,6 @@
 ### Patch Changes
 
 - 0d0c61f: Comprehensive code review cleanup and refactoring across all packages:
-
   - Reorganize bundler into `build/`, `compile/`, `autoloader/`, `config/` subdirectories
   - Split core `types.ts` into `types/utility`, `types/middleware`, `types/command`, `types/cli`
   - Create shared `tsdown.base.mjs` config for all packages

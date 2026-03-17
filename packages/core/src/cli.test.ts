@@ -1,4 +1,4 @@
-import { setArgv, runTestCli, setupTestLifecycle } from '@test/core-utils.js'
+import { setArgv, runTestCli, setupTestLifecycle } from '@test/index.js'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { Context } from '@/context/types.js'

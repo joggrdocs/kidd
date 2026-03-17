@@ -6,7 +6,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': resolve(__dirname, 'src'),
-      '@test': resolve(__dirname, 'test'),
+      '@test': resolve(__dirname, 'src/test'),
       kidd: resolve(__dirname, 'src/index.ts'),
     },
   },

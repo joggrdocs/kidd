@@ -1,5 +1,6 @@
 import { attemptAsync } from '@kidd-cli/utils/fp'
 
+import { TOKEN_VAR_SUFFIX } from './constants.js'
 import type { BearerCredential } from './types.js'
 
 /**
@@ -31,7 +32,20 @@ export function isValidToken(token: string | undefined | null): token is string 
  * @returns A BearerCredential with `type: 'bearer'`.
  */
 export function createBearerCredential(token: string): BearerCredential {
-  return { token, type: 'bearer' }
+  return { token, type: 'bearer' } satisfies BearerCredential
+}
+
+/**
+ * Derive the default environment variable name from a CLI name.
+ *
+ * Converts kebab-case to SCREAMING_SNAKE_CASE and appends `_TOKEN`.
+ * Example: `my-app` → `MY_APP_TOKEN`
+ *
+ * @param cliName - The CLI name.
+ * @returns The derived environment variable name.
+ */
+export function deriveTokenVar(cliName: string): string {
+  return `${cliName.replaceAll('-', '_').toUpperCase()}${TOKEN_VAR_SUFFIX}`
 }
 
 /**

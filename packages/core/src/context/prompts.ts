@@ -32,7 +32,7 @@ export function createContextPrompts(): Prompts {
       const result = await clack.text(opts)
       return unwrapCancelSignal(result)
     },
-  }
+  } satisfies Prompts
 }
 
 // ---------------------------------------------------------------------------

@@ -1,3 +1,4 @@
+import { isPlainObject } from '@kidd-cli/utils/fp'
 import pinoRedact from '@pinojs/redact'
 
 const CENSOR = '[REDACTED]'
@@ -104,8 +105,8 @@ function redactEntry(key: string, value: unknown): [string, unknown] {
     return [key, value.map(redactArrayItem)]
   }
 
-  if (isNonNullObject(value)) {
-    return [key, redactSensitiveKeys(value)]
+  if (isPlainObject(value)) {
+    return [key, redactSensitiveKeys(value as Record<string, unknown>)]
   }
 
   return [key, value]
@@ -119,19 +120,8 @@ function redactEntry(key: string, value: unknown): [string, unknown] {
  * @returns The element with sensitive keys redacted, or the original primitive.
  */
 function redactArrayItem(item: unknown): unknown {
-  if (isNonNullObject(item)) {
-    return redactSensitiveKeys(item)
+  if (isPlainObject(item)) {
+    return redactSensitiveKeys(item as Record<string, unknown>)
   }
   return item
-}
-
-/**
- * Type guard that narrows an unknown value to a string-keyed record.
- *
- * @private
- * @param value - The value to check.
- * @returns True when the value is a non-null object.
- */
-function isNonNullObject(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value)
 }

@@ -1,6 +1,6 @@
 import { withTag } from '@kidd-cli/utils/tag'
 
-import type { Middleware, MiddlewareEnv, MiddlewareFn } from './types.js'
+import type { Middleware, MiddlewareEnv, MiddlewareFn } from './types/index.js'
 
 /**
  * Create a typed middleware that runs before command handlers.

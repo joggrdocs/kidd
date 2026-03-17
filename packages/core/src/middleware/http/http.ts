@@ -1,19 +1,9 @@
-/**
- * HTTP client middleware factory.
- *
- * Creates a middleware that decorates the context with a typed
- * {@link HttpClient} bound to a base URL and optional headers.
- *
- * This middleware is fully decoupled from auth. For automatic credential
- * injection, use `auth({ http: { ... } })` instead.
- *
- * @module
- */
+import { isFunction } from '@kidd-cli/utils/fp'
 
 import { decorateContext } from '@/context/decorate.js'
 import type { Context } from '@/context/types.js'
 import { middleware } from '@/middleware.js'
-import type { Middleware } from '@/types.js'
+import type { Middleware } from '@/types/index.js'
 
 import { createHttpClient } from './create-http-client.js'
 import type { HttpOptions } from './types.js'
@@ -21,6 +11,9 @@ import type { HttpOptions } from './types.js'
 /**
  * Create an HTTP client middleware that decorates the context
  * with a typed client.
+ *
+ * This middleware is fully decoupled from auth. For automatic credential
+ * injection, pass a header resolver via the `headers` option (e.g. `auth.headers()`).
  *
  * Resolves headers from the `headers` option (static record or function),
  * builds a typed {@link HttpClient}, and attaches it to `ctx[namespace]`.
@@ -68,7 +61,7 @@ function resolveHeaders(
     return undefined
   }
 
-  if (typeof headers === 'function') {
+  if (isFunction(headers)) {
     return headers(ctx)
   }
 

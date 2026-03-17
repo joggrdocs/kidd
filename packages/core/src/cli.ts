@@ -9,9 +9,9 @@ import { z } from 'zod'
 
 import { DEFAULT_EXIT_CODE, isContextError } from '@/context/index.js'
 import { createCliLogger } from '@/lib/logger.js'
-import type { CliHelpOptions, CliOptions, CommandMap, CommandsConfig } from '@/types.js'
+import type { CliHelpOptions, CliOptions, CommandMap, CommandsConfig } from '@/types/index.js'
 
-import { autoload } from './autoloader.js'
+import { autoload } from './autoload.js'
 import { isCommandsConfig } from './command.js'
 import { createRuntime, registerCommands } from './runtime/index.js'
 import type { ErrorRef, ResolvedRef } from './runtime/index.js'

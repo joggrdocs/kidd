@@ -1,6 +1,5 @@
-import { toErrorMessage } from '@kidd-cli/utils'
 import type { AsyncResult } from '@kidd-cli/utils'
-import { err } from '@kidd-cli/utils/fp'
+import { err, ok, toError } from '@kidd-cli/utils/fp'
 import type { Tagged } from '@kidd-cli/utils/tag'
 import { withTag } from '@kidd-cli/utils/tag'
 import { loadConfig as c12LoadConfig } from 'c12'
@@ -67,20 +66,21 @@ export async function loadConfig(
     })
   )
 
-  if (loadError || !loaded) {
-    return err(`Failed to load kidd config: ${toErrorMessage(loadError)}`)
+  if (loadError) {
+    return err(`Failed to load kidd config: ${toError(loadError).message}`)
+  }
+
+  if (!loaded) {
+    return err('Failed to load kidd config: no configuration was returned')
   }
 
   const [validateError, config] = validateConfig(loaded.config)
   if (validateError) {
-    return [validateError, null]
+    return err(validateError)
   }
 
-  return [
-    null,
-    {
-      config: withTag(config, 'KiddConfig'),
-      configFile: loaded.configFile,
-    },
-  ]
+  return ok({
+    config: withTag(config, 'KiddConfig'),
+    configFile: loaded.configFile,
+  })
 }

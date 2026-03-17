@@ -1,13 +1,3 @@
-/**
- * OAuth 2.0 Authorization Code + PKCE resolver (RFC 7636 + RFC 8252).
- *
- * Opens the user's browser to the authorization URL with a PKCE challenge,
- * listens for a GET redirect with an authorization code on a local server,
- * and exchanges the code at the token endpoint with the code verifier.
- *
- * @module
- */
-
 import { createHash, randomBytes } from 'node:crypto'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 
@@ -26,7 +16,7 @@ import {
 import type { AuthCredential } from '../types.js'
 
 /**
- * Resolve a bearer credential via OAuth 2.0 Authorization Code + PKCE.
+ * Resolve a bearer credential via OAuth 2.0 Authorization Code + PKCE (RFC 7636 + RFC 8252).
  *
  * 1. Generates a `code_verifier` and derives the `code_challenge`
  * 2. Starts a local HTTP server on `127.0.0.1`

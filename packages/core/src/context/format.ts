@@ -24,7 +24,7 @@ export function createContextFormat(): Format {
       }
       return formatTable(rows, Object.keys(firstRow))
     },
-  })
+  }) satisfies Format
 }
 
 // ---------------------------------------------------------------------------

@@ -84,7 +84,7 @@ describe('createTimeout()', () => {
 
 describe('trackConnections()', () => {
   it('should add sockets to the set on connection', () => {
-    const server = new EventEmitter() as unknown as Server
+    const server = new EventEmitter() as unknown as Server // eslint-disable-line unicorn/prefer-event-target
     const sockets = new Set<Socket>()
 
     trackConnections(server, sockets)
@@ -96,7 +96,7 @@ describe('trackConnections()', () => {
   })
 
   it('should remove sockets from the set on close', () => {
-    const server = new EventEmitter() as unknown as Server
+    const server = new EventEmitter() as unknown as Server // eslint-disable-line unicorn/prefer-event-target
     const sockets = new Set<Socket>()
 
     trackConnections(server, sockets)

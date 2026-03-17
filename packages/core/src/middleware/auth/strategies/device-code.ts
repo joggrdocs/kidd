@@ -1,13 +1,3 @@
-/**
- * OAuth 2.0 Device Authorization Grant resolver (RFC 8628).
- *
- * Requests a device code, displays the verification URL and user code,
- * and polls the token endpoint until the user completes authorization
- * or the flow times out.
- *
- * @module
- */
-
 import { attemptAsync, isPlainObject, match } from '@kidd-cli/utils/fp'
 
 import type { Prompts } from '@/context/types.js'
@@ -27,7 +17,7 @@ const SLOW_DOWN_INCREMENT = 5000
 const DEVICE_CODE_GRANT_TYPE = 'urn:ietf:params:oauth:grant-type:device_code'
 
 /**
- * Resolve a bearer credential via OAuth 2.0 Device Authorization Grant.
+ * Resolve a bearer credential via OAuth 2.0 Device Authorization Grant (RFC 8628).
  *
  * 1. POSTs to the device authorization endpoint to obtain a device code
  * 2. Displays the verification URL and user code via prompts

@@ -1,12 +1,3 @@
-/**
- * Nerd Font detection using platform-native font listing.
- *
- * Queries the system font catalog and checks whether any installed
- * font family name contains "Nerd".
- *
- * @module
- */
-
 import { listSystemFonts } from './list-system-fonts.js'
 
 // ---------------------------------------------------------------------------

@@ -5,11 +5,11 @@ import type { z } from 'zod'
 import { createContext } from '@/context/index.js'
 import type { Context } from '@/context/types.js'
 import { createConfigClient } from '@/lib/config/index.js'
-import type { CliConfigOptions, Middleware } from '@/types.js'
+import type { CliConfigOptions, Middleware } from '@/types/index.js'
 
 import { createArgsParser } from './args/index.js'
-import { createRunner } from './runner.js'
-import type { Runtime, RuntimeOptions } from './types.js'
+import { createMiddlewareExecutor } from './runner.js'
+import type { ResolvedExecution, Runtime, RuntimeOptions } from './types.js'
 
 /**
  * Create a runtime that orchestrates config loading and middleware execution.
@@ -27,10 +27,10 @@ export async function createRuntime<TSchema extends z.ZodType>(
   const config = await resolveConfig(options.config, options.name)
 
   const middleware: Middleware[] = options.middleware ?? []
-  const runner = createRunner(middleware)
+  const runner = createMiddlewareExecutor(middleware)
 
-  const runtime: Runtime = {
-    async execute(command): AsyncResult<void, Error> {
+  const runtime = {
+    async execute(command: ResolvedExecution): AsyncResult<void, Error> {
       const parser = createArgsParser({
         options: command.options,
         positionals: command.positionals,
@@ -67,7 +67,7 @@ export async function createRuntime<TSchema extends z.ZodType>(
 
       return ok()
     },
-  }
+  } satisfies Runtime
 
   return ok(runtime)
 }

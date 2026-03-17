@@ -2,7 +2,7 @@ import { setArgv, runTestCli, setupTestLifecycle } from '@test/core-utils.js'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { Context } from '@/context/types.js'
-import type { CommandMap } from '@/types.js'
+import type { CommandMap } from '@/types/index.js'
 
 import { command } from './command.js'
 import { middleware } from './middleware.js'
@@ -20,7 +20,7 @@ vi.mock(import('@kidd-cli/config/loader'), () => ({
   loadConfig: mockLoadConfig,
 }))
 
-vi.mock(import('./autoloader.js'), () => ({
+vi.mock(import('./autoload.js'), () => ({
   autoload: mockAutoload,
 }))
 

@@ -27,7 +27,7 @@ const devCommand: Command = command({
 
     if (watchError) {
       ctx.spinner.stop('Watch failed')
-      ctx.fail(watchError.message)
+      return ctx.fail(watchError.message)
     }
   },
 })

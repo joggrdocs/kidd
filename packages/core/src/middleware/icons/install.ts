@@ -1,24 +1,11 @@
-/**
- * Nerd Font installation for macOS and Linux.
- *
- * Detects installed system fonts, matches them to available Nerd Font
- * equivalents, and lets the user choose which to install. Supports
- * Homebrew on macOS and direct download on Linux.
- *
- * All shell commands run asynchronously so the spinner can animate
- * and ctrl+c remains responsive.
- *
- * @module
- */
-
 import { exec } from 'node:child_process'
 import { mkdir, rm } from 'node:fs/promises'
 import { homedir } from 'node:os'
 import { join } from 'node:path'
 import { promisify } from 'node:util'
 
-import type { AsyncResult, Result } from '@kidd-cli/utils/fp'
 import { attemptAsync, ok } from '@kidd-cli/utils/fp'
+import type { AsyncResult, Result } from '@kidd-cli/utils/fp'
 import { match } from 'ts-pattern'
 import { z } from 'zod'
 

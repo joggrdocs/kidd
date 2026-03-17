@@ -1,22 +1,13 @@
-/**
- * Auth middleware factory with strategy builder functions.
- *
- * Decorates `ctx.auth` with functions to resolve credentials on demand
- * and run interactive authentication.
- *
- * @module
- */
-
 import { join } from 'node:path'
 
 import { decorateContext } from '@/context/decorate.js'
 import type { Context } from '@/context/types.js'
 import { middleware } from '@/middleware.js'
-import type { Middleware } from '@/types.js'
+import type { Middleware } from '@/types/index.js'
 
-import { withDefault } from './chain.js'
-import { DEFAULT_AUTH_FILENAME, deriveTokenVar } from './constants.js'
+import { DEFAULT_AUTH_FILENAME } from './constants.js'
 import { createAuthContext } from './context.js'
+import { deriveTokenVar } from './credential.js'
 import { createAuthHeaders } from './headers.js'
 import { createAuthRequire } from './require.js'
 import type { AuthRequireOptions } from './require.js'
@@ -226,8 +217,8 @@ function resolveStoredCredential(
   const defaultTokenVar = deriveTokenVar(cliName)
 
   const fromFile = resolveFromFile({
-    dirName: withDefault(extractProp(fileConfig, 'dirName'), `.${cliName}`),
-    filename: withDefault(extractProp(fileConfig, 'filename'), DEFAULT_AUTH_FILENAME),
+    dirName: extractProp(fileConfig, 'dirName') ?? `.${cliName}`,
+    filename: extractProp(fileConfig, 'filename') ?? DEFAULT_AUTH_FILENAME,
   })
 
   if (fromFile) {
@@ -236,8 +227,8 @@ function resolveStoredCredential(
 
   if (dotenvConfig !== undefined) {
     const fromDotenv = resolveFromDotenv({
-      path: withDefault(extractProp(dotenvConfig, 'path'), join(process.cwd(), '.env')),
-      tokenVar: withDefault(extractProp(dotenvConfig, 'tokenVar'), defaultTokenVar),
+      path: extractProp(dotenvConfig, 'path') ?? join(process.cwd(), '.env'),
+      tokenVar: extractProp(dotenvConfig, 'tokenVar') ?? defaultTokenVar,
     })
 
     if (fromDotenv) {
@@ -246,7 +237,7 @@ function resolveStoredCredential(
   }
 
   return resolveFromEnv({
-    tokenVar: withDefault(extractProp(envConfig, 'tokenVar'), defaultTokenVar),
+    tokenVar: extractProp(envConfig, 'tokenVar') ?? defaultTokenVar,
   })
 }
 

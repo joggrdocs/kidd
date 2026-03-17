@@ -1,15 +1,5 @@
-/**
- * Factory for the {@link AuthContext} object decorated onto `ctx.auth`.
- *
- * Closes over the middleware's strategy config, CLI name, prompts, and
- * a credential resolver function so that `login()` can run
- * interactive strategies and persist the result.
- *
- * @module
- */
-
-import type { AsyncResult, Result } from '@kidd-cli/utils/fp'
 import { ok } from '@kidd-cli/utils/fp'
+import type { AsyncResult, Result } from '@kidd-cli/utils/fp'
 
 import type { Prompts } from '@/context/types.js'
 import { createStore } from '@/lib/store/create-store.js'
@@ -136,7 +126,7 @@ export function createAuthContext(options: CreateAuthContextOptions): AuthContex
     return ok(filePath)
   }
 
-  return { authenticated, credential, login, logout }
+  return { authenticated, credential, login, logout } satisfies AuthContext
 }
 
 // ---------------------------------------------------------------------------

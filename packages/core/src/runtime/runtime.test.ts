@@ -17,18 +17,18 @@ vi.mock(import('./args/index.js'), () => ({
 }))
 
 vi.mock(import('./runner.js'), () => ({
-  createRunner: vi.fn(),
+  createMiddlewareExecutor: vi.fn(),
 }))
 
 const { createContext } = await import('@/context/index.js')
 const { createConfigClient } = await import('@/lib/config/index.js')
 const { createArgsParser } = await import('./args/index.js')
-const { createRunner } = await import('./runner.js')
+const { createMiddlewareExecutor } = await import('./runner.js')
 
 const mockedCreateContext = vi.mocked(createContext)
 const mockedCreateConfigClient = vi.mocked(createConfigClient)
 const mockedCreateArgsParser = vi.mocked(createArgsParser)
-const mockedCreateRunner = vi.mocked(createRunner)
+const mockedCreateRunner = vi.mocked(createMiddlewareExecutor)
 
 function makeExecution(overrides: Partial<ResolvedExecution> = {}): ResolvedExecution {
   return {

@@ -10,6 +10,10 @@
     "yargs",
     "zod"
   ],
+  "homepage": "https://github.com/joggrdocs/kidd/tree/main/packages/core",
+  "bugs": {
+    "url": "https://github.com/joggrdocs/kidd/issues"
+  },
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -20,6 +24,7 @@
     "dist"
   ],
   "type": "module",
+  "sideEffects": false,
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",

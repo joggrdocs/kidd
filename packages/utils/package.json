@@ -2,6 +2,17 @@
   "name": "@kidd-cli/utils",
   "version": "0.1.4",
   "description": "Shared utilities for the kidd ecosystem",
+  "keywords": [
+    "cli",
+    "functional",
+    "kidd",
+    "typescript",
+    "utilities"
+  ],
+  "homepage": "https://github.com/joggrdocs/kidd/tree/main/packages/utils",
+  "bugs": {
+    "url": "https://github.com/joggrdocs/kidd/issues"
+  },
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -12,6 +23,7 @@
     "dist"
   ],
   "type": "module",
+  "sideEffects": false,
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",

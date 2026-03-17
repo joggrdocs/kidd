@@ -34,7 +34,7 @@ const commandsCommand: KiddCommand = command({
     const commandsDir = join(cwd, config.commands ?? 'commands')
 
     if (!existsSync(commandsDir)) {
-      ctx.fail(`Commands directory not found: ${commandsDir}`)
+      return ctx.fail(`Commands directory not found: ${commandsDir}`)
     }
 
     ctx.spinner.start('Scanning commands...')
@@ -163,22 +163,28 @@ function validateOrder(params: {
 }): readonly string[] {
   const { commandNames, order } = params
   const nameSet = new Set(commandNames)
-  const seen = new Set<string>()
 
-  return order.filter((name) => {
-    if (seen.has(name)) {
-      console.warn(`Warning: duplicate command name "${name}" in order array`)
-      return false
-    }
-    seen.add(name)
+  const { valid } = order.reduce<{
+    readonly seen: ReadonlySet<string>
+    readonly valid: readonly string[]
+  }>(
+    (acc, name) => {
+      if (acc.seen.has(name)) {
+        console.warn(`Warning: duplicate command name "${name}" in order array`)
+        return acc
+      }
 
-    if (!nameSet.has(name)) {
-      console.warn(`Warning: unknown command "${name}" in order array`)
-      return false
-    }
+      if (!nameSet.has(name)) {
+        console.warn(`Warning: unknown command "${name}" in order array`)
+        return { seen: new Set([...acc.seen, name]), valid: acc.valid }
+      }
 
-    return true
-  })
+      return { seen: new Set([...acc.seen, name]), valid: [...acc.valid, name] }
+    },
+    { seen: new Set<string>(), valid: [] }
+  )
+
+  return valid
 }
 
 /**

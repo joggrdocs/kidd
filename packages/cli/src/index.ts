@@ -1,8 +1,8 @@
 import { cli } from '@kidd-cli/core'
 
-import { loadCLIManifest } from './manifest.js'
+import { readCLIManifest } from './manifest.js'
 
-const [manifestError, manifest] = await loadCLIManifest(import.meta.dirname)
+const [manifestError, manifest] = await readCLIManifest(import.meta.dirname)
 if (manifestError) {
   console.error(manifestError.message)
   process.exit(1)

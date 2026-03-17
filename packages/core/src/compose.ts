@@ -1,11 +1,5 @@
-/**
- * Middleware combinator that merges multiple middleware into one.
- *
- * @module
- */
-
 import { middleware } from './middleware.js'
-import type { InferVariables, Middleware, MiddlewareEnv } from './types.js'
+import type { InferVariables, Middleware, MiddlewareEnv } from './types/index.js'
 
 /**
  * The composed return environment. Uses a conditional type to normalize

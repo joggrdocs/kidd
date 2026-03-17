@@ -32,16 +32,3 @@ export const DEFAULT_DEVICE_CODE_POLL_INTERVAL = 5000
  * Default timeout for the device code flow in milliseconds (5 minutes).
  */
 export const DEFAULT_DEVICE_CODE_TIMEOUT = 300_000
-
-/**
- * Derive the default environment variable name from a CLI name.
- *
- * Converts kebab-case to SCREAMING_SNAKE_CASE and appends `_TOKEN`.
- * Example: `my-app` → `MY_APP_TOKEN`
- *
- * @param cliName - The CLI name.
- * @returns The derived environment variable name.
- */
-export function deriveTokenVar(cliName: string): string {
-  return `${cliName.replaceAll('-', '_').toUpperCase()}${TOKEN_VAR_SUFFIX}`
-}

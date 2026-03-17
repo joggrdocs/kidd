@@ -22,5 +22,5 @@ export function createWritableCapture(): WritableCapture {
       callback()
     },
   })
-  return { output: () => chunks.join(''), stream }
+  return { output: () => chunks.join(''), stream } satisfies WritableCapture
 }

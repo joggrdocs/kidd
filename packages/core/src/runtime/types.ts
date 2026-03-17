@@ -2,7 +2,7 @@ import type { AsyncResult, Result } from '@kidd-cli/utils/fp'
 import type { z } from 'zod'
 
 import type { Context } from '@/context/types.js'
-import type { ArgsDef, CliConfigOptions, Middleware } from '@/types.js'
+import type { ArgsDef, CliConfigOptions, Middleware } from '@/types/index.js'
 
 /**
  * Options for creating a runtime via `createRuntime`.
@@ -36,7 +36,7 @@ export interface Runtime {
 /**
  * A runner that executes a middleware chain followed by a final handler.
  */
-export interface Runner {
+export interface MiddlewareExecutor {
   readonly execute: (options: {
     readonly ctx: Context
     readonly handler: (ctx: Context) => Promise<void> | void

@@ -2,7 +2,7 @@ import type { vi } from 'vitest'
 
 import type { Context, Prompts, Spinner } from '@/context/types.js'
 import type { CliLogger } from '@/lib/logger.js'
-import type { AnyRecord, CliConfigOptions, Command, CommandMap, Middleware } from '@/types.js'
+import type { AnyRecord, CliConfigOptions, Command, CommandMap, Middleware } from '@/types/index.js'
 
 /**
  * Overrides for constructing a test context via {@link createTestContext}.

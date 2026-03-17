@@ -2,7 +2,7 @@ import { mkdir, writeFile } from 'node:fs/promises'
 import { dirname, extname, isAbsolute, join } from 'node:path'
 
 import { attemptAsync, err, match, ok } from '@kidd-cli/utils/fp'
-import { formatZodIssues } from '@kidd-cli/utils/validate'
+import { validate } from '@kidd-cli/utils/validate'
 import { loadConfig as c12LoadConfig } from 'c12'
 import type { ZodTypeAny, output } from 'zod'
 
@@ -18,7 +18,7 @@ import type {
 } from './types.js'
 
 /**
- * c12 resolution result containing the loaded config and resolved file path.
+ * C12 resolution result containing the loaded config and resolved file path.
  */
 interface C12Result {
   readonly config: unknown
@@ -192,27 +192,30 @@ export function createConfigClient<TSchema extends ZodTypeAny>(
       }
     }
 
-    const result = schema.safeParse(data)
-    if (!result.success) {
-      const { message } = formatZodIssues(result.error.issues, '\n')
-      return err(`Invalid config data:\n${message}`)
+    const [validationError, validated] = validate({
+      schema,
+      params: data,
+      createError: ({ message }) => new Error(`Invalid config data:\n${message}`),
+    })
+    if (validationError) {
+      return err(validationError)
     }
 
     const resolvedFormat = match(writeOptions)
       .when(
         (opts) => opts.format !== null && opts.format !== undefined,
-        (opts) => opts.format ?? ('jsonc' as const)
+        (opts) => opts.format as NonNullable<typeof opts.format>
       )
       .when(
         (opts) => opts.filePath !== null && opts.filePath !== undefined,
-        (opts) => getWriteFormat(opts.filePath ?? '')
+        (opts) => getWriteFormat(opts.filePath as string)
       )
       .otherwise(() => 'jsonc' as const)
 
     const resolvedFilePath = match(writeOptions.filePath)
       .when(
         (fp) => fp !== null && fp !== undefined,
-        (fp) => fp ?? ''
+        (fp) => fp as string
       )
       .otherwise(() => {
         const dir = writeOptions.dir ?? process.cwd()
@@ -220,9 +223,9 @@ export function createConfigClient<TSchema extends ZodTypeAny>(
         return join(dir, `${name}.config${ext}`)
       })
 
-    const [serializeError, serialized] = serializeContent(result.data, resolvedFormat)
+    const [serializeError, serialized] = serializeContent(validated, resolvedFormat)
     if (serializeError) {
-      return [serializeError, null]
+      return err(serializeError)
     }
 
     const [mkdirError] = await attemptAsync(() =>
@@ -252,14 +255,17 @@ export function createConfigClient<TSchema extends ZodTypeAny>(
     data: unknown,
     filePath: string
   ): ConfigOperationResult<ConfigLoadResult<output<TSchema>>> {
-    const result = schema.safeParse(data)
-    if (!result.success) {
-      const { message } = formatZodIssues(result.error.issues, '\n')
-      return err(`Invalid config in ${filePath}:\n${message}`)
+    const [validationError, validated] = validate({
+      schema,
+      params: data,
+      createError: ({ message }) => new Error(`Invalid config in ${filePath}:\n${message}`),
+    })
+    if (validationError) {
+      return err(validationError)
     }
 
     return ok({
-      config: result.data,
+      config: validated,
       filePath,
       format: getFormat(filePath),
     })

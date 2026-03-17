@@ -7,7 +7,7 @@ import { createContext } from '@/context/create-context.js'
 import type { Prompts, Spinner } from '@/context/types.js'
 import { createCliLogger } from '@/lib/logger.js'
 import type { CliLogger } from '@/lib/logger.js'
-import type { AnyRecord } from '@/types.js'
+import type { AnyRecord } from '@/types/index.js'
 
 import { createWritableCapture } from './capture.js'
 import type { PromptResponses, TestContextOptions, TestContextResult } from './types.js'

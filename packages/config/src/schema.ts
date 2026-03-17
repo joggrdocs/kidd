@@ -1,6 +1,5 @@
 import type { Result } from '@kidd-cli/utils'
-import { err } from '@kidd-cli/utils/fp'
-import { formatZodIssues } from '@kidd-cli/utils/validate'
+import { validate } from '@kidd-cli/utils/validate'
 import { z } from 'zod'
 
 import type { KiddConfig } from './types.js'
@@ -62,10 +61,9 @@ export const KiddConfigSchema: z.ZodType<KiddConfig> = z
  * @returns A Result tuple - `[null, KiddConfig]` on success or `[Error, null]` on failure.
  */
 export function validateConfig(data: unknown): Result<KiddConfig, Error> {
-  const result = KiddConfigSchema.safeParse(data)
-  if (!result.success) {
-    const { message } = formatZodIssues(result.error.issues)
-    return err(`Invalid kidd config:\n  ${message}`)
-  }
-  return [null, result.data]
+  return validate({
+    schema: KiddConfigSchema,
+    params: data,
+    createError: ({ message }) => new Error(`Invalid kidd config:\n  ${message}`),
+  })
 }

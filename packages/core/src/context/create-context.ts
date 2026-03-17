@@ -4,7 +4,7 @@ import type { Colors } from 'picocolors/types'
 
 import { createCliLogger } from '@/lib/logger.js'
 import type { CliLogger } from '@/lib/logger.js'
-import type { AnyRecord, KiddStore, Merge } from '@/types.js'
+import type { AnyRecord, KiddStore, Merge } from '@/types/index.js'
 
 import { createContextError } from './error.js'
 import { createContextFormat } from './format.js'

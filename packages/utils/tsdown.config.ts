@@ -1,8 +1,9 @@
 import { defineConfig } from 'tsdown'
 
+import { baseOptions } from '../../tsdown.base.mjs'
+
 export default defineConfig({
-  clean: true,
-  dts: true,
+  ...baseOptions,
   entry: {
     fp: 'src/fp/index.ts',
     fs: 'src/fs.ts',
@@ -13,7 +14,5 @@ export default defineConfig({
     tag: 'src/tag.ts',
     validate: 'src/validate.ts',
   },
-  fixedExtension: false,
   format: 'esm',
-  outDir: 'dist',
 })

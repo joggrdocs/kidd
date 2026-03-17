@@ -1,12 +1,4 @@
-/**
- * Factory for the {@link IconsContext} object decorated onto `ctx.icons`.
- *
- * Builds an object that resolves icon names to glyphs based on
- * whether Nerd Fonts are detected on the system.
- *
- * @module
- */
-
+import { ok } from '@kidd-cli/utils/fp'
 import type { AsyncResult } from '@kidd-cli/utils/fp'
 import { match } from 'ts-pattern'
 
@@ -73,7 +65,7 @@ export function createIconsContext(options: CreateIconsContextOptions): IconsCon
       )
     },
     get: (name: string): string => resolveIcon(icons, name, state.isInstalled),
-    has: (name: string): boolean => name in icons,
+    has: (name: string): boolean => Object.hasOwn(icons, name),
     installed: (): boolean =>
       match(forceSetup)
         .with(true, () => false)
@@ -89,9 +81,9 @@ export function createIconsContext(options: CreateIconsContextOptions): IconsCon
         state.isInstalled = true
       }
 
-      return [null, result] as const
+      return ok(result)
     },
-  })
+  }) satisfies IconsContext
 }
 
 // ---------------------------------------------------------------------------

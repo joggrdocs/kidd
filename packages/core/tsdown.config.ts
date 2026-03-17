@@ -1,9 +1,9 @@
 import { defineConfig } from 'tsdown'
 
+import { baseOptions } from '../../tsdown.base.mjs'
+
 export default defineConfig({
-  alias: { '@': './src' },
-  clean: true,
-  dts: true,
+  ...baseOptions,
   entry: {
     index: 'src/index.ts',
     'lib/config': 'src/lib/config/index.ts',
@@ -16,7 +16,5 @@ export default defineConfig({
     'middleware/icons': 'src/middleware/icons/index.ts',
     'test/index': 'src/test/index.ts',
   },
-  fixedExtension: false,
   format: 'esm',
-  outDir: 'dist',
 })

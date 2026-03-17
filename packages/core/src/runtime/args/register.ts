@@ -1,7 +1,7 @@
 import type { Argv, Options as YargsOptions, PositionalOptions } from 'yargs'
 import type { z } from 'zod'
 
-import type { ArgsDef, YargsArgDef } from '@/types.js'
+import type { ArgsDef, YargsArgDef } from '@/types/index.js'
 
 import {
   isZodSchema,

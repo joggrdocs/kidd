@@ -1,12 +1,11 @@
 import { defineConfig } from 'tsdown'
 
+import { baseOptions } from '../../tsdown.base.mjs'
+
 export default defineConfig({
-  clean: true,
-  dts: true,
+  ...baseOptions,
   entry: {
     index: 'src/index.ts',
   },
-  fixedExtension: false,
   format: 'esm',
-  outDir: 'dist',
 })

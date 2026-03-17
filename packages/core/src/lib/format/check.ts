@@ -3,6 +3,7 @@ import { match } from 'ts-pattern'
 import { z } from 'zod'
 
 import { GLYPHS } from './constants.js'
+import { formatDuration } from './duration.js'
 import type { CheckInput } from './types.js'
 
 /**
@@ -72,7 +73,7 @@ function formatOptionalDetail(detail: string | undefined): string {
 function formatOptionalDuration(duration: number | undefined): string {
   return match(duration)
     .with(undefined, () => '')
-    .otherwise((d) => ` ${pc.gray(`(${formatDurationInline(d)})`)}`)
+    .otherwise((d) => ` ${pc.gray(`(${formatDuration(d)})`)}`)
 }
 
 /**
@@ -86,24 +87,4 @@ function formatOptionalHint(hint: string | undefined): string {
   return match(hint)
     .with(undefined, () => '')
     .otherwise((h) => ` ${pc.dim(`[${h}]`)}`)
-}
-
-/**
- * Inline duration format for check rows (compact).
- *
- * @private
- * @param ms - Duration in milliseconds.
- * @returns A compact formatted duration string.
- */
-function formatDurationInline(ms: number): string {
-  return match(ms)
-    .when(
-      (v) => v < 1,
-      () => '< 1ms'
-    )
-    .when(
-      (v) => v < 1000,
-      (v) => `${Math.round(v)}ms`
-    )
-    .otherwise((v) => `${(v / 1000).toFixed(2)}s`)
 }

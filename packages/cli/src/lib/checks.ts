@@ -444,7 +444,7 @@ async function fixModuleType(context: CheckContext): Promise<FixResult> {
  */
 async function fixKiddDependency(context: CheckContext): Promise<FixResult> {
   const [updateError] = await updatePackageJson(context.cwd, (pkg) => {
-    const deps = pkg.dependencies as Record<string, string> | undefined
+    const deps = pkg.dependencies ?? {}
     return {
       ...pkg,
       dependencies: { ...deps, '@kidd-cli/core': 'latest' },
@@ -571,7 +571,7 @@ export async function readRawPackageJson(cwd: string): AsyncResult<RawPackageJso
   const [parseError, data] = jsonParse(content)
 
   if (parseError) {
-    return [parseError, null]
+    return err(parseError)
   }
 
   return ok(data as RawPackageJson)
@@ -649,7 +649,7 @@ async function updatePackageJson(
   const [parseError, data] = jsonParse(content)
 
   if (parseError) {
-    return [parseError, null]
+    return err(parseError)
   }
 
   const updated = transform(data as Record<string, unknown>)
@@ -657,7 +657,7 @@ async function updatePackageJson(
   const [stringifyError, json] = jsonStringify(updated, { pretty: true })
 
   if (stringifyError) {
-    return [stringifyError, null]
+    return err(stringifyError)
   }
 
   const [writeError] = await attemptAsync<void, Error>(() =>

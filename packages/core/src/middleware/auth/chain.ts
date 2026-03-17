@@ -11,8 +11,8 @@ import {
   DEFAULT_OAUTH_CALLBACK_PATH,
   DEFAULT_OAUTH_PORT,
   DEFAULT_OAUTH_TIMEOUT,
-  deriveTokenVar,
 } from './constants.js'
+import { deriveTokenVar } from './credential.js'
 import { resolveFromDeviceCode } from './strategies/device-code.js'
 import { resolveFromDotenv } from './strategies/dotenv.js'
 import { resolveFromEnv } from './strategies/env.js'
@@ -41,20 +41,6 @@ export async function runStrategyChain(options: {
   const defaultTokenVar = deriveTokenVar(options.cliName)
 
   return tryStrategies(options.strategies, 0, defaultTokenVar, options)
-}
-
-/**
- * Return the given value when defined, otherwise the fallback.
- *
- * @param value - The optional value.
- * @param fallback - The default value.
- * @returns The resolved value.
- */
-export function withDefault<T>(value: T | undefined, fallback: T): T {
-  if (value !== undefined) {
-    return value
-  }
-  return fallback
 }
 
 // ---------------------------------------------------------------------------
@@ -119,19 +105,19 @@ async function dispatchStrategy(
   return match(config)
     .with({ source: 'env' }, (c): AuthCredential | null =>
       resolveFromEnv({
-        tokenVar: withDefault(c.tokenVar, defaultTokenVar),
+        tokenVar: c.tokenVar ?? defaultTokenVar,
       })
     )
     .with({ source: 'dotenv' }, (c): AuthCredential | null =>
       resolveFromDotenv({
-        path: withDefault(c.path, join(process.cwd(), '.env')),
-        tokenVar: withDefault(c.tokenVar, defaultTokenVar),
+        path: c.path ?? join(process.cwd(), '.env'),
+        tokenVar: c.tokenVar ?? defaultTokenVar,
       })
     )
     .with({ source: 'file' }, (c): AuthCredential | null =>
       resolveFromFile({
-        dirName: withDefault(c.dirName, `.${context.cliName}`),
-        filename: withDefault(c.filename, DEFAULT_AUTH_FILENAME),
+        dirName: c.dirName ?? `.${context.cliName}`,
+        filename: c.filename ?? DEFAULT_AUTH_FILENAME,
       })
     )
     .with(
@@ -139,11 +125,11 @@ async function dispatchStrategy(
       (c): Promise<AuthCredential | null> =>
         resolveFromOAuth({
           authUrl: c.authUrl,
-          callbackPath: withDefault(c.callbackPath, DEFAULT_OAUTH_CALLBACK_PATH),
+          callbackPath: c.callbackPath ?? DEFAULT_OAUTH_CALLBACK_PATH,
           clientId: c.clientId,
-          port: withDefault(c.port, DEFAULT_OAUTH_PORT),
-          scopes: withDefault(c.scopes, []),
-          timeout: withDefault(c.timeout, DEFAULT_OAUTH_TIMEOUT),
+          port: c.port ?? DEFAULT_OAUTH_PORT,
+          scopes: c.scopes ?? [],
+          timeout: c.timeout ?? DEFAULT_OAUTH_TIMEOUT,
           tokenUrl: c.tokenUrl,
         })
     )
@@ -153,11 +139,11 @@ async function dispatchStrategy(
         resolveFromDeviceCode({
           clientId: c.clientId,
           deviceAuthUrl: c.deviceAuthUrl,
-          openBrowserOnStart: withDefault(c.openBrowser, true),
-          pollInterval: withDefault(c.pollInterval, DEFAULT_DEVICE_CODE_POLL_INTERVAL),
+          openBrowserOnStart: c.openBrowser ?? true,
+          pollInterval: c.pollInterval ?? DEFAULT_DEVICE_CODE_POLL_INTERVAL,
           prompts: context.prompts,
-          scopes: withDefault(c.scopes, []),
-          timeout: withDefault(c.timeout, DEFAULT_DEVICE_CODE_TIMEOUT),
+          scopes: c.scopes ?? [],
+          timeout: c.timeout ?? DEFAULT_DEVICE_CODE_TIMEOUT,
           tokenUrl: c.tokenUrl,
         })
     )
@@ -165,7 +151,7 @@ async function dispatchStrategy(
       { source: 'token' },
       (c): Promise<AuthCredential | null> =>
         resolveFromToken({
-          message: withDefault(c.message, DEFAULT_PROMPT_MESSAGE),
+          message: c.message ?? DEFAULT_PROMPT_MESSAGE,
           prompts: context.prompts,
         })
     )

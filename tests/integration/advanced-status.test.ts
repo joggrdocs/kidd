@@ -1,10 +1,10 @@
+import { setupTestLifecycle } from '@kidd-cli/core/test'
 import { describe, expect, it, vi } from 'vitest'
 
 import { createContext } from '@/context/index.js'
 import type { Context } from '@/context/types.js'
 
 import statusCommand from '../../examples/advanced/src/commands/status.js'
-import { setupTestLifecycle } from '../helpers/core-utils.js'
 
 const mockSpinnerInstance = vi.hoisted(() => ({
   message: vi.fn(),

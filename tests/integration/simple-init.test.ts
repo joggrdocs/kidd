@@ -1,4 +1,5 @@
 import * as clack from '@clack/prompts'
+import { runTestCli, setArgv, setupTestLifecycle } from '@kidd-cli/core/test'
 import { describe, expect, it, vi } from 'vitest'
 
 import { command } from '@/command.js'
@@ -6,7 +7,6 @@ import type { Context } from '@/context/types.js'
 import type { CommandMap } from '@/types.js'
 
 import initCommand from '../../examples/simple/commands/init.js'
-import { runTestCli, setArgv, setupTestLifecycle } from '../helpers/core-utils.js'
 
 const mockSpinnerInstance = vi.hoisted(() => ({
   message: vi.fn(),

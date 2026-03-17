@@ -7,8 +7,8 @@ vi.mock(import('node:child_process'), () => ({
 import type { Prompts } from '@/context/types.js'
 import { resolveFromDeviceCode } from '@/middleware/auth/strategies/device-code.js'
 
-import { createMockOAuthServer } from '../helpers/mock-oauth-server.js'
-import type { DevicePollResponse, MockOAuthServer } from '../helpers/mock-oauth-server.js'
+import { createMockOAuthServer } from '../helpers/index.js'
+import type { DevicePollResponse, MockOAuthServer } from '../helpers/index.js'
 
 const CLIENT_ID = 'device-e2e-client'
 

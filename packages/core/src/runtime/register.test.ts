@@ -1,4 +1,4 @@
-import { runTestCli, setArgv, setupTestLifecycle } from '@test/core-utils.js'
+import { runTestCli, setArgv, setupTestLifecycle } from '@test/index.js'
 import { describe, expect, it, vi } from 'vitest'
 import yargs from 'yargs'
 import { z } from 'zod'

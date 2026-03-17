@@ -19,5 +19,6 @@ Comprehensive code review cleanup and refactoring across all packages:
 - Remove dead code: duplicate `formatDurationInline`, unreachable guards, passthrough wrappers
 - Remove `toErrorMessage` in favor of `toError().message`, rename `fp/predicates` to `fp/transform`
 - Replace mutation inside `.filter()` with `.reduce()` in autoload and commands
+- Fix `command.name` override being ignored during registration (map key always took precedence)
 - Add README for all published packages
 - Add 80+ tests for runtime/args (zod, parser, register)

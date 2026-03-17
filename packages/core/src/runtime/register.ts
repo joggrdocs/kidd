@@ -48,13 +48,13 @@ export function registerCommands(options: RegisterCommandsOptions): void {
 
   const sorted = sortCommandEntries({ entries: commandEntries, order })
 
-  sorted.map(([name, entry]) =>
+  sorted.map(([key, entry]) =>
     registerSingleCommand({
       builder: instance,
       cmd: entry,
       errorRef,
       instance,
-      name,
+      name: entry.name ?? key,
       parentPath,
       resolved,
     })
@@ -135,13 +135,13 @@ function registerSingleCommand(options: RegisterSingleCommandOptions): void {
 
         const sortedSubs = sortCommandEntries({ entries: subCommands, order: cmd.order })
 
-        sortedSubs.map(([subName, subEntry]) =>
+        sortedSubs.map(([subKey, subEntry]) =>
           registerSingleCommand({
             builder,
             cmd: subEntry,
             errorRef,
             instance: builder,
-            name: subName,
+            name: subEntry.name ?? subKey,
             parentPath: [...parentPath, name],
             resolved,
           })

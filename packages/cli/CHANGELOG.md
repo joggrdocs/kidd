@@ -1,5 +1,13 @@
 # kidd-cli
 
+## 0.4.4
+
+### Patch Changes
+
+- e6a1b85: Fix `packages/cli` bin field pointing to `.mjs` instead of `.js` (tsdown with `fixedExtension: false` and `"type":"module"` outputs `.js`). Add `setArgv` and `runTestCli` to the public `@kidd-cli/core/test` entry point.
+- Updated dependencies [e6a1b85]
+  - @kidd-cli/core@0.8.1
+
 ## 0.4.3
 
 ### Patch Changes

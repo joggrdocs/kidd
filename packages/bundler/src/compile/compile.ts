@@ -229,5 +229,5 @@ async function cleanBunBuildArtifacts(cwd: string): Promise<void> {
     .filter((name) => name.endsWith('.bun-build'))
     .map((name) => join(cwd, name))
 
-  await Promise.all(artifacts.map((filePath) => unlink(filePath)))
+  await Promise.allSettled(artifacts.map((filePath) => unlink(filePath)))
 }

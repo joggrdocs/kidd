@@ -95,16 +95,18 @@ describe('findProjectRoot()', () => {
   })
 
   it('returns null when no .git is found', () => {
-    const isolatedDir = join(tempDir, 'a', 'b', 'c')
-    mkdirSync(isolatedDir, { recursive: true })
+    const isolatedDir = mkdtempSync(join(tmpdir(), 'no-git-'))
 
-    const result = findProjectRoot(isolatedDir)
+    try {
+      const result = findProjectRoot(isolatedDir)
 
-    if (result === null) {
+      if (result !== null) {
+        console.warn('Skipping assertion: .git found above temp directory')
+        return
+      }
       expect(result).toBeNull()
-    } else {
-      expect(result).toHaveProperty('path')
-      expect(result).toHaveProperty('isSubmodule')
+    } finally {
+      rmSync(isolatedDir, { force: true, recursive: true })
     }
   })
 
@@ -121,11 +123,22 @@ describe('findProjectRoot()', () => {
   })
 
   it('handles .git file without gitdir match (random content)', () => {
-    writeFileSync(join(tempDir, '.git'), 'some random content that is not a gitdir reference')
+    const isolatedDir = realpathSync(mkdtempSync(join(tmpdir(), 'random-git-')))
 
-    const result = findProjectRoot(tempDir)
+    try {
+      writeFileSync(join(isolatedDir, '.git'), 'some random content that is not a gitdir reference')
 
-    expect(result === null || typeof result.path === 'string').toBeTruthy()
+      const result = findProjectRoot(isolatedDir)
+
+      // .git file with non-gitdir content returns null for that dir, traverses up
+      if (result !== null) {
+        console.warn('Skipping assertion: .git found above temp directory')
+        return
+      }
+      expect(result).toBeNull()
+    } finally {
+      rmSync(isolatedDir, { force: true, recursive: true })
+    }
   })
 
   it('handles read errors gracefully when .git file cannot be read', () => {

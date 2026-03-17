@@ -44,16 +44,18 @@ describe('resolveLocalPath()', () => {
   })
 
   it('returns null outside a git repo', () => {
-    const isolatedDir = join(tempDir, 'no', 'git')
-    mkdirSync(isolatedDir, { recursive: true })
+    const isolatedDir = realpathSync(mkdtempSync(join(tmpdir(), 'no-git-')))
 
-    const result = resolveLocalPath({ dirName: '.myapp', startDir: isolatedDir })
+    try {
+      const result = resolveLocalPath({ dirName: '.myapp', startDir: isolatedDir })
 
-    if (result === null) {
+      if (result !== null) {
+        console.warn('Skipping assertion: .git found above temp directory')
+        return
+      }
       expect(result).toBeNull()
-    } else {
-      // In case a .git exists above /tmp in the test environment
-      expect(typeof result).toBe('string')
+    } finally {
+      rmSync(isolatedDir, { force: true, recursive: true })
     }
   })
 })
@@ -111,6 +113,18 @@ describe('resolvePath()', () => {
     const result = resolvePath({ dirName: '.myapp', source: 'resolve', startDir: tempDir })
 
     expect(result).toBe(join(tempDir, '.myapp'))
+  })
+
+  it('falls back to global when local resolution fails and source is resolve', () => {
+    const isolatedDir = realpathSync(mkdtempSync(join(tmpdir(), 'no-git-')))
+
+    try {
+      const result = resolvePath({ dirName: '.myapp', source: 'resolve', startDir: isolatedDir })
+
+      expect(result).toBe(join(fakeHome, '.myapp'))
+    } finally {
+      rmSync(isolatedDir, { force: true, recursive: true })
+    }
   })
 
   it('uses resolve as the default source', () => {

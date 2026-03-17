@@ -35,16 +35,21 @@ export type ValidationResult<TValue> = Result<TValue>
  * issues and message. Otherwise, a plain `Error` with the formatted message is
  * returned.
  *
- * @param schema - The Zod schema to validate against.
- * @param params - The unknown value to validate.
- * @param createError - Optional factory invoked when validation fails.
+ * @param options - The validation options.
+ * @param options.schema - The Zod schema to validate against.
+ * @param options.params - The unknown value to validate.
+ * @param options.createError - Optional factory invoked when validation fails.
  * @returns A Result tuple - either [Error, null] on failure or [null, T] on success.
  */
-export function validate<TSchema extends ZodTypeAny>(
-  schema: TSchema,
-  params: unknown,
-  createError?: ValidationErrorFactory
-): ValidationResult<output<TSchema>> {
+export function validate<TSchema extends ZodTypeAny>({
+  schema,
+  params,
+  createError,
+}: {
+  readonly schema: TSchema
+  readonly params: unknown
+  readonly createError?: ValidationErrorFactory
+}): ValidationResult<output<TSchema>> {
   const result = schema.safeParse(params)
   if (!result.success) {
     const formatted = formatZodIssues(result.error.issues)

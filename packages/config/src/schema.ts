@@ -61,9 +61,9 @@ export const KiddConfigSchema: z.ZodType<KiddConfig> = z
  * @returns A Result tuple - `[null, KiddConfig]` on success or `[Error, null]` on failure.
  */
 export function validateConfig(data: unknown): Result<KiddConfig, Error> {
-  return validate(
-    KiddConfigSchema,
-    data,
-    ({ message }) => new Error(`Invalid kidd config:\n  ${message}`)
-  )
+  return validate({
+    schema: KiddConfigSchema,
+    params: data,
+    createError: ({ message }) => new Error(`Invalid kidd config:\n  ${message}`),
+  })
 }

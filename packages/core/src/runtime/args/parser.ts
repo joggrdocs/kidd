@@ -101,9 +101,9 @@ function validateArgs(
   if (!schema) {
     return ok(parsedArgs)
   }
-  return validate(
+  return validate({
     schema,
-    parsedArgs,
-    ({ message }) => new Error(`Invalid arguments:\n  ${message}`)
-  )
+    params: parsedArgs,
+    createError: ({ message }) => new Error(`Invalid arguments:\n  ${message}`),
+  })
 }

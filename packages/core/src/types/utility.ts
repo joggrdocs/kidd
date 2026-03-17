@@ -27,8 +27,8 @@ export type AnyRecord = Record<string, unknown>
  */
 export type DeepReadonly<TType> = TType extends (...args: unknown[]) => unknown
   ? TType
-  : TType extends readonly (infer TItem)[]
-    ? readonly DeepReadonly<TItem>[]
+  : TType extends readonly unknown[]
+    ? { readonly [Key in keyof TType]: DeepReadonly<TType[Key]> }
     : TType extends object
       ? { readonly [Key in keyof TType]: DeepReadonly<TType[Key]> }
       : TType

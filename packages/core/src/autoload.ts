@@ -4,6 +4,7 @@ import { basename, extname, join, resolve } from 'node:path'
 
 import { isPlainObject, isString } from '@kidd-cli/utils/fp'
 import { hasTag, withTag } from '@kidd-cli/utils/tag'
+import { match } from 'ts-pattern'
 
 import type { AutoloadOptions, Command, CommandMap } from './types/index.js'
 
@@ -151,17 +152,16 @@ async function importCommand(filePath: string): Promise<Command | undefined> {
  * @returns True when the module has a Command as its default export.
  */
 function isCommandExport(mod: unknown): mod is { default: Command } {
-  if (typeof mod !== 'object' || mod === null) {
-    return false
-  }
-  if (!Object.hasOwn(mod as object, 'default')) {
-    return false
-  }
-  const def: unknown = (mod as Record<string, unknown>).default
-  if (!isPlainObject(def)) {
-    return false
-  }
-  return hasTag(def, 'Command')
+  return match(mod)
+    .when(
+      (value): value is Record<string, unknown> =>
+        typeof value === 'object' && value !== null && Object.hasOwn(value as object, 'default'),
+      (value) => {
+        const def: unknown = value.default
+        return isPlainObject(def) && hasTag(def, 'Command')
+      }
+    )
+    .otherwise(() => false)
 }
 
 /**
@@ -229,17 +229,18 @@ function deduplicateCommandPairs(
   }>(
     (acc, pair) => {
       const [name] = pair
-      if (acc.seen.has(name)) {
-        console.warn(
-          `[kidd] duplicate command name "${name}" — first definition wins, later definition ignored`
-        )
-        return acc
-      }
-
-      return {
-        result: [...acc.result, pair],
-        seen: new Set([...acc.seen, name]),
-      }
+      return match(acc.seen.has(name))
+        .with(true, () => {
+          console.warn(
+            `[kidd] duplicate command name "${name}" — first definition wins, later definition ignored`
+          )
+          return acc
+        })
+        .with(false, () => ({
+          result: [...acc.result, pair],
+          seen: new Set([...acc.seen, name]),
+        }))
+        .exhaustive()
     },
     { result: [], seen: new Set<string>() }
   )

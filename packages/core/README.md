@@ -34,7 +34,7 @@ export default command({
     name: { type: 'string', description: 'Name to greet', demandOption: true },
   },
   handler: async (ctx) => {
-    ctx.logger.info(`Hello, ${ctx.options.name}!`)
+    ctx.logger.info(`Hello, ${ctx.args.name}!`)
   },
 })
 ```

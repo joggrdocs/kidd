@@ -61,16 +61,16 @@ import { match, P, isString, pipe } from '@kidd-cli/utils/fp'
 
 ## Subpath exports
 
-| Export                     | Description                              |
-| -------------------------- | ---------------------------------------- |
-| `@kidd-cli/utils`          | Core exports (Result, validate, fs, etc) |
-| `@kidd-cli/utils/fp`       | es-toolkit + ts-pattern + Result helpers |
-| `@kidd-cli/utils/fs`       | Filesystem utilities                     |
-| `@kidd-cli/utils/json`     | JSON parse/stringify with Result tuples  |
-| `@kidd-cli/utils/manifest` | package.json reader                      |
-| `@kidd-cli/utils/redact`   | Sensitive data redaction                 |
-| `@kidd-cli/utils/validate` | Zod schema validation                    |
-| `@kidd-cli/utils/tag`      | Runtime type tagging                     |
+| Export                     | Description                               |
+| -------------------------- | ----------------------------------------- |
+| `@kidd-cli/utils`          | Core exports (Result, validate, fs, etc.) |
+| `@kidd-cli/utils/fp`       | es-toolkit + ts-pattern + Result helpers  |
+| `@kidd-cli/utils/fs`       | Filesystem utilities                      |
+| `@kidd-cli/utils/json`     | JSON parse/stringify with Result tuples   |
+| `@kidd-cli/utils/manifest` | package.json reader                       |
+| `@kidd-cli/utils/redact`   | Sensitive data redaction                  |
+| `@kidd-cli/utils/validate` | Zod schema validation                     |
+| `@kidd-cli/utils/tag`      | Runtime type tagging                      |
 
 ## License
 

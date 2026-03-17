@@ -38,11 +38,11 @@ export interface CliConfigOptions<TSchema extends z.ZodType = z.ZodType> {
   /**
    * Zod schema to validate the loaded config. Infers `ctx.config` type.
    */
-  schema?: TSchema
+  readonly schema?: TSchema
   /**
    * Override the config file name. Default: derived from `name` in CliOptions.
    */
-  name?: string
+  readonly name?: string
 }
 
 /**
@@ -68,7 +68,7 @@ export interface CliOptions<TSchema extends z.ZodType = z.ZodType> {
   /**
    * CLI name. Used for help text and config file discovery.
    */
-  name: string
+  readonly name: string
   /**
    * CLI version. Enables `--version` flag.
    *
@@ -76,19 +76,19 @@ export interface CliOptions<TSchema extends z.ZodType = z.ZodType> {
    * injected by the kidd bundler. An error is raised at startup if neither
    * an explicit version nor `__KIDD_VERSION__` is available.
    */
-  version?: string
+  readonly version?: string
   /**
    * Human-readable description shown in help text.
    */
-  description?: string
+  readonly description?: string
   /**
    * Runtime config options (schema, config file name override).
    */
-  config?: CliConfigOptions<TSchema>
+  readonly config?: CliConfigOptions<TSchema>
   /**
    * Middleware stack. Executed in order before each command handler.
    */
-  middleware?: Middleware[]
+  readonly middleware?: Middleware[]
   /**
    * Override the commands source. When omitted, `cli()` loads `kidd.config.ts`
    * and autoloads from its `commands` field (falling back to `'./commands'`).
@@ -97,11 +97,11 @@ export interface CliOptions<TSchema extends z.ZodType = z.ZodType> {
    * `Promise<CommandMap>`, or a structured {@link CommandsConfig} grouping
    * the source with display ordering.
    */
-  commands?: string | CommandMap | Promise<CommandMap> | CommandsConfig
+  readonly commands?: string | CommandMap | Promise<CommandMap> | CommandsConfig
   /**
    * Help output customization (header, footer).
    */
-  help?: CliHelpOptions
+  readonly help?: CliHelpOptions
 }
 
 /**

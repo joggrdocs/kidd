@@ -164,7 +164,7 @@ const BASIC_AUTH_HEADER_PATTERN = /Authorization:\s*Basic\s+[A-Za-z0-9+/]+=*/gi
 const ANTHROPIC_API_KEY_PATTERN = /sk-ant-[\w-]{20,}/g
 
 /**
- * Matches OpenAI API keys (`sk-proj-*`, `sk-svcacct-*`, and legacy `sk-*`).
+ * Matches OpenAI API keys with `sk-proj-*` and `sk-svcacct-*` prefixes.
  * Must be ordered after Stripe/Anthropic patterns to avoid collisions.
  *
  * @private
@@ -235,7 +235,8 @@ export const SENSITIVE_PATTERNS: readonly RegExp[] = [
  */
 export function sanitize(message: string): string {
   return SENSITIVE_PATTERNS.reduce((acc, pattern) => {
-    pattern.lastIndex = 0
-    return acc.replaceAll(pattern, '[REDACTED]')
+    // oxlint-disable-next-line security/detect-non-literal-regexp -- source is a module-level constant
+    const freshPattern = new RegExp(pattern.source, pattern.flags)
+    return acc.replaceAll(freshPattern, '[REDACTED]')
   }, message)
 }

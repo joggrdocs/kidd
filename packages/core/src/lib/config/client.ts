@@ -192,11 +192,11 @@ export function createConfigClient<TSchema extends ZodTypeAny>(
       }
     }
 
-    const [validationError, validated] = validate(
+    const [validationError, validated] = validate({
       schema,
-      data,
-      ({ message }) => new Error(`Invalid config data:\n${message}`)
-    )
+      params: data,
+      createError: ({ message }) => new Error(`Invalid config data:\n${message}`),
+    })
     if (validationError) {
       return err(validationError)
     }
@@ -255,11 +255,11 @@ export function createConfigClient<TSchema extends ZodTypeAny>(
     data: unknown,
     filePath: string
   ): ConfigOperationResult<ConfigLoadResult<output<TSchema>>> {
-    const [validationError, validated] = validate(
+    const [validationError, validated] = validate({
       schema,
-      data,
-      ({ message }) => new Error(`Invalid config in ${filePath}:\n${message}`)
-    )
+      params: data,
+      createError: ({ message }) => new Error(`Invalid config in ${filePath}:\n${message}`),
+    })
     if (validationError) {
       return err(validationError)
     }

@@ -157,14 +157,14 @@ export interface CommandDef<
   /**
    * Human-readable description shown in help text.
    */
-  description?: string
+  readonly description?: string
 
   /**
    * Option (flag) definitions -- zod object schema (recommended) or yargs-native format.
    *
    * These are registered as named `--flag` options on the command.
    */
-  options?: TOptionsDef
+  readonly options?: TOptionsDef
 
   /**
    * Positional argument definitions -- zod object schema (recommended) or yargs-native format.
@@ -175,23 +175,23 @@ export interface CommandDef<
    *
    * Both `options` and `positionals` are merged into `ctx.args` at runtime.
    */
-  positionals?: TPositionalsDef
+  readonly positionals?: TPositionalsDef
 
   /**
    * Command-level middleware. Runs inside the root middleware chain, wrapping the handler.
    */
-  middleware?: TMiddleware
+  readonly middleware?: TMiddleware
 
   /**
    * Nested subcommands — a static map, a promise from `autoload()`, or a
    * structured {@link CommandsConfig} grouping the source with display order.
    */
-  commands?: CommandMap | Promise<CommandMap> | CommandsConfig
+  readonly commands?: CommandMap | Promise<CommandMap> | CommandsConfig
 
   /**
    * The command handler.
    */
-  handler?: HandlerFn<
+  readonly handler?: HandlerFn<
     InferArgsMerged<TOptionsDef, TPositionalsDef>,
     TConfig,
     InferVariables<TMiddleware>
@@ -229,7 +229,7 @@ export type Command<
  * A map of command name to resolved {@link Command}. Used for subcommands and the manifest.
  */
 export interface CommandMap {
-  [name: string]: Command
+  readonly [name: string]: Command
 }
 
 /**
@@ -239,7 +239,7 @@ export interface AutoloadOptions {
   /**
    * Directory to scan for command files. Defaults to the directory of the calling file.
    */
-  dir?: string
+  readonly dir?: string
 }
 
 /**

@@ -32,9 +32,9 @@ export function isCommand(value: unknown): value is Command {
  */
 export function registerCommands(options: RegisterCommandsOptions): void {
   const { instance, commands, resolved, parentPath, order, errorRef } = options
-  const commandEntries = Object.entries(commands).filter((pair): pair is [string, Command] =>
-    isCommand(pair[1])
-  )
+  const commandEntries = Object.entries(commands)
+    .filter((pair): pair is [string, Command] => isCommand(pair[1]))
+    .map(([key, entry]): readonly [string, Command] => [entry.name ?? key, entry])
 
   if (order && order.length > 0) {
     const commandNames = commandEntries.map(([name]) => name)
@@ -48,13 +48,13 @@ export function registerCommands(options: RegisterCommandsOptions): void {
 
   const sorted = sortCommandEntries({ entries: commandEntries, order })
 
-  sorted.map(([key, entry]) =>
+  sorted.map(([name, entry]) =>
     registerSingleCommand({
       builder: instance,
       cmd: entry,
       errorRef,
       instance,
-      name: entry.name ?? key,
+      name,
       parentPath,
       resolved,
     })
@@ -116,9 +116,9 @@ function registerSingleCommand(options: RegisterSingleCommandOptions): void {
       registerCommandArgs({ builder, options: cmd.options, positionals: cmd.positionals })
 
       if (cmd.commands) {
-        const subCommands = Object.entries(cmd.commands).filter((pair): pair is [string, Command] =>
-          isCommand(pair[1])
-        )
+        const subCommands = Object.entries(cmd.commands)
+          .filter((pair): pair is [string, Command] => isCommand(pair[1]))
+          .map(([key, entry]): readonly [string, Command] => [entry.name ?? key, entry])
 
         if (cmd.order && cmd.order.length > 0) {
           const subNames = subCommands.map(([n]) => n)
@@ -135,13 +135,13 @@ function registerSingleCommand(options: RegisterSingleCommandOptions): void {
 
         const sortedSubs = sortCommandEntries({ entries: subCommands, order: cmd.order })
 
-        sortedSubs.map(([subKey, subEntry]) =>
+        sortedSubs.map(([subName, subEntry]) =>
           registerSingleCommand({
             builder,
             cmd: subEntry,
             errorRef,
             instance: builder,
-            name: subEntry.name ?? subKey,
+            name: subName,
             parentPath: [...parentPath, name],
             resolved,
           })

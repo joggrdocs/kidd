@@ -49,6 +49,48 @@ export default command({
 })
 ```
 
+**Hidden or deprecated:**
+
+Commands can be hidden from `--help` output or marked as deprecated. Both `hidden` and `deprecated` accept a static value or a function (`Resolvable<T>`), resolved at registration time.
+
+```ts
+import { command } from '@kidd-cli/core'
+
+// Hidden from help, still executable via `mycli debug`
+export default command({
+  description: 'Internal debugging tools',
+  hidden: true,
+  handler: async (ctx) => {
+    /* ... */
+  },
+})
+
+// Deprecated with message
+export default command({
+  description: 'Deploy (legacy)',
+  deprecated: 'Use "deploy-v2" instead',
+  handler: async (ctx) => {
+    /* ... */
+  },
+})
+```
+
+Individual flags also support `hidden`, `deprecated`, and `group`:
+
+```ts
+export default command({
+  description: 'Build the project',
+  options: {
+    trace: { type: 'boolean', description: 'Enable tracing', hidden: true },
+    format: { type: 'string', description: 'Output format', group: 'Output Options:' },
+    legacy: { type: 'boolean', description: 'Legacy mode', deprecated: 'Use --modern' },
+  },
+  handler: async (ctx) => {
+    /* ... */
+  },
+})
+```
+
 **With subcommands:**
 
 Create a directory with an `index.ts` for the parent command and individual files for each subcommand:

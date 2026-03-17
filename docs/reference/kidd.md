@@ -6,7 +6,7 @@ Core CLI framework for Node.js built on yargs and Zod. Provides structured comma
 
 ### Commands
 
-A command definition pairs a description, typed options (flags), optional positionals, and a handler function.
+A command definition pairs a description, typed options (flags), optional positionals, and a handler function. Commands support visibility control via `hidden` and `deprecated` fields.
 
 ```ts
 const deploy = command({
@@ -43,14 +43,61 @@ const deploy = command({
 })
 ```
 
-| Field         | Type                                           | Description                 |
-| ------------- | ---------------------------------------------- | --------------------------- |
-| `type`        | `'string' \| 'number' \| 'boolean' \| 'array'` | Argument type               |
-| `description` | `string`                                       | Help text                   |
-| `required`    | `boolean`                                      | Whether the arg is required |
-| `default`     | `unknown`                                      | Default value               |
-| `alias`       | `string \| string[]`                           | Short aliases               |
-| `choices`     | `readonly string[]`                            | Allowed values              |
+| Field         | Type                                           | Description                                           |
+| ------------- | ---------------------------------------------- | ----------------------------------------------------- |
+| `type`        | `'string' \| 'number' \| 'boolean' \| 'array'` | Argument type                                         |
+| `description` | `string`                                       | Help text                                             |
+| `required`    | `boolean`                                      | Whether the arg is required                           |
+| `default`     | `unknown`                                      | Default value                                         |
+| `alias`       | `string \| string[]`                           | Short aliases                                         |
+| `choices`     | `readonly string[]`                            | Allowed values                                        |
+| `hidden`      | `Resolvable<boolean>`                          | Omit from `--help` output (flag still works)          |
+| `deprecated`  | `Resolvable<string \| boolean>`                | Show deprecation notice in help and on use            |
+| `group`       | `string`                                       | Group heading in help output (e.g. `'Auth Options:'`) |
+
+#### Hidden and deprecated commands
+
+Commands support `hidden` and `deprecated` fields to control visibility in help output. Both accept a static value or a function (`Resolvable<T>`), resolved once at registration time.
+
+```ts
+// Hidden command -- omitted from --help but still executable
+const debug = command({
+  description: 'Internal debugging tools',
+  hidden: true,
+  handler: async (ctx) => {
+    /* ... */
+  },
+})
+
+// Conditionally hidden based on environment
+const experimental = command({
+  description: 'Experimental feature',
+  hidden: () => process.env['NODE_ENV'] === 'production',
+  handler: async (ctx) => {
+    /* ... */
+  },
+})
+
+// Deprecated command -- shown with deprecation notice
+const oldDeploy = command({
+  description: 'Deploy (legacy)',
+  deprecated: 'Use "deploy-v2" instead',
+  handler: async (ctx) => {
+    /* ... */
+  },
+})
+```
+
+The `description` field also accepts a function for dynamic resolution:
+
+```ts
+const build = command({
+  description: () => (process.env['DEBUG'] === '1' ? 'Build (debug)' : 'Build the project'),
+  handler: async (ctx) => {
+    /* ... */
+  },
+})
+```
 
 ### Middleware
 

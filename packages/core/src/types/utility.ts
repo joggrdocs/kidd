@@ -5,6 +5,12 @@ import type { z } from 'zod'
 // ---------------------------------------------------------------------------
 
 /**
+ * A value that can be provided directly or as a zero-argument function that
+ * produces the value. Resolved once at registration time via {@link resolveValue}.
+ */
+export type Resolvable<T> = T | (() => T)
+
+/**
  * Merge two types, with TBase overriding TOverride.
  */
 export type Merge<TBase, TOverride> = Omit<TBase, keyof TOverride> & TOverride

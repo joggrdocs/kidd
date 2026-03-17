@@ -98,7 +98,10 @@ describe('registerCommandArgs()', () => {
           choices: undefined,
           default: undefined,
           demandOption: true,
+          deprecated: undefined,
           describe: 'Your name',
+          group: undefined,
+          hidden: false,
           type: 'string',
         },
       })
@@ -166,6 +169,86 @@ describe('registerCommandArgs()', () => {
     })
   })
 
+  describe('with hidden, deprecated, and group options', () => {
+    it('should register a hidden option', () => {
+      const { builder, optionCalls } = createMockBuilder()
+      const options = {
+        trace: { description: 'Enable tracing', hidden: true, type: 'boolean' as const },
+      }
+
+      registerCommandArgs({ builder, options, positionals: undefined })
+
+      expect(optionCalls[0]).toMatchObject({
+        key: 'trace',
+        opt: { hidden: true },
+      })
+    })
+
+    it('should resolve a hidden function on an option', () => {
+      const { builder, optionCalls } = createMockBuilder()
+      const options = {
+        trace: { description: 'Enable tracing', hidden: () => true, type: 'boolean' as const },
+      }
+
+      registerCommandArgs({ builder, options, positionals: undefined })
+
+      expect(optionCalls[0]).toMatchObject({
+        key: 'trace',
+        opt: { hidden: true },
+      })
+    })
+
+    it('should register a deprecated option with a message', () => {
+      const { builder, optionCalls } = createMockBuilder()
+      const options = {
+        old: { deprecated: 'Use --new instead', description: 'Old flag', type: 'string' as const },
+      }
+
+      registerCommandArgs({ builder, options, positionals: undefined })
+
+      expect(optionCalls[0]).toMatchObject({
+        key: 'old',
+        opt: { deprecated: 'Use --new instead' },
+      })
+    })
+
+    it('should resolve a deprecated function on an option', () => {
+      const { builder, optionCalls } = createMockBuilder()
+      const options = {
+        old: {
+          deprecated: () => 'removed in 2.0',
+          description: 'Old flag',
+          type: 'string' as const,
+        },
+      }
+
+      registerCommandArgs({ builder, options, positionals: undefined })
+
+      expect(optionCalls[0]).toMatchObject({
+        key: 'old',
+        opt: { deprecated: 'removed in 2.0' },
+      })
+    })
+
+    it('should register an option with a group', () => {
+      const { builder, optionCalls } = createMockBuilder()
+      const options = {
+        token: {
+          description: 'Auth token',
+          group: 'Authentication:',
+          type: 'string' as const,
+        },
+      }
+
+      registerCommandArgs({ builder, options, positionals: undefined })
+
+      expect(optionCalls[0]).toMatchObject({
+        key: 'token',
+        opt: { group: 'Authentication:' },
+      })
+    })
+  })
+
   describe('with zod positionals', () => {
     it('should register a required string positional', () => {
       const { builder, positionalCalls } = createMockBuilder()
@@ -222,6 +305,7 @@ describe('registerCommandArgs()', () => {
           choices: undefined,
           default: undefined,
           demandOption: true,
+          deprecated: undefined,
           describe: 'Input file',
           type: 'string',
         },

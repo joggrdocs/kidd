@@ -5,6 +5,7 @@ export type {
   InferSchema,
   IsAny,
   Merge,
+  Resolvable,
   StringKeyOf,
   UnionToIntersection,
 } from './utility.js'

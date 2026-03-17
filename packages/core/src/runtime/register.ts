@@ -105,70 +105,76 @@ interface RegisterCommandsOptions {
  */
 function registerSingleCommand(options: RegisterSingleCommandOptions): void {
   const { instance, name, cmd, resolved, parentPath, errorRef } = options
-  const description = cmd.description ?? ''
   const commandString = formatCommandString(name, cmd.positionals)
   const commandSpec = formatCommandSpec(commandString, cmd.aliases)
 
-  instance.command(
-    commandSpec,
-    description,
-    (builder: Argv) => {
-      registerCommandArgs({ builder, options: cmd.options, positionals: cmd.positionals })
+  const builder = (yargsBuilder: Argv): Argv => {
+    registerCommandArgs({
+      builder: yargsBuilder,
+      options: cmd.options,
+      positionals: cmd.positionals,
+    })
 
-      if (cmd.commands) {
-        const subCommands = Object.entries(cmd.commands)
-          .filter((pair): pair is [string, Command] => isCommand(pair[1]))
-          .map(([key, entry]): readonly [string, Command] => [entry.name ?? key, entry])
+    if (cmd.commands) {
+      const subCommands = Object.entries(cmd.commands)
+        .filter((pair): pair is [string, Command] => isCommand(pair[1]))
+        .map(([key, entry]): readonly [string, Command] => [entry.name ?? key, entry])
 
-        if (cmd.order && cmd.order.length > 0) {
-          const subNames = subCommands.map(([n]) => n)
-          const [validationError] = validateCommandOrder({
-            commandNames: subNames,
-            order: cmd.order,
-          })
-          if (validationError && errorRef) {
-            // Intentional mutation: errorRef is a mutable holder for deferred error reporting.
-            errorRef.error = validationError
-            return builder
-          }
-        }
-
-        const sortedSubs = sortCommandEntries({ entries: subCommands, order: cmd.order })
-
-        sortedSubs.map(([subName, subEntry]) =>
-          registerSingleCommand({
-            builder,
-            cmd: subEntry,
-            errorRef,
-            instance: builder,
-            name: subName,
-            parentPath: [...parentPath, name],
-            resolved,
-          })
-        )
-
-        if (cmd.handler) {
-          builder.demandCommand(0)
-        } else {
-          builder.demandCommand(1, 'You must specify a subcommand.')
+      if (cmd.order && cmd.order.length > 0) {
+        const subNames = subCommands.map(([n]) => n)
+        const [validationError] = validateCommandOrder({
+          commandNames: subNames,
+          order: cmd.order,
+        })
+        if (validationError && errorRef) {
+          // Intentional mutation: errorRef is a mutable holder for deferred error reporting.
+          errorRef.error = validationError
+          return yargsBuilder
         }
       }
 
-      return builder
-    },
-    () => {
-      // Intentional mutation: yargs callback model requires mutable ref capture.
-      // The `as` casts are accepted exceptions — generic handler/middleware types
-      // Cannot be narrowed further inside the yargs callback boundary.
-      resolved.ref = {
-        commandPath: [...parentPath, name],
-        handler: cmd.handler as ((ctx: Context) => Promise<void> | void) | undefined,
-        middleware: (cmd.middleware ?? []) as Middleware[],
-        options: cmd.options,
-        positionals: cmd.positionals,
+      const sortedSubs = sortCommandEntries({ entries: subCommands, order: cmd.order })
+
+      sortedSubs.map(([subName, subEntry]) =>
+        registerSingleCommand({
+          builder: yargsBuilder,
+          cmd: subEntry,
+          errorRef,
+          instance: yargsBuilder,
+          name: subName,
+          parentPath: [...parentPath, name],
+          resolved,
+        })
+      )
+
+      if (cmd.handler) {
+        yargsBuilder.demandCommand(0)
+      } else {
+        yargsBuilder.demandCommand(1, 'You must specify a subcommand.')
       }
     }
-  )
+
+    return yargsBuilder
+  }
+
+  const handler = (): void => {
+    // Intentional mutation: yargs callback model requires mutable ref capture.
+    // The `as` casts are accepted exceptions — generic handler/middleware types
+    // Cannot be narrowed further inside the yargs callback boundary.
+    resolved.ref = {
+      commandPath: [...parentPath, name],
+      handler: cmd.handler as ((ctx: Context) => Promise<void> | void) | undefined,
+      middleware: (cmd.middleware ?? []) as Middleware[],
+      options: cmd.options,
+      positionals: cmd.positionals,
+    }
+  }
+
+  if (cmd.hidden === true) {
+    instance.command(commandSpec, false, builder, handler, [], cmd.deprecated)
+  } else {
+    instance.command(commandSpec, cmd.description ?? '', builder, handler, [], cmd.deprecated)
+  }
 }
 
 /**

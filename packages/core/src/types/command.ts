@@ -3,7 +3,7 @@ import type { z } from 'zod'
 
 import type { Context } from '../context/types.js'
 import type { InferVariables, Middleware, MiddlewareEnv } from './middleware.js'
-import type { AnyRecord } from './utility.js'
+import type { AnyRecord, Resolvable } from './utility.js'
 
 // ---------------------------------------------------------------------------
 // Command types
@@ -20,6 +20,20 @@ export interface YargsArgDef {
   readonly default?: unknown
   readonly alias?: string | string[]
   readonly choices?: readonly string[]
+  /**
+   * When `true`, the flag is omitted from help output but remains functional.
+   * Accepts a boolean or a function that returns a boolean, resolved at registration time.
+   */
+  readonly hidden?: Resolvable<boolean>
+  /**
+   * Marks the flag as deprecated. A string value is used as the deprecation message;
+   * `true` uses a default message. Resolved at registration time.
+   */
+  readonly deprecated?: Resolvable<string | boolean>
+  /**
+   * Group heading under which this flag appears in help output.
+   */
+  readonly group?: string
 }
 
 /**
@@ -156,8 +170,23 @@ export interface CommandDef<
 
   /**
    * Human-readable description shown in help text.
+   * Accepts a string or a function that returns a string, resolved at registration time.
    */
-  readonly description?: string
+  readonly description?: Resolvable<string>
+
+  /**
+   * When `true`, the command is omitted from help output but remains executable.
+   * Accepts a boolean or a function that returns a boolean, resolved at registration time.
+   */
+  readonly hidden?: Resolvable<boolean>
+
+  /**
+   * Marks the command as deprecated. When set, yargs displays the command with
+   * a deprecation notice in help output and prints a warning when invoked.
+   * A string value is used as the deprecation message; `true` uses a default message.
+   * Accepts a static value or a function, resolved at registration time.
+   */
+  readonly deprecated?: Resolvable<string | boolean>
 
   /**
    * Option (flag) definitions -- zod object schema (recommended) or yargs-native format.
@@ -211,6 +240,8 @@ export type Command<
     readonly name?: string
     readonly aliases?: readonly string[]
     readonly description?: string
+    readonly hidden?: boolean
+    readonly deprecated?: string | boolean
     readonly options?: TOptionsDef
     readonly positionals?: TPositionalsDef
     readonly middleware?: TMiddleware

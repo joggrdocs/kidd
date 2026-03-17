@@ -91,7 +91,56 @@ const deploy = command({
 
 Root middleware wraps command middleware, which wraps the handler. See [Lifecycle](../concepts/lifecycle.md) for the full execution model.
 
-### 4. Add subcommands
+### 4. Hide or deprecate commands
+
+Commands support `hidden` and `deprecated` fields for controlling help output visibility. Both accept a static value or a function (`Resolvable<T>`), resolved once at registration time.
+
+```ts
+// Hidden from --help but still callable
+const debug = command({
+  description: 'Internal debugging tools',
+  hidden: true,
+  handler: async (ctx) => {
+    /* ... */
+  },
+})
+
+// Conditionally hidden based on environment
+const experimental = command({
+  description: 'Experimental feature',
+  hidden: () => process.env['NODE_ENV'] === 'production',
+  handler: async (ctx) => {
+    /* ... */
+  },
+})
+
+// Deprecated command with message
+const legacyDeploy = command({
+  description: 'Deploy (legacy)',
+  deprecated: 'Use "deploy-v2" instead',
+  handler: async (ctx) => {
+    /* ... */
+  },
+})
+```
+
+Individual flags also support `hidden`, `deprecated`, and `group` for organizing help output:
+
+```ts
+const build = command({
+  description: 'Build the project',
+  options: {
+    trace: { type: 'boolean', description: 'Enable tracing', hidden: true },
+    output: { type: 'string', description: 'Output dir', group: 'Build Options:' },
+    legacy: { type: 'boolean', description: 'Legacy mode', deprecated: 'Use --modern' },
+  },
+  handler: async (ctx) => {
+    /* ... */
+  },
+})
+```
+
+### 5. Add subcommands
 
 Commands can contain nested subcommands:
 
@@ -105,7 +154,7 @@ const generate = command({
 })
 ```
 
-### 5. Autoload commands from a directory
+### 6. Autoload commands from a directory
 
 Dynamically discover commands at runtime:
 
@@ -121,7 +170,7 @@ cli({
 })
 ```
 
-### 6. Add typed config
+### 7. Add typed config
 
 Scaffold config setup with the CLI, or create the files manually.
 
@@ -192,7 +241,7 @@ const config = createConfigClient({ name: 'my-app', schema: MySchema })
 const [error, result] = await config.load()
 ```
 
-### 7. Use sub-exports
+### 8. Use sub-exports
 
 kidd exposes focused utilities through sub-exports.
 

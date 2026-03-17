@@ -206,6 +206,117 @@ describe('command ordering', () => {
   })
 })
 
+describe('hidden and deprecated commands', () => {
+  it('should register a hidden command with false as description', () => {
+    const commands: CommandMap = {
+      secret: command({ description: 'Internal only', hidden: true }),
+    }
+
+    const resolved: ResolvedRef = { ref: undefined }
+    const instance = yargs([])
+
+    const registeredDescriptions: (string | false)[] = []
+    const originalCommand = instance.command.bind(instance)
+    vi.spyOn(instance, 'command').mockImplementation(
+      (_name: unknown, desc: unknown, ...rest: unknown[]) => {
+        registeredDescriptions.push(desc as string | false)
+        return originalCommand(_name as string, desc as string, ...(rest as []))
+      }
+    )
+
+    registerCommands({
+      commands,
+      instance,
+      parentPath: [],
+      resolved,
+    })
+
+    expect(registeredDescriptions).toEqual([false])
+  })
+
+  it('should register a visible command with its description', () => {
+    const commands: CommandMap = {
+      visible: command({ description: 'A visible command', hidden: false }),
+    }
+
+    const resolved: ResolvedRef = { ref: undefined }
+    const instance = yargs([])
+
+    const registeredDescriptions: (string | false)[] = []
+    const originalCommand = instance.command.bind(instance)
+    vi.spyOn(instance, 'command').mockImplementation(
+      (_name: unknown, desc: unknown, ...rest: unknown[]) => {
+        registeredDescriptions.push(desc as string | false)
+        return originalCommand(_name as string, desc as string, ...(rest as []))
+      }
+    )
+
+    registerCommands({
+      commands,
+      instance,
+      parentPath: [],
+      resolved,
+    })
+
+    expect(registeredDescriptions).toEqual(['A visible command'])
+  })
+
+  it('should pass deprecated to yargs', () => {
+    const commands: CommandMap = {
+      old: command({ deprecated: 'Use new-cmd instead', description: 'Old command' }),
+    }
+
+    const resolved: ResolvedRef = { ref: undefined }
+    const instance = yargs([])
+
+    const registeredDeprecated: (string | boolean | undefined)[] = []
+    const originalCommand = instance.command.bind(instance)
+    vi.spyOn(instance, 'command').mockImplementation(
+      (
+        _name: unknown,
+        _desc: unknown,
+        _builder: unknown,
+        _handler: unknown,
+        _mw: unknown,
+        deprecated: unknown,
+        ...rest: unknown[]
+      ) => {
+        registeredDeprecated.push(deprecated as string | boolean | undefined)
+        return originalCommand(_name as string, _desc as string, ...(rest as []))
+      }
+    )
+
+    registerCommands({
+      commands,
+      instance,
+      parentPath: [],
+      resolved,
+    })
+
+    expect(registeredDeprecated).toEqual(['Use new-cmd instead'])
+  })
+
+  it('should execute a hidden command handler', async () => {
+    const handler = vi.fn()
+    const commands: CommandMap = {
+      debug: command({
+        description: 'Debug command',
+        handler,
+        hidden: true,
+      }),
+    }
+
+    setArgv('debug')
+    await runTestCli({
+      commands,
+      name: 'test-cli',
+      version: '1.0.0',
+    })
+
+    expect(handler).toHaveBeenCalledTimes(1)
+  })
+})
+
 describe('AutoloadMarker handling', () => {
   it('skips AutoloadMarker entries in command map', async () => {
     const handler = vi.fn()

@@ -1,7 +1,7 @@
 import type { Argv, Options as YargsOptions, PositionalOptions } from 'yargs'
 import type { z } from 'zod'
 
-import type { ArgsDef, YargsArgDef } from '@/types/index.js'
+import type { ArgsDef, Resolvable, YargsArgDef } from '@/types/index.js'
 
 import {
   isZodSchema,
@@ -92,7 +92,10 @@ function yargsArgDefToOption(def: YargsArgDef): YargsOptions {
     choices: def.choices,
     default: def.default,
     demandOption: def.required ?? false,
+    deprecated: resolveValue(def.deprecated),
     describe: def.description,
+    group: def.group,
+    hidden: resolveValue(def.hidden) ?? false,
     type: def.type,
   }
 }
@@ -112,4 +115,19 @@ function yargsArgDefToPositional(def: YargsArgDef): PositionalOptions {
     describe: def.description,
     type: resolvePositionalType(def.type),
   }
+}
+
+/**
+ * Resolve a {@link Resolvable} value by invoking it if it is a function,
+ * or returning the value directly.
+ *
+ * @private
+ * @param value - A static value or zero-argument factory function.
+ * @returns The resolved value, or `undefined` when the input is `undefined`.
+ */
+function resolveValue<T>(value: Resolvable<T> | undefined): T | undefined {
+  if (typeof value === 'function') {
+    return (value as () => T)()
+  }
+  return value
 }

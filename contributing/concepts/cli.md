@@ -10,13 +10,17 @@ kidd uses [yargs](https://yargs.js.org) for command routing and [`@clack/prompts
 
 Commands are created with the `command()` factory. Each command defines a description, optional args schema, optional subcommands, and a handler function.
 
-| Property      | Type                                      | Description                                           |
-| ------------- | ----------------------------------------- | ----------------------------------------------------- |
-| `description` | `string`                                  | Shown in `--help` output                              |
-| `args`        | `z.ZodObject` or `YargsArgDef`            | Optional Zod schema or yargs-native arg definitions   |
-| `middleware`  | `Middleware[]`                            | Optional command-level middleware (wraps the handler) |
-| `commands`    | `CommandMap` or `Promise<CommandMap>`     | Optional nested subcommands (static or lazy-loaded)   |
-| `handler`     | `(ctx: Context) => Promise<void> \| void` | Command execution function                            |
+| Property      | Type                                      | Description                                                    |
+| ------------- | ----------------------------------------- | -------------------------------------------------------------- |
+| `description` | `Resolvable<string>`                      | Shown in `--help` output (string or function returning string) |
+| `hidden`      | `Resolvable<boolean>`                     | Omit from help output (command still works)                    |
+| `deprecated`  | `Resolvable<string \| boolean>`           | Deprecation notice in help and on use                          |
+| `args`        | `z.ZodObject` or `YargsArgDef`            | Optional Zod schema or yargs-native arg definitions            |
+| `middleware`  | `Middleware[]`                            | Optional command-level middleware (wraps the handler)          |
+| `commands`    | `CommandMap` or `Promise<CommandMap>`     | Optional nested subcommands (static or lazy-loaded)            |
+| `handler`     | `(ctx: Context) => Promise<void> \| void` | Command execution function                                     |
+
+`Resolvable<T>` means the field accepts either a static value or a zero-argument function that returns the value. Functions are resolved once at registration time.
 
 ### With Zod args
 
@@ -45,6 +49,37 @@ export default command({
   description: 'List available scripts',
   handler: async (ctx) => {
     process.stdout.write(ctx.format.table(scripts))
+  },
+})
+```
+
+### Hidden and deprecated
+
+```ts
+// Hidden from --help but still executable
+export default command({
+  description: 'Internal debug tools',
+  hidden: true,
+  handler: async (ctx) => {
+    /* ... */
+  },
+})
+
+// Conditionally hidden
+export default command({
+  description: 'Experimental feature',
+  hidden: () => process.env['NODE_ENV'] === 'production',
+  handler: async (ctx) => {
+    /* ... */
+  },
+})
+
+// Deprecated with message
+export default command({
+  description: 'Deploy (legacy)',
+  deprecated: 'Use "deploy-v2" instead',
+  handler: async (ctx) => {
+    /* ... */
   },
 })
 ```

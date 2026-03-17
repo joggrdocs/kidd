@@ -96,6 +96,37 @@ describe('command()', () => {
     expect(cmd.order).toEqual(['production', 'preview'])
   })
 
+  it('should preserve a static hidden value', () => {
+    const cmd = command({ description: 'secret', hidden: true })
+    expect(cmd.hidden).toBeTruthy()
+  })
+
+  it('should resolve a hidden function', () => {
+    const cmd = command({ description: 'secret', hidden: () => true })
+    expect(cmd.hidden).toBeTruthy()
+  })
+
+  it('should preserve a static deprecated string', () => {
+    const cmd = command({ deprecated: 'Use deploy-v2 instead', description: 'old' })
+    expect(cmd.deprecated).toBe('Use deploy-v2 instead')
+  })
+
+  it('should resolve a deprecated function', () => {
+    const cmd = command({ deprecated: () => 'removed in 2.0', description: 'old' })
+    expect(cmd.deprecated).toBe('removed in 2.0')
+  })
+
+  it('should resolve a description function', () => {
+    const cmd = command({ description: () => 'computed description' })
+    expect(cmd.description).toBe('computed description')
+  })
+
+  it('should default hidden and deprecated to undefined when omitted', () => {
+    const cmd = command({ description: 'normal' })
+    expect(cmd.hidden).toBeUndefined()
+    expect(cmd.deprecated).toBeUndefined()
+  })
+
   it('normalizes CommandsConfig with path and order', () => {
     const cmd = command({
       commands: {

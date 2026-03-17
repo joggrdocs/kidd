@@ -7,6 +7,7 @@ import type {
   CommandsConfig,
   Middleware,
   MiddlewareEnv,
+  Resolvable,
   Command as CommandType,
 } from './types/index.js'
 
@@ -51,10 +52,36 @@ export function command<
   const TMiddleware extends readonly Middleware<MiddlewareEnv>[] =
     readonly Middleware<MiddlewareEnv>[],
 >(def: CommandDef<TOptionsDef, TPositionalsDef, TConfig, TMiddleware>): CommandType {
-  return match(def.commands)
+  const resolved = {
+    ...def,
+    deprecated: resolveValue(def.deprecated),
+    description: resolveValue(def.description),
+    hidden: resolveValue(def.hidden),
+  }
+
+  return match(resolved.commands)
     .when(isCommandsConfig, (cfg) => {
       const { order, commands: innerCommands } = cfg
-      return withTag({ ...def, commands: innerCommands, order }, 'Command') as CommandType
+      return withTag({ ...resolved, commands: innerCommands, order }, 'Command') as CommandType
     })
-    .otherwise(() => withTag({ ...def }, 'Command') as CommandType)
+    .otherwise(() => withTag({ ...resolved }, 'Command') as CommandType)
+}
+
+// ---------------------------------------------------------------------------
+// Private
+// ---------------------------------------------------------------------------
+
+/**
+ * Resolve a {@link Resolvable} value by invoking it if it is a function,
+ * or returning the value directly.
+ *
+ * @private
+ * @param value - A static value or zero-argument factory function.
+ * @returns The resolved value, or `undefined` when the input is `undefined`.
+ */
+function resolveValue<T>(value: Resolvable<T> | undefined): T | undefined {
+  if (typeof value === 'function') {
+    return (value as () => T)()
+  }
+  return value
 }

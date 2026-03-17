@@ -19,7 +19,7 @@
     "directory": "packages/cli"
   },
   "bin": {
-    "kidd": "./dist/index.mjs"
+    "kidd": "./dist/index.js"
   },
   "files": [
     "dist"

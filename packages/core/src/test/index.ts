@@ -1,3 +1,4 @@
+export { runTestCli, setArgv } from './cli.js'
 export { createWritableCapture } from './capture.js'
 export type { WritableCapture } from './capture.js'
 export { runCommand, stripAnsi } from './command.js'

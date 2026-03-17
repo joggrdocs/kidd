@@ -1,6 +1,3 @@
-/**
- * Re-exports test utilities from `@kidd-cli/core/test` for internal test use.
- */
 export {
   createTestContext,
   createWritableCapture,
@@ -13,7 +10,7 @@ export {
   setArgv,
   setupTestLifecycle,
   stripAnsi,
-} from '@/test/index.js'
+} from '@kidd-cli/core/test'
 export type {
   CommandResult,
   HandlerResult,
@@ -26,4 +23,4 @@ export type {
   TestContextResult,
   TestLifecycle,
   WritableCapture,
-} from '@/test/index.js'
+} from '@kidd-cli/core/test'

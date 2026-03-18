@@ -1,4 +1,4 @@
-import { execSync } from 'node:child_process'
+import { spawnSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 
 const EXAMPLES_DIR = fileURLToPath(new URL('../examples', import.meta.url))
@@ -20,10 +20,13 @@ export function createExampleRunner({
 }): (...args: readonly string[]) => string {
   const cwd = `${EXAMPLES_DIR}/${example}`
 
-  return (...args: readonly string[]): string =>
-    execSync(`node ${distPath} ${args.join(' ')} 2>&1`, {
+  return (...args: readonly string[]): string => {
+    const result = spawnSync('node', [distPath, ...args], {
       cwd,
       encoding: 'utf8',
       timeout: 10_000,
     })
+
+    return `${result.stdout}${result.stderr}`
+  }
 }

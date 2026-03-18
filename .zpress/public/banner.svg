@@ -1,0 +1,63 @@
+<!-- zpress-generated -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 422">
+  <defs>
+    <style>
+      .text { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', Consolas, monospace; }
+      .code { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', Consolas, monospace; font-size: 12px; }
+      .brand { fill: #a78bfa; }
+      .dim { fill: #6c7086; }
+      .tx { fill: #cdd6f4; }
+      .st { fill: #a6e3a1; }
+      .prompt { fill: #89b4fa; }
+      .tab { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', Consolas, monospace; font-size: 11px; fill: #cdd6f4; }
+    </style>
+  </defs>
+
+  <!-- Background -->
+  <rect width="600" height="422" rx="10" ry="10" fill="#1e1e2e" />
+
+  <!-- Title bar -->
+  <rect width="600" height="36" rx="10" ry="10" fill="#181825" />
+  <rect y="26" width="600" height="10" fill="#181825" />
+
+  <!-- Traffic lights -->
+  <circle cx="20" cy="18" r="6" fill="#f38ba8" />
+  <circle cx="40" cy="18" r="6" fill="#f9e2af" />
+  <circle cx="60" cy="18" r="6" fill="#a6e3a1" />
+
+  <!-- Title bar text -->
+  <text class="text dim" font-size="12" x="300" y="22" text-anchor="middle">kidd</text>
+
+  <!-- ASCII art -->
+  <g transform="translate(195, 0)">
+    <text class="text brand" font-size="13" y="62" xml:space="preserve">██╗  ██╗██╗██████╗ ██████╗ </text>
+    <text class="text brand" font-size="13" y="78" xml:space="preserve">██║ ██╔╝██║██╔══██╗██╔══██╗</text>
+    <text class="text brand" font-size="13" y="94" xml:space="preserve">█████╔╝ ██║██║  ██║██║  ██║</text>
+    <text class="text brand" font-size="13" y="110" xml:space="preserve">██╔═██╗ ██║██║  ██║██║  ██║</text>
+    <text class="text brand" font-size="13" y="126" xml:space="preserve">██║  ██╗██║██████╔╝██████╔╝</text>
+    <text class="text brand" font-size="13" y="142" xml:space="preserve">╚═╝  ╚═╝╚═╝╚═════╝ ╚═════╝ </text>
+  </g>
+
+  <!-- Tagline -->
+  <text class="text dim" font-size="12" x="300" y="166" text-anchor="middle">Convention over configuration, end-to-end type safety.</text>
+
+  <!-- Separator -->
+  <line x1="16" y1="182" x2="584" y2="182" stroke="#313244" stroke-width="1" />
+
+  <!-- Terminal tab -->
+  <rect x="4" y="186" width="80" height="24" rx="4" ry="4" fill="#181825" />
+  <text class="tab" x="18" y="202">terminal</text>
+
+  <!-- CLI output -->
+  <text class="code" x="18" y="230"><tspan class="prompt">~</tspan><tspan class="dim"> $ </tspan><tspan class="tx">kidd dev</tspan></text>
+
+  <text class="code" x="18" y="258"><tspan class="dim">Starting </tspan><tspan class="brand">kidd</tspan><tspan class="dim">...</tspan></text>
+
+  <text class="code" x="18" y="282" xml:space="preserve"><tspan class="st">  ✓</tspan><tspan class="tx"> Loaded config</tspan></text>
+  <text class="code" x="18" y="298" xml:space="preserve"><tspan class="st">  ✓</tspan><tspan class="tx"> Built 24 pages</tspan></text>
+  <text class="code" x="18" y="314" xml:space="preserve"><tspan class="st">  ✓</tspan><tspan class="tx"> Generated sidebar</tspan></text>
+  <text class="code" x="18" y="330" xml:space="preserve"><tspan class="st">  ✓</tspan><tspan class="tx"> Ready — dev server on :5173</tspan></text>
+
+  <!-- New prompt with cursor -->
+  <text class="code" x="18" y="362"><tspan class="prompt">~</tspan><tspan class="dim"> $ </tspan><tspan class="tx">&#x2588;</tspan></text>
+</svg>

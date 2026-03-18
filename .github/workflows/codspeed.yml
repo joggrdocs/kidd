@@ -16,7 +16,7 @@ permissions:
 jobs:
   benchmarks:
     name: Benchmarks
-    runs-on: ubuntu-latest
+    runs-on: codspeed-macro
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
@@ -42,5 +42,5 @@ jobs:
       - name: Run Benchmarks
         uses: CodSpeedHQ/action@v4
         with:
-          mode: simulation
+          mode: walltime
           run: pnpm test:bench

@@ -1,10 +1,24 @@
 # @kidd-cli/bundler
 
+## 0.2.3
+
+### Patch Changes
+
+- 2667bab: fix(packages/core,packages/bundler): exclude .d.ts files from command autoloader
+
+  The `isCommandFile` and `findIndexEntry` functions used `extname()` to check
+  file extensions, but `extname('build.d.ts')` returns `'.ts'`, causing `.d.ts`
+  declaration files to pass the filter. When `@kidd-cli/cli` is installed under
+  `node_modules` and its `dist/commands/` directory contains `.d.ts` files, the
+  runtime autoloader attempts to `import()` them, triggering a Node 24 type
+  stripping error for files under `node_modules`.
+
 ## 0.2.2
 
 ### Patch Changes
 
 - 0d0c61f: Comprehensive code review cleanup and refactoring across all packages:
+
   - Reorganize bundler into `build/`, `compile/`, `autoloader/`, `config/` subdirectories
   - Split core `types.ts` into `types/utility`, `types/middleware`, `types/command`, `types/cli`
   - Create shared `tsdown.base.mjs` config for all packages

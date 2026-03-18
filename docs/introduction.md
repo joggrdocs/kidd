@@ -16,7 +16,6 @@ kidd is an opinionated CLI framework for Node.js. It gives you typed commands, m
 | --- | --- |
 | [`@kidd-cli/core`](/reference/kidd) | Commands, middleware, config, context, auth, HTTP, and icons |
 | [`@kidd-cli/cli`](/reference/cli) | Scaffolding, building, diagnostics, and code generation |
-| `@kidd-cli/config` | Configuration loading, validation, and schema (internal) |
 
 ## Next steps
 

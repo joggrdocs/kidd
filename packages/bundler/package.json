@@ -44,11 +44,11 @@
     "@kidd-cli/utils": "workspace:*",
     "es-toolkit": "catalog:",
     "ts-pattern": "catalog:",
+    "tsdown": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {
     "@types/node": "catalog:",
-    "tsdown": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
   }

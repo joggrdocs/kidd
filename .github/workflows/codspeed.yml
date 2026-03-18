@@ -40,7 +40,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build benchmark examples
-        run: turbo run build --filter=@examples/icons
+        run: pnpm turbo run build --filter=@examples/icons
 
       - name: Run Benchmarks
         uses: CodSpeedHQ/action@v4

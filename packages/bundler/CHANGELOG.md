@@ -1,5 +1,11 @@
 # @kidd-cli/bundler
 
+## 0.2.4
+
+### Patch Changes
+
+- c8dd951: Move tsdown from devDependencies to dependencies to fix runtime module resolution
+
 ## 0.2.3
 
 ### Patch Changes

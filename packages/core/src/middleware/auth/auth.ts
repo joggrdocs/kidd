@@ -1,9 +1,11 @@
 import { join } from 'node:path'
 
+import { P, isNil, match } from '@kidd-cli/utils/fp'
+
 import { decorateContext } from '@/context/decorate.js'
 import type { Context } from '@/context/types.js'
 import { middleware } from '@/middleware.js'
-import type { Middleware, ResolvedDirs } from '@/types/index.js'
+import type { DirsConfig, Middleware, ResolvedDirs } from '@/types/index.js'
 
 import { DEFAULT_AUTH_FILENAME } from './constants.js'
 import { createAuthContext } from './context.js'
@@ -68,11 +70,11 @@ export interface AuthFactory {
  * @returns A Middleware that decorates ctx.auth.
  */
 function createAuth(options: AuthOptions): Middleware {
-  const { strategies, validate, dirName } = options
+  const { strategies, validate, dirs: authDirs } = options
 
   return middleware((ctx, next) => {
     const cliName = ctx.meta.name
-    const dirs = resolveAuthDirs(ctx.meta.dirs, dirName)
+    const dirs = resolveAuthDirs(ctx.meta.dirs, authDirs)
 
     const authContext = createAuthContext({
       cliName,
@@ -250,20 +252,28 @@ function resolveStoredCredential(
 /**
  * Resolve the effective auth directories from meta dirs and optional override.
  *
- * When `dirName` is provided (auth-level override), it replaces both
- * local and global directory names.
+ * When auth-level dir overrides are provided, they are merged onto the
+ * meta dirs — only the fields specified in the override are replaced.
+ * When no override is provided, the meta dirs are used as-is.
  *
  * @private
  * @param metaDirs - The resolved dirs from `ctx.meta.dirs`.
- * @param dirName - Optional auth-level directory name override.
+ * @param authDirs - Optional auth-level directory overrides.
  * @returns Resolved dirs for auth operations.
  */
-function resolveAuthDirs(metaDirs: ResolvedDirs, dirName: string | undefined): ResolvedDirs {
-  if (dirName !== undefined) {
-    return { global: dirName, local: dirName }
+function resolveAuthDirs(metaDirs: ResolvedDirs, authDirs: DirsConfig | undefined): ResolvedDirs {
+  if (isNil(authDirs)) {
+    return metaDirs
   }
 
-  return metaDirs
+  return {
+    global: match(authDirs.global)
+      .with(P.nullish, () => metaDirs.global)
+      .otherwise((v) => v),
+    local: match(authDirs.local)
+      .with(P.nullish, () => metaDirs.local)
+      .otherwise((v) => v),
+  }
 }
 
 /**

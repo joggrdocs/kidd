@@ -1,5 +1,7 @@
 import type { AsyncResult } from '@kidd-cli/utils/fp'
 
+import type { DirsConfig } from '@/types/index.js'
+
 // ---------------------------------------------------------------------------
 // Auth credentials
 // ---------------------------------------------------------------------------
@@ -257,13 +259,13 @@ export type CustomStrategyFn = () => Promise<AuthCredential | null> | AuthCreden
  *
  * @property strategies - Ordered list of credential sources to try via `login()`.
  * @property validate - Optional callback to validate a credential before persisting.
- * @property dirName - Override the directory name for auth file storage. When set,
- *   overrides `ctx.meta.dirs` for both local and global auth resolution.
+ * @property dirs - Override directory names for auth file storage. Partially overrides
+ *   `ctx.meta.dirs` — only the fields you specify are replaced.
  */
 export interface AuthOptions {
   readonly strategies: readonly StrategyConfig[]
   readonly validate?: ValidateCredential
-  readonly dirName?: string
+  readonly dirs?: DirsConfig
 }
 
 // ---------------------------------------------------------------------------

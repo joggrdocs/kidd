@@ -212,6 +212,23 @@ describe('autoload()', () => {
     expect(result['deploy'].description).toBe('Deploy app')
   })
 
+  it('should ignore .d.ts declaration files', async () => {
+    mockedReaddir.mockResolvedValue([
+      makeDirent('build.d.ts', true),
+      makeDirent('init.d.ts', true),
+      makeDirent('init.ts', true),
+    ] as unknown as Dirent[])
+
+    vi.doMock('/tmp/commands/init.ts', () => ({
+      default: withTag({ description: 'Init' }, 'Command'),
+    }))
+
+    const result = await autoload({ dir: '/tmp/commands' })
+
+    expect(Object.keys(result)).toStrictEqual(['init'])
+    expect(hasTag(result['init'], 'Command')).toBeTruthy()
+  })
+
   it('should ignore non-ts/js files', async () => {
     mockedReaddir.mockResolvedValue([
       makeDirent('readme.md', true),

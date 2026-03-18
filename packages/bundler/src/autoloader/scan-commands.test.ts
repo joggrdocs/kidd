@@ -153,6 +153,19 @@ describe('scan commands directory', () => {
     expect(cloud?.files).toHaveLength(2)
   })
 
+  it('should skip .d.ts declaration files', async () => {
+    vi.mocked(readdir).mockResolvedValueOnce([
+      makeDirent('build.d.ts', true),
+      makeDirent('init.d.ts', true),
+      makeDirent('status.ts', true),
+    ] as Dirent[])
+
+    const result = await scanCommandsDir('/project/commands')
+
+    expect(result.files).toHaveLength(1)
+    expect(result.files[0]?.name).toBe('status')
+  })
+
   it('should handle .mjs extension', async () => {
     vi.mocked(readdir).mockResolvedValueOnce([makeDirent('status.mjs', true)] as Dirent[])
 

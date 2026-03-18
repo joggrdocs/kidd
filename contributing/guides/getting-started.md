@@ -42,7 +42,7 @@ pnpm test
 
 Read the project docs in this order:
 
-1. [`CLAUDE.md`](../../CLAUDE.md) -- tech stack, project structure, available commands
+1. [`CLAUDE.md`](https://github.com/joggrdocs/kidd/blob/main/CLAUDE.md) -- tech stack, project structure, available commands
 2. [`contributing/concepts/architecture.md`](../concepts/architecture.md) -- system layers, packages, and data flow
 3. [`contributing/concepts/cli.md`](../concepts/cli.md) -- commands, context, middleware, and error flow
 4. Relevant standards in [`contributing/standards/`](../standards/) as needed
@@ -97,5 +97,5 @@ pnpm install
 ## References
 
 - [Architecture](../concepts/architecture.md)
-- [CONTRIBUTING.md](../../CONTRIBUTING.md)
-- [CLAUDE.md](../../CLAUDE.md)
+- [CONTRIBUTING.md](https://github.com/joggrdocs/kidd/blob/main/CONTRIBUTING.md)
+- [CLAUDE.md](https://github.com/joggrdocs/kidd/blob/main/CLAUDE.md)

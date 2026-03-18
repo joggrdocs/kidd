@@ -145,4 +145,11 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
-.vercel
+
+# vercel
+.vercel/
+
+# zpress
+.zpress/content/
+.zpress/dist/
+.zpress/cache/

@@ -349,11 +349,24 @@ function resolveDirs(name: string, dirs: DirsConfig | undefined): ResolvedDirs {
   return {
     global: match(dirs.global)
       .with(P.nullish, () => defaultDir)
+      .when(isEmptyString, () => defaultDir)
       .otherwise((v) => v),
     local: match(dirs.local)
       .with(P.nullish, () => defaultDir)
+      .when(isEmptyString, () => defaultDir)
       .otherwise((v) => v),
   }
+}
+
+/**
+ * Check whether a value is an empty string (after trimming whitespace).
+ *
+ * @private
+ * @param value - The value to check.
+ * @returns True when the value is an empty or whitespace-only string.
+ */
+function isEmptyString(value: string): boolean {
+  return value.trim().length === 0
 }
 
 /**

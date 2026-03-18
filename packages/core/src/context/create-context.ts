@@ -54,7 +54,7 @@ export function createContext<TArgs extends AnyRecord, TConfig extends AnyRecord
   const ctxPrompts: Prompts = options.prompts ?? createContextPrompts()
   const ctxMeta: Meta = {
     command: options.meta.command,
-    dirs: options.meta.dirs,
+    dirs: Object.freeze({ ...options.meta.dirs }),
     name: options.meta.name,
     version: options.meta.version,
   }

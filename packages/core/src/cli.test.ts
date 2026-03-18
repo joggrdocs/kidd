@@ -161,6 +161,28 @@ describe('dirs', () => {
     const ctx = handler.mock.calls[0]![0] as Context
     expect(ctx.meta.dirs).toEqual({ global: '.my-tool', local: '.custom-local' })
   })
+
+  it('should fall back to default when dirs contain empty strings', async () => {
+    const handler = vi.fn()
+    const commands: CommandMap = {
+      info: command({
+        description: 'Show info',
+        handler,
+      }),
+    }
+
+    setArgv('info')
+    await runTestCli({
+      commands,
+      dirs: { global: '', local: '  ' },
+      name: 'my-tool',
+      version: '1.0.0',
+    })
+
+    expect(handler).toHaveBeenCalledTimes(1)
+    const ctx = handler.mock.calls[0]![0] as Context
+    expect(ctx.meta.dirs).toEqual({ global: '.my-tool', local: '.my-tool' })
+  })
 })
 
 describe('context properties', () => {

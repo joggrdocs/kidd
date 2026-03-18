@@ -1,24 +1,25 @@
-name: Release
+name: Benchmarks
 
 on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
 
-concurrency: ${{ github.workflow }}-${{ github.ref }}
+permissions:
+  contents: read
+  id-token: write
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
-permissions:
-  contents: write
-  pull-requests: write
-  id-token: write
-
 jobs:
-  release:
-    name: Release
-    runs-on: ubuntu-latest
+  benchmarks:
+    name: Benchmarks
+    runs-on: codspeed-macro
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v5
@@ -31,7 +32,6 @@ jobs:
         with:
           node-version: 24
           cache: 'pnpm'
-          registry-url: 'https://registry.npmjs.org'
 
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
@@ -39,11 +39,14 @@ jobs:
       - name: Build
         run: pnpm build
 
-      - name: Create Release Pull Request or Publish
-        id: changesets
-        uses: changesets/action@v1
+      - name: Rebuild bin links
+        run: pnpm install --frozen-lockfile
+
+      - name: Build benchmark examples
+        run: pnpm turbo run build --filter=@examples/icons
+
+      - name: Run Benchmarks
+        uses: CodSpeedHQ/action@v4
         with:
-          publish: pnpm release
-          version: pnpm run version
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          mode: walltime
+          run: pnpm test:bench

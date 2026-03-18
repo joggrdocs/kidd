@@ -1,91 +1,65 @@
-import { exec } from 'node:child_process'
-import { promisify } from 'node:util'
+/**
+ * List installed system font file paths by scanning platform-specific directories.
+ *
+ * Pure JavaScript implementation with no native dependencies. Scans well-known
+ * font directories per OS and returns file paths matching common font extensions.
+ *
+ * Directory layout based on `get-system-fonts` (https://github.com/princjef/get-system-fonts)
+ * with updates for modern OS versions.
+ */
 
+import { lstat, readdir } from 'node:fs/promises'
+import { homedir } from 'node:os'
+import { join } from 'node:path'
+
+import { err, ok } from '@kidd-cli/utils/fp'
 import type { AsyncResult } from '@kidd-cli/utils/fp'
-import { attemptAsync, err, ok } from '@kidd-cli/utils/fp'
 import { match } from 'ts-pattern'
 
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
 
-const execAsync = promisify(exec)
-
 /**
- * Timeout (ms) for font-listing shell commands.
+ * Font file extensions to include when scanning directories.
  *
  * @private
  */
-const FONT_CMD_TIMEOUT_MS = 15_000
-
-/**
- * Maximum stdout buffer size (bytes) for font-listing shell commands.
- *
- * @private
- */
-const FONT_CMD_MAX_BUFFER = 10 * 1024 * 1024
-
-/**
- * Regex to extract the font family name from a macOS `system_profiler` "Family:" line.
- *
- * @private
- */
-const DARWIN_FAMILY_RE = /^\s+Family:\s*(.+)/
+const FONT_EXTENSIONS: ReadonlySet<string> = new Set(['.ttf', '.otf', '.ttc', '.woff', '.woff2'])
 
 // ---------------------------------------------------------------------------
 // Public API
 // ---------------------------------------------------------------------------
 
 /**
- * List installed system font family names using platform-native commands.
+ * List installed system font file paths by scanning platform-specific directories.
  *
- * Uses shell commands instead of native Node.js addons to ensure
- * compatibility with bundlers (tsdown/rolldown) and compiled binaries (SEA).
+ * Scans well-known font directories and returns absolute paths for all font
+ * files found. Directories that do not exist are silently skipped.
  *
- * - **macOS**: Parses `system_profiler SPFontsDataType` output.
- * - **Linux**: Parses `fc-list : family` output.
- * - **Windows**: Queries fonts via PowerShell and .NET `InstalledFontCollection`.
+ * - **macOS**: `~/Library/Fonts`, `/Library/Fonts`, `/System/Library/Fonts`,
+ *   `/System/Library/Fonts/Supplemental`, `/Network/Library/Fonts`
+ * - **Linux**: `/usr/share/fonts`, `/usr/local/share/fonts`, `~/.fonts`,
+ *   `~/.local/share/fonts`
+ * - **Windows**: `%WINDIR%\Fonts`, `%LOCALAPPDATA%\Microsoft\Windows\Fonts`
  *
- * Returns an empty array on unsupported platforms. Propagates errors from
- * the underlying shell command as a Result tuple.
- *
- * @returns A Result tuple with font family names on success, or an Error on failure.
+ * @returns A Result tuple with font file paths on success, or an Error on failure.
  */
 export async function listSystemFonts(): AsyncResult<readonly string[]> {
-  return match(process.platform)
-    .with('darwin', () =>
-      runFontCommand({
-        command: 'system_profiler SPFontsDataType',
-        parseLine: parseDarwinLine,
-      })
-    )
-    .with('linux', () =>
-      runFontCommand({
-        command: 'fc-list : family',
-        parseLine: trimLine,
-      })
-    )
-    .with('win32', () =>
-      runFontCommand({
-        command: buildPowerShellCommand(),
-        parseLine: trimLine,
-      })
-    )
-    .otherwise(() => Promise.resolve(ok([] as readonly string[])))
-}
+  const dirs = getFontDirectories()
 
-// ---------------------------------------------------------------------------
-// Private types
-// ---------------------------------------------------------------------------
+  try {
+    const nested = await Promise.all(dirs.map(scanDirectory))
+    const fonts = nested.flat()
 
-/**
- * Parameters for {@link runFontCommand}.
- *
- * @private
- */
-interface RunFontCommandParams {
-  readonly command: string
-  readonly parseLine: (line: string) => string
+    return ok(fonts)
+  } catch (error) {
+    if (error instanceof Error) {
+      return err(error)
+    }
+
+    return err(new Error(String(error)))
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -93,90 +67,135 @@ interface RunFontCommandParams {
 // ---------------------------------------------------------------------------
 
 /**
- * Execute a shell command and parse its stdout into font family names.
- *
- * Runs the given command, splits stdout by newlines, applies a per-line
- * parser, and filters out empty results. Propagates errors from the
- * shell command as a Result tuple.
+ * Get the platform-specific font directories to scan.
  *
  * @private
- * @param params - The command to run and a line-parsing function.
- * @returns A Result tuple with parsed font family names on success, or an Error on failure.
+ * @returns An array of absolute directory paths.
  */
-async function runFontCommand(params: RunFontCommandParams): AsyncResult<readonly string[]> {
-  const [error, result] = await attemptAsync(() =>
-    execAsync(params.command, {
-      timeout: FONT_CMD_TIMEOUT_MS,
-      maxBuffer: FONT_CMD_MAX_BUFFER,
+function getFontDirectories(): readonly string[] {
+  const home = homedir()
+
+  return match(process.platform)
+    .with('darwin', () => [
+      join(home, 'Library', 'Fonts'),
+      '/Library/Fonts',
+      '/System/Library/Fonts',
+      '/System/Library/Fonts/Supplemental',
+      '/Network/Library/Fonts',
+    ])
+    .with('linux', () => [
+      '/usr/share/fonts',
+      '/usr/local/share/fonts',
+      join(home, '.fonts'),
+      join(home, '.local', 'share', 'fonts'),
+    ])
+    .with('win32', () => {
+      const winDir = process.env['WINDIR'] ?? String.raw`C:\Windows`
+      const localAppData = process.env['LOCALAPPDATA'] ?? join(home, 'AppData', 'Local')
+
+      return [join(winDir, 'Fonts'), join(localAppData, 'Microsoft', 'Windows', 'Fonts')]
     })
-  )
-
-  if (error) {
-    return err(error)
-  }
-
-  if (result === null) {
-    return err(new Error(`Font command returned no output: ${params.command}`))
-  }
-
-  const fonts = result.stdout
-    .split('\n')
-    .map(params.parseLine)
-    .filter((name) => name.length > 0)
-
-  return ok(fonts)
+    .otherwise(() => [])
 }
 
 /**
- * Parse a macOS `system_profiler` line, extracting the family name.
+ * Recursively scan a directory for font files.
  *
- * Returns the family name from lines matching `"  Family: <name>"`,
- * or an empty string for non-matching lines (filtered out by the caller).
+ * Returns an empty array if the directory does not exist or is unreadable.
  *
  * @private
- * @param line - A single line from system_profiler output.
- * @returns The font family name, or empty string if not a Family line.
+ * @param dir - The absolute directory path to scan.
+ * @returns An array of absolute font file paths.
  */
-function parseDarwinLine(line: string): string {
-  const m = DARWIN_FAMILY_RE.exec(line)
+async function scanDirectory(dir: string): Promise<readonly string[]> {
+  const entries = await safeReaddir(dir)
 
-  if (m === null) {
-    return ''
+  if (entries.length === 0) {
+    return []
   }
 
-  const [, family] = m
+  const results = await Promise.all(entries.map((entry) => processEntry(join(dir, entry))))
 
-  if (family === undefined) {
-    return ''
-  }
-
-  return family.trim()
+  return results.flat()
 }
 
 /**
- * Trim whitespace from a line (used by Linux and Windows parsers).
+ * Process a single directory entry, recursing into subdirectories.
+ *
+ * Uses `lstat` instead of `stat` to avoid following symbolic links, which
+ * prevents infinite loops from cyclic symlinks in font directories.
  *
  * @private
- * @param line - A single stdout line.
- * @returns The trimmed line.
+ * @param fullPath - The absolute path to the entry.
+ * @returns Font file paths found at or below this entry.
  */
-function trimLine(line: string): string {
-  return line.trim()
+async function processEntry(fullPath: string): Promise<readonly string[]> {
+  const info = await safeLstat(fullPath)
+
+  if (info === null || info.isSymbolicLink()) {
+    return []
+  }
+
+  if (info.isDirectory()) {
+    return scanDirectory(fullPath)
+  }
+
+  if (info.isFile() && isFontFile(fullPath)) {
+    return [fullPath]
+  }
+
+  return []
 }
 
 /**
- * Build the static PowerShell command to list installed font families.
+ * Check whether a file path has a recognized font extension.
  *
  * @private
- * @returns The full PowerShell command string.
+ * @param filePath - The file path to check.
+ * @returns True if the file has a font extension.
  */
-function buildPowerShellCommand(): string {
-  return [
-    'powershell',
-    '-NoProfile',
-    '-Command',
-    '"Add-Type -AssemblyName System.Drawing;',
-    '(New-Object System.Drawing.Text.InstalledFontCollection).Families',
-    '| ForEach-Object { $_.Name }"',
-  ].join(' ')
+function isFontFile(filePath: string): boolean {
+  const dotIndex = filePath.lastIndexOf('.')
+
+  if (dotIndex === -1) {
+    return false
+  }
+
+  return FONT_EXTENSIONS.has(filePath.slice(dotIndex).toLowerCase())
+}
+
+/**
+ * Read a directory's entries, returning an empty array on failure.
+ *
+ * @private
+ * @param dir - The directory to read.
+ * @returns An array of entry names, or empty on error.
+ */
+async function safeReaddir(dir: string): Promise<readonly string[]> {
+  try {
+    return await readdir(dir)
+  } catch {
+    return []
+  }
+}
+
+/**
+ * Lstat a path, returning null on failure.
+ *
+ * Uses `lstat` (not `stat`) so symlinks are reported as symlinks
+ * rather than being followed — preventing infinite recursion from
+ * cyclic symlinks in font directories.
+ *
+ * @private
+ * @param filePath - The path to lstat.
+ * @returns The lstat result, or null on error.
+ */
+async function safeLstat(
+  filePath: string
+): Promise<ReturnType<typeof lstat> extends Promise<infer T> ? T | null : never> {
+  try {
+    return await lstat(filePath)
+  } catch {
+    return null
+  }
 }

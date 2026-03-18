@@ -27,6 +27,14 @@ export function createExampleRunner({
       timeout: 10_000,
     })
 
+    if (result.error) {
+      throw result.error
+    }
+
+    if (result.status !== 0) {
+      throw new Error(`CLI exited with status ${String(result.status)}: ${result.stderr}`)
+    }
+
     return `${result.stdout}${result.stderr}`
   }
 }

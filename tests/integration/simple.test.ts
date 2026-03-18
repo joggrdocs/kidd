@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import { createExampleRunner } from '../helpers.js'
 
-const run = createExampleRunner('simple')
+const run = createExampleRunner({ example: 'simple' })
 
 describe('examples/simple (built CLI)', () => {
   describe('--help', () => {

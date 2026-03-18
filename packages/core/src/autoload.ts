@@ -120,6 +120,7 @@ function findIndexInEntries(entries: Dirent[]): Dirent | undefined {
   return entries.find(
     (entry) =>
       entry.isFile() &&
+      !entry.name.endsWith('.d.ts') &&
       VALID_EXTENSIONS.has(extname(entry.name)) &&
       basename(entry.name, extname(entry.name)) === INDEX_NAME
   )
@@ -187,6 +188,9 @@ function isCommandFile(entry: Dirent): boolean {
     return false
   }
   if (entry.name.startsWith('_') || entry.name.startsWith('.')) {
+    return false
+  }
+  if (entry.name.endsWith('.d.ts')) {
     return false
   }
   if (!VALID_EXTENSIONS.has(extname(entry.name))) {

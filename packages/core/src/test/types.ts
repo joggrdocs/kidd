@@ -2,7 +2,14 @@ import type { vi } from 'vitest'
 
 import type { Context, Prompts, Spinner } from '@/context/types.js'
 import type { CliLogger } from '@/lib/logger.js'
-import type { AnyRecord, CliConfigOptions, Command, CommandMap, Middleware } from '@/types/index.js'
+import type {
+  AnyRecord,
+  CliConfigOptions,
+  Command,
+  CommandMap,
+  Middleware,
+  ResolvedDirs,
+} from '@/types/index.js'
 
 /**
  * Overrides for constructing a test context via {@link createTestContext}.
@@ -18,7 +25,12 @@ export interface TestContextOptions<
 > {
   readonly args?: TArgs
   readonly config?: TConfig
-  readonly meta?: { readonly name?: string; readonly version?: string; readonly command?: string[] }
+  readonly meta?: {
+    readonly name?: string
+    readonly version?: string
+    readonly command?: string[]
+    readonly dirs?: ResolvedDirs
+  }
   readonly logger?: CliLogger
   readonly prompts?: Prompts
   readonly spinner?: Spinner

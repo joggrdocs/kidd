@@ -39,7 +39,12 @@ function createTestContext(cliName: string): ReturnType<typeof createContext> {
   return createContext({
     args: {},
     config: {},
-    meta: { command: ['test'], name: cliName, version: '1.0.0' },
+    meta: {
+      command: ['test'],
+      dirs: { global: `.${cliName}`, local: `.${cliName}` },
+      name: cliName,
+      version: '1.0.0',
+    },
   })
 }
 

@@ -41,6 +41,8 @@ export type {
   CliFn,
   CliHelpOptions,
   CliOptions,
+  DirsConfig,
   KiddArgs,
   KiddStore,
+  ResolvedDirs,
 } from './cli.js'

@@ -1,9 +1,11 @@
 import { join } from 'node:path'
 
+import { P, isNil, match } from '@kidd-cli/utils/fp'
+
 import { decorateContext } from '@/context/decorate.js'
 import type { Context } from '@/context/types.js'
 import { middleware } from '@/middleware.js'
-import type { Middleware } from '@/types/index.js'
+import type { DirsConfig, Middleware, ResolvedDirs } from '@/types/index.js'
 
 import { DEFAULT_AUTH_FILENAME } from './constants.js'
 import { createAuthContext } from './context.js'
@@ -68,15 +70,17 @@ export interface AuthFactory {
  * @returns A Middleware that decorates ctx.auth.
  */
 function createAuth(options: AuthOptions): Middleware {
-  const { strategies, validate } = options
+  const { strategies, validate, dirs: authDirs } = options
 
   return middleware((ctx, next) => {
     const cliName = ctx.meta.name
+    const dirs = resolveAuthDirs(ctx.meta.dirs, authDirs)
 
     const authContext = createAuthContext({
       cliName,
+      dirs,
       prompts: ctx.prompts,
-      resolveCredential: () => resolveStoredCredential(cliName, strategies),
+      resolveCredential: () => resolveStoredCredential(dirs, cliName, strategies),
       strategies,
       validate,
     })
@@ -203,11 +207,13 @@ function buildCustom(fn: CustomStrategyFn): CustomSourceConfig {
  * (e.g. a custom `tokenVar`, `dirName`, or dotenv `path`).
  *
  * @private
- * @param cliName - The CLI name, used to derive paths and env var names.
+ * @param dirs - Resolved directory names for local and global resolution.
+ * @param cliName - The CLI name, used to derive env var names.
  * @param strategies - The configured strategy list for extracting overrides.
  * @returns The resolved credential, or null.
  */
 function resolveStoredCredential(
+  dirs: ResolvedDirs,
   cliName: string,
   strategies: readonly StrategyConfig[]
 ): AuthCredential | null {
@@ -216,9 +222,11 @@ function resolveStoredCredential(
   const envConfig = findStrategyBySource(strategies, 'env')
   const defaultTokenVar = deriveTokenVar(cliName)
 
+  const fileDirName = extractProp(fileConfig, 'dirName')
   const fromFile = resolveFromFile({
-    dirName: extractProp(fileConfig, 'dirName') ?? `.${cliName}`,
     filename: extractProp(fileConfig, 'filename') ?? DEFAULT_AUTH_FILENAME,
+    globalDirName: fileDirName ?? dirs.global,
+    localDirName: fileDirName ?? dirs.local,
   })
 
   if (fromFile) {
@@ -239,6 +247,33 @@ function resolveStoredCredential(
   return resolveFromEnv({
     tokenVar: extractProp(envConfig, 'tokenVar') ?? defaultTokenVar,
   })
+}
+
+/**
+ * Resolve the effective auth directories from meta dirs and optional override.
+ *
+ * When auth-level dir overrides are provided, they are merged onto the
+ * meta dirs — only the fields specified in the override are replaced.
+ * When no override is provided, the meta dirs are used as-is.
+ *
+ * @private
+ * @param metaDirs - The resolved dirs from `ctx.meta.dirs`.
+ * @param authDirs - Optional auth-level directory overrides.
+ * @returns Resolved dirs for auth operations.
+ */
+function resolveAuthDirs(metaDirs: ResolvedDirs, authDirs: DirsConfig | undefined): ResolvedDirs {
+  if (isNil(authDirs)) {
+    return metaDirs
+  }
+
+  return {
+    global: match(authDirs.global)
+      .with(P.nullish, () => metaDirs.global)
+      .otherwise((v) => v),
+    local: match(authDirs.local)
+      .with(P.nullish, () => metaDirs.local)
+      .otherwise((v) => v),
+  }
 }
 
 /**

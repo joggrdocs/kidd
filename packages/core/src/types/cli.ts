@@ -32,6 +32,34 @@ export interface CliConfig {}
 export interface KiddStore {}
 
 /**
+ * Directory name overrides for file-backed stores (auth, config).
+ *
+ * Both `local` and `global` default to `.<cli-name>` when omitted.
+ * Local resolves relative to the project root, global resolves relative
+ * to the user's home directory.
+ */
+export interface DirsConfig {
+  /**
+   * Directory name for project-local resolution.
+   * Resolves as `<project-root>/<local>`. Defaults to `.<cli-name>`.
+   */
+  readonly local?: string
+  /**
+   * Directory name for global (home directory) resolution.
+   * Resolves as `~/<global>`. Defaults to `.<cli-name>`.
+   */
+  readonly global?: string
+}
+
+/**
+ * Resolved directory names where both local and global are guaranteed strings.
+ */
+export interface ResolvedDirs {
+  readonly local: string
+  readonly global: string
+}
+
+/**
  * Config loading options nested inside {@link CliOptions}.
  */
 export interface CliConfigOptions<TSchema extends z.ZodType = z.ZodType> {
@@ -102,6 +130,12 @@ export interface CliOptions<TSchema extends z.ZodType = z.ZodType> {
    * Help output customization (header, footer).
    */
   readonly help?: CliHelpOptions
+  /**
+   * Directory name overrides for file-backed stores (auth, config).
+   *
+   * Both `local` and `global` default to `.<name>` when omitted.
+   */
+  readonly dirs?: DirsConfig
 }
 
 /**

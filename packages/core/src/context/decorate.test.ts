@@ -27,12 +27,22 @@ vi.mock(import('@clack/prompts'), async (importOriginal) => ({
 function defaultOptions(): {
   args: { name: string }
   config: Record<string, never>
-  meta: { command: string[]; name: string; version: string }
+  meta: {
+    command: string[]
+    dirs: { global: string; local: string }
+    name: string
+    version: string
+  }
 } {
   return {
     args: { name: 'test' },
     config: {},
-    meta: { command: ['test'], name: 'my-cli', version: '1.0.0' },
+    meta: {
+      command: ['test'],
+      dirs: { global: '.my-cli', local: '.my-cli' },
+      name: 'my-cli',
+      version: '1.0.0',
+    },
   }
 }
 

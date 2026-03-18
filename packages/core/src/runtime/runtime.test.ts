@@ -61,7 +61,11 @@ describe('createRuntime()', () => {
     setupDefaults()
 
     const { createRuntime } = await import('./runtime.js')
-    const [error, runtime] = await createRuntime({ name: 'my-cli', version: '1.0.0' })
+    const [error, runtime] = await createRuntime({
+      dirs: { global: '.my-cli', local: '.my-cli' },
+      name: 'my-cli',
+      version: '1.0.0',
+    })
 
     expect(error).toBeNull()
     expect(runtime).toBeDefined()
@@ -72,7 +76,11 @@ describe('createRuntime()', () => {
     setupDefaults()
 
     const { createRuntime } = await import('./runtime.js')
-    const [, runtime] = await createRuntime({ name: 'my-cli', version: '1.0.0' })
+    const [, runtime] = await createRuntime({
+      dirs: { global: '.my-cli', local: '.my-cli' },
+      name: 'my-cli',
+      version: '1.0.0',
+    })
 
     const execution = makeExecution()
     await runtime!.execute(execution)
@@ -86,6 +94,7 @@ describe('createRuntime()', () => {
     const { createRuntime } = await import('./runtime.js')
     const [, runtime] = await createRuntime({
       config: {} as never,
+      dirs: { global: '.my-cli', local: '.my-cli' },
       name: 'my-cli',
       version: '1.0.0',
     })
@@ -108,6 +117,7 @@ describe('createRuntime()', () => {
     const { createRuntime } = await import('./runtime.js')
     const [, runtime] = await createRuntime({
       config: { schema },
+      dirs: { global: '.my-cli', local: '.my-cli' },
       name: 'my-cli',
       version: '1.0.0',
     })
@@ -131,6 +141,7 @@ describe('createRuntime()', () => {
     const { createRuntime } = await import('./runtime.js')
     const [, runtime] = await createRuntime({
       config: { schema },
+      dirs: { global: '.my-cli', local: '.my-cli' },
       name: 'my-cli',
       version: '1.0.0',
     })
@@ -150,7 +161,11 @@ describe('createRuntime()', () => {
     })
 
     const { createRuntime } = await import('./runtime.js')
-    const [, runtime] = await createRuntime({ name: 'my-cli', version: '1.0.0' })
+    const [, runtime] = await createRuntime({
+      dirs: { global: '.my-cli', local: '.my-cli' },
+      name: 'my-cli',
+      version: '1.0.0',
+    })
 
     const execution = makeExecution()
     const [execError] = await runtime!.execute(execution)
@@ -165,7 +180,11 @@ describe('createRuntime()', () => {
     mockedCreateRunner.mockReturnValue({ execute: mockRunnerExecute })
 
     const { createRuntime } = await import('./runtime.js')
-    const [, runtime] = await createRuntime({ name: 'my-cli', version: '1.0.0' })
+    const [, runtime] = await createRuntime({
+      dirs: { global: '.my-cli', local: '.my-cli' },
+      name: 'my-cli',
+      version: '1.0.0',
+    })
 
     const execution = makeExecution({ handler: undefined })
     const [execError] = await runtime!.execute(execution)
@@ -190,7 +209,11 @@ describe('createRuntime()', () => {
     })
 
     const { createRuntime } = await import('./runtime.js')
-    const [, runtime] = await createRuntime({ name: 'my-cli', version: '1.0.0' })
+    const [, runtime] = await createRuntime({
+      dirs: { global: '.my-cli', local: '.my-cli' },
+      name: 'my-cli',
+      version: '1.0.0',
+    })
 
     const execution = makeExecution()
     const [execError] = await runtime!.execute(execution)
@@ -207,7 +230,11 @@ describe('createRuntime()', () => {
     })
 
     const { createRuntime } = await import('./runtime.js')
-    const [, runtime] = await createRuntime({ name: 'my-cli', version: '2.0.0' })
+    const [, runtime] = await createRuntime({
+      dirs: { global: '.my-cli', local: '.my-cli' },
+      name: 'my-cli',
+      version: '2.0.0',
+    })
 
     const execution = makeExecution({ commandPath: ['build', 'all'] })
     await runtime!.execute(execution)
@@ -217,6 +244,7 @@ describe('createRuntime()', () => {
       config: {},
       meta: {
         command: ['build', 'all'],
+        dirs: { global: '.my-cli', local: '.my-cli' },
         name: 'my-cli',
         version: '2.0.0',
       },
@@ -231,7 +259,11 @@ describe('createRuntime()', () => {
     const commandMiddleware = [{ handler: vi.fn() }]
 
     const { createRuntime } = await import('./runtime.js')
-    const [, runtime] = await createRuntime({ name: 'my-cli', version: '1.0.0' })
+    const [, runtime] = await createRuntime({
+      dirs: { global: '.my-cli', local: '.my-cli' },
+      name: 'my-cli',
+      version: '1.0.0',
+    })
 
     const execution = makeExecution({ middleware: commandMiddleware as never })
     await runtime!.execute(execution)
@@ -245,7 +277,11 @@ describe('createRuntime()', () => {
     setupDefaults()
 
     const { createRuntime } = await import('./runtime.js')
-    const [, runtime] = await createRuntime({ name: 'my-cli', version: '1.0.0' })
+    const [, runtime] = await createRuntime({
+      dirs: { global: '.my-cli', local: '.my-cli' },
+      name: 'my-cli',
+      version: '1.0.0',
+    })
 
     const execution = makeExecution()
     const [execError] = await runtime!.execute(execution)

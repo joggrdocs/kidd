@@ -4,7 +4,7 @@ import type { Colors } from 'picocolors/types'
 
 import { createCliLogger } from '@/lib/logger.js'
 import type { CliLogger } from '@/lib/logger.js'
-import type { AnyRecord, KiddStore, Merge } from '@/types/index.js'
+import type { AnyRecord, KiddStore, Merge, ResolvedDirs } from '@/types/index.js'
 
 import { createContextError } from './error.js'
 import { createContextFormat } from './format.js'
@@ -23,7 +23,12 @@ import type { Context, Format, Meta, Prompts, Spinner, Store, StoreMap } from '.
 export interface CreateContextOptions<TArgs extends AnyRecord, TConfig extends AnyRecord> {
   readonly args: TArgs
   readonly config: TConfig
-  readonly meta: { readonly name: string; readonly version: string; readonly command: string[] }
+  readonly meta: {
+    readonly name: string
+    readonly version: string
+    readonly command: string[]
+    readonly dirs: ResolvedDirs
+  }
   readonly logger?: CliLogger
   readonly prompts?: Prompts
   readonly spinner?: Spinner
@@ -49,6 +54,7 @@ export function createContext<TArgs extends AnyRecord, TConfig extends AnyRecord
   const ctxPrompts: Prompts = options.prompts ?? createContextPrompts()
   const ctxMeta: Meta = {
     command: options.meta.command,
+    dirs: Object.freeze({ ...options.meta.dirs }),
     name: options.meta.name,
     version: options.meta.version,
   }

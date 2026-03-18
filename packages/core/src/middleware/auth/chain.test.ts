@@ -20,6 +20,7 @@ vi.mock(import('./strategies/device-code.js'), () => ({
 import { readFileSync } from 'node:fs'
 
 import type { Prompts } from '@/context/types.js'
+import type { ResolvedDirs } from '@/types/index.js'
 
 import { runStrategyChain } from './chain.js'
 import { resolveFromDeviceCode } from './strategies/device-code.js'
@@ -127,6 +128,8 @@ describe('resolveFromToken()', () => {
   })
 })
 
+const DEFAULT_DIRS: ResolvedDirs = { global: '.my-cli', local: '.my-cli' }
+
 describe('runStrategyChain()', () => {
   afterEach(() => {
     vi.unstubAllEnvs()
@@ -139,6 +142,7 @@ describe('runStrategyChain()', () => {
     const prompts = { password: vi.fn() } as unknown as Prompts
     const result = await runStrategyChain({
       cliName: 'my-cli',
+      dirs: DEFAULT_DIRS,
       prompts,
       strategies: [{ source: 'env' }, { source: 'token' }],
     })
@@ -151,6 +155,7 @@ describe('runStrategyChain()', () => {
     const prompts = { password: vi.fn() } as unknown as Prompts
     const result = await runStrategyChain({
       cliName: 'my-cli',
+      dirs: DEFAULT_DIRS,
       prompts,
       strategies: [{ source: 'env' }],
     })
@@ -164,6 +169,7 @@ describe('runStrategyChain()', () => {
     const prompts = { password: vi.fn() } as unknown as Prompts
     const result = await runStrategyChain({
       cliName: 'my-cool-app',
+      dirs: { global: '.my-cool-app', local: '.my-cool-app' },
       prompts,
       strategies: [{ source: 'env' }],
     })
@@ -178,6 +184,7 @@ describe('runStrategyChain()', () => {
 
     const result = await runStrategyChain({
       cliName: 'my-cli',
+      dirs: DEFAULT_DIRS,
       prompts,
       strategies: [{ source: 'env' }, { source: 'token' }],
     })
@@ -190,6 +197,7 @@ describe('runStrategyChain()', () => {
     const prompts = { password: vi.fn() } as unknown as Prompts
     const result = await runStrategyChain({
       cliName: 'my-cli',
+      dirs: DEFAULT_DIRS,
       prompts,
       strategies: [
         {
@@ -208,14 +216,16 @@ describe('runStrategyChain()', () => {
     const prompts = { password: vi.fn() } as unknown as Prompts
     const result = await runStrategyChain({
       cliName: 'my-cli',
+      dirs: DEFAULT_DIRS,
       prompts,
       strategies: [{ source: 'file' }],
     })
 
     expect(result).toEqual({ token: 'from-file', type: 'bearer' })
     expect(resolveFromFile).toHaveBeenCalledWith({
-      dirName: '.my-cli',
       filename: 'auth.json',
+      globalDirName: '.my-cli',
+      localDirName: '.my-cli',
     })
   })
 
@@ -225,14 +235,34 @@ describe('runStrategyChain()', () => {
     const prompts = { password: vi.fn() } as unknown as Prompts
     const result = await runStrategyChain({
       cliName: 'my-cli',
+      dirs: DEFAULT_DIRS,
       prompts,
       strategies: [{ dirName: '.my-custom-dir', filename: 'creds.json', source: 'file' }],
     })
 
     expect(result).toEqual({ token: 'from-custom-file', type: 'bearer' })
     expect(resolveFromFile).toHaveBeenCalledWith({
-      dirName: '.my-custom-dir',
       filename: 'creds.json',
+      globalDirName: '.my-custom-dir',
+      localDirName: '.my-custom-dir',
+    })
+  })
+
+  it('should pass separate local and global dirs to resolveFromFile', async () => {
+    vi.mocked(resolveFromFile).mockReturnValue({ token: 'from-file', type: 'bearer' })
+
+    const prompts = { password: vi.fn() } as unknown as Prompts
+    await runStrategyChain({
+      cliName: 'my-cli',
+      dirs: { global: '.my-global', local: '.my-local' },
+      prompts,
+      strategies: [{ source: 'file' }],
+    })
+
+    expect(resolveFromFile).toHaveBeenCalledWith({
+      filename: 'auth.json',
+      globalDirName: '.my-global',
+      localDirName: '.my-local',
     })
   })
 
@@ -242,6 +272,7 @@ describe('runStrategyChain()', () => {
     const prompts = { password: vi.fn() } as unknown as Prompts
     const result = await runStrategyChain({
       cliName: 'my-cli',
+      dirs: DEFAULT_DIRS,
       prompts,
       strategies: [
         {
@@ -274,6 +305,7 @@ describe('runStrategyChain()', () => {
     const prompts = { password: vi.fn() } as unknown as Prompts
     const result = await runStrategyChain({
       cliName: 'my-cli',
+      dirs: DEFAULT_DIRS,
       prompts,
       strategies: [
         {
@@ -302,6 +334,7 @@ describe('runStrategyChain()', () => {
     const prompts = { password: vi.fn() } as unknown as Prompts
     const result = await runStrategyChain({
       cliName: 'my-cli',
+      dirs: DEFAULT_DIRS,
       prompts,
       strategies: [
         {
@@ -318,6 +351,7 @@ describe('runStrategyChain()', () => {
     const prompts = { password: vi.fn() } as unknown as Prompts
     const result = await runStrategyChain({
       cliName: 'my-cli',
+      dirs: DEFAULT_DIRS,
       prompts,
       strategies: [],
     })

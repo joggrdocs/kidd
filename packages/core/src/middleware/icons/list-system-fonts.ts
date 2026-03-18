@@ -6,8 +6,6 @@
  *
  * Directory layout based on `get-system-fonts` (https://github.com/princjef/get-system-fonts)
  * with updates for modern OS versions.
- *
- * @module
  */
 
 import { lstat, readdir } from 'node:fs/promises'

@@ -1,26 +1,8 @@
-import { execSync } from 'node:child_process'
-import { fileURLToPath } from 'node:url'
-
 import { describe, expect, it } from 'vitest'
 
-const EXAMPLE_DIR = fileURLToPath(new URL('../../examples/simple', import.meta.url))
+import { createExampleRunner } from '../helpers.js'
 
-/**
- * Run the built simple CLI with the given arguments and return stdout.
- *
- * @private
- * @param args - CLI arguments to pass.
- * @returns The stdout output as a string.
- */
-function run(...args: readonly string[]): string {
-  return execSync(`node dist/index.mjs ${args.join(' ')} 2>&1`, {
-    cwd: EXAMPLE_DIR,
-    encoding: 'utf8',
-    timeout: 10_000,
-  })
-}
-
-execSync('pnpm build', { cwd: EXAMPLE_DIR, stdio: 'pipe' })
+const run = createExampleRunner('simple')
 
 describe('examples/simple (built CLI)', () => {
   describe('--help', () => {

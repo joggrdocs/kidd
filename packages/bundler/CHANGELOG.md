@@ -1,5 +1,11 @@
 # @kidd-cli/bundler
 
+## 0.2.5
+
+### Patch Changes
+
+- 567e7f4: Fix autoload plugin region marker mismatch (`autoloader.ts` → `autoload.ts`) that prevented the static autoloader from replacing the runtime filesystem scanner during `kidd build`
+
 ## 0.2.4
 
 ### Patch Changes

@@ -93,8 +93,7 @@ function getFontDirectories(): readonly string[] {
     ])
     .with('win32', () => {
       const winDir = process.env['WINDIR'] ?? String.raw`C:\Windows`
-      const localAppData =
-        process.env['LOCALAPPDATA'] ?? process.env['APPDATA'] ?? join(home, 'AppData', 'Local')
+      const localAppData = process.env['LOCALAPPDATA'] ?? join(home, 'AppData', 'Local')
 
       return [join(winDir, 'Fonts'), join(localAppData, 'Microsoft', 'Windows', 'Fonts')]
     })

@@ -34,13 +34,13 @@ describe('listSystemFonts()', () => {
   })
 
   afterEach(() => {
-    Object.defineProperty(process, 'platform', { value: originalPlatform })
+    Object.defineProperty(process, 'platform', { value: originalPlatform, configurable: true })
     vi.restoreAllMocks()
   })
 
   describe('darwin', () => {
     beforeEach(() => {
-      Object.defineProperty(process, 'platform', { value: 'darwin' })
+      Object.defineProperty(process, 'platform', { value: 'darwin', configurable: true })
     })
 
     it('should scan macOS font directories and return font file paths', async () => {
@@ -138,7 +138,7 @@ describe('listSystemFonts()', () => {
 
   describe('linux', () => {
     beforeEach(() => {
-      Object.defineProperty(process, 'platform', { value: 'linux' })
+      Object.defineProperty(process, 'platform', { value: 'linux', configurable: true })
     })
 
     it('should scan linux font directories', async () => {
@@ -160,7 +160,7 @@ describe('listSystemFonts()', () => {
 
   describe('unsupported platform', () => {
     it('should return success with empty array for unknown platforms', async () => {
-      Object.defineProperty(process, 'platform', { value: 'freebsd' })
+      Object.defineProperty(process, 'platform', { value: 'freebsd', configurable: true })
 
       const [error, fonts] = await listSystemFonts()
 
@@ -171,7 +171,7 @@ describe('listSystemFonts()', () => {
 
   describe('error handling', () => {
     it('should skip directories that do not exist', async () => {
-      Object.defineProperty(process, 'platform', { value: 'darwin' })
+      Object.defineProperty(process, 'platform', { value: 'darwin', configurable: true })
 
       vi.mocked(readdir).mockRejectedValue(new Error('ENOENT'))
 

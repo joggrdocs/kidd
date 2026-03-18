@@ -96,6 +96,9 @@ export function createAuthContext(options: CreateAuthContextOptions): AuthContex
       return [validationError, null] as const
     }
 
+    // Writes always target the global (home) directory so credentials are
+    // user-scoped and never written into a project directory that could be
+    // committed. Reads (credential/file strategy) check local → global.
     const store = createStore({ dirName: dirs.global })
     const [saveError] = store.save(DEFAULT_AUTH_FILENAME, validatedCredential)
 
@@ -116,6 +119,7 @@ export function createAuthContext(options: CreateAuthContextOptions): AuthContex
    * @returns A Result with the removed file path on success or an AuthError on failure.
    */
   async function logout(): AsyncResult<string, AuthError> {
+    // See login() — writes/deletes always target global.
     const store = createStore({ dirName: dirs.global })
     const [removeError, filePath] = store.remove(DEFAULT_AUTH_FILENAME)
 

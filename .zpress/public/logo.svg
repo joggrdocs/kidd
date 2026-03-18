@@ -2,7 +2,7 @@
   <defs>
     <style>
       .text { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', Consolas, monospace; }
-      .brand { fill: #d8b4fe; }
+      .brand { fill: #ede9fe; }
     </style>
   </defs>
 

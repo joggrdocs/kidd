@@ -1,16 +1,30 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-vi.mock(import('node:child_process'), () => ({
-  exec: vi.fn((_cmd: string, _opts: unknown, cb?: (...args: readonly unknown[]) => void) => {
-    if (typeof cb === 'function') {
-      cb(null, { stderr: '', stdout: '' })
-    }
-  }),
+vi.mock(import('node:fs/promises'), () => ({
+  lstat: vi.fn(),
+  readdir: vi.fn(),
 }))
 
-import { exec } from 'node:child_process'
+import type { Stats } from 'node:fs'
+import { lstat, readdir } from 'node:fs/promises'
 
 import { listSystemFonts } from './list-system-fonts.js'
+
+// ---------------------------------------------------------------------------
+
+function fileStats(): Stats {
+  return { isDirectory: () => false, isFile: () => true, isSymbolicLink: () => false } as Stats
+}
+
+function dirStats(): Stats {
+  return { isDirectory: () => true, isFile: () => false, isSymbolicLink: () => false } as Stats
+}
+
+function symlinkStats(): Stats {
+  return { isDirectory: () => false, isFile: () => false, isSymbolicLink: () => true } as Stats
+}
+
+// ---------------------------------------------------------------------------
 
 describe('listSystemFonts()', () => {
   const originalPlatform = process.platform
@@ -29,84 +43,96 @@ describe('listSystemFonts()', () => {
       Object.defineProperty(process, 'platform', { value: 'darwin' })
     })
 
-    it('should parse font families from system_profiler output', async () => {
-      vi.mocked(exec).mockImplementation(
-        (_cmd: string, _opts: unknown, cb?: (...args: readonly unknown[]) => void) => {
-          if (typeof cb === 'function') {
-            cb(null, {
-              stderr: '',
-              stdout: [
-                'Fonts:',
-                '',
-                '    Arial:',
-                '      Family: Arial',
-                '      Full Name: Arial',
-                '',
-                '    JetBrainsMono Nerd Font:',
-                '      Family: JetBrainsMono Nerd Font',
-                '      Full Name: JetBrainsMono Nerd Font Regular',
-                '',
-              ].join('\n'),
-            })
-          }
-          return undefined as never
+    it('should scan macOS font directories and return font file paths', async () => {
+      vi.mocked(readdir).mockImplementation((dir) => {
+        if (String(dir) === '/Library/Fonts') {
+          return Promise.resolve(['Arial.ttf', 'JetBrainsMonoNerdFont-Regular.ttf'] as never)
         }
-      )
+        return Promise.reject(new Error('ENOENT'))
+      })
+
+      vi.mocked(lstat).mockImplementation((filePath) => {
+        const path = String(filePath)
+        if (path.endsWith('.ttf')) {
+          return Promise.resolve(fileStats()) as never
+        }
+        return Promise.reject(new Error('ENOENT'))
+      })
 
       const [error, fonts] = await listSystemFonts()
 
       expect(error).toBeNull()
-      expect(fonts).toEqual(['Arial', 'JetBrainsMono Nerd Font'])
+      expect(fonts).toContain('/Library/Fonts/Arial.ttf')
+      expect(fonts).toContain('/Library/Fonts/JetBrainsMonoNerdFont-Regular.ttf')
     })
 
-    it('should invoke system_profiler SPFontsDataType', async () => {
-      await listSystemFonts()
-
-      expect(exec).toHaveBeenCalledWith(
-        'system_profiler SPFontsDataType',
-        expect.objectContaining({ timeout: 15_000 }),
-        expect.any(Function)
-      )
-    })
-
-    it('should return error result when system_profiler fails', async () => {
-      vi.mocked(exec).mockImplementation(
-        (_cmd: string, _opts: unknown, cb?: (...args: readonly unknown[]) => void) => {
-          if (typeof cb === 'function') {
-            cb(new Error('command failed'), null, null)
-          }
-          return undefined as never
+    it('should recurse into subdirectories', async () => {
+      vi.mocked(readdir).mockImplementation((dir) => {
+        if (String(dir) === '/Library/Fonts') {
+          return Promise.resolve(['Supplemental'] as never)
         }
-      )
-
-      const [error, fonts] = await listSystemFonts()
-
-      expect(error).toBeInstanceOf(Error)
-      expect(fonts).toBeNull()
-    })
-
-    it('should ignore non-Family lines from system_profiler', async () => {
-      vi.mocked(exec).mockImplementation(
-        (_cmd: string, _opts: unknown, cb?: (...args: readonly unknown[]) => void) => {
-          if (typeof cb === 'function') {
-            cb(null, {
-              stderr: '',
-              stdout: [
-                '      Full Name: Arial Bold',
-                '      Style: Bold',
-                '      Family: Arial',
-                '      Location: /System/Library/Fonts/Arial.ttf',
-              ].join('\n'),
-            })
-          }
-          return undefined as never
+        if (String(dir) === '/Library/Fonts/Supplemental') {
+          return Promise.resolve(['Courier.ttf'] as never)
         }
-      )
+        return Promise.reject(new Error('ENOENT'))
+      })
+
+      vi.mocked(lstat).mockImplementation((filePath) => {
+        const path = String(filePath)
+        if (path === '/Library/Fonts/Supplemental') {
+          return Promise.resolve(dirStats()) as never
+        }
+        if (path.endsWith('.ttf')) {
+          return Promise.resolve(fileStats()) as never
+        }
+        return Promise.reject(new Error('ENOENT'))
+      })
 
       const [error, fonts] = await listSystemFonts()
 
       expect(error).toBeNull()
-      expect(fonts).toEqual(['Arial'])
+      expect(fonts).toContain('/Library/Fonts/Supplemental/Courier.ttf')
+    })
+
+    it('should filter out non-font files', async () => {
+      vi.mocked(readdir).mockImplementation((dir) => {
+        if (String(dir) === '/Library/Fonts') {
+          return Promise.resolve(['Arial.ttf', 'README.txt', 'config.json'] as never)
+        }
+        return Promise.reject(new Error('ENOENT'))
+      })
+
+      vi.mocked(lstat).mockResolvedValue(fileStats() as never)
+
+      const [error, fonts] = await listSystemFonts()
+
+      expect(error).toBeNull()
+      expect(fonts).toContain('/Library/Fonts/Arial.ttf')
+      expect(fonts).not.toContain('/Library/Fonts/README.txt')
+      expect(fonts).not.toContain('/Library/Fonts/config.json')
+    })
+
+    it('should skip symlinks to prevent cyclic traversal', async () => {
+      vi.mocked(readdir).mockImplementation((dir) => {
+        if (String(dir) === '/Library/Fonts') {
+          return Promise.resolve(['Arial.ttf', 'cyclic-link'] as never)
+        }
+        return Promise.reject(new Error('ENOENT'))
+      })
+
+      vi.mocked(lstat).mockImplementation((filePath) => {
+        const path = String(filePath)
+        if (path.endsWith('cyclic-link')) {
+          return Promise.resolve(symlinkStats()) as never
+        }
+        return Promise.resolve(fileStats()) as never
+      })
+
+      const [error, fonts] = await listSystemFonts()
+
+      expect(error).toBeNull()
+      expect(fonts).toContain('/Library/Fonts/Arial.ttf')
+      expect(fonts).toHaveLength(1)
     })
   })
 
@@ -115,125 +141,39 @@ describe('listSystemFonts()', () => {
       Object.defineProperty(process, 'platform', { value: 'linux' })
     })
 
-    it('should parse font families from fc-list output', async () => {
-      vi.mocked(exec).mockImplementation(
-        (_cmd: string, _opts: unknown, cb?: (...args: readonly unknown[]) => void) => {
-          if (typeof cb === 'function') {
-            cb(null, {
-              stderr: '',
-              stdout: 'Arial\nHelvetica\nJetBrainsMono Nerd Font\n',
-            })
-          }
-          return undefined as never
+    it('should scan linux font directories', async () => {
+      vi.mocked(readdir).mockImplementation((dir) => {
+        if (String(dir) === '/usr/share/fonts') {
+          return Promise.resolve(['DejaVuSans.ttf'] as never)
         }
-      )
+        return Promise.reject(new Error('ENOENT'))
+      })
+
+      vi.mocked(lstat).mockResolvedValue(fileStats() as never)
 
       const [error, fonts] = await listSystemFonts()
 
       expect(error).toBeNull()
-      expect(fonts).toEqual(['Arial', 'Helvetica', 'JetBrainsMono Nerd Font'])
-    })
-
-    it('should invoke fc-list : family', async () => {
-      await listSystemFonts()
-
-      expect(exec).toHaveBeenCalledWith(
-        'fc-list : family',
-        expect.objectContaining({ timeout: 15_000 }),
-        expect.any(Function)
-      )
-    })
-
-    it('should return error result when fc-list fails', async () => {
-      vi.mocked(exec).mockImplementation(
-        (_cmd: string, _opts: unknown, cb?: (...args: readonly unknown[]) => void) => {
-          if (typeof cb === 'function') {
-            cb(new Error('command failed'), null, null)
-          }
-          return undefined as never
-        }
-      )
-
-      const [error, fonts] = await listSystemFonts()
-
-      expect(error).toBeInstanceOf(Error)
-      expect(fonts).toBeNull()
-    })
-  })
-
-  describe('win32', () => {
-    beforeEach(() => {
-      Object.defineProperty(process, 'platform', { value: 'win32' })
-    })
-
-    it('should parse font families from powershell output', async () => {
-      vi.mocked(exec).mockImplementation(
-        (_cmd: string, _opts: unknown, cb?: (...args: readonly unknown[]) => void) => {
-          if (typeof cb === 'function') {
-            cb(null, {
-              stderr: '',
-              stdout: 'Arial\nCourier New\nHack Nerd Font\n',
-            })
-          }
-          return undefined as never
-        }
-      )
-
-      const [error, fonts] = await listSystemFonts()
-
-      expect(error).toBeNull()
-      expect(fonts).toEqual(['Arial', 'Courier New', 'Hack Nerd Font'])
-    })
-
-    it('should handle Windows CRLF line endings', async () => {
-      vi.mocked(exec).mockImplementation(
-        (_cmd: string, _opts: unknown, cb?: (...args: readonly unknown[]) => void) => {
-          if (typeof cb === 'function') {
-            cb(null, {
-              stderr: '',
-              stdout: 'Arial\r\nCourier New\r\nHack Nerd Font\r\n',
-            })
-          }
-          return undefined as never
-        }
-      )
-
-      const [error, fonts] = await listSystemFonts()
-
-      expect(error).toBeNull()
-      expect(fonts).toEqual(['Arial', 'Courier New', 'Hack Nerd Font'])
-    })
-
-    it('should return error result when powershell fails', async () => {
-      vi.mocked(exec).mockImplementation(
-        (_cmd: string, _opts: unknown, cb?: (...args: readonly unknown[]) => void) => {
-          if (typeof cb === 'function') {
-            cb(new Error('command failed'), null, null)
-          }
-          return undefined as never
-        }
-      )
-
-      const [error, fonts] = await listSystemFonts()
-
-      expect(error).toBeInstanceOf(Error)
-      expect(fonts).toBeNull()
-    })
-
-    it('should invoke powershell with -NoProfile', async () => {
-      await listSystemFonts()
-
-      expect(exec).toHaveBeenCalledWith(
-        expect.stringContaining('powershell -NoProfile'),
-        expect.objectContaining({ timeout: 15_000 }),
-        expect.any(Function)
-      )
+      expect(fonts).toContain('/usr/share/fonts/DejaVuSans.ttf')
     })
   })
 
   describe('unsupported platform', () => {
     it('should return success with empty array for unknown platforms', async () => {
       Object.defineProperty(process, 'platform', { value: 'freebsd' })
+
+      const [error, fonts] = await listSystemFonts()
+
+      expect(error).toBeNull()
+      expect(fonts).toEqual([])
+    })
+  })
+
+  describe('error handling', () => {
+    it('should skip directories that do not exist', async () => {
+      Object.defineProperty(process, 'platform', { value: 'darwin' })
+
+      vi.mocked(readdir).mockRejectedValue(new Error('ENOENT'))
 
       const [error, fonts] = await listSystemFonts()
 

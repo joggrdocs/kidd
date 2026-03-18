@@ -1,5 +1,11 @@
 # kidd
 
+## 0.10.0
+
+### Minor Changes
+
+- d6e831c: Replace `system_profiler` font detection with pure JS directory scanning, reducing icons middleware startup from ~9.5s to ~140ms on macOS
+
 ## 0.9.0
 
 ### Minor Changes

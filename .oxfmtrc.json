@@ -10,5 +10,5 @@
   "arrowParens": "always",
   "endOfLine": "lf",
   "experimentalSortImports": {},
-  "ignorePatterns": ["node_modules", "dist", "build", "out", "coverage", ".claude", "**/*.d.ts"]
+  "ignorePatterns": ["node_modules", "dist", "build", "out", "coverage", ".claude", "**/*.d.ts", "**/CHANGELOG.md"]
 }

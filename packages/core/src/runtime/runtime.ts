@@ -45,6 +45,7 @@ export async function createRuntime<TSchema extends z.ZodType>(
         config,
         meta: {
           command: [...command.commandPath],
+          dirs: options.dirs,
           name: options.name,
           version: options.version,
         },

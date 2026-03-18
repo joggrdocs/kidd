@@ -8,6 +8,7 @@ import type {
   CliConfig,
   KiddStore,
   Merge,
+  ResolvedDirs,
   StringKeyOf,
 } from '@/types/index.js'
 
@@ -151,6 +152,13 @@ export interface Meta {
    * The resolved command path (e.g. `['deploy', 'preview']`).
    */
   readonly command: string[]
+  /**
+   * Resolved directory names for file-backed stores.
+   *
+   * `local` resolves relative to the project root, `global` resolves
+   * relative to the user's home directory.
+   */
+  readonly dirs: ResolvedDirs
 }
 
 /**

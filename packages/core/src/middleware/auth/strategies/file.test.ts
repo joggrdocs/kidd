@@ -20,20 +20,46 @@ describe('resolveFromFile()', () => {
     vi.mocked(createStore).mockReturnValue(mockStore)
   })
 
-  it('should return bearer credential when store loads valid bearer data', () => {
+  it('should return bearer credential when local store loads valid bearer data', () => {
     vi.mocked(mockStore.load).mockReturnValue({ token: 'my-token', type: 'bearer' })
 
-    const result = resolveFromFile({ dirName: '.my-cli', filename: 'credentials.json' })
+    const result = resolveFromFile({
+      filename: 'credentials.json',
+      globalDirName: '.my-cli',
+      localDirName: '.my-cli',
+    })
 
     expect(result).toEqual({ token: 'my-token', type: 'bearer' })
     expect(createStore).toHaveBeenCalledWith({ dirName: '.my-cli' })
-    expect(mockStore.load).toHaveBeenCalledWith('credentials.json')
+    expect(mockStore.load).toHaveBeenCalledWith('credentials.json', { source: 'local' })
   })
 
-  it('should return null when store returns null', () => {
+  it('should fall back to global when local returns null', () => {
+    vi.mocked(mockStore.load)
+      .mockReturnValueOnce(null)
+      .mockReturnValueOnce({ token: 'global-token', type: 'bearer' })
+
+    const result = resolveFromFile({
+      filename: 'credentials.json',
+      globalDirName: '.my-cli-global',
+      localDirName: '.my-cli-local',
+    })
+
+    expect(result).toEqual({ token: 'global-token', type: 'bearer' })
+    expect(createStore).toHaveBeenCalledWith({ dirName: '.my-cli-local' })
+    expect(createStore).toHaveBeenCalledWith({ dirName: '.my-cli-global' })
+    expect(mockStore.load).toHaveBeenCalledWith('credentials.json', { source: 'local' })
+    expect(mockStore.load).toHaveBeenCalledWith('credentials.json', { source: 'global' })
+  })
+
+  it('should return null when both local and global return null', () => {
     vi.mocked(mockStore.load).mockReturnValue(null)
 
-    const result = resolveFromFile({ dirName: '.my-cli', filename: 'credentials.json' })
+    const result = resolveFromFile({
+      filename: 'credentials.json',
+      globalDirName: '.my-cli',
+      localDirName: '.my-cli',
+    })
 
     expect(result).toBeNull()
   })
@@ -41,7 +67,11 @@ describe('resolveFromFile()', () => {
   it('should return null when store returns data that fails schema validation', () => {
     vi.mocked(mockStore.load).mockReturnValue({ invalid: 'data' })
 
-    const result = resolveFromFile({ dirName: '.my-cli', filename: 'credentials.json' })
+    const result = resolveFromFile({
+      filename: 'credentials.json',
+      globalDirName: '.my-cli',
+      localDirName: '.my-cli',
+    })
 
     expect(result).toBeNull()
   })
@@ -53,7 +83,11 @@ describe('resolveFromFile()', () => {
       username: 'admin',
     })
 
-    const result = resolveFromFile({ dirName: '.my-cli', filename: 'credentials.json' })
+    const result = resolveFromFile({
+      filename: 'credentials.json',
+      globalDirName: '.my-cli',
+      localDirName: '.my-cli',
+    })
 
     expect(result).toEqual({ password: 's3cret', type: 'basic', username: 'admin' })
   })

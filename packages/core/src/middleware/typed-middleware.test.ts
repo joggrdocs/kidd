@@ -59,7 +59,12 @@ function createTestContext(): Context {
   return createContext({
     args: {},
     config: {},
-    meta: { command: ['test'], name: 'test-app', version: '1.0.0' },
+    meta: {
+      command: ['test'],
+      dirs: { global: '.test-app', local: '.test-app' },
+      name: 'test-app',
+      version: '1.0.0',
+    },
   })
 }
 

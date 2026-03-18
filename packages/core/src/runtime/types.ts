@@ -2,7 +2,7 @@ import type { AsyncResult, Result } from '@kidd-cli/utils/fp'
 import type { z } from 'zod'
 
 import type { Context } from '@/context/types.js'
-import type { ArgsDef, CliConfigOptions, Middleware } from '@/types/index.js'
+import type { ArgsDef, CliConfigOptions, Middleware, ResolvedDirs } from '@/types/index.js'
 
 /**
  * Options for creating a runtime via `createRuntime`.
@@ -10,6 +10,7 @@ import type { ArgsDef, CliConfigOptions, Middleware } from '@/types/index.js'
 export interface RuntimeOptions<TSchema extends z.ZodType = z.ZodType> {
   readonly name: string
   readonly version: string
+  readonly dirs: ResolvedDirs
   readonly config?: CliConfigOptions<TSchema>
   readonly middleware?: Middleware[]
 }

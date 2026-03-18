@@ -11,6 +11,7 @@ export type {
   Command,
   CommandsConfig,
   ConfigType,
+  DirsConfig,
   MiddlewareEnv,
   Resolvable,
 } from './types/index.js'

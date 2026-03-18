@@ -1,7 +1,7 @@
 import { resolve } from 'node:path'
 
 import { loadConfig } from '@kidd-cli/config/loader'
-import { P, attemptAsync, err, isPlainObject, isString, match, ok } from '@kidd-cli/utils/fp'
+import { P, attemptAsync, err, isNil, isPlainObject, isString, match, ok } from '@kidd-cli/utils/fp'
 import type { Result } from '@kidd-cli/utils/fp'
 import yargs from 'yargs'
 import type { Argv } from 'yargs'
@@ -9,7 +9,14 @@ import { z } from 'zod'
 
 import { DEFAULT_EXIT_CODE, isContextError } from '@/context/index.js'
 import { createCliLogger } from '@/lib/logger.js'
-import type { CliHelpOptions, CliOptions, CommandMap, CommandsConfig } from '@/types/index.js'
+import type {
+  CliHelpOptions,
+  CliOptions,
+  CommandMap,
+  CommandsConfig,
+  DirsConfig,
+  ResolvedDirs,
+} from '@/types/index.js'
 
 import { autoload } from './autoload.js'
 import { isCommandsConfig } from './command.js'
@@ -87,8 +94,11 @@ export async function cli<TSchema extends z.ZodType = z.ZodType>(
       return undefined
     }
 
+    const dirs = resolveDirs(options.name, options.dirs)
+
     const [runtimeError, runtime] = await createRuntime({
       config: options.config,
+      dirs,
       middleware: options.middleware,
       name: options.name,
       version,
@@ -319,6 +329,31 @@ function extractFooter(help: CliHelpOptions | undefined): string | undefined {
     return undefined
   }
   return help.footer
+}
+
+/**
+ * Resolve directory config into a {@link ResolvedDirs} with defaults.
+ *
+ * Both `local` and `global` default to `.<name>` when not provided.
+ *
+ * @private
+ * @param name - The CLI name used to derive defaults.
+ * @param dirs - Optional user-provided directory overrides.
+ * @returns Resolved dirs with both local and global guaranteed.
+ */
+function resolveDirs(name: string, dirs: DirsConfig | undefined): ResolvedDirs {
+  const defaultDir = `.${name}`
+  if (isNil(dirs)) {
+    return { global: defaultDir, local: defaultDir }
+  }
+  return {
+    global: match(dirs.global)
+      .with(P.nullish, () => defaultDir)
+      .otherwise((v) => v),
+    local: match(dirs.local)
+      .with(P.nullish, () => defaultDir)
+      .otherwise((v) => v),
+  }
 }
 
 /**

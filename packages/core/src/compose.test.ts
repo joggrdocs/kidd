@@ -20,7 +20,12 @@ function createMockCtx() {
       success: vi.fn(),
       warn: vi.fn(),
     },
-    meta: { command: ['test'], name: 'test-cli', version: '1.0.0' },
+    meta: {
+      command: ['test'],
+      dirs: { global: '.test-cli', local: '.test-cli' },
+      name: 'test-cli',
+      version: '1.0.0',
+    },
     output: { markdown: vi.fn(), raw: vi.fn(), table: vi.fn(), write: vi.fn() },
     prompts: {
       confirm: vi.fn(),

@@ -4,6 +4,7 @@ export default defineConfig({
   title: "kidd",
   description: "An opinionated CLI framework",
   tagline: "Built on yargs and Zod. Convention over configuration, end-to-end type safety.",
+  theme: { name: "midnight" },
   actions: [
     { theme: "brand", text: "Introduction", link: "/getting-started/introduction" },
     { theme: "alt", text: "Quick Start", link: "/getting-started/quick-start" },

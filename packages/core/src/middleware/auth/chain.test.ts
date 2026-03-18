@@ -248,6 +248,24 @@ describe('runStrategyChain()', () => {
     })
   })
 
+  it('should pass separate local and global dirs to resolveFromFile', async () => {
+    vi.mocked(resolveFromFile).mockReturnValue({ token: 'from-file', type: 'bearer' })
+
+    const prompts = { password: vi.fn() } as unknown as Prompts
+    await runStrategyChain({
+      cliName: 'my-cli',
+      dirs: { global: '.my-global', local: '.my-local' },
+      prompts,
+      strategies: [{ source: 'file' }],
+    })
+
+    expect(resolveFromFile).toHaveBeenCalledWith({
+      filename: 'auth.json',
+      globalDirName: '.my-global',
+      localDirName: '.my-local',
+    })
+  })
+
   it('should dispatch to oauth strategy with PKCE fields', async () => {
     vi.mocked(resolveFromOAuth).mockResolvedValue({ token: 'from-oauth', type: 'bearer' })
 

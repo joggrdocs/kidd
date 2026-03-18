@@ -280,3 +280,42 @@ describe('auth.custom()', () => {
     expect(config).toEqual({ resolver, source: 'custom' })
   })
 })
+
+describe('auth() dirs override', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs()
+  })
+
+  it('should use ctx.meta.dirs when no auth dirs override provided', async () => {
+    const ctx = createMockCtx()
+    const mw = auth({ strategies: [{ source: 'env' }] })
+    const next = vi.fn()
+
+    await mw.handler(ctx as never, next)
+
+    expect(next).toHaveBeenCalledOnce()
+  })
+
+  it('should accept dirs override without error', async () => {
+    const ctx = createMockCtx()
+    const mw = auth({ dirs: { global: '.custom' }, strategies: [{ source: 'env' }] })
+    const next = vi.fn()
+
+    await mw.handler(ctx as never, next)
+
+    expect(next).toHaveBeenCalledOnce()
+  })
+
+  it('should accept full dirs override without error', async () => {
+    const ctx = createMockCtx()
+    const mw = auth({
+      dirs: { global: '.custom-global', local: '.custom-local' },
+      strategies: [{ source: 'env' }],
+    })
+    const next = vi.fn()
+
+    await mw.handler(ctx as never, next)
+
+    expect(next).toHaveBeenCalledOnce()
+  })
+})

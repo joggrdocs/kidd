@@ -28,6 +28,12 @@ jobs:
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Build
+        run: pnpm build
+
+      - name: Rebuild bin links
+        run: pnpm install --frozen-lockfile
+
       - name: Lint
         run: pnpm lint
 
@@ -36,6 +42,3 @@ jobs:
 
       - name: Test
         run: pnpm test
-
-      - name: Build
-        run: pnpm build

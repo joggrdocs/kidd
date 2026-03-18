@@ -19,8 +19,14 @@
       "cache": false,
       "persistent": true
     },
-    "test:exports": {
-      "dependsOn": ["^build"]
+    "//#test:integration": {
+      "dependsOn": [
+        "@examples/simple#build",
+        "@examples/advanced#build",
+        "@examples/icons#build",
+        "@examples/diagnostic-output#build",
+        "@examples/authenticated-service#build"
+      ]
     }
   }
 }

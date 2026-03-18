@@ -170,7 +170,7 @@ describe('autoloader parts generation', () => {
 
     const parts = generateAutoloaderParts({ scan, tagModulePath: TAG_PATH })
 
-    expect(parts.region).toContain('//#region src/autoloader.ts (static)')
+    expect(parts.region).toContain('//#region src/autoload.ts (static)')
     expect(parts.region).toContain('//#endregion')
   })
 

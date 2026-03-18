@@ -45,7 +45,7 @@ describe('createAutoloadPlugin', () => {
         tagModulePath: '/project/tag.js',
       })
 
-      const code = 'const x = 1\n//#region src/autoloader.ts\nsome content'
+      const code = 'const x = 1\n//#region src/autoload.ts\nsome content'
       const result = plugin.transform(code, '/node_modules/kidd/dist/index.js')
 
       expect(result).toBeNull()
@@ -59,7 +59,7 @@ describe('createAutoloadPlugin', () => {
 
       const code = [
         'const before = 1',
-        '//#region src/autoloader.ts',
+        '//#region src/autoload.ts',
         'async function autoload() { return {} }',
         '//#endregion',
         'const after = 2',
@@ -69,7 +69,7 @@ describe('createAutoloadPlugin', () => {
 
       expect(result).toContain('const before = 1')
       expect(result).toContain('const after = 2')
-      expect(result).toContain('//#region src/autoloader.ts (static)')
+      expect(result).toContain('//#region src/autoload.ts (static)')
       expect(result).toContain("await import('virtual:kidd-static-commands')")
       expect(result).toContain('return mod.autoload()')
       expect(result).not.toContain('async function autoload() { return {} }')

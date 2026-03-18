@@ -31,14 +31,8 @@ jobs:
       - name: Build
         run: pnpm build
 
-      - name: Debug bin links
-        run: |
-          echo "=== examples/icons/.bin ==="
-          ls -la examples/icons/node_modules/.bin/ 2>&1 || echo "no .bin dir"
-          echo "=== examples/icons/@kidd-cli/cli ==="
-          ls -la examples/icons/node_modules/@kidd-cli/cli 2>&1 || echo "no @kidd-cli/cli"
-          echo "=== packages/cli/dist/index.js ==="
-          ls -la packages/cli/dist/index.js 2>&1 || echo "no dist/index.js"
+      - name: Rebuild bin links
+        run: pnpm install --frozen-lockfile
 
       - name: Lint
         run: pnpm lint

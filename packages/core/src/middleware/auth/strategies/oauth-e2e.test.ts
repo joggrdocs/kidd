@@ -16,10 +16,10 @@ vi.mock(import('node:crypto'), async (importOriginal) => {
 
 import { execFile } from 'node:child_process'
 
-import { resolveFromOAuth } from '@/middleware/auth/strategies/oauth.js'
+import { createMockOAuthServer } from '@test/mock-oauth-server.js'
+import type { MockOAuthServer } from '@test/mock-oauth-server.js'
 
-import { createMockOAuthServer } from '../helpers/index.js'
-import type { MockOAuthServer } from '../helpers/index.js'
+import { resolveFromOAuth } from '@/middleware/auth/strategies/oauth.js'
 
 const KNOWN_STATE = Buffer.from('a'.repeat(32)).toString('hex')
 const KNOWN_VERIFIER = Buffer.from('a'.repeat(32)).toString('base64url')

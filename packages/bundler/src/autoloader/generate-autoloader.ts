@@ -270,7 +270,7 @@ function buildTagImportLine(
  */
 function buildEmptyAutoloaderRegion(): string {
   return [
-    '//#region src/autoloader.ts (static)',
+    '//#region src/autoload.ts (static)',
     'async function autoload() {',
     '  return {}',
     '}',
@@ -299,7 +299,7 @@ function buildDynamicAutoloaderRegion(
   const importCalls = imports.map((entry) => `    import('${entry.filePath}'),`).join('\n')
 
   return [
-    '//#region src/autoloader.ts (static)',
+    '//#region src/autoload.ts (static)',
     'async function autoload() {',
     '  const [',
     destructuring,

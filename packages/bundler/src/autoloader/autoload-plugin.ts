@@ -6,7 +6,7 @@ import { scanCommandsDir } from './scan-commands.js'
 const VIRTUAL_MODULE_ID = 'virtual:kidd-static-commands'
 const RESOLVED_VIRTUAL_ID = `\0${VIRTUAL_MODULE_ID}`
 
-const AUTOLOADER_REGION_START = '//#region src/autoloader.ts'
+const AUTOLOADER_REGION_START = '//#region src/autoload.ts'
 const AUTOLOADER_REGION_END = '//#endregion'
 
 /**
@@ -88,7 +88,7 @@ export function createAutoloadPlugin(params: CreateAutoloadPluginParams): Rolldo
  */
 function buildStaticRegion(): string {
   return [
-    '//#region src/autoloader.ts (static)',
+    '//#region src/autoload.ts (static)',
     'async function autoload() {',
     `  const mod = await import('${VIRTUAL_MODULE_ID}')`,
     '  return mod.autoload()',

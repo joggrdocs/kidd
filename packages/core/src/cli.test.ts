@@ -74,6 +74,117 @@ describe('meta', () => {
   })
 })
 
+describe('dirs', () => {
+  it('should default dirs to .<name> when no dirs option provided', async () => {
+    const handler = vi.fn()
+    const commands: CommandMap = {
+      info: command({
+        description: 'Show info',
+        handler,
+      }),
+    }
+
+    setArgv('info')
+    await runTestCli({
+      commands,
+      name: 'my-tool',
+      version: '1.0.0',
+    })
+
+    expect(handler).toHaveBeenCalledTimes(1)
+    const ctx = handler.mock.calls[0]![0] as Context
+    expect(ctx.meta.dirs).toEqual({ global: '.my-tool', local: '.my-tool' })
+  })
+
+  it('should use custom dirs when provided', async () => {
+    const handler = vi.fn()
+    const commands: CommandMap = {
+      info: command({
+        description: 'Show info',
+        handler,
+      }),
+    }
+
+    setArgv('info')
+    await runTestCli({
+      commands,
+      dirs: { global: '.joggr', local: '.joggr' },
+      name: 'jog',
+      version: '1.0.0',
+    })
+
+    expect(handler).toHaveBeenCalledTimes(1)
+    const ctx = handler.mock.calls[0]![0] as Context
+    expect(ctx.meta.dirs).toEqual({ global: '.joggr', local: '.joggr' })
+  })
+
+  it('should allow partial dirs override for global only', async () => {
+    const handler = vi.fn()
+    const commands: CommandMap = {
+      info: command({
+        description: 'Show info',
+        handler,
+      }),
+    }
+
+    setArgv('info')
+    await runTestCli({
+      commands,
+      dirs: { global: '.custom-global' },
+      name: 'my-tool',
+      version: '1.0.0',
+    })
+
+    expect(handler).toHaveBeenCalledTimes(1)
+    const ctx = handler.mock.calls[0]![0] as Context
+    expect(ctx.meta.dirs).toEqual({ global: '.custom-global', local: '.my-tool' })
+  })
+
+  it('should allow partial dirs override for local only', async () => {
+    const handler = vi.fn()
+    const commands: CommandMap = {
+      info: command({
+        description: 'Show info',
+        handler,
+      }),
+    }
+
+    setArgv('info')
+    await runTestCli({
+      commands,
+      dirs: { local: '.custom-local' },
+      name: 'my-tool',
+      version: '1.0.0',
+    })
+
+    expect(handler).toHaveBeenCalledTimes(1)
+    const ctx = handler.mock.calls[0]![0] as Context
+    expect(ctx.meta.dirs).toEqual({ global: '.my-tool', local: '.custom-local' })
+  })
+
+  it('should fall back to default when dirs contain empty strings', async () => {
+    const handler = vi.fn()
+    const commands: CommandMap = {
+      info: command({
+        description: 'Show info',
+        handler,
+      }),
+    }
+
+    setArgv('info')
+    await runTestCli({
+      commands,
+      dirs: { global: '', local: '  ' },
+      name: 'my-tool',
+      version: '1.0.0',
+    })
+
+    expect(handler).toHaveBeenCalledTimes(1)
+    const ctx = handler.mock.calls[0]![0] as Context
+    expect(ctx.meta.dirs).toEqual({ global: '.my-tool', local: '.my-tool' })
+  })
+})
+
 describe('context properties', () => {
   it('provides all expected context properties', async () => {
     const handler = vi.fn()

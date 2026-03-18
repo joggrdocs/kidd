@@ -109,9 +109,11 @@ function resolveLogger(opts: TestContextOptions, stream: Writable) {
  */
 function resolveMeta(opts: TestContextOptions) {
   const meta = opts.meta ?? {}
+  const name = meta.name ?? 'test-app'
   return {
     command: meta.command ?? ['test'],
-    name: meta.name ?? 'test-app',
+    dirs: meta.dirs ?? { global: `.${name}`, local: `.${name}` },
+    name,
     version: meta.version ?? '0.0.0',
   }
 }

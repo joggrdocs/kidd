@@ -7,9 +7,8 @@ import { listSystemFonts } from './list-system-fonts.js'
 /**
  * Detect whether Nerd Fonts are installed on the system.
  *
- * Uses platform-native commands to query installed font families and
- * checks for any family name containing "Nerd". Returns `false` when
- * font listing fails.
+ * Scans platform font directories for font files whose path contains
+ * "Nerd" (case-insensitive). Returns `false` when directory scanning fails.
  *
  * @returns A promise that resolves to true when at least one Nerd Font is found.
  */

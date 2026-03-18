@@ -3,6 +3,7 @@ import { join } from 'node:path'
 import { match } from 'ts-pattern'
 
 import type { Prompts } from '@/context/types.js'
+import type { ResolvedDirs } from '@/types/index.js'
 
 import {
   DEFAULT_AUTH_FILENAME,
@@ -36,6 +37,7 @@ const DEFAULT_PROMPT_MESSAGE = 'Enter your API key'
 export async function runStrategyChain(options: {
   readonly strategies: readonly StrategyConfig[]
   readonly cliName: string
+  readonly dirs: ResolvedDirs
   readonly prompts: Prompts
 }): Promise<AuthCredential | null> {
   const defaultTokenVar = deriveTokenVar(options.cliName)
@@ -63,6 +65,7 @@ async function tryStrategies(
   defaultTokenVar: string,
   context: {
     readonly cliName: string
+    readonly dirs: ResolvedDirs
     readonly prompts: Prompts
   }
 ): Promise<AuthCredential | null> {
@@ -99,6 +102,7 @@ async function dispatchStrategy(
   defaultTokenVar: string,
   context: {
     readonly cliName: string
+    readonly dirs: ResolvedDirs
     readonly prompts: Prompts
   }
 ): Promise<AuthCredential | null> {
@@ -114,12 +118,14 @@ async function dispatchStrategy(
         tokenVar: c.tokenVar ?? defaultTokenVar,
       })
     )
-    .with({ source: 'file' }, (c): AuthCredential | null =>
-      resolveFromFile({
-        dirName: c.dirName ?? `.${context.cliName}`,
+    .with({ source: 'file' }, (c): AuthCredential | null => {
+      const fileDirName = c.dirName
+      return resolveFromFile({
         filename: c.filename ?? DEFAULT_AUTH_FILENAME,
+        globalDirName: fileDirName ?? context.dirs.global,
+        localDirName: fileDirName ?? context.dirs.local,
       })
-    )
+    })
     .with(
       { source: 'oauth' },
       (c): Promise<AuthCredential | null> =>

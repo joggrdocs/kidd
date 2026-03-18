@@ -1,5 +1,12 @@
 # kidd-cli
 
+## 0.4.8
+
+### Patch Changes
+
+- Updated dependencies [4beaa57]
+  - @kidd-cli/core@0.9.0
+
 ## 0.4.7
 
 ### Patch Changes

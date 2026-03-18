@@ -3,6 +3,7 @@ import type { AsyncResult, Result } from '@kidd-cli/utils/fp'
 
 import type { Prompts } from '@/context/types.js'
 import { createStore } from '@/lib/store/create-store.js'
+import type { ResolvedDirs } from '@/types/index.js'
 
 import { runStrategyChain } from './chain.js'
 import { DEFAULT_AUTH_FILENAME } from './constants.js'
@@ -21,6 +22,7 @@ import type {
 export interface CreateAuthContextOptions {
   readonly strategies: readonly StrategyConfig[]
   readonly cliName: string
+  readonly dirs: ResolvedDirs
   readonly prompts: Prompts
   readonly resolveCredential: () => AuthCredential | null
   readonly validate?: ValidateCredential
@@ -38,7 +40,7 @@ export interface CreateAuthContextOptions {
  * @returns An AuthContext instance.
  */
 export function createAuthContext(options: CreateAuthContextOptions): AuthContext {
-  const { strategies, cliName, prompts, resolveCredential, validate } = options
+  const { strategies, cliName, dirs, prompts, resolveCredential, validate } = options
 
   /**
    * Resolve the current credential from passive sources (file, env).
@@ -75,6 +77,7 @@ export function createAuthContext(options: CreateAuthContextOptions): AuthContex
 
     const resolved = await runStrategyChain({
       cliName,
+      dirs,
       prompts,
       strategies: activeStrategies,
     })
@@ -93,7 +96,10 @@ export function createAuthContext(options: CreateAuthContextOptions): AuthContex
       return [validationError, null] as const
     }
 
-    const store = createStore({ dirName: `.${cliName}` })
+    // Writes always target the global (home) directory so credentials are
+    // User-scoped and never written into a project directory that could be
+    // Committed. Reads (credential/file strategy) check local → global.
+    const store = createStore({ dirName: dirs.global })
     const [saveError] = store.save(DEFAULT_AUTH_FILENAME, validatedCredential)
 
     if (saveError) {
@@ -113,7 +119,12 @@ export function createAuthContext(options: CreateAuthContextOptions): AuthContex
    * @returns A Result with the removed file path on success or an AuthError on failure.
    */
   async function logout(): AsyncResult<string, AuthError> {
-    const store = createStore({ dirName: `.${cliName}` })
+    // Writes/deletes always target global. A project-local auth file is an
+    // Explicit per-project override (similar to a .env) and is intentionally
+    // Not removed by logout — only the user-scoped global credential is
+    // Cleared. If the local file also needs removal, the CLI author should
+    // Handle that explicitly in their logout command handler.
+    const store = createStore({ dirName: dirs.global })
     const [removeError, filePath] = store.remove(DEFAULT_AUTH_FILENAME)
 
     if (removeError) {

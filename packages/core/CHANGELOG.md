@@ -1,5 +1,11 @@
 # kidd
 
+## 0.9.0
+
+### Minor Changes
+
+- 4beaa57: Add `DirsConfig` option to `cli()` for configuring separate local and global directory names, and fix auth dir mismatch where `login()`/`logout()` hardcoded the store directory while `credential()` respected `auth.file({ dirName })` overrides.
+
 ## 0.8.2
 
 ### Patch Changes

@@ -162,17 +162,19 @@ The `config` option in `cli()` accepts a `CliConfigOptions` object:
 
 The `Context` object is threaded through every handler and middleware. See [Context](../concepts/context.md) for the full reference.
 
-| Property | Type                                      | Description                                                        |
-| -------- | ----------------------------------------- | ------------------------------------------------------------------ |
-| `args`   | `DeepReadonly<Merge<KiddArgs, TArgs>>`    | Parsed and validated command args                                  |
-| `config` | `DeepReadonly<Merge<CliConfig, TConfig>>` | Validated runtime config                                           |
-| `log`    | `Log`                                     | Unified logging, prompts, and spinner (via `logger()` middleware)  |
-| `colors` | `Colors`                                  | Color formatting utilities (picocolors)                            |
-| `format` | `Format`                                  | Pure string formatters (json, table) — no I/O                      |
-| `store`  | `Store`                                   | Typed in-memory key-value store (get, set, has, delete, clear)     |
-| `fail`   | `(message, options?) => never`            | Throw a user-facing error                                          |
-| `meta`   | `Meta`                                    | CLI metadata (name, version, command path)                         |
-| `auth?`  | `AuthContext`                             | Auth credential and login (when `kidd/auth` middleware registered) |
+| Property  | Type                                      | Description                                                        |
+| --------- | ----------------------------------------- | ------------------------------------------------------------------ |
+| `args`    | `DeepReadonly<Merge<KiddArgs, TArgs>>`    | Parsed and validated command args                                  |
+| `config`  | `DeepReadonly<Merge<CliConfig, TConfig>>` | Validated runtime config                                           |
+| `log`     | `Log`                                     | Logging methods (info, success, error, warn, etc.)                 |
+| `prompts` | `Prompts`                                 | Interactive prompts (confirm, text, select, etc.)                  |
+| `spinner` | `Spinner`                                 | Spinner for long-running operations (start, stop, message)         |
+| `colors`  | `Colors`                                  | Color formatting utilities (picocolors)                            |
+| `format`  | `Format`                                  | Pure string formatters (json, table) — no I/O                      |
+| `store`   | `Store`                                   | Typed in-memory key-value store (get, set, has, delete, clear)     |
+| `fail`    | `(message, options?) => never`            | Throw a user-facing error                                          |
+| `meta`    | `Meta`                                    | CLI metadata (name, version, command path)                         |
+| `auth?`   | `AuthContext`                             | Auth credential and login (when `kidd/auth` middleware registered) |
 
 ### `ctx.fail()`
 

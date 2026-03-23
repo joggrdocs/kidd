@@ -7,6 +7,6 @@ export default command({
     name: z.string().describe('Name to greet').default('world'),
   }),
   handler: async (ctx) => {
-    ctx.logger.print(`Hello, ${ctx.args.name}!`)
+    ctx.log.raw(`Hello, ${ctx.args.name}!`)
   },
 })

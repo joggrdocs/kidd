@@ -82,7 +82,7 @@ import { runHandler, mockPrompts } from '@kidd-cli/core/test'
 
 const deploy = command({
   async handler(ctx) {
-    const confirmed = await ctx.log.confirm({ message: 'Deploy to production?' })
+    const confirmed = await ctx.prompts.confirm({ message: 'Deploy to production?' })
     if (confirmed) {
       ctx.log.raw('Deploying...')
     }

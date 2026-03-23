@@ -25,13 +25,13 @@ export default command({
     fix: z.boolean().optional(),
   }),
   handler: async (ctx) => {
-    const s = ctx.log.spinner('Validating scripts')
+    ctx.spinner.start('Validating scripts')
 
     if (ctx.args.fix) {
       ctx.log.raw('Running with auto-fix enabled')
     }
 
-    s.stop('Validation complete')
+    ctx.spinner.stop('Validation complete')
   },
 })
 ```

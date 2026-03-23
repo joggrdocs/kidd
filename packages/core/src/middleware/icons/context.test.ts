@@ -11,10 +11,15 @@ import { installNerdFont } from './install.js'
 
 function createMockCtx(): IconsCtx {
   return {
-    logger: {
+    log: {
       error: vi.fn(),
       info: vi.fn(),
+      intro: vi.fn(),
       message: vi.fn(),
+      newline: vi.fn(),
+      note: vi.fn(),
+      outro: vi.fn(),
+      raw: vi.fn(),
       step: vi.fn(),
       success: vi.fn(),
       warn: vi.fn(),

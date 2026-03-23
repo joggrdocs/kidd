@@ -4,17 +4,19 @@ The central API surface threaded through every handler and middleware. Provides 
 
 ## Properties
 
-| Property | Type                                      | Description                                                        |
-| -------- | ----------------------------------------- | ------------------------------------------------------------------ |
-| `args`   | `DeepReadonly<Merge<KiddArgs, TArgs>>`    | Parsed and validated command args                                  |
-| `colors` | `Colors`                                  | Color formatting utilities (picocolors)                            |
-| `config` | `DeepReadonly<Merge<CliConfig, TConfig>>` | Validated runtime config                                           |
-| `format` | `Format`                                  | Pure string formatters (no I/O)                                    |
-| `log`    | `Log`                                     | Unified logging, prompts, and spinner (via `logger()` middleware)  |
-| `store`  | `Store`                                   | Typed in-memory key-value store                                    |
-| `fail`   | `(message, options?) => never`            | Throw a user-facing error                                          |
-| `meta`   | `Meta`                                    | CLI metadata                                                       |
-| `auth?`  | `AuthContext`                             | Auth credential and login (when `kidd/auth` middleware registered) |
+| Property  | Type                                      | Description                                                        |
+| --------- | ----------------------------------------- | ------------------------------------------------------------------ |
+| `args`    | `DeepReadonly<Merge<KiddArgs, TArgs>>`    | Parsed and validated command args                                  |
+| `colors`  | `Colors`                                  | Color formatting utilities (picocolors)                            |
+| `config`  | `DeepReadonly<Merge<CliConfig, TConfig>>` | Validated runtime config                                           |
+| `format`  | `Format`                                  | Pure string formatters (no I/O)                                    |
+| `log`     | `Log`                                     | Logging methods (info, success, error, warn, etc.)                 |
+| `prompts` | `Prompts`                                 | Interactive prompts (confirm, text, select, etc.)                  |
+| `spinner` | `Spinner`                                 | Spinner for long-running operations (start, stop, message)         |
+| `store`   | `Store`                                   | Typed in-memory key-value store                                    |
+| `fail`    | `(message, options?) => never`            | Throw a user-facing error                                          |
+| `meta`    | `Meta`                                    | CLI metadata                                                       |
+| `auth?`   | `AuthContext`                             | Auth credential and login (when `kidd/auth` middleware registered) |
 
 ## `ctx.args`
 
@@ -81,9 +83,7 @@ Run `kidd add config` to scaffold this setup in an existing project, or pass `--
 
 ## `ctx.log`
 
-Unified logging, prompting, and spinner API provided by the `logger()` middleware. All logging methods write to stderr.
-
-### Logging
+Logging API provided by the `logger()` middleware. All logging methods write to stderr.
 
 | Method                    | Description                          |
 | ------------------------- | ------------------------------------ |
@@ -106,7 +106,7 @@ ctx.log.success('Deployed successfully')
 ctx.log.outro('Done')
 ```
 
-### Prompts
+## `ctx.prompts`
 
 Interactive prompts that suspend execution until the user provides input. Cancellation (Ctrl-C) throws a `ContextError` with code `PROMPT_CANCELLED`.
 
@@ -119,7 +119,7 @@ Interactive prompts that suspend execution until the user provides input. Cancel
 | `password(opts)`       | `Promise<string>`  | Masked text input  |
 
 ```ts
-const env = await ctx.log.select({
+const env = await ctx.prompts.select({
   message: 'Target environment',
   options: [
     { label: 'Staging', value: 'staging' },
@@ -128,18 +128,20 @@ const env = await ctx.log.select({
 })
 ```
 
-### Spinner
+## `ctx.spinner`
 
-Create and manage a spinner for long-running operations. Returns a `LogSpinner` with `stop()` and `message()` methods.
+Manage a spinner for long-running operations.
 
-| Method              | Description                             |
-| ------------------- | --------------------------------------- |
-| `spinner(message?)` | Start a spinner, returns a `LogSpinner` |
+| Method             | Description                           |
+| ------------------ | ------------------------------------- |
+| `start(message)`   | Start the spinner with a message      |
+| `stop(message)`    | Stop the spinner with a final message |
+| `message(message)` | Update the spinner message            |
 
 ```ts
-const s = ctx.log.spinner('Bundling...')
-s.message('Compiling binaries...')
-s.stop('Build complete')
+ctx.spinner.start('Bundling...')
+ctx.spinner.message('Compiling binaries...')
+ctx.spinner.stop('Build complete')
 ```
 
 ## `ctx.colors`

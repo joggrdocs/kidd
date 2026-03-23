@@ -132,16 +132,18 @@ Shared utilities consumed by the core and extension layers:
 
 The `Context` is the central object threaded through every middleware and command handler. It carries all request-scoped data and utilities for a single CLI invocation.
 
-| Property | Type                           | Mutable | Description                                                       |
-| -------- | ------------------------------ | ------- | ----------------------------------------------------------------- |
-| `args`   | `DeepReadonly<TArgs>`          | No      | Parsed and validated command arguments                            |
-| `config` | `DeepReadonly<TConfig>`        | No      | Loaded and validated config file contents                         |
-| `log`    | `Log`                          | No      | Unified logging, prompts, and spinner (via `logger()` middleware) |
-| `colors` | `Colors`                       | No      | Color formatting utilities (picocolors)                           |
-| `format` | `Format`                       | No      | Pure string formatters (json, table)                              |
-| `store`  | `Store`                        | Yes     | In-memory key-value store for middleware data                     |
-| `fail`   | `(message, options?) => never` | No      | Throw a user-facing error with clean exit                         |
-| `meta`   | `DeepReadonly<Meta>`           | No      | CLI name, version, resolved command path                          |
+| Property  | Type                           | Mutable | Description                                                |
+| --------- | ------------------------------ | ------- | ---------------------------------------------------------- |
+| `args`    | `DeepReadonly<TArgs>`          | No      | Parsed and validated command arguments                     |
+| `config`  | `DeepReadonly<TConfig>`        | No      | Loaded and validated config file contents                  |
+| `log`     | `Log`                          | No      | Logging methods (info, success, error, warn, etc.)         |
+| `prompts` | `Prompts`                      | No      | Interactive prompts (confirm, text, select, etc.)          |
+| `spinner` | `Spinner`                      | No      | Spinner for long-running operations (start, stop, message) |
+| `colors`  | `Colors`                       | No      | Color formatting utilities (picocolors)                    |
+| `format`  | `Format`                       | No      | Pure string formatters (json, table)                       |
+| `store`   | `Store`                        | Yes     | In-memory key-value store for middleware data              |
+| `fail`    | `(message, options?) => never` | No      | Throw a user-facing error with clean exit                  |
+| `meta`    | `DeepReadonly<Meta>`           | No      | CLI name, version, resolved command path                   |
 
 All data properties (`args`, `config`, `meta`) are deeply readonly at the type level. The `store` is the only mutable property -- it exists for middleware-to-handler data flow.
 
@@ -252,10 +254,10 @@ Middleware wraps command execution with pre/post logic. Created with the `middle
 
 ```ts
 middleware(async (ctx, next) => {
-  const s = ctx.log.spinner('Loading')
+  ctx.spinner.start('Loading')
   ctx.store.set('startTime', Date.now())
   await next()
-  s.stop('Done')
+  ctx.spinner.stop('Done')
 })
 ```
 

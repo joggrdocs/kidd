@@ -20,6 +20,7 @@ export interface RuntimeOptions<TSchema extends z.ZodType = z.ZodType> {
  */
 export interface ResolvedExecution {
   readonly handler: ((ctx: Context) => Promise<void> | void) | undefined
+  readonly render: ((props: Record<string, unknown>) => Promise<void> | void) | undefined
   readonly middleware: Middleware[]
   readonly options: ArgsDef | undefined
   readonly positionals: ArgsDef | undefined
@@ -57,6 +58,7 @@ export interface ArgsParser {
  */
 export interface ResolvedCommand {
   readonly handler: ((ctx: Context) => Promise<void> | void) | undefined
+  readonly render: ((props: Record<string, unknown>) => Promise<void> | void) | undefined
   readonly middleware: Middleware[]
   readonly options: ArgsDef | undefined
   readonly positionals: ArgsDef | undefined

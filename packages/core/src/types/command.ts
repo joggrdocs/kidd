@@ -1,9 +1,10 @@
 import type { Tagged } from '@kidd-cli/utils/tag'
+import type { Colors } from 'picocolors/types'
 import type { z } from 'zod'
 
-import type { Context } from '../context/types.js'
+import type { Context, Meta, Store } from '../context/types.js'
 import type { InferVariables, Middleware, MiddlewareEnv } from './middleware.js'
-import type { AnyRecord, Resolvable } from './utility.js'
+import type { AnyRecord, DeepReadonly, Resolvable } from './utility.js'
 
 // ---------------------------------------------------------------------------
 // Command types
@@ -116,6 +117,32 @@ export type HandlerFn<
 > = (ctx: Context<TArgs, TConfig> & Readonly<TVars>) => Promise<void> | void
 
 /**
+ * Props passed to a render function component.
+ */
+export interface RenderProps<
+  TArgs extends AnyRecord = AnyRecord,
+  TConfig extends AnyRecord = AnyRecord,
+> {
+  readonly args: DeepReadonly<TArgs>
+  readonly config: DeepReadonly<TConfig>
+  readonly meta: DeepReadonly<Meta>
+  readonly store: Store
+  readonly colors: Colors
+}
+
+/**
+ * Render function for a command.
+ *
+ * Receives context props and owns the full render lifecycle (e.g.
+ * importing Ink, calling `render()`, awaiting `waitUntilExit()`).
+ * The runtime calls this function directly — no framework-level
+ * React or Ink import is performed.
+ */
+export type RenderFn<TArgs extends AnyRecord = AnyRecord, TConfig extends AnyRecord = AnyRecord> = (
+  props: RenderProps<TArgs, TConfig>
+) => Promise<void> | void
+
+/**
  * Structured configuration for a command's subcommands.
  *
  * Groups the command source (inline map or directory path) alongside display
@@ -218,6 +245,12 @@ export interface CommandDef<
   readonly commands?: CommandMap | Promise<CommandMap> | CommandsConfig
 
   /**
+   * A React/Ink component to render instead of running a handler.
+   * Mutually exclusive with `handler`.
+   */
+  readonly render?: RenderFn<InferArgsMerged<TOptionsDef, TPositionalsDef>, TConfig>
+
+  /**
    * The command handler.
    */
   readonly handler?: HandlerFn<
@@ -246,6 +279,7 @@ export type Command<
     readonly positionals?: TPositionalsDef
     readonly middleware?: TMiddleware
     readonly commands?: CommandMap | Promise<CommandMap>
+    readonly render?: RenderFn
     readonly order?: readonly string[]
     readonly handler?: HandlerFn<
       InferArgsMerged<TOptionsDef, TPositionalsDef>,

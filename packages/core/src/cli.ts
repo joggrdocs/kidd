@@ -113,6 +113,7 @@ export async function cli<TSchema extends z.ZodType = z.ZodType>(
       options: resolved.ref.options,
       positionals: resolved.ref.positionals,
       rawArgs: argv,
+      render: resolved.ref.render,
     })
 
     return executeError

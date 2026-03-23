@@ -17,6 +17,7 @@ export default defineConfig({
     'middleware/logger': 'src/middleware/logger/index.ts',
     'middleware/report': 'src/middleware/report/index.ts',
     'test/index': 'src/test/index.ts',
+    'ui/index': 'src/ui/index.ts',
   },
   format: 'esm',
 })

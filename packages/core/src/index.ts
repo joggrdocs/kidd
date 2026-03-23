@@ -12,6 +12,8 @@ export type {
   CommandsConfig,
   ConfigType,
   MiddlewareEnv,
+  RenderFn,
+  RenderProps,
   Resolvable,
 } from './types/index.js'
 export type { Colors } from 'picocolors/types'

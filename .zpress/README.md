@@ -3,12 +3,12 @@
 This directory is managed by zpress. It contains the
 materialized documentation site — synced content, build artifacts, and static assets.
 
-| Directory   | Description                                    | Tracked |
-| ----------- | ---------------------------------------------- | ------- |
-| `content/`  | Synced markdown pages and generated config     | No      |
-| `public/`   | Static assets (logos, icons, banners)           | Yes     |
-| `dist/`     | Build output                                   | No      |
-| `cache/`    | Build cache                                    | No      |
+| Directory   | Description                                    |
+| ----------- | ---------------------------------------------- |
+| `content/`  | Synced markdown pages and generated config     |
+| `public/`   | Static assets (logos, icons, banners)           |
+| `dist/`     | Build output                                   |
+| `cache/`    | Build cache                                    |
 
 ## Commands
 

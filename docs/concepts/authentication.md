@@ -247,12 +247,19 @@ auth.custom(async () => {
 
 The auth middleware decorates `ctx.auth` with an `AuthContext`:
 
-| Property          | Type                                     | Description                                     |
-| ----------------- | ---------------------------------------- | ----------------------------------------------- |
-| `credential()`    | `AuthCredential \| null`                 | Passively resolved credential (file, env)       |
-| `authenticated()` | `boolean`                                | Whether a passive credential exists             |
-| `login()`         | `AsyncResult<AuthCredential, AuthError>` | Run interactive strategies, persist, and return |
-| `logout()`        | `AsyncResult<string, AuthError>`         | Remove stored credential from disk              |
+| Property           | Type                                     | Description                                     |
+| ------------------ | ---------------------------------------- | ----------------------------------------------- |
+| `credential()`     | `AuthCredential \| null`                 | Passively resolved credential (file, env)       |
+| `authenticated()`  | `boolean`                                | Whether a passive credential exists             |
+| `login(options?)`  | `AsyncResult<AuthCredential, AuthError>` | Run interactive strategies, persist, and return |
+| `logout()`         | `AsyncResult<string, AuthError>`         | Remove stored credential from disk              |
+
+`login()` accepts an optional `LoginOptions` object to override strategies or add a validate callback for a single login attempt:
+
+| LoginOptions Field | Type                    | Description                                       |
+| ------------------ | ----------------------- | ------------------------------------------------- |
+| `strategies`       | `readonly StrategyConfig[]` | Override the default strategy list for this call |
+| `validate`         | `ValidateCredential`    | Validate the credential before persisting          |
 
 ### `ctx.auth.login()`
 
@@ -278,17 +285,32 @@ if (error) {
 
 ### AuthError
 
-| AuthError `type`  | Description                               |
-| ----------------- | ----------------------------------------- |
-| `'no_credential'` | No strategy produced a credential         |
-| `'save_failed'`   | Credential resolved but failed to persist |
-| `'remove_failed'` | Failed to remove the credential file      |
+| AuthError `type`        | Description                                          |
+| ----------------------- | ---------------------------------------------------- |
+| `'no_credential'`       | No strategy produced a credential                    |
+| `'save_failed'`         | Credential resolved but failed to persist            |
+| `'remove_failed'`       | Failed to remove the credential file                 |
+| `'validation_failed'`   | Credential resolved but failed the validate callback |
 
 ## Requiring Authentication
 
 Auth is opt-in by default. The `auth()` middleware decorates `ctx.auth` with credential readers but never blocks command execution. Commands that run without a credential (public commands, the login command itself) work without any extra configuration.
 
-To enforce authentication, write a custom middleware that checks `ctx.auth.authenticated()` and calls `ctx.fail()` to short-circuit before the handler runs:
+Use the built-in `auth.require()` helper to create a middleware that checks `ctx.auth.authenticated()` and calls `ctx.fail()` to short-circuit before the handler runs:
+
+```ts
+import { auth } from '@kidd-cli/core/auth'
+
+const requireAuth = auth.require()
+```
+
+You can customize the error message:
+
+```ts
+const requireAuth = auth.require({ message: 'Not authenticated. Run `my-app login` first.' })
+```
+
+Alternatively, write a custom middleware for full control:
 
 ```ts
 import { middleware } from '@kidd-cli/core'
@@ -308,14 +330,15 @@ Apply the middleware to individual commands via the `middleware` array. This is 
 
 ```ts
 import { command } from '@kidd-cli/core'
-import requireAuth from '../middleware/require-auth.js'
+import { auth } from '@kidd-cli/core/auth'
+
+const requireAuth = auth.require()
 
 export default command({
   description: 'List repositories',
   middleware: [requireAuth],
   handler: async (ctx) => {
-    const res = await ctx.api.get('/repos')
-    process.stdout.write(ctx.format.table(res.data))
+    // handler logic here
   },
 })
 ```
@@ -328,7 +351,7 @@ Apply the middleware to the root `middleware` array to enforce authentication on
 cli({
   name: 'my-app',
   version: '1.0.0',
-  middleware: [auth({ strategies: [auth.env(), auth.token()] }), requireAuth],
+  middleware: [auth({ strategies: [auth.env(), auth.token()] }), auth.require()],
   commands: `${import.meta.dirname}/commands`,
 })
 ```
@@ -339,12 +362,15 @@ See the [Add Authentication guide](../guides/add-authentication.md#3-guard-comma
 
 ## HTTP Integration
 
-Auth supports built-in HTTP client creation via the `http` option. When provided, the auth middleware creates HTTP client(s) with automatic credential header injection and decorates them onto `ctx[namespace]`.
+Auth and HTTP are separate middleware. The `http()` middleware (from `@kidd-cli/core/http`) creates a typed HTTP client on `ctx[namespace]`. To inject auth credentials into HTTP requests automatically, use `auth.headers()` as the `headers` option on `http()`.
+
+`auth.headers()` returns a function `(ctx) => headers` that reads `ctx.auth.credential()` and converts it into the appropriate HTTP header format. It returns an empty record when no auth middleware is present or no credential exists.
 
 ```ts
+import { cli } from '@kidd-cli/core'
 import { auth } from '@kidd-cli/core/auth'
+import { http } from '@kidd-cli/core/http'
 
-// Single HTTP client
 cli({
   name: 'my-app',
   version: '1.0.0',
@@ -358,31 +384,42 @@ cli({
           tokenUrl: 'https://example.com/token',
         }),
       ],
-      http: { baseUrl: 'https://api.example.com', namespace: 'api' },
+    }),
+    http({
+      baseUrl: 'https://api.example.com',
+      namespace: 'api',
+      headers: auth.headers(),
     }),
   ],
   commands: { login, repos },
 })
 ```
 
+Place `auth()` before `http()` in the middleware array so that `ctx.auth` is available when HTTP requests resolve headers.
+
+Multiple HTTP clients work the same way:
+
 ```ts
-// Multiple HTTP clients
-auth({
-  strategies: [auth.env()],
-  http: [
-    { baseUrl: 'https://api.example.com', namespace: 'api' },
-    { baseUrl: 'https://admin.example.com', namespace: 'admin' },
-  ],
-})
+middleware: [
+  auth({ strategies: [auth.env()] }),
+  http({
+    baseUrl: 'https://api.example.com',
+    namespace: 'api',
+    headers: auth.headers(),
+  }),
+  http({
+    baseUrl: 'https://admin.example.com',
+    namespace: 'admin',
+    headers: auth.headers(),
+  }),
+],
 ```
 
-Both `ctx.api` and `ctx.admin` get auth credential headers injected automatically. Additional static headers can be passed via `headers` on each entry.
+Both `ctx.api` and `ctx.admin` get auth credential headers injected automatically.
 
-Header priority (lowest to highest): auth credential headers, static headers, per-request headers.
+### `http()` without auth
 
-### Standalone `http()` Middleware
-
-The standalone `http()` middleware (from `@kidd-cli/core/http`) does not read from `ctx.auth`. Use it for public APIs or when providing headers explicitly.
+The `http()` middleware does not require `auth()`. Use it standalone for public APIs or when providing headers explicitly.
 
 ```ts
 import { http } from '@kidd-cli/core/http'
@@ -399,7 +436,7 @@ http({
   baseUrl: 'https://api.example.com',
   namespace: 'api',
   headers: (ctx) => ({
-    Authorization: `Bearer ${ctx.vault.getToken()}`,
+    'X-App-Name': ctx.meta.name,
   }),
 })
 

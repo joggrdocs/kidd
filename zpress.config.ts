@@ -19,17 +19,17 @@ export default defineConfig({
     {
       title: "Getting Started",
       icon: "pixelarticons:speed-fast",
-      prefix: "/getting-started",
+      path: "/getting-started",
       items: [
         {
           title: "Introduction",
-          link: "/getting-started/introduction",
-          from: "docs/introduction.md",
+          path: "/getting-started/introduction",
+          include: "docs/introduction.md",
         },
         {
           title: "Quick Start",
-          link: "/getting-started/quick-start",
-          from: "docs/quick-start.md",
+          path: "/getting-started/quick-start",
+          include: "docs/quick-start.md",
         },
       ],
     },
@@ -37,33 +37,33 @@ export default defineConfig({
     // ── Concepts ──
     {
       title: "Concepts",
-      prefix: "/concepts",
+      path: "/concepts",
       icon: "pixelarticons:lightbulb",
       items: [
         {
           title: "Lifecycle",
-          link: "/concepts/lifecycle",
-          from: "docs/concepts/lifecycle.md",
+          path: "/concepts/lifecycle",
+          include: "docs/concepts/lifecycle.md",
         },
         {
           title: "Context",
-          link: "/concepts/context",
-          from: "docs/concepts/context.md",
+          path: "/concepts/context",
+          include: "docs/concepts/context.md",
         },
         {
           title: "Configuration",
-          link: "/concepts/configuration",
-          from: "docs/concepts/configuration.md",
+          path: "/concepts/configuration",
+          include: "docs/concepts/configuration.md",
         },
         {
           title: "Authentication",
-          link: "/concepts/authentication",
-          from: "docs/concepts/authentication.md",
+          path: "/concepts/authentication",
+          include: "docs/concepts/authentication.md",
         },
         {
           title: "Icons",
-          link: "/concepts/icons",
-          from: "docs/concepts/icons.md",
+          path: "/concepts/icons",
+          include: "docs/concepts/icons.md",
         },
       ],
     },
@@ -71,28 +71,28 @@ export default defineConfig({
     // ── Guides ──
     {
       title: "Guides",
-      prefix: "/guides",
+      path: "/guides",
       icon: "pixelarticons:book-open",
       items: [
         {
           title: "Build a CLI",
-          link: "/guides/build-a-cli",
-          from: "docs/guides/build-a-cli.md",
+          path: "/guides/build-a-cli",
+          include: "docs/guides/build-a-cli.md",
         },
         {
           title: "Add Authentication",
-          link: "/guides/add-authentication",
-          from: "docs/guides/add-authentication.md",
+          path: "/guides/add-authentication",
+          include: "docs/guides/add-authentication.md",
         },
         {
           title: "Testing Your CLI",
-          link: "/guides/testing-your-cli",
-          from: "docs/guides/testing-your-cli.md",
+          path: "/guides/testing-your-cli",
+          include: "docs/guides/testing-your-cli.md",
         },
         {
           title: "Build a Compiled CLI",
-          link: "/guides/build-a-compiled-cli",
-          from: "docs/guides/build-a-compiled-cli.md",
+          path: "/guides/build-a-compiled-cli",
+          include: "docs/guides/build-a-compiled-cli.md",
         },
       ],
     },
@@ -100,18 +100,18 @@ export default defineConfig({
     // ── Reference ──
     {
       title: "Reference",
-      prefix: "/reference",
+      path: "/reference",
       icon: "pixelarticons:terminal",
       items: [
         {
           title: "@kidd-cli/core",
-          link: "/reference/kidd",
-          from: "docs/reference/kidd.md",
+          path: "/reference/kidd",
+          include: "docs/reference/kidd.md",
         },
         {
           title: "@kidd-cli/cli",
-          link: "/reference/cli",
-          from: "docs/reference/cli.md",
+          path: "/reference/cli",
+          include: "docs/reference/cli.md",
         },
       ],
     },
@@ -120,44 +120,39 @@ export default defineConfig({
     {
       title: "Contributing",
       icon: "pixelarticons:git-branch",
-      isolated: true,
+      standalone: true,
       items: [
         {
-          title: "Concepts",
-          prefix: "/contributing/concepts",
-          from: "contributing/concepts/*.md",
-          titleFrom: "heading",
+          title: { from: "heading" },
+          path: "/contributing/concepts",
+          include: "contributing/concepts/*.md",
           sort: "alpha",
         },
         {
-          title: "Guides",
-          prefix: "/contributing/guides",
-          from: "contributing/guides/*.md",
-          titleFrom: "heading",
+          title: { from: "heading" },
+          path: "/contributing/guides",
+          include: "contributing/guides/*.md",
           sort: "alpha",
         },
         {
           title: "Standards",
           items: [
             {
-              title: "TypeScript",
-              prefix: "/contributing/standards/typescript",
-              from: "contributing/standards/typescript/*.md",
-              titleFrom: "heading",
+              title: { from: "heading" },
+              path: "/contributing/standards/typescript",
+              include: "contributing/standards/typescript/*.md",
               sort: "alpha",
             },
             {
-              title: "Documentation",
-              prefix: "/contributing/standards/documentation",
-              from: "contributing/standards/documentation/*.md",
-              titleFrom: "heading",
+              title: { from: "heading" },
+              path: "/contributing/standards/documentation",
+              include: "contributing/standards/documentation/*.md",
               sort: "alpha",
             },
             {
-              title: "Git",
-              prefix: "/contributing/standards/git",
-              from: "contributing/standards/git-*.md",
-              titleFrom: "heading",
+              title: { from: "heading" },
+              path: "/contributing/standards/git",
+              include: "contributing/standards/git-*.md",
               sort: "alpha",
             },
           ],
@@ -197,20 +192,26 @@ export default defineConfig({
       icon: "pixelarticons:zap",
     },
   ],
-  packages: [
+  workspaces: [
     {
-      title: "@kidd-cli/core",
-      description: "The runtime framework for commands, middleware, auth, and terminal UI.",
-      prefix: "/reference/kidd",
+      title: "Packages",
       icon: "pixelarticons:code",
-      tags: ["framework", "runtime"],
-    },
-    {
-      title: "@kidd-cli/cli",
-      description: "The developer CLI for scaffolding, building, and diagnostics.",
-      prefix: "/reference/cli",
-      icon: "pixelarticons:command",
-      tags: ["cli", "tooling"],
+      items: [
+        {
+          title: "@kidd-cli/core",
+          description: "The runtime framework for commands, middleware, auth, and terminal UI.",
+          path: "/reference/kidd",
+          icon: "pixelarticons:code",
+          tags: ["framework", "runtime"],
+        },
+        {
+          title: "@kidd-cli/cli",
+          description: "The developer CLI for scaffolding, building, and diagnostics.",
+          path: "/reference/cli",
+          icon: "pixelarticons:command",
+          tags: ["cli", "tooling"],
+        },
+      ],
     },
   ],
   nav: [

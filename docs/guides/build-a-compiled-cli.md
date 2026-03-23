@@ -25,7 +25,7 @@ The bundler package provides three operations you compose into a release pipelin
 
 ### 1. Create a kidd config file
 
-The bundler reads from a `kidd.config.ts` (or `.js`, `.json`, `.yaml`) file in your project root. All fields are optional — defaults cover the common case.
+The bundler reads from a `kidd.config.ts` (or `.js`, `.json`, `.yaml`) file in your project root. All fields are optional -- defaults cover the common case.
 
 ```ts
 // kidd.config.ts
@@ -146,9 +146,7 @@ if (compileError) {
   process.exit(1)
 }
 
-for (const binary of output.binaries) {
-  console.log(`${binary.label}: ${binary.path}`)
-}
+output.binaries.map((binary) => console.log(`${binary.label}: ${binary.path}`))
 ```
 
 `compile()` returns a `[Error | null, CompileOutput | null]` tuple. `CompileOutput` contains:
@@ -266,9 +264,7 @@ if (compileError) {
   process.exit(1)
 }
 
-for (const bin of compileOutput.binaries) {
-  console.log(`  ${bin.label}: ${bin.path}`)
-}
+compileOutput.binaries.map((bin) => console.log(`  ${bin.label}: ${bin.path}`))
 ```
 
 Run it with:
@@ -292,7 +288,7 @@ node -e "import('@kidd-cli/bundler').then(b => b.build({ config: {}, cwd: proces
 
 ### `bundled entry not found` error from `compile()`
 
-**Issue:** `compile()` returns `bundled entry not found in ./dist — run build() first`.
+**Issue:** `compile()` returns `bundled entry not found in ./dist -- run build() first`.
 
 **Fix:** Always call `build()` before `compile()`. Confirm `build.out` and `compile.out` resolve to the same directory (or that the build output directory contains `index.mjs` or `index.js`).
 
@@ -300,7 +296,7 @@ node -e "import('@kidd-cli/bundler').then(b => b.build({ config: {}, cwd: proces
 
 **Issue:** Compilation fails for a specific target.
 
-**Fix:** Ensure Bun is installed and up to date (`bun --version`). Cross-compilation requires Bun 1.1+. The `linux-x64-musl` target maps to Bun's standard Linux x64 target — there is no separate musl binary in Bun.
+**Fix:** Ensure Bun is installed and up to date (`bun --version`). Cross-compilation requires Bun 1.1+. The `linux-x64-musl` target maps to Bun's standard Linux x64 target -- there is no separate musl binary in Bun.
 
 ### Autoloader finds no commands
 

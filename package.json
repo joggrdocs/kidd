@@ -38,7 +38,7 @@
     "@types/node": "catalog:",
     "@typescript/native-preview": "7.0.0-dev.20260315.1",
     "@vitest/coverage-v8": "catalog:",
-    "@zpress/kit": "^0.2.4",
+    "@zpress/kit": "^0.2.7",
     "eslint-plugin-functional": "^9.0.4",
     "eslint-plugin-jsdoc": "^62.8.0",
     "eslint-plugin-security": "^4.0.0",

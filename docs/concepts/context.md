@@ -16,7 +16,7 @@ The central API surface threaded through every handler and middleware. Provides 
 | `store`   | `Store`                                   | Typed in-memory key-value store                                    |
 | `fail`    | `(message, options?) => never`            | Throw a user-facing error                                          |
 | `meta`    | `Meta`                                    | CLI metadata                                                       |
-| `auth?`   | `AuthContext`                             | Auth credential and login (when `kidd/auth` middleware registered) |
+| `auth`    | `AuthContext`                             | Auth credential and login (when `@kidd-cli/core/auth` middleware registered) |
 
 ## `ctx.args`
 
@@ -264,22 +264,25 @@ ctx.fail('Invalid token', { code: 'AUTH_ERROR', exitCode: 2 })
 
 Deeply readonly CLI metadata.
 
-| Property  | Type       | Description                                              |
-| --------- | ---------- | -------------------------------------------------------- |
-| `name`    | `string`   | CLI name as defined in `cli({ name })`                   |
-| `version` | `string`   | CLI version as defined in `cli({ version })`             |
-| `command` | `string[]` | The resolved command path (e.g. `['deploy', 'preview']`) |
+| Property  | Type           | Description                                                   |
+| --------- | -------------- | ------------------------------------------------------------- |
+| `name`    | `string`       | CLI name as defined in `cli({ name })`                        |
+| `version` | `string`       | CLI version as defined in `cli({ version })`                  |
+| `command` | `string[]`     | The resolved command path (e.g. `['deploy', 'preview']`)      |
+| `dirs`    | `ResolvedDirs` | Resolved directory names for file-backed stores (auth, config) |
+
+`dirs` contains `local` (resolved relative to the project root) and `global` (resolved relative to `~`). Both default to `.<cli-name>`.
 
 ## `ctx.auth`
 
-Optional auth context decorated by the `auth()` middleware from `kidd/auth`. Only present when the auth middleware is registered.
+Auth context decorated by the `auth()` middleware from `@kidd-cli/core/auth`. Only present when the auth middleware is registered.
 
-| Property          | Type                                     | Description                                     |
-| ----------------- | ---------------------------------------- | ----------------------------------------------- |
-| `credential()`    | `AuthCredential \| null`                 | Passively resolved credential (file, env)       |
-| `authenticated()` | `boolean`                                | Whether a passive credential exists             |
-| `login()`         | `AsyncResult<AuthCredential, AuthError>` | Run interactive strategies, persist, and return |
-| `logout()`        | `AsyncResult<string, AuthError>`         | Remove stored credential from disk              |
+| Property           | Type                                     | Description                                     |
+| ------------------ | ---------------------------------------- | ----------------------------------------------- |
+| `credential()`     | `AuthCredential \| null`                 | Passively resolved credential (file, env)       |
+| `authenticated()`  | `boolean`                                | Whether a passive credential exists             |
+| `login(options?)`  | `AsyncResult<AuthCredential, AuthError>` | Run interactive strategies, persist, and return |
+| `logout()`         | `AsyncResult<string, AuthError>`         | Remove stored credential from disk              |
 
 ```ts
 if (!ctx.auth.credential()) {
@@ -306,7 +309,7 @@ declare module '@kidd-cli/core' {
     verbose: boolean
   }
 
-  // Prefer ConfigType<typeof schema> over manual properties — see ctx.config docs
+  // Prefer ConfigType<typeof schema> over manual properties -- see ctx.config docs
   interface CliConfig extends ConfigType<typeof configSchema> {}
 
   interface KiddStore {
@@ -320,7 +323,7 @@ declare module '@kidd-cli/core' {
 | `KiddArgs`  | `ctx.args`   | Global args merged into every command's args                                                    |
 | `CliConfig` | `ctx.config` | Global config merged into every command's config                                                |
 | `KiddStore` | `ctx.store`  | Global store keys merged into the store type                                                    |
-| `StoreMap`  | `ctx.store`  | The store's full key-value shape — extend this to register typed keys (merges with `KiddStore`) |
+| `StoreMap`  | `ctx.store`  | The store's full key-value shape -- extend this to register typed keys (merges with `KiddStore`) |
 
 ## References
 

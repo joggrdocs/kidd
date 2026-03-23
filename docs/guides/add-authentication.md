@@ -222,12 +222,12 @@ interface Repo {
   readonly private: boolean
 }
 
-const args = z.object({
+const listOptions = z.object({
   json: z.boolean().default(false).describe('Output as JSON'),
 })
 
 export default command({
-  args,
+  options: listOptions,
   description: 'List repositories',
   handler: async (ctx) => {
     ctx.spinner.start('Fetching repos...')

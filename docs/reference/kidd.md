@@ -1,4 +1,4 @@
-# kidd
+# @kidd-cli/core
 
 Core CLI framework for Node.js built on yargs and Zod. Provides structured command definitions, middleware pipelines, configuration loading, and utility sub-exports.
 
@@ -137,7 +137,11 @@ cli({
   commands: { deploy, migrate },
   middleware: [timing],
   config: { schema: MyConfigSchema },
-  help: { header: 'my-app - deploy and migrate with ease' },
+  help: {
+    header: 'my-app - deploy and migrate with ease',
+    footer: 'Docs: https://my-app.dev',
+  },
+  dirs: { local: '.my-app', global: '.my-app' },
 })
 ```
 
@@ -158,6 +162,32 @@ The `config` option in `cli()` accepts a `CliConfigOptions` object:
 | `schema` | `ZodType` | --                  | Zod schema to validate the loaded config         |
 | `name`   | `string`  | Derived from `name` | Override the config file name for file discovery |
 
+The `help` option in `cli()` accepts a `CliHelpOptions` object:
+
+| Field    | Type     | Description                                                                          |
+| -------- | -------- | ------------------------------------------------------------------------------------ |
+| `header` | `string` | Text displayed above help output when the CLI is invoked without a command            |
+| `footer` | `string` | Text displayed below help output on all help screens (e.g., docs URL, bug report link) |
+
+The `dirs` option in `cli()` accepts a `DirsConfig` object that overrides directory names for file-backed stores (auth credentials, config). Both default to `.<name>` when omitted.
+
+| Field    | Type     | Default   | Description                                                      |
+| -------- | -------- | --------- | ---------------------------------------------------------------- |
+| `local`  | `string` | `.<name>` | Directory name for project-local resolution (`<project-root>/<local>`) |
+| `global` | `string` | `.<name>` | Directory name for global resolution (`~/<global>`)              |
+
+### Commands option
+
+The `commands` field in `cli()` accepts several forms:
+
+| Form                 | Description                                                        |
+| -------------------- | ------------------------------------------------------------------ |
+| `CommandMap`         | Static object mapping command names to command definitions          |
+| `Promise<CommandMap>` | Async-resolved command map                                        |
+| `string`             | Directory path -- triggers autoloading from that directory          |
+| `CommandsConfig`     | Structured config with optional `order` array for display ordering |
+| _(omitted)_          | Loads `kidd.config.ts` and autoloads from its `commands` field     |
+
 ## Context
 
 The `Context` object is threaded through every handler and middleware. See [Context](../concepts/context.md) for the full reference.
@@ -170,7 +200,7 @@ The `Context` object is threaded through every handler and middleware. See [Cont
 | `prompts` | `Prompts`                                 | Interactive prompts (confirm, text, select, multiselect, password) |
 | `spinner` | `Spinner`                                 | Spinner for long-running operations (start, stop, message)         |
 | `colors`  | `Colors`                                  | Color formatting utilities (picocolors)                            |
-| `format`  | `Format`                                  | Pure string formatters (json, table) — no I/O                      |
+| `format`  | `Format`                                  | Pure string formatters (json, table) -- no I/O                     |
 | `store`   | `Store`                                   | Typed in-memory key-value store (get, set, has, delete, clear)     |
 | `fail`    | `(message, options?) => never`            | Throw a user-facing error                                          |
 | `meta`    | `Meta`                                    | CLI metadata (name, version, command path)                         |
@@ -224,7 +254,7 @@ Run `kidd add config` to scaffold a config schema with `ConfigType` wiring, or p
 | `KiddArgs`  | `ctx.args`   | Global args merged into every command's args                                                    |
 | `CliConfig` | `ctx.config` | Global config merged into every command's config                                                |
 | `KiddStore` | `ctx.store`  | Global store keys merged into the store type                                                    |
-| `StoreMap`  | `ctx.store`  | The store's full key-value shape — extend this to register typed keys (merges with `KiddStore`) |
+| `StoreMap`  | `ctx.store`  | The store's full key-value shape -- extend this to register typed keys (merges with `KiddStore`) |
 
 ## `decorateContext()`
 
@@ -268,6 +298,8 @@ Returns the same `ctx` reference with the new property attached.
 | `@kidd-cli/core/format`  | Standalone format functions (`formatCheck`, `formatFinding`, `formatCodeFrame`, `formatTally`, `formatDuration`)                                      |
 | `@kidd-cli/core/auth`    | Auth middleware, credential types, strategies (`auth`)                                                                                                |
 | `@kidd-cli/core/http`    | Typed HTTP client middleware (`http`, `createHttpClient`)                                                                                             |
+| `@kidd-cli/core/icons`   | Icon detection and font middleware (`icons`)                                                                                                          |
+| `@kidd-cli/core/test`    | Test utilities for commands, middleware, and handlers (`createTestContext`, `runCommand`, `runMiddleware`, `runHandler`)                                |
 
 ## Resources
 

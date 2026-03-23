@@ -68,7 +68,7 @@ export default defineConfig({
 | Export                   | Description                        |
 | ------------------------ | ---------------------------------- |
 | `@kidd-cli/core`         | CLI bootstrap, command, middleware |
-| `@kidd-cli/core/logger`  | Structured logging                 |
+| `@kidd-cli/core/report`  | Structured reporting middleware    |
 | `@kidd-cli/core/config`  | Runtime config access              |
 | `@kidd-cli/core/format`  | Terminal formatting utilities      |
 | `@kidd-cli/core/store`   | Key-value store                    |

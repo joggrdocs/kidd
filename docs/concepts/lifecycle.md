@@ -62,7 +62,7 @@ Yargs parses `process.argv`, matches a registered command, strips internal keys,
 
 ### 2. Bootstrap
 
-The config client discovers and validates the config file. `createContext()` assembles the context with args, config, meta, format, store, and colors. The `logger()` middleware then decorates `ctx.log` with logging, prompts, and spinner.
+The config client discovers and validates the config file. `createContext()` assembles the context with args, config, meta, format, store, colors, log, prompts, and spinner.
 
 ### 3. Execute
 

@@ -261,13 +261,15 @@ Returns the same `ctx` reference with the new property attached.
 
 | Export                   | Purpose                                                                                                                                               |
 | ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `@kidd-cli/core/logger`  | Structured terminal logger (`createCliLogger`, `cliLogger`)                                                                                           |
 | `@kidd-cli/core/config`  | Config loading and validation (`createConfigClient`)                                                                                                  |
 | `@kidd-cli/core/store`   | File-backed JSON store (`createStore`)                                                                                                                |
 | `@kidd-cli/core/project` | Git root resolution, path utilities (`findProjectRoot`, `isInSubmodule`, `getParentRepoRoot`, `resolvePath`, `resolveLocalPath`, `resolveGlobalPath`) |
 | `@kidd-cli/core/format`  | Standalone format functions (`formatCheck`, `formatFinding`, `formatCodeFrame`, `formatTally`, `formatDuration`)                                      |
 | `@kidd-cli/core/auth`    | Auth middleware, credential types, strategies (`auth`)                                                                                                |
 | `@kidd-cli/core/http`    | Typed HTTP client middleware (`http`, `createHttpClient`)                                                                                             |
+| `@kidd-cli/core/icons`   | Icon set middleware (`icons`)                                                                                                                         |
+| `@kidd-cli/core/report`  | Structured reporting middleware (`report`, `createReport`)                                                                                            |
+| `@kidd-cli/core/test`    | Test utilities (`createTestContext`, `mockLog`, `mockPrompts`, `mockSpinner`)                                                                         |
 
 ## Resources
 

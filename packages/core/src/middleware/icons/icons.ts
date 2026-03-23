@@ -49,11 +49,10 @@ export function icons(options?: IconsOptions): Middleware {
 
   return middleware(async (ctx, next) => {
     const isDetected = await detectNerdFonts()
-    const iconsCtx = ctx as unknown as IconsCtx
-    const isInstalled = await resolveInstallStatus({ ctx: iconsCtx, isDetected, resolved })
+    const isInstalled = await resolveInstallStatus({ ctx, isDetected, resolved })
 
     const iconsContext = createIconsContext({
-      ctx: iconsCtx,
+      ctx,
       font: resolved.font,
       forceSetup: resolved.forceSetup,
       icons: frozenIcons,

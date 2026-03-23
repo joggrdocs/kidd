@@ -83,7 +83,7 @@ Run `kidd add config` to scaffold this setup in an existing project, or pass `--
 
 ## `ctx.log`
 
-Logging API provided by the `logger()` middleware. All logging methods write to stderr.
+Structured logging API on the base context. All logging methods write to stderr.
 
 | Method                    | Description                          |
 | ------------------------- | ------------------------------------ |

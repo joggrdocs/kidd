@@ -224,7 +224,7 @@ sequenceDiagram
 2. **Clean args** -- Internal yargs keys (`_`, `$0`, dashed duplicates) are stripped
 3. **Validate args** -- If the command defines a Zod schema, args are validated against it
 4. **Load config** -- Config file (`.{name}.jsonc`, `.json`, or `.yaml`) is discovered, parsed, and validated
-5. **Create context** -- `createContext()` assembles store, format, colors, errors, and meta; the `logger()` middleware then decorates `ctx.log`
+5. **Create context** -- `createContext()` assembles store, format, colors, log, prompts, spinner, errors, and meta
 6. **Run middleware** -- Root middleware wraps command middleware in an onion model; each calls `next()` to continue
 7. **Execute handler** -- The matched command's handler runs with the fully constructed context
 8. **Exit** -- `ContextError` caught at the CLI boundary produces a clean exit with code; success exits 0

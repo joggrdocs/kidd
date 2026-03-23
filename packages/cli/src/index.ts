@@ -1,4 +1,5 @@
 import { cli } from '@kidd-cli/core'
+import { logger } from '@kidd-cli/core/logger'
 
 import { readCLIManifest } from './manifest.js'
 
@@ -12,6 +13,7 @@ await cli({
   commands: `${import.meta.dirname}/commands`,
   description: manifest.description,
   help: { header: `${manifest.name} v${manifest.version}` },
+  middleware: [logger()],
   name: manifest.name,
   version: manifest.version,
 })

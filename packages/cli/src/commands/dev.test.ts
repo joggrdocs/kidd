@@ -18,41 +18,34 @@ const { loadConfig } = await import('@kidd-cli/config/loader')
 const mockedWatch = vi.mocked(watch)
 const mockedLoadConfig = vi.mocked(loadConfig)
 
+const mockSpinner = { message: vi.fn(), stop: vi.fn() }
+
 function makeContext(): Context {
   return {
     args: {},
     config: {},
     fail: vi.fn(),
     format: { json: vi.fn(() => ''), table: vi.fn(() => '') },
-    logger: {
-      check: vi.fn(),
-      child: vi.fn(),
-      debug: vi.fn(),
+    log: {
+      confirm: vi.fn(),
       error: vi.fn(),
-      fatal: vi.fn(),
-      finding: vi.fn(),
       info: vi.fn(),
       intro: vi.fn(),
       message: vi.fn(),
+      multiselect: vi.fn(),
       newline: vi.fn(),
       note: vi.fn(),
       outro: vi.fn(),
-      print: vi.fn(),
+      password: vi.fn(),
+      raw: vi.fn(),
+      select: vi.fn(),
+      spinner: vi.fn(() => mockSpinner),
       step: vi.fn(),
       success: vi.fn(),
-      tally: vi.fn(),
-      trace: vi.fn(),
+      text: vi.fn(),
       warn: vi.fn(),
     },
     meta: { command: ['dev'], name: 'kidd', version: '0.0.0' },
-    prompts: {
-      confirm: vi.fn(),
-      multiselect: vi.fn(),
-      password: vi.fn(),
-      select: vi.fn(),
-      text: vi.fn(),
-    },
-    spinner: { message: vi.fn(), start: vi.fn(), stop: vi.fn() },
     store: { clear: vi.fn(), delete: vi.fn(), get: vi.fn(), has: vi.fn(), set: vi.fn() },
   } as unknown as Context
 }
@@ -70,7 +63,7 @@ describe('dev command', () => {
     const mod = await import('./dev.js')
     await mod.default.handler!(ctx)
 
-    expect(ctx.spinner.start).toHaveBeenCalledWith('Starting dev server...')
+    expect(ctx.log.spinner).toHaveBeenCalledWith('Starting dev server...')
   })
 
   it('should stop spinner with watching message on first build success', async () => {
@@ -86,7 +79,7 @@ describe('dev command', () => {
     const mod = await import('./dev.js')
     await mod.default.handler!(ctx)
 
-    expect(ctx.spinner.stop).toHaveBeenCalledWith('Watching for changes...')
+    expect(mockSpinner.stop).toHaveBeenCalledWith('Watching for changes...')
   })
 
   it('should log rebuilt successfully on subsequent builds', async () => {
@@ -103,7 +96,7 @@ describe('dev command', () => {
     const mod = await import('./dev.js')
     await mod.default.handler!(ctx)
 
-    expect(ctx.logger.success).toHaveBeenCalledWith('Rebuilt successfully')
+    expect(ctx.log.success).toHaveBeenCalledWith('Rebuilt successfully')
   })
 
   it('should call fail when watch returns an error', async () => {
@@ -114,7 +107,7 @@ describe('dev command', () => {
     const mod = await import('./dev.js')
     await mod.default.handler!(ctx)
 
-    expect(ctx.spinner.stop).toHaveBeenCalledWith('Watch failed')
+    expect(mockSpinner.stop).toHaveBeenCalledWith('Watch failed')
     expect(ctx.fail).toHaveBeenCalledWith('tsdown watch failed')
   })
 

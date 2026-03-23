@@ -28,35 +28,26 @@ function makeContext(argOverrides: Record<string, unknown> = {}): Context {
       throw new Error(msg)
     }) as never,
     format: { json: vi.fn(() => ''), table: vi.fn(() => '') },
-    logger: {
-      check: vi.fn(),
-      child: vi.fn(),
-      debug: vi.fn(),
+    log: {
+      confirm: vi.fn(),
       error: vi.fn(),
-      fatal: vi.fn(),
-      finding: vi.fn(),
       info: vi.fn(),
       intro: vi.fn(),
       message: vi.fn(),
+      multiselect: vi.fn(),
       newline: vi.fn(),
       note: vi.fn(),
       outro: vi.fn(),
-      print: vi.fn(),
+      password: vi.fn(),
+      raw: vi.fn(),
+      select: vi.fn(),
+      spinner: vi.fn(() => ({ message: vi.fn(), stop: vi.fn() })),
       step: vi.fn(),
       success: vi.fn(),
-      tally: vi.fn(),
-      trace: vi.fn(),
+      text: vi.fn(),
       warn: vi.fn(),
     },
     meta: { command: ['add', 'middleware'], name: 'kidd', version: '0.0.0' },
-    prompts: {
-      confirm: vi.fn(),
-      multiselect: vi.fn(),
-      password: vi.fn(),
-      select: vi.fn(),
-      text: vi.fn(),
-    },
-    spinner: { message: vi.fn(), start: vi.fn(), stop: vi.fn() },
     store: { clear: vi.fn(), delete: vi.fn(), get: vi.fn(), has: vi.fn(), set: vi.fn() },
   } as unknown as Context
 }
@@ -76,7 +67,7 @@ describe('add middleware', () => {
         rootDir: '/project',
       },
     ])
-    vi.mocked(ctx.prompts.text)
+    vi.mocked(ctx.log.text)
       .mockResolvedValueOnce('auth')
       .mockResolvedValueOnce('Authentication middleware')
     mockedRenderTemplate.mockResolvedValue([
@@ -88,7 +79,7 @@ describe('add middleware', () => {
     const mod = await import('./middleware.js')
     await mod.default.handler!(ctx)
 
-    expect(ctx.prompts.text).toHaveBeenCalledTimes(2)
+    expect(ctx.log.text).toHaveBeenCalledTimes(2)
   })
 
   it('should render middleware template with correct variables', async () => {

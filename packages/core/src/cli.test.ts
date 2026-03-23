@@ -206,9 +206,6 @@ describe('context properties', () => {
     const ctx = handler.mock.calls[0]![0] as Context
     expect(ctx).toHaveProperty('args')
     expect(ctx).toHaveProperty('config')
-    expect(ctx).toHaveProperty('logger')
-    expect(ctx).toHaveProperty('prompts')
-    expect(ctx).toHaveProperty('spinner')
     expect(ctx).toHaveProperty('format')
     expect(ctx).toHaveProperty('store')
     expect(ctx).toHaveProperty('fail')

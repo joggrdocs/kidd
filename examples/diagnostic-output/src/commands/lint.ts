@@ -72,15 +72,15 @@ const FINDINGS = [
 export default command({
   description: 'Run linter on the project (simulated)',
   handler: (ctx) => {
-    ctx.logger.info('Linting project...')
-    ctx.logger.newline()
+    ctx.log.info('Linting project...')
+    ctx.log.newline()
 
     FINDINGS.reduce((_acc, finding) => {
-      ctx.logger.finding(finding)
+      ctx.report.finding(finding)
       return _acc
     }, undefined)
 
-    ctx.logger.tally({
+    ctx.report.summary({
       stats: [
         ctx.colors.red('1 error'),
         ctx.colors.yellow('3 warnings'),

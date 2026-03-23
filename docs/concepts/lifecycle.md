@@ -62,7 +62,7 @@ Yargs parses `process.argv`, matches a registered command, strips internal keys,
 
 ### 2. Bootstrap
 
-The config client discovers and validates the config file. `createContext()` assembles the context with args, config, meta, logger, spinner, format, store, prompts, and colors.
+The config client discovers and validates the config file. `createContext()` assembles the context with args, config, meta, format, store, and colors. The `logger()` middleware then decorates `ctx.log` with logging, prompts, and spinner.
 
 ### 3. Execute
 
@@ -96,7 +96,7 @@ import { cli, middleware } from '@kidd-cli/core'
 const timing = middleware(async (ctx, next) => {
   const start = Date.now()
   await next()
-  ctx.logger.info(`Done in ${Date.now() - start}ms`)
+  ctx.log.info(`Done in ${Date.now() - start}ms`)
 })
 
 cli({
@@ -128,7 +128,7 @@ export default command({
   middleware: [requireAuth],
   async handler(ctx) {
     const token = ctx.store.get('token')
-    ctx.logger.print(`Deploying with token ${token}`)
+    ctx.log.raw(`Deploying with token ${token}`)
   },
 })
 ```

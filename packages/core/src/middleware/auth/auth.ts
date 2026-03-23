@@ -5,6 +5,7 @@ import { P, isNil, match } from '@kidd-cli/utils/fp'
 import { decorateContext } from '@/context/decorate.js'
 import type { Context } from '@/context/types.js'
 import { middleware } from '@/middleware.js'
+import type { Log } from '@/middleware/logger/types.js'
 import type { DirsConfig, Middleware, ResolvedDirs } from '@/types/index.js'
 
 import { DEFAULT_AUTH_FILENAME } from './constants.js'
@@ -75,11 +76,12 @@ function createAuth(options: AuthOptions): Middleware {
   return middleware((ctx, next) => {
     const cliName = ctx.meta.name
     const dirs = resolveAuthDirs(ctx.meta.dirs, authDirs)
+    const log = (ctx as unknown as { readonly log: Log }).log
 
     const authContext = createAuthContext({
       cliName,
       dirs,
-      prompts: ctx.prompts,
+      log,
       resolveCredential: () => resolveStoredCredential(dirs, cliName, strategies),
       strategies,
       validate,

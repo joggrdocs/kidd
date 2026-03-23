@@ -6,6 +6,7 @@ import { readManifest } from '@kidd-cli/utils/manifest'
 
 import { detectProject } from '../../lib/detect.js'
 import { renderTemplate } from '../../lib/render.js'
+import { resolveLog } from '../../lib/resolve-log.js'
 import { writeFiles } from '../../lib/write.js'
 
 const addConfigCommand: Command = command({
@@ -23,7 +24,8 @@ const addConfigCommand: Command = command({
 
     const projectName = await resolveProjectName(project.rootDir)
 
-    ctx.spinner.start('Generating config...')
+    const log = resolveLog(ctx)
+    const spinner = log.spinner('Generating config...')
 
     const templateDir = join(import.meta.dirname, '..', '..', 'lib', 'templates', 'config')
     const [renderError, rendered] = await renderTemplate({
@@ -32,7 +34,7 @@ const addConfigCommand: Command = command({
     })
 
     if (renderError) {
-      ctx.spinner.stop('Failed')
+      spinner.stop('Failed')
       return ctx.fail(renderError.message)
     }
 
@@ -40,11 +42,11 @@ const addConfigCommand: Command = command({
     const [writeError, result] = await writeFiles({ files: rendered, outputDir, overwrite: false })
 
     if (writeError) {
-      ctx.spinner.stop('Failed')
+      spinner.stop('Failed')
       return ctx.fail(writeError.message)
     }
 
-    ctx.spinner.stop('Config created!')
+    spinner.stop('Config created!')
 
     const lines = [
       ...result.written.map((file) => `  created ${file}`),
@@ -52,13 +54,13 @@ const addConfigCommand: Command = command({
     ]
     const summary = lines.join('\n')
     if (summary.length > 0) {
-      ctx.logger.print(summary)
+      log.raw(summary)
     }
 
-    ctx.logger.newline()
-    ctx.logger.print('Next steps:')
-    ctx.logger.print('  1. Add fields to the config schema in src/config.ts')
-    ctx.logger.print('  2. Import and pass the schema to cli({ config: { schema: configSchema } })')
+    log.newline()
+    log.raw('Next steps:')
+    log.raw('  1. Add fields to the config schema in src/config.ts')
+    log.raw('  2. Import and pass the schema to cli({ config: { schema: configSchema } })')
   },
 })
 

@@ -8,6 +8,7 @@ import { z } from 'zod'
 
 import { detectProject } from '../../lib/detect.js'
 import { renderTemplate } from '../../lib/render.js'
+import { resolveLog } from '../../lib/resolve-log.js'
 import { isKebabCase } from '../../lib/validate.js'
 import { writeFiles } from '../../lib/write.js'
 
@@ -39,7 +40,8 @@ const addCommandCommand: Command = command({
     const commandDescription = await resolveDescription(ctx)
     const includeArgs = await resolveIncludeArgs(ctx)
 
-    ctx.spinner.start('Generating command...')
+    const log = resolveLog(ctx)
+    const spinner = log.spinner('Generating command...')
 
     const templateDir = join(import.meta.dirname, '..', '..', 'lib', 'templates', 'command')
     const [renderError, rendered] = await renderTemplate({
@@ -48,7 +50,7 @@ const addCommandCommand: Command = command({
     })
 
     if (renderError) {
-      ctx.spinner.stop('Failed')
+      spinner.stop('Failed')
       return ctx.fail(renderError.message)
     }
 
@@ -61,11 +63,11 @@ const addCommandCommand: Command = command({
     const [writeError, result] = await writeFiles({ files, outputDir, overwrite: false })
 
     if (writeError) {
-      ctx.spinner.stop('Failed')
+      spinner.stop('Failed')
       return ctx.fail(writeError.message)
     }
 
-    ctx.spinner.stop('Command created!')
+    spinner.stop('Command created!')
 
     const lines = [
       ...result.written.map((file) => `  created ${file}`),
@@ -73,7 +75,7 @@ const addCommandCommand: Command = command({
     ]
     const summary = lines.join('\n')
     if (summary.length > 0) {
-      ctx.logger.print(summary)
+      log.raw(summary)
     }
   },
 })
@@ -98,10 +100,10 @@ async function resolveCommandName(ctx: Context<AddCommandArgs>): Promise<string>
     }
     return ctx.args.name
   }
-  return ctx.prompts.text({
+  return resolveLog(ctx).text({
     message: 'Command name',
     placeholder: 'deploy',
-    validate: (value) => {
+    validate: (value: string | undefined) => {
       if (value === undefined || !isKebabCase(value)) {
         return 'Must be kebab-case (e.g. deploy)'
       }
@@ -121,7 +123,7 @@ async function resolveDescription(ctx: Context<AddCommandArgs>): Promise<string>
   if (ctx.args.description) {
     return ctx.args.description
   }
-  return ctx.prompts.text({
+  return resolveLog(ctx).text({
     defaultValue: '',
     message: 'Description',
     placeholder: 'What does this command do?',
@@ -139,7 +141,7 @@ async function resolveIncludeArgs(ctx: Context<AddCommandArgs>): Promise<boolean
   if (ctx.args.args !== undefined) {
     return ctx.args.args
   }
-  return ctx.prompts.confirm({
+  return resolveLog(ctx).confirm({
     initialValue: true,
     message: 'Include args schema?',
   })

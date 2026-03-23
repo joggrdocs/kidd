@@ -1,5 +1,6 @@
 import { resolve } from 'node:path'
 
+import * as clack from '@clack/prompts'
 import { loadConfig } from '@kidd-cli/config/loader'
 import { P, attemptAsync, err, isNil, isPlainObject, isString, match, ok } from '@kidd-cli/utils/fp'
 import type { Result } from '@kidd-cli/utils/fp'
@@ -8,7 +9,6 @@ import type { Argv } from 'yargs'
 import { z } from 'zod'
 
 import { DEFAULT_EXIT_CODE, isContextError } from '@/context/index.js'
-import { createCliLogger } from '@/lib/logger.js'
 import type {
   CliHelpOptions,
   CliOptions,
@@ -36,8 +36,6 @@ const ARGV_SLICE_START = 2
 export async function cli<TSchema extends z.ZodType = z.ZodType>(
   options: CliOptions<TSchema>
 ): Promise<void> {
-  const logger = createCliLogger()
-
   const [uncaughtError, result] = await attemptAsync(async () => {
     const [versionError, version] = resolveVersion(options.version)
 
@@ -121,12 +119,12 @@ export async function cli<TSchema extends z.ZodType = z.ZodType>(
   })
 
   if (uncaughtError) {
-    exitOnError(uncaughtError, logger)
+    exitOnError(uncaughtError)
     return
   }
 
   if (result) {
-    exitOnError(result, logger)
+    exitOnError(result)
   }
 }
 
@@ -376,14 +374,13 @@ function isEmptyString(value: string): boolean {
  *
  * @private
  * @param error - The caught error value.
- * @param logger - Logger with an error method for output.
  */
-function exitOnError(error: unknown, logger: { error(msg: string): void }): void {
+function exitOnError(error: unknown): void {
   const info = match(error)
     .when(isContextError, (e) => ({ exitCode: e.exitCode, message: e.message }))
     .with(P.instanceOf(Error), (e) => ({ exitCode: DEFAULT_EXIT_CODE, message: e.message }))
     .otherwise((e) => ({ exitCode: DEFAULT_EXIT_CODE, message: String(e) }))
 
-  logger.error(info.message)
+  clack.log.error(info.message)
   process.exit(info.exitCode)
 }

@@ -44,6 +44,8 @@ const mockedCreateCheckContext = vi.mocked(createCheckContext)
 const mockedReadRawPackageJson = vi.mocked(readRawPackageJson)
 const mockedChecks = CHECKS as DiagnosticCheck[]
 
+const mockSpinner = { message: vi.fn(), stop: vi.fn() }
+
 function makeContext(argOverrides: Record<string, unknown> = {}): Context {
   return {
     args: {
@@ -53,35 +55,26 @@ function makeContext(argOverrides: Record<string, unknown> = {}): Context {
     config: {},
     fail: vi.fn(),
     format: { json: vi.fn(() => ''), table: vi.fn(() => '') },
-    logger: {
-      check: vi.fn(),
-      child: vi.fn(),
-      debug: vi.fn(),
+    log: {
+      confirm: vi.fn(),
       error: vi.fn(),
-      fatal: vi.fn(),
-      finding: vi.fn(),
       info: vi.fn(),
       intro: vi.fn(),
       message: vi.fn(),
+      multiselect: vi.fn(),
       newline: vi.fn(),
       note: vi.fn(),
       outro: vi.fn(),
-      print: vi.fn(),
+      password: vi.fn(),
+      raw: vi.fn(),
+      select: vi.fn(),
+      spinner: vi.fn(() => mockSpinner),
       step: vi.fn(),
       success: vi.fn(),
-      tally: vi.fn(),
-      trace: vi.fn(),
+      text: vi.fn(),
       warn: vi.fn(),
     },
     meta: { command: ['doctor'], name: 'kidd', version: '0.0.0' },
-    prompts: {
-      confirm: vi.fn(),
-      multiselect: vi.fn(),
-      password: vi.fn(),
-      select: vi.fn(),
-      text: vi.fn(),
-    },
-    spinner: { message: vi.fn(), start: vi.fn(), stop: vi.fn() },
     store: { clear: vi.fn(), delete: vi.fn(), get: vi.fn(), has: vi.fn(), set: vi.fn() },
   } as unknown as Context
 }
@@ -140,10 +133,10 @@ describe('doctor command', () => {
     const mod = await import('./doctor.js')
     await mod.default.handler!(ctx)
 
-    expect(ctx.spinner.start).toHaveBeenCalledWith('Running diagnostics...')
-    expect(ctx.spinner.stop).toHaveBeenCalledWith('Diagnostics complete')
-    expect(ctx.logger.print).toHaveBeenCalledWith(expect.stringContaining('config'))
-    expect(ctx.logger.print).toHaveBeenCalledWith(expect.stringContaining('version'))
+    expect(ctx.log.spinner).toHaveBeenCalledWith('Running diagnostics...')
+    expect(mockSpinner.stop).toHaveBeenCalledWith('Diagnostics complete')
+    expect(ctx.log.raw).toHaveBeenCalledWith(expect.stringContaining('config'))
+    expect(ctx.log.raw).toHaveBeenCalledWith(expect.stringContaining('version'))
     expect(ctx.fail).not.toHaveBeenCalled()
   })
 
@@ -197,7 +190,7 @@ describe('doctor command', () => {
     const mod = await import('./doctor.js')
     await mod.default.handler!(ctx)
 
-    expect(ctx.logger.print).toHaveBeenCalledWith(
+    expect(ctx.log.raw).toHaveBeenCalledWith(
       expect.stringContaining('3 checks, 1 passed, 1 warnings, 1 failed')
     )
   })
@@ -238,8 +231,8 @@ describe('doctor command', () => {
     await mod.default.handler!(ctx)
 
     expect(fixFn).toHaveBeenCalled()
-    expect(ctx.logger.print).toHaveBeenCalledWith(expect.stringContaining('Added type module'))
-    expect(ctx.logger.print).toHaveBeenCalledWith(expect.stringContaining('fix'))
+    expect(ctx.log.raw).toHaveBeenCalledWith(expect.stringContaining('Added type module'))
+    expect(ctx.log.raw).toHaveBeenCalledWith(expect.stringContaining('fix'))
   })
 
   it('should not apply fixes when --fix is not set', async () => {
@@ -354,6 +347,6 @@ describe('doctor command', () => {
     const mod = await import('./doctor.js')
     await mod.default.handler!(ctx)
 
-    expect(ctx.logger.print).toHaveBeenCalledWith(expect.stringContaining('2 fixed'))
+    expect(ctx.log.raw).toHaveBeenCalledWith(expect.stringContaining('2 fixed'))
   })
 })

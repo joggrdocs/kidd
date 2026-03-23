@@ -15,7 +15,7 @@ export default command({
         process.stdout.write(ctx.format.json({ user: 'todo' }))
       })
       .with(false, () => {
-        ctx.logger.info('User: todo')
+        ctx.log.info('User: todo')
       })
       .exhaustive()
   },

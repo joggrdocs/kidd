@@ -1,6 +1,5 @@
 import type { Colors } from 'picocolors/types'
 
-import type { CliLogger } from '@/lib/logger.js'
 import type {
   AnyRecord,
   DeepReadonly,
@@ -44,8 +43,6 @@ export interface Store<TMap extends AnyRecord = StoreMap> {
   delete(key: string): boolean
   clear(): void
 }
-
-export type { CliLogger }
 
 /**
  * Options for a yes/no confirmation prompt.
@@ -162,15 +159,15 @@ export interface Meta {
 }
 
 /**
- * The context object threaded through every handler, middleware, and hook.
+ * The base context object threaded through every handler, middleware, and hook.
+ *
+ * Contains only framework-level primitives: parsed args, validated config, CLI
+ * metadata, a key-value store, formatting helpers, and a fail function.
+ * I/O capabilities (logging, prompts, spinners) are added by middleware.
  *
  * All data properties (args, config, meta) are deeply readonly — attempting
  * to mutate any nested property produces a compile-time error. Use `ctx.store`
  * for mutable state that flows between middleware and handlers.
- *
- * Register types (`KiddArgs`, `CliConfig`, etc.) are merged with generics so
- * consumers can use module augmentation for project-wide defaults without
- * threading generics everywhere.
  *
  * @typeParam TArgs - Parsed args type (inferred from the command's zod/yargs args definition).
  * @typeParam TConfig - Config type (inferred from the zod schema passed to `cli({ config: { schema } })`).
@@ -199,22 +196,6 @@ export interface Context<
    * Pure string formatters for data serialization (no I/O).
    */
   readonly format: Format
-
-  /**
-   * Structured logger backed by @clack/prompts for styled terminal output.
-   * Also provides check, finding, and tally methods for structured output.
-   */
-  readonly logger: CliLogger
-
-  /**
-   * Interactive prompts (confirm, text, select, multiselect, password).
-   */
-  readonly prompts: Prompts
-
-  /**
-   * Spinner for long-running operations.
-   */
-  readonly spinner: Spinner
 
   /**
    * In-memory key-value store (mutable — use this for middleware-to-handler data flow).

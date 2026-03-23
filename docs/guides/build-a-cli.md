@@ -24,7 +24,7 @@ const deploy = command({
     dryRun: z.boolean().default(false).describe('Preview without applying'),
   }),
   async handler(ctx) {
-    ctx.logger.info(`Deploying to ${ctx.args.env}`)
+    ctx.log.info(`Deploying to ${ctx.args.env}`)
   },
 })
 ```
@@ -59,7 +59,7 @@ import { middleware } from '@kidd-cli/core'
 const timing = middleware(async (ctx, next) => {
   const start = Date.now()
   await next()
-  ctx.logger.info(`Completed in ${Date.now() - start}ms`)
+  ctx.log.info(`Completed in ${Date.now() - start}ms`)
 })
 
 cli({
@@ -84,7 +84,7 @@ const deploy = command({
   description: 'Deploy the application',
   middleware: [requireAuth],
   async handler(ctx) {
-    ctx.logger.print('Deploying')
+    ctx.log.raw('Deploying')
   },
 })
 ```

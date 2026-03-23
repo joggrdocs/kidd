@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { createTestContext, mockPrompts } from './context.js'
+import { createTestContext, mockLog } from './context.js'
 
 describe('test context factory', () => {
   it('should return a context with default args', () => {
@@ -13,9 +13,9 @@ describe('test context factory', () => {
     expect(ctx.meta).toMatchObject({ command: ['test'], name: 'test-app', version: '0.0.0' })
   })
 
-  it('should capture logger output via stdout', () => {
+  it('should capture log output via stdout', () => {
     const { ctx, stdout } = createTestContext()
-    ctx.logger.print('hello world')
+    ctx.log.raw('hello world')
     expect(stdout()).toBe('hello world\n')
   })
 
@@ -36,67 +36,61 @@ describe('test context factory', () => {
     expect(ctx.meta).toMatchObject({ command: ['deploy'], name: 'my-cli', version: '2.0.0' })
   })
 
-  it('should accept custom prompts', () => {
-    const prompts = mockPrompts({ confirm: [true] })
-    const { ctx } = createTestContext({ prompts })
-    expect(ctx.prompts).toBe(prompts)
+  it('should accept custom log', () => {
+    const log = mockLog({ confirm: [true] })
+    const { ctx } = createTestContext({ log })
+    expect(ctx.log).toBe(log)
   })
 
-  it('should provide stub prompts by default', async () => {
+  it('should provide log with stub prompts by default', async () => {
     const { ctx } = createTestContext()
-    const result = await ctx.prompts.confirm({ message: 'ok?' })
-    expect(result).toBeFalsy()
-  })
-
-  it('should provide stub spinner by default', () => {
-    const { ctx } = createTestContext()
-    expect(() => ctx.spinner.start('loading...')).not.toThrow()
-    expect(() => ctx.spinner.stop('done')).not.toThrow()
+    const spinner = ctx.log.spinner('loading...')
+    expect(() => spinner.stop('done')).not.toThrow()
   })
 })
 
-describe('mock prompts factory', () => {
+describe('mockLog factory', () => {
   it('should return confirm responses in order', async () => {
-    const prompts = mockPrompts({ confirm: [true, false, true] })
-    expect(await prompts.confirm({ message: '1' })).toBeTruthy()
-    expect(await prompts.confirm({ message: '2' })).toBeFalsy()
-    expect(await prompts.confirm({ message: '3' })).toBeTruthy()
+    const log = mockLog({ confirm: [true, false, true] })
+    expect(await log.confirm({ message: '1' })).toBeTruthy()
+    expect(await log.confirm({ message: '2' })).toBeFalsy()
+    expect(await log.confirm({ message: '3' })).toBeTruthy()
   })
 
   it('should return text responses in order', async () => {
-    const prompts = mockPrompts({ text: ['hello', 'world'] })
-    expect(await prompts.text({ message: '1' })).toBe('hello')
-    expect(await prompts.text({ message: '2' })).toBe('world')
+    const log = mockLog({ text: ['hello', 'world'] })
+    expect(await log.text({ message: '1' })).toBe('hello')
+    expect(await log.text({ message: '2' })).toBe('world')
   })
 
   it('should return select responses in order', async () => {
-    const prompts = mockPrompts({ select: ['a', 'b'] })
-    expect(await prompts.select({ message: '1', options: [] })).toBe('a')
-    expect(await prompts.select({ message: '2', options: [] })).toBe('b')
+    const log = mockLog({ select: ['a', 'b'] })
+    expect(await log.select({ message: '1', options: [] })).toBe('a')
+    expect(await log.select({ message: '2', options: [] })).toBe('b')
   })
 
   it('should return multiselect responses in order', async () => {
-    const prompts = mockPrompts({ multiselect: [['a', 'b'], ['c']] })
-    expect(await prompts.multiselect({ message: '1', options: [] })).toEqual(['a', 'b'])
-    expect(await prompts.multiselect({ message: '2', options: [] })).toEqual(['c'])
+    const log = mockLog({ multiselect: [['a', 'b'], ['c']] })
+    expect(await log.multiselect({ message: '1', options: [] })).toEqual(['a', 'b'])
+    expect(await log.multiselect({ message: '2', options: [] })).toEqual(['c'])
   })
 
   it('should return password responses in order', async () => {
-    const prompts = mockPrompts({ password: ['secret'] })
-    expect(await prompts.password({ message: '1' })).toBe('secret')
+    const log = mockLog({ password: ['secret'] })
+    expect(await log.password({ message: '1' })).toBe('secret')
   })
 
   it('should throw when confirm queue is exhausted', async () => {
-    const prompts = mockPrompts({ confirm: [] })
-    await expect(prompts.confirm({ message: 'ok?' })).rejects.toThrow(
-      'mockPrompts: confirm response queue exhausted'
+    const log = mockLog({ confirm: [] })
+    await expect(log.confirm({ message: 'ok?' })).rejects.toThrow(
+      'mockLog: confirm response queue exhausted'
     )
   })
 
   it('should throw when text queue is exhausted', async () => {
-    const prompts = mockPrompts({ text: [] })
-    await expect(prompts.text({ message: 'name?' })).rejects.toThrow(
-      'mockPrompts: text response queue exhausted'
+    const log = mockLog({ text: [] })
+    await expect(log.text({ message: 'name?' })).rejects.toThrow(
+      'mockLog: text response queue exhausted'
     )
   })
 })

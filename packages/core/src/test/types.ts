@@ -1,7 +1,7 @@
 import type { vi } from 'vitest'
 
-import type { Context, Prompts, Spinner } from '@/context/types.js'
-import type { CliLogger } from '@/lib/logger.js'
+import type { Context } from '@/context/types.js'
+import type { Log } from '@/middleware/logger/types.js'
 import type {
   AnyRecord,
   CliConfigOptions,
@@ -31,9 +31,7 @@ export interface TestContextOptions<
     readonly command?: string[]
     readonly dirs?: ResolvedDirs
   }
-  readonly logger?: CliLogger
-  readonly prompts?: Prompts
-  readonly spinner?: Spinner
+  readonly log?: Log
 }
 
 /**

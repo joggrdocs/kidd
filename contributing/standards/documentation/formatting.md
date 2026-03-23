@@ -62,7 +62,7 @@ export default cli({
     watch: z.boolean().default(false),
   },
   async run(ctx) {
-    ctx.logger.info(`Generating types to ${ctx.args.output}`)
+    ctx.log.info(`Generating types to ${ctx.args.output}`)
   },
 })
 ```

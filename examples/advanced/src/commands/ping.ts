@@ -3,13 +3,13 @@ import { command } from '@kidd-cli/core'
 export default command({
   description: 'Check API connectivity',
   handler: async (ctx) => {
-    ctx.spinner.start('Pinging API...')
+    const s = ctx.log.spinner('Pinging API...')
     try {
       const res = await ctx.api.get('/health')
-      ctx.spinner.stop('API reachable')
+      s.stop('API reachable')
       process.stdout.write(ctx.format.json(res.data))
     } catch {
-      ctx.spinner.stop('API unreachable')
+      s.stop('API unreachable')
       ctx.fail('Could not connect to the API')
     }
   },

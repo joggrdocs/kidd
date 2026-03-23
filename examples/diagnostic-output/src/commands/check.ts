@@ -42,15 +42,15 @@ export default command({
   description: 'Run lint + tests together (simulated)',
   handler: (ctx) => {
     // Lint phase
-    ctx.logger.step('Lint')
-    ctx.logger.newline()
+    ctx.log.step('Lint')
+    ctx.log.newline()
 
     FINDINGS.reduce((_acc, finding) => {
-      ctx.logger.finding(finding)
+      ctx.report.finding(finding)
       return _acc
     }, undefined)
 
-    ctx.logger.tally({
+    ctx.report.summary({
       stats: [
         ctx.colors.yellow('1 warning'),
         ctx.colors.green('2 fixed'),
@@ -60,18 +60,18 @@ export default command({
       style: 'inline',
     })
 
-    ctx.logger.newline()
+    ctx.log.newline()
 
     // Test phase
-    ctx.logger.step('Test')
-    ctx.logger.newline()
+    ctx.log.step('Test')
+    ctx.log.newline()
 
     RESULTS.reduce((_acc, result) => {
-      ctx.logger.check(result)
+      ctx.report.check(result)
       return _acc
     }, undefined)
 
-    ctx.logger.tally({
+    ctx.report.summary({
       stats: [
         { label: 'Tests', value: `${ctx.colors.green('3 passed')} ${ctx.colors.gray('(3)')}` },
         { label: 'Suites', value: `${ctx.colors.green('3 passed')} ${ctx.colors.gray('(3)')}` },

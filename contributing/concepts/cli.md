@@ -99,18 +99,16 @@ export default command({
 
 Every handler and middleware receives a `Context` object with the following properties:
 
-| Property  | Description                                                                            |
-| --------- | -------------------------------------------------------------------------------------- |
-| `args`    | Parsed command arguments (typed by Zod schema)                                         |
-| `config`  | Loaded config (typed by config schema, deeply readonly)                                |
-| `logger`  | Structured terminal logger backed by @clack/prompts (info, success, error, warn, step) |
-| `prompts` | Interactive prompts (confirm, text, select, multiselect, password)                     |
-| `spinner` | Terminal spinner (start, stop, message)                                                |
-| `colors`  | Color formatting utilities (picocolors)                                                |
-| `format`  | Pure string formatters (json, table) — no I/O                                          |
-| `store`   | In-memory key-value store (mutable, for middleware data)                               |
-| `fail`    | Throw a user-facing error with clean exit                                              |
-| `meta`    | CLI name, version, and resolved command path                                           |
+| Property | Description                                                       |
+| -------- | ----------------------------------------------------------------- |
+| `args`   | Parsed command arguments (typed by Zod schema)                    |
+| `config` | Loaded config (typed by config schema, deeply readonly)           |
+| `log`    | Unified logging, prompts, and spinner (via `logger()` middleware) |
+| `colors` | Color formatting utilities (picocolors)                           |
+| `format` | Pure string formatters (json, table) — no I/O                     |
+| `store`  | In-memory key-value store (mutable, for middleware data)          |
+| `fail`   | Throw a user-facing error with clean exit                         |
+| `meta`   | CLI name, version, and resolved command path                      |
 
 All data properties (`args`, `config`, `meta`) are deeply readonly. The `store` is the only mutable property -- middleware uses it to pass typed data to handlers.
 
@@ -140,9 +138,9 @@ declare module '@kidd-cli/core' {
 Interactive prompts suspend execution until user input:
 
 ```ts
-const confirmed = await ctx.prompts.confirm({ message: 'Continue?' })
-const name = await ctx.prompts.text({ message: 'Project name' })
-const env = await ctx.prompts.select({
+const confirmed = await ctx.log.confirm({ message: 'Continue?' })
+const name = await ctx.log.text({ message: 'Project name' })
+const env = await ctx.log.select({
   message: 'Environment',
   options: [
     { value: 'staging', label: 'Staging' },
@@ -167,9 +165,9 @@ process.stdout.write(ctx.format.table(rows))
 Structured output methods on the logger for test results, lint findings, and tallies:
 
 ```ts
-ctx.logger.check({ status: 'pass', name: 'src/auth.test.ts', duration: 42 })
-ctx.logger.finding({ severity: 'error', rule: 'no-unused-vars', message: '...' })
-ctx.logger.tally({
+ctx.report.check({ status: 'pass', name: 'src/auth.test.ts', duration: 42 })
+ctx.report.finding({ severity: 'error', rule: 'no-unused-vars', message: '...' })
+ctx.report.summary({
   style: 'tally',
   stats: [
     { label: 'Tests', value: `${ctx.colors.green('3 passed')} ${ctx.colors.gray('(3)')}` },
@@ -204,7 +202,7 @@ export default middleware(async (ctx, next) => {
   ctx.store.set('startTime', Date.now())
   await next()
   const elapsed = Date.now() - ctx.store.get('startTime')
-  ctx.logger.info(`Completed in ${elapsed}ms`)
+  ctx.log.info(`Completed in ${elapsed}ms`)
 })
 ```
 
@@ -217,7 +215,7 @@ command({
   description: 'Deploy the application',
   middleware: [requireAuth],
   handler: async (ctx) => {
-    ctx.logger.print('Deploying')
+    ctx.log.raw('Deploying')
   },
 })
 ```

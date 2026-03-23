@@ -1,22 +1,20 @@
 # Context
 
-The central API surface threaded through every handler and middleware. Provides typed access to args, config, logger, prompts, spinner, format, store, error handling, and CLI metadata.
+The central API surface threaded through every handler and middleware. Provides typed access to args, config, log, format, store, error handling, and CLI metadata.
 
 ## Properties
 
-| Property  | Type                                      | Description                                                        |
-| --------- | ----------------------------------------- | ------------------------------------------------------------------ |
-| `args`    | `DeepReadonly<Merge<KiddArgs, TArgs>>`    | Parsed and validated command args                                  |
-| `colors`  | `Colors`                                  | Color formatting utilities (picocolors)                            |
-| `config`  | `DeepReadonly<Merge<CliConfig, TConfig>>` | Validated runtime config                                           |
-| `format`  | `Format`                                  | Pure string formatters (no I/O)                                    |
-| `logger`  | `CliLogger`                               | Structured terminal logger + styled output                         |
-| `prompts` | `Prompts`                                 | Interactive terminal prompts                                       |
-| `spinner` | `Spinner`                                 | Spinner for long-running operations                                |
-| `store`   | `Store`                                   | Typed in-memory key-value store                                    |
-| `fail`    | `(message, options?) => never`            | Throw a user-facing error                                          |
-| `meta`    | `Meta`                                    | CLI metadata                                                       |
-| `auth?`   | `AuthContext`                             | Auth credential and login (when `kidd/auth` middleware registered) |
+| Property | Type                                      | Description                                                        |
+| -------- | ----------------------------------------- | ------------------------------------------------------------------ |
+| `args`   | `DeepReadonly<Merge<KiddArgs, TArgs>>`    | Parsed and validated command args                                  |
+| `colors` | `Colors`                                  | Color formatting utilities (picocolors)                            |
+| `config` | `DeepReadonly<Merge<CliConfig, TConfig>>` | Validated runtime config                                           |
+| `format` | `Format`                                  | Pure string formatters (no I/O)                                    |
+| `log`    | `Log`                                     | Unified logging, prompts, and spinner (via `logger()` middleware)  |
+| `store`  | `Store`                                   | Typed in-memory key-value store                                    |
+| `fail`   | `(message, options?) => never`            | Throw a user-facing error                                          |
+| `meta`   | `Meta`                                    | CLI metadata                                                       |
+| `auth?`  | `AuthContext`                             | Auth credential and login (when `kidd/auth` middleware registered) |
 
 ## `ctx.args`
 
@@ -81,11 +79,11 @@ export default command({
 
 Run `kidd add config` to scaffold this setup in an existing project, or pass `--config` to `kidd init` when creating a new project.
 
-## `ctx.logger`
+## `ctx.log`
 
-Structured logger backed by `@clack/prompts` for styled terminal output. All methods write to stderr.
+Unified logging, prompting, and spinner API provided by the `logger()` middleware. All logging methods write to stderr.
 
-### General logging
+### Logging
 
 | Method                    | Description                          |
 | ------------------------- | ------------------------------------ |
@@ -99,52 +97,16 @@ Structured logger backed by `@clack/prompts` for styled terminal output. All met
 | `outro(message?)`         | Print an outro banner                |
 | `note(message?, title?)`  | Display a boxed note                 |
 | `newline()`               | Write a blank line                   |
-| `print(text)`             | Write raw text followed by a newline |
+| `raw(text)`               | Write raw text followed by a newline |
 
 ```ts
-ctx.logger.intro('my-app v1.0.0')
-ctx.logger.info('Starting deployment...')
-ctx.logger.success('Deployed successfully')
-ctx.logger.outro('Done')
+ctx.log.intro('my-app v1.0.0')
+ctx.log.info('Starting deployment...')
+ctx.log.success('Deployed successfully')
+ctx.log.outro('Done')
 ```
 
-### Styled output
-
-| Method           | Description                                                                              |
-| ---------------- | ---------------------------------------------------------------------------------------- |
-| `check(input)`   | Write a single pass/fail/warn/skip/fix row (vitest test file style)                      |
-| `finding(input)` | Write a full finding with optional code frame (oxlint style)                             |
-| `tally(input)`   | Write a tally block (`style: 'tally'` for labeled rows, `style: 'inline'` for one-liner) |
-
-```ts
-// Test results
-ctx.logger.check({ status: 'pass', name: 'src/auth.test.ts', duration: 42 })
-ctx.logger.check({ status: 'fail', name: 'src/api.test.ts', detail: 'timeout' })
-
-// Lint findings
-ctx.logger.finding({
-  severity: 'error',
-  rule: 'no-unused-vars',
-  message: "'config' is defined but never used",
-})
-
-// Tally (tally style)
-ctx.logger.tally({
-  style: 'tally',
-  stats: [
-    { label: 'Tests', value: `${ctx.colors.green('3 passed')} ${ctx.colors.gray('(3)')}` },
-    { label: 'Duration', value: '45ms' },
-  ],
-})
-
-// Tally (inline style)
-ctx.logger.tally({
-  style: 'inline',
-  stats: [ctx.colors.red('1 error'), ctx.colors.dim('95 files'), ctx.colors.dim('in 142ms')],
-})
-```
-
-## `ctx.prompts`
+### Prompts
 
 Interactive prompts that suspend execution until the user provides input. Cancellation (Ctrl-C) throws a `ContextError` with code `PROMPT_CANCELLED`.
 
@@ -157,7 +119,7 @@ Interactive prompts that suspend execution until the user provides input. Cancel
 | `password(opts)`       | `Promise<string>`  | Masked text input  |
 
 ```ts
-const env = await ctx.prompts.select({
+const env = await ctx.log.select({
   message: 'Target environment',
   options: [
     { label: 'Staging', value: 'staging' },
@@ -166,20 +128,18 @@ const env = await ctx.prompts.select({
 })
 ```
 
-## `ctx.spinner`
+### Spinner
 
-Spinner for indicating progress during long-running operations.
+Create and manage a spinner for long-running operations. Returns a `LogSpinner` with `stop()` and `message()` methods.
 
-| Method             | Description                                     |
-| ------------------ | ----------------------------------------------- |
-| `start(message?)`  | Start the spinner with an optional message      |
-| `stop(message?)`   | Stop the spinner with an optional final message |
-| `message(message)` | Update the spinner message                      |
+| Method              | Description                             |
+| ------------------- | --------------------------------------- |
+| `spinner(message?)` | Start a spinner, returns a `LogSpinner` |
 
 ```ts
-ctx.spinner.start('Bundling...')
-ctx.spinner.message('Compiling binaries...')
-ctx.spinner.stop('Build complete')
+const s = ctx.log.spinner('Bundling...')
+s.message('Compiling binaries...')
+s.stop('Build complete')
 ```
 
 ## `ctx.colors`
@@ -188,12 +148,7 @@ Color formatting utilities powered by [picocolors](https://github.com/alexeyrasp
 
 ```ts
 const c = ctx.colors
-ctx.logger.info(`Status: ${c.green('passing')}`)
-
-ctx.logger.tally({
-  style: 'inline',
-  stats: [c.red('1 error'), c.yellow('3 warnings'), c.dim('95 files')],
-})
+ctx.log.info(`Status: ${c.green('passing')}`)
 ```
 
 Available formatters: `bold`, `dim`, `italic`, `underline`, `red`, `green`, `yellow`, `blue`, `magenta`, `cyan`, `white`, `gray`, and more.

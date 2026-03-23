@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import type { Prompts } from '@/context/types.js'
+import type { Log } from '@/middleware/logger/types.js'
 
 import { createAuthContext } from './context.js'
 
@@ -19,14 +19,26 @@ import { runStrategyChain } from './chain.js'
 const TEST_DIRS = { global: '.test-cli', local: '.test-cli' } as const
 const APP_DIRS = { global: '.my-app', local: '.my-app' } as const
 
-function createMockPrompts(): Prompts {
+function createMockLog(): Log {
   return {
     confirm: vi.fn(),
+    error: vi.fn(),
+    info: vi.fn(),
+    intro: vi.fn(),
+    message: vi.fn(),
     multiselect: vi.fn(),
+    newline: vi.fn(),
+    note: vi.fn(),
+    outro: vi.fn(),
     password: vi.fn(),
+    raw: vi.fn(),
     select: vi.fn(),
+    spinner: vi.fn(),
+    step: vi.fn(),
+    success: vi.fn(),
     text: vi.fn(),
-  }
+    warn: vi.fn(),
+  } as unknown as Log
 }
 
 describe('createAuthContext()', () => {
@@ -40,7 +52,7 @@ describe('createAuthContext()', () => {
       const ctx = createAuthContext({
         cliName: 'test-cli',
         dirs: TEST_DIRS,
-        prompts: createMockPrompts(),
+        log: createMockLog(),
         resolveCredential: () => credential,
         strategies: [],
       })
@@ -52,7 +64,7 @@ describe('createAuthContext()', () => {
       const ctx = createAuthContext({
         cliName: 'test-cli',
         dirs: TEST_DIRS,
-        prompts: createMockPrompts(),
+        log: createMockLog(),
         resolveCredential: () => null,
         strategies: [],
       })
@@ -65,7 +77,7 @@ describe('createAuthContext()', () => {
       const ctx = createAuthContext({
         cliName: 'test-cli',
         dirs: TEST_DIRS,
-        prompts: createMockPrompts(),
+        log: createMockLog(),
         resolveCredential: resolver,
         strategies: [],
       })
@@ -82,7 +94,7 @@ describe('createAuthContext()', () => {
       const ctx = createAuthContext({
         cliName: 'test-cli',
         dirs: TEST_DIRS,
-        prompts: createMockPrompts(),
+        log: createMockLog(),
         resolveCredential: () => ({ token: 'x', type: 'bearer' as const }),
         strategies: [],
       })
@@ -94,7 +106,7 @@ describe('createAuthContext()', () => {
       const ctx = createAuthContext({
         cliName: 'test-cli',
         dirs: TEST_DIRS,
-        prompts: createMockPrompts(),
+        log: createMockLog(),
         resolveCredential: () => null,
         strategies: [],
       })
@@ -120,7 +132,7 @@ describe('createAuthContext()', () => {
       const ctx = createAuthContext({
         cliName: 'test-cli',
         dirs: TEST_DIRS,
-        prompts: createMockPrompts(),
+        log: createMockLog(),
         resolveCredential: () => null,
         strategies: [{ source: 'token' }],
       })
@@ -137,7 +149,7 @@ describe('createAuthContext()', () => {
       const ctx = createAuthContext({
         cliName: 'test-cli',
         dirs: TEST_DIRS,
-        prompts: createMockPrompts(),
+        log: createMockLog(),
         resolveCredential: () => null,
         strategies: [{ source: 'token' }],
       })
@@ -163,7 +175,7 @@ describe('createAuthContext()', () => {
       const ctx = createAuthContext({
         cliName: 'test-cli',
         dirs: TEST_DIRS,
-        prompts: createMockPrompts(),
+        log: createMockLog(),
         resolveCredential: () => null,
         strategies: [{ source: 'token' }],
       })
@@ -180,11 +192,11 @@ describe('createAuthContext()', () => {
       ]
       vi.mocked(runStrategyChain).mockResolvedValue(null)
 
-      const prompts = createMockPrompts()
+      const log = createMockLog()
       const ctx = createAuthContext({
         cliName: 'my-app',
         dirs: APP_DIRS,
-        prompts,
+        log,
         resolveCredential: () => null,
         strategies,
       })
@@ -194,7 +206,7 @@ describe('createAuthContext()', () => {
       expect(runStrategyChain).toHaveBeenCalledWith({
         cliName: 'my-app',
         dirs: APP_DIRS,
-        prompts,
+        log,
         strategies,
       })
     })
@@ -203,11 +215,11 @@ describe('createAuthContext()', () => {
       const overrideStrategies = [{ source: 'token' as const }]
       vi.mocked(runStrategyChain).mockResolvedValue(null)
 
-      const prompts = createMockPrompts()
+      const log = createMockLog()
       const ctx = createAuthContext({
         cliName: 'my-app',
         dirs: APP_DIRS,
-        prompts,
+        log,
         resolveCredential: () => null,
         strategies: [{ source: 'env' as const }],
       })
@@ -217,7 +229,7 @@ describe('createAuthContext()', () => {
       expect(runStrategyChain).toHaveBeenCalledWith({
         cliName: 'my-app',
         dirs: APP_DIRS,
-        prompts,
+        log,
         strategies: overrideStrategies,
       })
     })
@@ -226,11 +238,11 @@ describe('createAuthContext()', () => {
       const configuredStrategies = [{ source: 'env' as const }]
       vi.mocked(runStrategyChain).mockResolvedValue(null)
 
-      const prompts = createMockPrompts()
+      const log = createMockLog()
       const ctx = createAuthContext({
         cliName: 'my-app',
         dirs: APP_DIRS,
-        prompts,
+        log,
         resolveCredential: () => null,
         strategies: configuredStrategies,
       })
@@ -240,7 +252,7 @@ describe('createAuthContext()', () => {
       expect(runStrategyChain).toHaveBeenCalledWith({
         cliName: 'my-app',
         dirs: APP_DIRS,
-        prompts,
+        log,
         strategies: configuredStrategies,
       })
     })
@@ -262,7 +274,7 @@ describe('createAuthContext()', () => {
       const ctx = createAuthContext({
         cliName: 'test-cli',
         dirs: TEST_DIRS,
-        prompts: createMockPrompts(),
+        log: createMockLog(),
         resolveCredential: () => null,
         strategies: [{ source: 'token' }],
         validate,
@@ -283,7 +295,7 @@ describe('createAuthContext()', () => {
       const ctx = createAuthContext({
         cliName: 'test-cli',
         dirs: TEST_DIRS,
-        prompts: createMockPrompts(),
+        log: createMockLog(),
         resolveCredential: () => null,
         strategies: [{ source: 'token' }],
         validate,
@@ -314,7 +326,7 @@ describe('createAuthContext()', () => {
       const ctx = createAuthContext({
         cliName: 'test-cli',
         dirs: TEST_DIRS,
-        prompts: createMockPrompts(),
+        log: createMockLog(),
         resolveCredential: () => null,
         strategies: [{ source: 'token' }],
         validate,
@@ -343,7 +355,7 @@ describe('createAuthContext()', () => {
       const ctx = createAuthContext({
         cliName: 'test-cli',
         dirs: TEST_DIRS,
-        prompts: createMockPrompts(),
+        log: createMockLog(),
         resolveCredential: () => null,
         strategies: [{ source: 'token' }],
         validate,
@@ -374,7 +386,7 @@ describe('createAuthContext()', () => {
       const ctx = createAuthContext({
         cliName: 'test-cli',
         dirs: TEST_DIRS,
-        prompts: createMockPrompts(),
+        log: createMockLog(),
         resolveCredential: () => null,
         strategies: [{ source: 'token' }],
         validate: configuredValidate,
@@ -403,7 +415,7 @@ describe('createAuthContext()', () => {
       const ctx = createAuthContext({
         cliName: 'test-cli',
         dirs: TEST_DIRS,
-        prompts: createMockPrompts(),
+        log: createMockLog(),
         resolveCredential: () => null,
         strategies: [{ source: 'token' }],
       })
@@ -434,7 +446,7 @@ describe('createAuthContext()', () => {
       const ctx = createAuthContext({
         cliName: 'test-cli',
         dirs: TEST_DIRS,
-        prompts: createMockPrompts(),
+        log: createMockLog(),
         resolveCredential: () => null,
         strategies: [{ source: 'token' }],
         validate,
@@ -463,7 +475,7 @@ describe('createAuthContext()', () => {
       const ctx = createAuthContext({
         cliName: 'test-cli',
         dirs: TEST_DIRS,
-        prompts: createMockPrompts(),
+        log: createMockLog(),
         resolveCredential: () => null,
         strategies: [],
       })
@@ -488,7 +500,7 @@ describe('createAuthContext()', () => {
       const ctx = createAuthContext({
         cliName: 'test-cli',
         dirs: TEST_DIRS,
-        prompts: createMockPrompts(),
+        log: createMockLog(),
         resolveCredential: () => null,
         strategies: [],
       })

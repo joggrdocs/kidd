@@ -22,6 +22,8 @@ const mockedBuild = vi.mocked(build)
 const mockedCompile = vi.mocked(compile)
 const mockedLoadConfig = vi.mocked(loadConfig)
 
+const mockSpinner = { message: vi.fn(), stop: vi.fn() }
+
 function makeContext(argOverrides: Record<string, unknown> = {}): Context {
   return {
     args: {
@@ -34,35 +36,26 @@ function makeContext(argOverrides: Record<string, unknown> = {}): Context {
       throw new Error(msg)
     }) as never,
     format: { json: vi.fn(() => ''), table: vi.fn(() => '') },
-    logger: {
-      check: vi.fn(),
-      child: vi.fn(),
-      debug: vi.fn(),
+    log: {
+      confirm: vi.fn(),
       error: vi.fn(),
-      fatal: vi.fn(),
-      finding: vi.fn(),
       info: vi.fn(),
       intro: vi.fn(),
       message: vi.fn(),
+      multiselect: vi.fn(),
       newline: vi.fn(),
       note: vi.fn(),
       outro: vi.fn(),
-      print: vi.fn(),
+      password: vi.fn(),
+      raw: vi.fn(),
+      select: vi.fn(),
+      spinner: vi.fn(() => mockSpinner),
       step: vi.fn(),
       success: vi.fn(),
-      tally: vi.fn(),
-      trace: vi.fn(),
+      text: vi.fn(),
       warn: vi.fn(),
     },
     meta: { command: ['build'], name: 'kidd', version: '0.0.0' },
-    prompts: {
-      confirm: vi.fn(),
-      multiselect: vi.fn(),
-      password: vi.fn(),
-      select: vi.fn(),
-      text: vi.fn(),
-    },
-    spinner: { message: vi.fn(), start: vi.fn(), stop: vi.fn() },
     store: { clear: vi.fn(), delete: vi.fn(), get: vi.fn(), has: vi.fn(), set: vi.fn() },
   } as unknown as Context
 }
@@ -108,7 +101,7 @@ describe('build command', () => {
       await mod.default.handler!(ctx)
 
       expect(mockedCompile).not.toHaveBeenCalled()
-      expect(ctx.spinner.stop).toHaveBeenCalledWith('Build complete')
+      expect(mockSpinner.stop).toHaveBeenCalledWith('Build complete')
     })
 
     it('should compile when --targets is provided', async () => {
@@ -229,7 +222,7 @@ describe('build command', () => {
       const mod = await import('./build.js')
       await mod.default.handler!(ctx)
 
-      const noteCall = vi.mocked(ctx.logger.note).mock.calls[0]!
+      const noteCall = vi.mocked(ctx.log.note).mock.calls[0]!
       expect(noteCall[0]).toContain('entry    dist/index.js')
       expect(noteCall[0]).toContain('output   dist')
       expect(noteCall[0]).toContain('version  1.0.0')
@@ -266,7 +259,7 @@ describe('build command', () => {
       const mod = await import('./build.js')
       await mod.default.handler!(ctx)
 
-      const mockNote = ctx.logger.note as ReturnType<typeof vi.fn>
+      const mockNote = ctx.log.note as ReturnType<typeof vi.fn>
       const binariesNote = mockNote.mock.calls.find((call) => call[1] === 'Binaries')
       expect(binariesNote).toBeDefined()
       if (!binariesNote) {
@@ -317,7 +310,7 @@ describe('build command', () => {
       const mod = await import('./build.js')
       await expect(mod.default.handler!(ctx)).rejects.toThrow('tsdown build failed')
 
-      expect(ctx.spinner.stop).toHaveBeenCalledWith('Bundle failed')
+      expect(mockSpinner.stop).toHaveBeenCalledWith('Bundle failed')
     })
 
     it('should call fail when compile returns an error', async () => {
@@ -328,7 +321,7 @@ describe('build command', () => {
       const mod = await import('./build.js')
       await expect(mod.default.handler!(ctx)).rejects.toThrow('bun compile failed')
 
-      expect(ctx.spinner.stop).toHaveBeenCalledWith('Compile failed')
+      expect(mockSpinner.stop).toHaveBeenCalledWith('Compile failed')
     })
   })
 })

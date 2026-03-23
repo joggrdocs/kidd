@@ -8,6 +8,7 @@ import { readManifest } from '@kidd-cli/utils/manifest'
 import { z } from 'zod'
 
 import { renderTemplate } from '../lib/render.js'
+import { resolveLog } from '../lib/resolve-log.js'
 import { readTemplateVersions } from '../lib/template-versions.js'
 import type { RenderedFile } from '../lib/types.js'
 import { isKebabCase } from '../lib/validate.js'
@@ -33,11 +34,12 @@ const initCommand: Command = command({
     const includeExample = await resolveIncludeExample(ctx)
     const includeConfig = await resolveIncludeConfig(ctx)
 
-    ctx.spinner.start('Scaffolding project...')
+    const log = resolveLog(ctx)
+    const spinner = log.spinner('Scaffolding project...')
 
     const [versionsError, templateVersions] = readTemplateVersions()
     if (versionsError) {
-      ctx.spinner.stop('Failed')
+      spinner.stop('Failed')
       return ctx.fail(versionsError.message)
     }
 
@@ -59,7 +61,7 @@ const initCommand: Command = command({
     })
 
     if (renderError) {
-      ctx.spinner.stop('Failed')
+      spinner.stop('Failed')
       return ctx.fail(renderError.message)
     }
 
@@ -69,16 +71,16 @@ const initCommand: Command = command({
     const [writeError] = await writeFiles({ files, outputDir, overwrite: false })
 
     if (writeError) {
-      ctx.spinner.stop('Failed')
+      spinner.stop('Failed')
       return ctx.fail(writeError.message)
     }
 
-    ctx.spinner.stop('Project created!')
+    spinner.stop('Project created!')
 
-    ctx.logger.newline()
-    ctx.logger.print('Next steps:')
-    ctx.logger.print(`  cd ${projectName}`)
-    ctx.logger.print(`  ${packageManager} install`)
+    log.newline()
+    log.raw('Next steps:')
+    log.raw(`  cd ${projectName}`)
+    log.raw(`  ${packageManager} install`)
   },
 })
 
@@ -102,10 +104,10 @@ async function resolveProjectName(ctx: Context<InitArgs>): Promise<string> {
     }
     return ctx.args.name
   }
-  return ctx.prompts.text({
+  return resolveLog(ctx).text({
     message: 'Project name',
     placeholder: 'my-cli',
-    validate: (value) => {
+    validate: (value: string | undefined) => {
       if (value === undefined || !isKebabCase(value)) {
         return 'Must be kebab-case (e.g. my-cli)'
       }
@@ -125,7 +127,7 @@ async function resolveDescription(ctx: Context<InitArgs>): Promise<string> {
   if (ctx.args.description) {
     return ctx.args.description
   }
-  return ctx.prompts.text({
+  return resolveLog(ctx).text({
     defaultValue: 'A CLI built with kidd',
     message: 'Description',
     placeholder: 'A CLI built with kidd',
@@ -143,7 +145,7 @@ async function resolvePackageManager(ctx: Context<InitArgs>): Promise<string> {
   if (ctx.args.pm) {
     return ctx.args.pm
   }
-  return ctx.prompts.select({
+  return resolveLog(ctx).select({
     message: 'Package manager',
     options: [
       { label: 'pnpm', value: 'pnpm' },
@@ -164,7 +166,7 @@ async function resolveIncludeExample(ctx: Context<InitArgs>): Promise<boolean> {
   if (ctx.args.example !== undefined) {
     return ctx.args.example
   }
-  return ctx.prompts.confirm({
+  return resolveLog(ctx).confirm({
     initialValue: true,
     message: 'Include example command?',
   })
@@ -181,7 +183,7 @@ async function resolveIncludeConfig(ctx: Context<InitArgs>): Promise<boolean> {
   if (ctx.args.config !== undefined) {
     return ctx.args.config
   }
-  return ctx.prompts.confirm({
+  return resolveLog(ctx).confirm({
     initialValue: false,
     message: 'Include config schema?',
   })

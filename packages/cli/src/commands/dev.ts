@@ -1,9 +1,10 @@
 import { watch } from '@kidd-cli/bundler'
 import { loadConfig } from '@kidd-cli/config/loader'
 import { command } from '@kidd-cli/core'
-import type { Command, Context } from '@kidd-cli/core'
+import type { Command, Context, Log, LogSpinner } from '@kidd-cli/core'
 
 import { extractConfig } from '../lib/config-helpers.js'
+import { resolveLog } from '../lib/resolve-log.js'
 
 /**
  * Start a kidd CLI project in development mode with file watching.
@@ -19,14 +20,15 @@ const devCommand: Command = command({
     const [, configResult] = await loadConfig({ cwd })
     const config = extractConfig(configResult)
 
-    ctx.spinner.start('Starting dev server...')
+    const log = resolveLog(ctx)
+    const spinner = log.spinner('Starting dev server...')
 
-    const onSuccess = createOnSuccess(ctx)
+    const onSuccess = createOnSuccess({ log, spinner })
 
     const [watchError] = await watch({ config, cwd, onSuccess })
 
     if (watchError) {
-      ctx.spinner.stop('Watch failed')
+      spinner.stop('Watch failed')
       return ctx.fail(watchError.message)
     }
   },
@@ -46,19 +48,19 @@ export default devCommand
  * without `let` reassignment.
  *
  * @private
- * @param ctx - The command context for spinner and logger access.
+ * @param params - The log and spinner instances for output.
  * @returns A callback suitable for the watch `onSuccess` parameter.
  */
-function createOnSuccess(ctx: Context): () => void {
+function createOnSuccess(params: { readonly log: Log; readonly spinner: LogSpinner }): () => void {
   const state = { buildCount: 0 }
 
   return () => {
     if (state.buildCount === 0) {
       state.buildCount = 1
-      ctx.spinner.stop('Watching for changes...')
+      params.spinner.stop('Watching for changes...')
       return
     }
 
-    ctx.logger.success('Rebuilt successfully')
+    params.log.success('Rebuilt successfully')
   }
 }

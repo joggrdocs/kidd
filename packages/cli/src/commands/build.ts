@@ -9,6 +9,7 @@ import type { Command, Context } from '@kidd-cli/core'
 import { z } from 'zod'
 
 import { extractConfig } from '../lib/config-helpers.js'
+import { resolveLog } from '../lib/resolve-log.js'
 
 const options = z.object({
   compile: z.boolean().optional().describe('Compile to standalone binaries after bundling'),
@@ -34,12 +35,13 @@ const buildCommand: Command = command({
     const [, configResult] = await loadConfig({ cwd })
     const config = extractConfig(configResult)
 
-    ctx.spinner.start('Bundling with tsdown...')
+    const log = resolveLog(ctx)
+    const spinner = log.spinner('Bundling with tsdown...')
 
     const [buildError, buildOutput] = await build({ config, cwd })
 
     if (buildError) {
-      ctx.spinner.stop('Bundle failed')
+      spinner.stop('Bundle failed')
       return ctx.fail(buildError.message)
     }
 
@@ -50,8 +52,8 @@ const buildCommand: Command = command({
     })
 
     if (!shouldCompile) {
-      ctx.spinner.stop('Build complete')
-      ctx.logger.note(
+      spinner.stop('Build complete')
+      log.note(
         formatBuildNote({
           cwd,
           entryFile: buildOutput.entryFile,
@@ -63,23 +65,23 @@ const buildCommand: Command = command({
       return
     }
 
-    ctx.spinner.message('Bundled, compiling binaries...')
+    spinner.message('Bundled, compiling binaries...')
 
     const mergedConfig = mergeCompileTargets({ config, targets: ctx.args.targets })
     const [compileError, compileOutput] = await compile({
       config: mergedConfig,
       cwd,
-      onTargetComplete: (target) => ctx.spinner.message(`Compiled ${resolveTargetLabel(target)}`),
-      onTargetStart: (target) => ctx.spinner.message(`Compiling ${resolveTargetLabel(target)}...`),
+      onTargetComplete: (target) => spinner.message(`Compiled ${resolveTargetLabel(target)}`),
+      onTargetStart: (target) => spinner.message(`Compiling ${resolveTargetLabel(target)}...`),
     })
 
     if (compileError) {
-      ctx.spinner.stop('Compile failed')
+      spinner.stop('Compile failed')
       return ctx.fail(compileError.message)
     }
 
-    ctx.spinner.stop('Build complete')
-    ctx.logger.note(
+    spinner.stop('Build complete')
+    log.note(
       formatBuildNote({
         cwd,
         entryFile: buildOutput.entryFile,
@@ -88,7 +90,7 @@ const buildCommand: Command = command({
       }),
       'Bundle'
     )
-    ctx.logger.note(formatBinariesNote({ binaries: compileOutput.binaries, cwd }), 'Binaries')
+    log.note(formatBinariesNote({ binaries: compileOutput.binaries, cwd }), 'Binaries')
   },
 })
 

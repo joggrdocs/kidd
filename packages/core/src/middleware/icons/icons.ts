@@ -49,10 +49,13 @@ export function icons(options?: IconsOptions): Middleware {
 
   return middleware(async (ctx, next) => {
     const isDetected = await detectNerdFonts()
-    const isInstalled = await resolveInstallStatus({ ctx, isDetected, resolved })
+    // Accepted exception: icons middleware requires logger middleware to run first.
+    // The cast bridges the base Context to the IconsCtx subset that includes `log`.
+    const iconsCtx = ctx as unknown as IconsCtx
+    const isInstalled = await resolveInstallStatus({ ctx: iconsCtx, isDetected, resolved })
 
     const iconsContext = createIconsContext({
-      ctx,
+      ctx: iconsCtx,
       font: resolved.font,
       forceSetup: resolved.forceSetup,
       icons: frozenIcons,
@@ -138,7 +141,7 @@ async function resolveInstallStatus({
   })
 
   if (error) {
-    ctx.logger.warn(`Auto-setup failed: ${error.message}`)
+    ctx.log.warn(`Auto-setup failed: ${error.message}`)
   }
 
   return result === true

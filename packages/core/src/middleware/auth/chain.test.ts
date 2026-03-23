@@ -19,7 +19,7 @@ vi.mock(import('./strategies/device-code.js'), () => ({
 
 import { readFileSync } from 'node:fs'
 
-import type { Prompts } from '@/context/types.js'
+import type { Log } from '@/middleware/logger/types.js'
 import type { ResolvedDirs } from '@/types/index.js'
 
 import { runStrategyChain } from './chain.js'
@@ -102,27 +102,27 @@ describe('resolveFromDotenv()', () => {
 
 describe('resolveFromToken()', () => {
   it('should return BearerCredential when user provides input', async () => {
-    const prompts = { password: vi.fn().mockResolvedValue('user-token') } as unknown as Prompts
+    const log = { password: vi.fn().mockResolvedValue('user-token') } as unknown as Log
 
-    const result = await resolveFromToken({ message: 'Enter token', prompts })
+    const result = await resolveFromToken({ log, message: 'Enter token' })
 
     expect(result).toEqual({ token: 'user-token', type: 'bearer' })
   })
 
   it('should return null when user cancels prompt', async () => {
-    const prompts = {
+    const log = {
       password: vi.fn().mockRejectedValue(new Error('cancelled')),
-    } as unknown as Prompts
+    } as unknown as Log
 
-    const result = await resolveFromToken({ message: 'Enter token', prompts })
+    const result = await resolveFromToken({ log, message: 'Enter token' })
 
     expect(result).toBeNull()
   })
 
   it('should return null when user provides empty input', async () => {
-    const prompts = { password: vi.fn().mockResolvedValue('') } as unknown as Prompts
+    const log = { password: vi.fn().mockResolvedValue('') } as unknown as Log
 
-    const result = await resolveFromToken({ message: 'Enter token', prompts })
+    const result = await resolveFromToken({ log, message: 'Enter token' })
 
     expect(result).toBeNull()
   })
@@ -139,24 +139,24 @@ describe('runStrategyChain()', () => {
   it('should return first resolved credential (short-circuit)', async () => {
     vi.stubEnv('MY_CLI_TOKEN', 'from-env')
 
-    const prompts = { password: vi.fn() } as unknown as Prompts
+    const log = { password: vi.fn() } as unknown as Log
     const result = await runStrategyChain({
       cliName: 'my-cli',
       dirs: DEFAULT_DIRS,
-      prompts,
+      log,
       strategies: [{ source: 'env' }, { source: 'token' }],
     })
 
     expect(result).toEqual({ token: 'from-env', type: 'bearer' })
-    expect(prompts.password).not.toHaveBeenCalled()
+    expect(log.password).not.toHaveBeenCalled()
   })
 
   it('should return null when all strategies return null', async () => {
-    const prompts = { password: vi.fn() } as unknown as Prompts
+    const log = { password: vi.fn() } as unknown as Log
     const result = await runStrategyChain({
       cliName: 'my-cli',
       dirs: DEFAULT_DIRS,
-      prompts,
+      log,
       strategies: [{ source: 'env' }],
     })
 
@@ -166,11 +166,11 @@ describe('runStrategyChain()', () => {
   it('should derive tokenVar from CLI name (kebab-case to SCREAMING_SNAKE_CASE + _TOKEN)', async () => {
     vi.stubEnv('MY_COOL_APP_TOKEN', 'derived-token')
 
-    const prompts = { password: vi.fn() } as unknown as Prompts
+    const log = { password: vi.fn() } as unknown as Log
     const result = await runStrategyChain({
       cliName: 'my-cool-app',
       dirs: { global: '.my-cool-app', local: '.my-cool-app' },
-      prompts,
+      log,
       strategies: [{ source: 'env' }],
     })
 
@@ -178,27 +178,27 @@ describe('runStrategyChain()', () => {
   })
 
   it('should try strategies in order', async () => {
-    const prompts = {
+    const log = {
       password: vi.fn().mockResolvedValue('from-prompt'),
-    } as unknown as Prompts
+    } as unknown as Log
 
     const result = await runStrategyChain({
       cliName: 'my-cli',
       dirs: DEFAULT_DIRS,
-      prompts,
+      log,
       strategies: [{ source: 'env' }, { source: 'token' }],
     })
 
     expect(result).toEqual({ token: 'from-prompt', type: 'bearer' })
-    expect(prompts.password).toHaveBeenCalled()
+    expect(log.password).toHaveBeenCalled()
   })
 
   it('should use custom resolver', async () => {
-    const prompts = { password: vi.fn() } as unknown as Prompts
+    const log = { password: vi.fn() } as unknown as Log
     const result = await runStrategyChain({
       cliName: 'my-cli',
       dirs: DEFAULT_DIRS,
-      prompts,
+      log,
       strategies: [
         {
           resolver: () => ({ token: 'custom', type: 'bearer' as const }),
@@ -213,11 +213,11 @@ describe('runStrategyChain()', () => {
   it('should dispatch to file strategy with default filename and dirName', async () => {
     vi.mocked(resolveFromFile).mockReturnValue({ token: 'from-file', type: 'bearer' })
 
-    const prompts = { password: vi.fn() } as unknown as Prompts
+    const log = { password: vi.fn() } as unknown as Log
     const result = await runStrategyChain({
       cliName: 'my-cli',
       dirs: DEFAULT_DIRS,
-      prompts,
+      log,
       strategies: [{ source: 'file' }],
     })
 
@@ -232,11 +232,11 @@ describe('runStrategyChain()', () => {
   it('should dispatch to file strategy with custom filename and dirName', async () => {
     vi.mocked(resolveFromFile).mockReturnValue({ token: 'from-custom-file', type: 'bearer' })
 
-    const prompts = { password: vi.fn() } as unknown as Prompts
+    const log = { password: vi.fn() } as unknown as Log
     const result = await runStrategyChain({
       cliName: 'my-cli',
       dirs: DEFAULT_DIRS,
-      prompts,
+      log,
       strategies: [{ dirName: '.my-custom-dir', filename: 'creds.json', source: 'file' }],
     })
 
@@ -251,11 +251,11 @@ describe('runStrategyChain()', () => {
   it('should pass separate local and global dirs to resolveFromFile', async () => {
     vi.mocked(resolveFromFile).mockReturnValue({ token: 'from-file', type: 'bearer' })
 
-    const prompts = { password: vi.fn() } as unknown as Prompts
+    const log = { password: vi.fn() } as unknown as Log
     await runStrategyChain({
       cliName: 'my-cli',
       dirs: { global: '.my-global', local: '.my-local' },
-      prompts,
+      log,
       strategies: [{ source: 'file' }],
     })
 
@@ -269,11 +269,11 @@ describe('runStrategyChain()', () => {
   it('should dispatch to oauth strategy with PKCE fields', async () => {
     vi.mocked(resolveFromOAuth).mockResolvedValue({ token: 'from-oauth', type: 'bearer' })
 
-    const prompts = { password: vi.fn() } as unknown as Prompts
+    const log = { password: vi.fn() } as unknown as Log
     const result = await runStrategyChain({
       cliName: 'my-cli',
       dirs: DEFAULT_DIRS,
-      prompts,
+      log,
       strategies: [
         {
           authUrl: 'https://auth.example.com/authorize',
@@ -302,11 +302,11 @@ describe('runStrategyChain()', () => {
       type: 'bearer',
     })
 
-    const prompts = { password: vi.fn() } as unknown as Prompts
+    const log = { password: vi.fn() } as unknown as Log
     const result = await runStrategyChain({
       cliName: 'my-cli',
       dirs: DEFAULT_DIRS,
-      prompts,
+      log,
       strategies: [
         {
           clientId: 'my-client',
@@ -323,7 +323,7 @@ describe('runStrategyChain()', () => {
       deviceAuthUrl: 'https://auth.example.com/device/code',
       openBrowserOnStart: true,
       pollInterval: 5000,
-      prompts,
+      log,
       scopes: [],
       timeout: 300_000,
       tokenUrl: 'https://auth.example.com/token',
@@ -331,11 +331,11 @@ describe('runStrategyChain()', () => {
   })
 
   it('should return null when custom resolver returns null', async () => {
-    const prompts = { password: vi.fn() } as unknown as Prompts
+    const log = { password: vi.fn() } as unknown as Log
     const result = await runStrategyChain({
       cliName: 'my-cli',
       dirs: DEFAULT_DIRS,
-      prompts,
+      log,
       strategies: [
         {
           resolver: () => null,
@@ -348,11 +348,11 @@ describe('runStrategyChain()', () => {
   })
 
   it('should handle empty strategies array', async () => {
-    const prompts = { password: vi.fn() } as unknown as Prompts
+    const log = { password: vi.fn() } as unknown as Log
     const result = await runStrategyChain({
       cliName: 'my-cli',
       dirs: DEFAULT_DIRS,
-      prompts,
+      log,
       strategies: [],
     })
 

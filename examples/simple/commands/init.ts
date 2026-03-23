@@ -3,12 +3,12 @@ import { command } from '@kidd-cli/core'
 export default command({
   description: 'Initialize a new project interactively',
   handler: async (ctx) => {
-    const name = await ctx.prompts.text({
+    const name = await ctx.log.text({
       message: 'Project name',
       placeholder: 'my-project',
     })
 
-    const template = await ctx.prompts.select({
+    const template = await ctx.log.select({
       message: 'Template',
       options: [
         { hint: 'bare bones setup', label: 'Minimal', value: 'minimal' },
@@ -17,7 +17,7 @@ export default command({
       ],
     })
 
-    const features = await ctx.prompts.multiselect({
+    const features = await ctx.log.multiselect({
       message: 'Features',
       options: [
         { label: 'Authentication', value: 'auth' },
@@ -26,7 +26,7 @@ export default command({
       ],
     })
 
-    const confirmed = await ctx.prompts.confirm({
+    const confirmed = await ctx.log.confirm({
       message: `Create "${name}" with ${template} template?`,
     })
 
@@ -34,11 +34,11 @@ export default command({
       ctx.fail('Project creation cancelled')
     }
 
-    ctx.spinner.start(`Scaffolding ${name}`)
+    const s = ctx.log.spinner(`Scaffolding ${name}`)
 
-    ctx.logger.info(`Template: ${template}`)
-    ctx.logger.info(`Features: ${features.join(', ')}`)
+    ctx.log.info(`Template: ${template}`)
+    ctx.log.info(`Features: ${features.join(', ')}`)
 
-    ctx.spinner.stop(`Created ${name}`)
+    s.stop(`Created ${name}`)
   },
 })

@@ -16,7 +16,7 @@ const deploy = command({
     dryRun: z.boolean().default(false).describe('Preview without applying'),
   }),
   async handler(ctx) {
-    ctx.logger.info(`Deploying to ${ctx.args.env}`)
+    ctx.log.info(`Deploying to ${ctx.args.env}`)
   },
 })
 ```
@@ -38,7 +38,7 @@ const deploy = command({
     dryRun: { type: 'boolean', description: 'Preview without applying', default: false },
   },
   async handler(ctx) {
-    ctx.logger.info(`Deploying to ${ctx.args.env}`)
+    ctx.log.info(`Deploying to ${ctx.args.env}`)
   },
 })
 ```
@@ -107,7 +107,7 @@ Middleware runs before command handlers. It receives the context and a `next` fu
 const timing = middleware(async (ctx, next) => {
   const start = Date.now()
   await next()
-  ctx.logger.info(`Completed in ${Date.now() - start}ms`)
+  ctx.log.info(`Completed in ${Date.now() - start}ms`)
 })
 ```
 
@@ -162,19 +162,17 @@ The `config` option in `cli()` accepts a `CliConfigOptions` object:
 
 The `Context` object is threaded through every handler and middleware. See [Context](../concepts/context.md) for the full reference.
 
-| Property  | Type                                      | Description                                                        |
-| --------- | ----------------------------------------- | ------------------------------------------------------------------ |
-| `args`    | `DeepReadonly<Merge<KiddArgs, TArgs>>`    | Parsed and validated command args                                  |
-| `config`  | `DeepReadonly<Merge<CliConfig, TConfig>>` | Validated runtime config                                           |
-| `logger`  | `CliLogger`                               | Structured terminal logger + styled output (check, finding, tally) |
-| `prompts` | `Prompts`                                 | Interactive prompts (confirm, text, select, multiselect, password) |
-| `spinner` | `Spinner`                                 | Spinner for long-running operations (start, stop, message)         |
-| `colors`  | `Colors`                                  | Color formatting utilities (picocolors)                            |
-| `format`  | `Format`                                  | Pure string formatters (json, table) — no I/O                      |
-| `store`   | `Store`                                   | Typed in-memory key-value store (get, set, has, delete, clear)     |
-| `fail`    | `(message, options?) => never`            | Throw a user-facing error                                          |
-| `meta`    | `Meta`                                    | CLI metadata (name, version, command path)                         |
-| `auth?`   | `AuthContext`                             | Auth credential and login (when `kidd/auth` middleware registered) |
+| Property | Type                                      | Description                                                        |
+| -------- | ----------------------------------------- | ------------------------------------------------------------------ |
+| `args`   | `DeepReadonly<Merge<KiddArgs, TArgs>>`    | Parsed and validated command args                                  |
+| `config` | `DeepReadonly<Merge<CliConfig, TConfig>>` | Validated runtime config                                           |
+| `log`    | `Log`                                     | Unified logging, prompts, and spinner (via `logger()` middleware)  |
+| `colors` | `Colors`                                  | Color formatting utilities (picocolors)                            |
+| `format` | `Format`                                  | Pure string formatters (json, table) — no I/O                      |
+| `store`  | `Store`                                   | Typed in-memory key-value store (get, set, has, delete, clear)     |
+| `fail`   | `(message, options?) => never`            | Throw a user-facing error                                          |
+| `meta`   | `Meta`                                    | CLI metadata (name, version, command path)                         |
+| `auth?`  | `AuthContext`                             | Auth credential and login (when `kidd/auth` middleware registered) |
 
 ### `ctx.fail()`
 

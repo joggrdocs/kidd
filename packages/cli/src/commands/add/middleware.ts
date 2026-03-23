@@ -6,6 +6,7 @@ import { z } from 'zod'
 
 import { detectProject } from '../../lib/detect.js'
 import { renderTemplate } from '../../lib/render.js'
+import { resolveLog } from '../../lib/resolve-log.js'
 import { isKebabCase } from '../../lib/validate.js'
 import { writeFiles } from '../../lib/write.js'
 
@@ -31,7 +32,8 @@ const addMiddlewareCommand: Command = command({
     const middlewareName = await resolveMiddlewareName(ctx)
     const middlewareDescription = await resolveDescription(ctx)
 
-    ctx.spinner.start('Generating middleware...')
+    const log = resolveLog(ctx)
+    const spinner = log.spinner('Generating middleware...')
 
     const templateDir = join(import.meta.dirname, '..', '..', 'lib', 'templates', 'middleware')
     const [renderError, rendered] = await renderTemplate({
@@ -40,7 +42,7 @@ const addMiddlewareCommand: Command = command({
     })
 
     if (renderError) {
-      ctx.spinner.stop('Failed')
+      spinner.stop('Failed')
       return ctx.fail(renderError.message)
     }
 
@@ -53,11 +55,11 @@ const addMiddlewareCommand: Command = command({
     const [writeError, result] = await writeFiles({ files, outputDir, overwrite: false })
 
     if (writeError) {
-      ctx.spinner.stop('Failed')
+      spinner.stop('Failed')
       return ctx.fail(writeError.message)
     }
 
-    ctx.spinner.stop('Middleware created!')
+    spinner.stop('Middleware created!')
 
     const lines = [
       ...result.written.map((file) => `  created ${file}`),
@@ -65,7 +67,7 @@ const addMiddlewareCommand: Command = command({
     ]
     const summary = lines.join('\n')
     if (summary.length > 0) {
-      ctx.logger.print(summary)
+      log.raw(summary)
     }
   },
 })
@@ -90,10 +92,10 @@ async function resolveMiddlewareName(ctx: Context<AddMiddlewareArgs>): Promise<s
     }
     return ctx.args.name
   }
-  return ctx.prompts.text({
+  return resolveLog(ctx).text({
     message: 'Middleware name',
     placeholder: 'auth',
-    validate: (value) => {
+    validate: (value: string | undefined) => {
       if (value === undefined || !isKebabCase(value)) {
         return 'Must be kebab-case (e.g. auth)'
       }
@@ -113,7 +115,7 @@ async function resolveDescription(ctx: Context<AddMiddlewareArgs>): Promise<stri
   if (ctx.args.description) {
     return ctx.args.description
   }
-  return ctx.prompts.text({
+  return resolveLog(ctx).text({
     defaultValue: '',
     message: 'Description',
     placeholder: 'What does this middleware do?',

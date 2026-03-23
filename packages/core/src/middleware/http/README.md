@@ -70,7 +70,7 @@ const repos = command({
   description: 'List repositories',
   async handler(ctx) {
     const response = await ctx.github.get<Repository[]>('/user/repos')
-    ctx.logger.info(`Found ${String(response.data.length)} repos`)
+    ctx.log.info(`Found ${String(response.data.length)} repos`)
   },
 })
 ```

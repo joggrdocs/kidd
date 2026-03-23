@@ -1,12 +1,40 @@
 /**
  * UI components for building interactive terminal interfaces.
  *
- * Re-exports components from `@inkjs/ui` as the public UI surface for
- * `@kidd-cli/core`. Each component is a thin wrapper suitable for use
- * inside Ink-based CLI render trees.
+ * Re-exports primitives from `ink` and higher-level components from
+ * `@inkjs/ui` as the public UI surface for `@kidd-cli/core`.
  *
  * @module
  */
+
+export {
+  Box,
+  Newline,
+  render,
+  Spacer,
+  Static,
+  Text,
+  Transform,
+  useApp,
+  useCursor,
+  useFocus,
+  useFocusManager,
+  useInput,
+  useStderr,
+  useStdin,
+  useStdout,
+} from 'ink'
+export type {
+  BoxProps,
+  DOMElement,
+  Instance,
+  Key,
+  NewlineProps,
+  RenderOptions,
+  StaticProps,
+  TextProps,
+  TransformProps,
+} from 'ink'
 
 export { ConfirmInput } from './confirm.js'
 export type { ConfirmInputProps } from './confirm.js'

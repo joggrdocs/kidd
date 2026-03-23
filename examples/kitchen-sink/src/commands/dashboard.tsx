@@ -1,7 +1,6 @@
 import { Select, TextInput } from '@inkjs/ui'
-import { command } from '@kidd-cli/core'
-import type { RenderProps } from '@kidd-cli/core'
-import { Box, Text, useApp, useInput } from 'ink'
+import { Box, Text, useApp, useInput } from '@kidd-cli/core/ui'
+import { screen } from '@kidd-cli/core/ui'
 import React, { useState } from 'react'
 import { match } from 'ts-pattern'
 
@@ -245,17 +244,13 @@ function Dashboard(): React.ReactElement {
 }
 
 // ---------------------------------------------------------------------------
-// Command
+// Screen
 // ---------------------------------------------------------------------------
 
 /**
- * Dashboard command — a persistent interactive TUI with multiple views.
+ * Dashboard screen — a persistent interactive TUI with multiple views.
  */
-export default command({
+export default screen({
   description: 'Launch an interactive dashboard with tasks, logs, and settings',
-  render: async (_props: RenderProps) => {
-    const { render } = await import('ink')
-    const instance = render(<Dashboard />)
-    await instance.waitUntilExit()
-  },
+  render: Dashboard,
 })

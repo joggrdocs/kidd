@@ -1,7 +1,6 @@
 import { Spinner } from '@inkjs/ui'
-import { command } from '@kidd-cli/core'
-import type { RenderProps } from '@kidd-cli/core'
-import { Box, Text, useApp } from 'ink'
+import { Box, Text, useApp } from '@kidd-cli/core/ui'
+import { screen } from '@kidd-cli/core/ui'
 import React, { useEffect, useState } from 'react'
 import { match } from 'ts-pattern'
 import { z } from 'zod'
@@ -13,10 +12,6 @@ import { z } from 'zod'
 interface StepState {
   readonly name: string
   readonly status: 'pending' | 'active' | 'done'
-}
-
-interface DeployArgs extends Record<string, unknown> {
-  readonly target: string
 }
 
 // ---------------------------------------------------------------------------
@@ -113,20 +108,16 @@ function DeployPipeline({ target }: { readonly target: string }): React.ReactEle
 }
 
 // ---------------------------------------------------------------------------
-// Command
+// Screen
 // ---------------------------------------------------------------------------
 
 /**
- * Deploy command — a temporary TUI that runs a build/deploy pipeline and exits.
+ * Deploy screen — a temporary TUI that runs a build/deploy pipeline and exits.
  */
-export default command({
+export default screen({
   description: 'Run the deploy pipeline with a live progress view',
   options: z.object({
     target: z.string().default('staging').describe('Deployment target environment'),
   }),
-  render: async (props: RenderProps<DeployArgs>) => {
-    const { render } = await import('ink')
-    const instance = render(<DeployPipeline target={props.args.target} />)
-    await instance.waitUntilExit()
-  },
+  render: DeployPipeline,
 })

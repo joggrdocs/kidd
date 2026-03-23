@@ -66,3 +66,10 @@ export { TextInput } from './text-input.js'
 export type { TextInputProps } from './text-input.js'
 
 export type { Option } from '@inkjs/ui'
+
+export { KiddProvider } from './provider.js'
+export type { KiddProviderProps } from './provider.js'
+export { useConfig, useMeta, useStore } from './provider.js'
+
+export { screen } from './screen.js'
+export type { ScreenDef, ScreenExit, ScreenRenderProps } from './screen.js'

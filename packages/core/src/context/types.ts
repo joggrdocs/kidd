@@ -148,7 +148,7 @@ export interface Meta {
   /**
    * The resolved command path (e.g. `['deploy', 'preview']`).
    */
-  readonly command: string[]
+  readonly command: readonly string[]
   /**
    * Resolved directory names for file-backed stores.
    *

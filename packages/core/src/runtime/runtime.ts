@@ -56,7 +56,6 @@ export async function createRuntime<TSchema extends z.ZodType>(
         const [renderError] = await attemptAsync(async () => {
           await renderFn({
             args: ctx.args,
-            colors: ctx.colors,
             config: ctx.config,
             meta: ctx.meta,
             store: ctx.store,

@@ -1,5 +1,7 @@
 import type { z } from 'zod'
 
+import type { Log, Prompts, Spinner } from '@/context/types.js'
+
 import type { CommandMap, CommandsConfig } from './command.js'
 import type { Middleware } from './middleware.js'
 
@@ -136,6 +138,21 @@ export interface CliOptions<TSchema extends z.ZodType = z.ZodType> {
    * Both `local` and `global` default to `.<name>` when omitted.
    */
   readonly dirs?: DirsConfig
+  /**
+   * Custom log implementation. When omitted, a default `@clack/prompts`-backed
+   * logger is created automatically.
+   */
+  readonly log?: Log
+  /**
+   * Custom prompts implementation. When omitted, a default `@clack/prompts`-backed
+   * prompts instance is created automatically.
+   */
+  readonly prompts?: Prompts
+  /**
+   * Custom spinner implementation. When omitted, a default `@clack/prompts`
+   * spinner is created automatically.
+   */
+  readonly spinner?: Spinner
 }
 
 /**

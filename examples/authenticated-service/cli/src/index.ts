@@ -1,7 +1,6 @@
 import { cli } from '@kidd-cli/core'
 import { auth } from '@kidd-cli/core/auth'
 import type { HttpClient } from '@kidd-cli/core/http'
-import { logger } from '@kidd-cli/core/logger'
 
 declare module '@kidd-cli/core' {
   interface Context {
@@ -17,7 +16,6 @@ cli({
   description: 'Demo CLI for the faux authenticated service',
   help: { header: 'demo - authenticated service CLI' },
   middleware: [
-    logger(),
     auth({
       http: {
         baseUrl: 'http://localhost:3001',

@@ -1,6 +1,6 @@
 import { attemptAsync, isPlainObject, match } from '@kidd-cli/utils/fp'
 
-import type { Log } from '@/middleware/logger/types.js'
+import type { Prompts } from '@/context/types.js'
 
 import { createBearerCredential, postFormEncoded } from '../credential.js'
 import { isSecureAuthUrl, openBrowser } from '../oauth-server.js'
@@ -34,7 +34,7 @@ export async function resolveFromDeviceCode(options: {
   readonly scopes: readonly string[]
   readonly pollInterval: number
   readonly timeout: number
-  readonly log: Log
+  readonly prompts: Prompts
   readonly openBrowserOnStart?: boolean
 }): Promise<AuthCredential | null> {
   if (!isSecureAuthUrl(options.deviceAuthUrl)) {
@@ -59,7 +59,7 @@ export async function resolveFromDeviceCode(options: {
     return null
   }
 
-  await displayUserCode(options.log, authResponse.verificationUri, authResponse.userCode)
+  await displayUserCode(options.prompts, authResponse.verificationUri, authResponse.userCode)
 
   if (options.openBrowserOnStart !== false) {
     openBrowser(authResponse.verificationUri)
@@ -180,10 +180,14 @@ function parseDeviceAuthResponse(data: unknown): DeviceAuthResponse | null {
  * @param verificationUri - The URL the user should visit.
  * @param userCode - The code the user should enter.
  */
-async function displayUserCode(log: Log, verificationUri: string, userCode: string): Promise<void> {
+async function displayUserCode(
+  prompts: Prompts,
+  verificationUri: string,
+  userCode: string
+): Promise<void> {
   // User cancellation is non-fatal — polling will handle timeout
   await attemptAsync(() =>
-    log.text({
+    prompts.text({
       defaultValue: '',
       message: `Open ${verificationUri} and enter code: ${userCode} (press Enter to continue)`,
     })

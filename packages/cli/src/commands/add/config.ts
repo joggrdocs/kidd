@@ -6,7 +6,6 @@ import { readManifest } from '@kidd-cli/utils/manifest'
 
 import { detectProject } from '../../lib/detect.js'
 import { renderTemplate } from '../../lib/render.js'
-import { resolveLog } from '../../lib/resolve-log.js'
 import { writeFiles } from '../../lib/write.js'
 
 const addConfigCommand: Command = command({
@@ -24,8 +23,7 @@ const addConfigCommand: Command = command({
 
     const projectName = await resolveProjectName(project.rootDir)
 
-    const log = resolveLog(ctx)
-    const spinner = log.spinner('Generating config...')
+    ctx.spinner.start('Generating config...')
 
     const templateDir = join(import.meta.dirname, '..', '..', 'lib', 'templates', 'config')
     const [renderError, rendered] = await renderTemplate({
@@ -34,7 +32,7 @@ const addConfigCommand: Command = command({
     })
 
     if (renderError) {
-      spinner.stop('Failed')
+      ctx.spinner.stop('Failed')
       return ctx.fail(renderError.message)
     }
 
@@ -42,11 +40,11 @@ const addConfigCommand: Command = command({
     const [writeError, result] = await writeFiles({ files: rendered, outputDir, overwrite: false })
 
     if (writeError) {
-      spinner.stop('Failed')
+      ctx.spinner.stop('Failed')
       return ctx.fail(writeError.message)
     }
 
-    spinner.stop('Config created!')
+    ctx.spinner.stop('Config created!')
 
     const lines = [
       ...result.written.map((file) => `  created ${file}`),
@@ -54,13 +52,13 @@ const addConfigCommand: Command = command({
     ]
     const summary = lines.join('\n')
     if (summary.length > 0) {
-      log.raw(summary)
+      ctx.log.raw(summary)
     }
 
-    log.newline()
-    log.raw('Next steps:')
-    log.raw('  1. Add fields to the config schema in src/config.ts')
-    log.raw('  2. Import and pass the schema to cli({ config: { schema: configSchema } })')
+    ctx.log.newline()
+    ctx.log.raw('Next steps:')
+    ctx.log.raw('  1. Add fields to the config schema in src/config.ts')
+    ctx.log.raw('  2. Import and pass the schema to cli({ config: { schema: configSchema } })')
   },
 })
 

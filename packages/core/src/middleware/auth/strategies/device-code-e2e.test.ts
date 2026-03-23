@@ -7,8 +7,8 @@ vi.mock(import('node:child_process'), () => ({
 import { createMockOAuthServer } from '@test/mock-oauth-server.js'
 import type { DevicePollResponse, MockOAuthServer } from '@test/mock-oauth-server.js'
 
+import type { Prompts } from '@/context/types.js'
 import { resolveFromDeviceCode } from '@/middleware/auth/strategies/device-code.js'
-import type { Log } from '@/middleware/logger/types.js'
 
 const CLIENT_ID = 'device-e2e-client'
 
@@ -19,10 +19,10 @@ const CLIENT_ID = 'device-e2e-client'
  */
 const SHORT_INTERVAL_SECONDS = 0.01
 
-function createMockLog(): Log {
+function createMockPrompts(): Prompts {
   return {
     text: vi.fn().mockResolvedValue(''),
-  } as unknown as Log
+  } as unknown as Prompts
 }
 
 describe('Device Code E2E (resolveFromDeviceCode with real mock server)', () => {
@@ -54,13 +54,13 @@ describe('Device Code E2E (resolveFromDeviceCode with real mock server)', () => 
       verificationUri: 'https://auth.example.com/activate',
     })
 
-    const log = createMockLog()
+    const prompts = createMockPrompts()
 
     const result = await resolveFromDeviceCode({
       clientId: CLIENT_ID,
       deviceAuthUrl: `${mockServer.url}/device/code`,
       pollInterval: 10,
-      log,
+      prompts,
       scopes: [],
       timeout: 10_000,
       tokenUrl: `${mockServer.url}/token`,
@@ -83,13 +83,13 @@ describe('Device Code E2E (resolveFromDeviceCode with real mock server)', () => 
       verificationUri: 'https://auth.example.com/verify',
     })
 
-    const log = createMockLog()
+    const prompts = createMockPrompts()
 
     const result = await resolveFromDeviceCode({
       clientId: CLIENT_ID,
       deviceAuthUrl: `${mockServer.url}/device/code`,
       pollInterval: 10,
-      log,
+      prompts,
       scopes: [],
       timeout: 10_000,
       tokenUrl: `${mockServer.url}/token`,
@@ -97,12 +97,12 @@ describe('Device Code E2E (resolveFromDeviceCode with real mock server)', () => 
 
     expect(result).toEqual({ token: 'display-token', type: 'bearer' })
 
-    expect(log.text).toHaveBeenCalledWith(
+    expect(prompts.text).toHaveBeenCalledWith(
       expect.objectContaining({
         message: expect.stringContaining('DISP-1234'),
       })
     )
-    expect(log.text).toHaveBeenCalledWith(
+    expect(prompts.text).toHaveBeenCalledWith(
       expect.objectContaining({
         message: expect.stringContaining('https://auth.example.com/verify'),
       })
@@ -122,13 +122,13 @@ describe('Device Code E2E (resolveFromDeviceCode with real mock server)', () => 
       devicePollResponses: pollResponses,
     })
 
-    const log = createMockLog()
+    const prompts = createMockPrompts()
 
     await resolveFromDeviceCode({
       clientId: CLIENT_ID,
       deviceAuthUrl: `${mockServer.url}/device/code`,
       pollInterval: 10,
-      log,
+      prompts,
       scopes: [],
       timeout: 10_000,
       tokenUrl: `${mockServer.url}/token`,
@@ -155,13 +155,13 @@ describe('Device Code E2E (resolveFromDeviceCode with real mock server)', () => 
       devicePollResponses: pollResponses,
     })
 
-    const log = createMockLog()
+    const prompts = createMockPrompts()
 
     await resolveFromDeviceCode({
       clientId: CLIENT_ID,
       deviceAuthUrl: `${mockServer.url}/device/code`,
       pollInterval: 10,
-      log,
+      prompts,
       scopes: [],
       timeout: 10_000,
       tokenUrl: `${mockServer.url}/token`,
@@ -179,13 +179,13 @@ describe('Device Code E2E (resolveFromDeviceCode with real mock server)', () => 
       deviceCode: 'error-device-code',
     })
 
-    const log = createMockLog()
+    const prompts = createMockPrompts()
 
     const result = await resolveFromDeviceCode({
       clientId: CLIENT_ID,
       deviceAuthUrl: `${mockServer.url}/device/code`,
       pollInterval: 10,
-      log,
+      prompts,
       scopes: [],
       timeout: 10_000,
       tokenUrl: `${mockServer.url}/token`,
@@ -204,13 +204,13 @@ describe('Device Code E2E (resolveFromDeviceCode with real mock server)', () => 
       devicePollResponses: pollResponses,
     })
 
-    const log = createMockLog()
+    const prompts = createMockPrompts()
 
     const result = await resolveFromDeviceCode({
       clientId: CLIENT_ID,
       deviceAuthUrl: `${mockServer.url}/device/code`,
       pollInterval: 10,
-      log,
+      prompts,
       scopes: [],
       timeout: 10_000,
       tokenUrl: `${mockServer.url}/token`,
@@ -229,13 +229,13 @@ describe('Device Code E2E (resolveFromDeviceCode with real mock server)', () => 
       devicePollResponses: pollResponses,
     })
 
-    const log = createMockLog()
+    const prompts = createMockPrompts()
 
     const result = await resolveFromDeviceCode({
       clientId: CLIENT_ID,
       deviceAuthUrl: `${mockServer.url}/device/code`,
       pollInterval: 10,
-      log,
+      prompts,
       scopes: [],
       timeout: 10_000,
       tokenUrl: `${mockServer.url}/token`,
@@ -257,13 +257,13 @@ describe('Device Code E2E (resolveFromDeviceCode with real mock server)', () => 
       devicePollResponses: pollResponses,
     })
 
-    const log = createMockLog()
+    const prompts = createMockPrompts()
 
     const result = await resolveFromDeviceCode({
       clientId: CLIENT_ID,
       deviceAuthUrl: `${mockServer.url}/device/code`,
       pollInterval: 10,
-      log,
+      prompts,
       scopes: [],
       timeout: 30_000,
       tokenUrl: `${mockServer.url}/token`,
@@ -293,13 +293,13 @@ describe('Device Code E2E (resolveFromDeviceCode with real mock server)', () => 
       devicePollResponses: pollResponses,
     })
 
-    const log = createMockLog()
+    const prompts = createMockPrompts()
 
     const result = await resolveFromDeviceCode({
       clientId: CLIENT_ID,
       deviceAuthUrl: `${mockServer.url}/device/code`,
       pollInterval: 60_000,
-      log,
+      prompts,
       scopes: [],
       timeout: 10_000,
       tokenUrl: `${mockServer.url}/token`,
@@ -336,13 +336,13 @@ describe('Device Code E2E (resolveFromDeviceCode with real mock server)', () => 
       devicePollResponses: pollResponses,
     })
 
-    const log = createMockLog()
+    const prompts = createMockPrompts()
 
     const result = await resolveFromDeviceCode({
       clientId: CLIENT_ID,
       deviceAuthUrl: `${mockServer.url}/device/code`,
       pollInterval: 10,
-      log,
+      prompts,
       scopes: [],
       timeout: 3000,
       tokenUrl: `${mockServer.url}/token`,
@@ -368,13 +368,13 @@ describe('Device Code E2E (resolveFromDeviceCode with real mock server)', () => 
       devicePollResponses: pollResponses,
     })
 
-    const log = createMockLog()
+    const prompts = createMockPrompts()
 
     await resolveFromDeviceCode({
       clientId: CLIENT_ID,
       deviceAuthUrl: `${mockServer.url}/device/code`,
       pollInterval: 10,
-      log,
+      prompts,
       scopes: ['openid', 'profile', 'email'],
       timeout: 10_000,
       tokenUrl: `${mockServer.url}/token`,

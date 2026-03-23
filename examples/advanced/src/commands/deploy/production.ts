@@ -11,7 +11,7 @@ export default command({
   description: 'Deploy to production',
   handler: async (ctx) => {
     if (!ctx.args.force) {
-      const confirmed = await ctx.log.confirm({
+      const confirmed = await ctx.prompts.confirm({
         message: `Deploy ${ctx.args.tag} to production for ${ctx.config.org}?`,
       })
 
@@ -20,11 +20,11 @@ export default command({
       }
     }
 
-    const s = ctx.log.spinner(`Deploying ${ctx.args.tag} to production`)
-    s.message('Running pre-deploy checks')
-    s.message('Building release artifacts')
-    s.message('Rolling out to production')
-    s.stop(`Deployed ${ctx.args.tag} to production`)
+    ctx.spinner.start(`Deploying ${ctx.args.tag} to production`)
+    ctx.spinner.message('Running pre-deploy checks')
+    ctx.spinner.message('Building release artifacts')
+    ctx.spinner.message('Rolling out to production')
+    ctx.spinner.stop(`Deployed ${ctx.args.tag} to production`)
 
     process.stdout.write(
       ctx.format.json({

@@ -6,7 +6,6 @@ import { autoload, command } from '@kidd-cli/core'
 import type { Command as KiddCommand, Context } from '@kidd-cli/core'
 
 import { extractConfig } from '../lib/config-helpers.js'
-import { resolveLog } from '../lib/resolve-log.js'
 
 /**
  * A single node in the rendered command tree.
@@ -38,20 +37,19 @@ const commandsCommand: KiddCommand = command({
       return ctx.fail(`Commands directory not found: ${commandsDir}`)
     }
 
-    const log = resolveLog(ctx)
-    const spinner = log.spinner('Scanning commands...')
+    ctx.spinner.start('Scanning commands...')
 
     const commandMap = await autoload({ dir: commandsDir })
     const tree = await buildTree(commandMap)
 
-    spinner.stop('Commands')
+    ctx.spinner.stop('Commands')
 
     if (tree.length === 0) {
-      log.raw('No commands found')
+      ctx.log.raw('No commands found')
       return
     }
 
-    log.raw(renderTree(tree))
+    ctx.log.raw(renderTree(tree))
   },
 })
 

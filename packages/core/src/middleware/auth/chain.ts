@@ -2,7 +2,7 @@ import { join } from 'node:path'
 
 import { match } from 'ts-pattern'
 
-import type { Log } from '@/middleware/logger/types.js'
+import type { Prompts } from '@/context/types.js'
 import type { ResolvedDirs } from '@/types/index.js'
 
 import {
@@ -38,7 +38,7 @@ export async function runStrategyChain(options: {
   readonly strategies: readonly StrategyConfig[]
   readonly cliName: string
   readonly dirs: ResolvedDirs
-  readonly log: Log
+  readonly prompts: Prompts
 }): Promise<AuthCredential | null> {
   const defaultTokenVar = deriveTokenVar(options.cliName)
 
@@ -66,7 +66,7 @@ async function tryStrategies(
   context: {
     readonly cliName: string
     readonly dirs: ResolvedDirs
-    readonly log: Log
+    readonly prompts: Prompts
   }
 ): Promise<AuthCredential | null> {
   if (index >= configs.length) {
@@ -103,7 +103,7 @@ async function dispatchStrategy(
   context: {
     readonly cliName: string
     readonly dirs: ResolvedDirs
-    readonly log: Log
+    readonly prompts: Prompts
   }
 ): Promise<AuthCredential | null> {
   return match(config)
@@ -147,7 +147,7 @@ async function dispatchStrategy(
           deviceAuthUrl: c.deviceAuthUrl,
           openBrowserOnStart: c.openBrowser ?? true,
           pollInterval: c.pollInterval ?? DEFAULT_DEVICE_CODE_POLL_INTERVAL,
-          log: context.log,
+          prompts: context.prompts,
           scopes: c.scopes ?? [],
           timeout: c.timeout ?? DEFAULT_DEVICE_CODE_TIMEOUT,
           tokenUrl: c.tokenUrl,
@@ -158,7 +158,7 @@ async function dispatchStrategy(
       (c): Promise<AuthCredential | null> =>
         resolveFromToken({
           message: c.message ?? DEFAULT_PROMPT_MESSAGE,
-          log: context.log,
+          prompts: context.prompts,
         })
     )
     .with({ source: 'custom' }, (c): Promise<AuthCredential | null> | AuthCredential | null =>

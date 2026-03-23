@@ -6,7 +6,6 @@ import { z } from 'zod'
 
 import { detectProject } from '../../lib/detect.js'
 import { renderTemplate } from '../../lib/render.js'
-import { resolveLog } from '../../lib/resolve-log.js'
 import { isKebabCase } from '../../lib/validate.js'
 import { writeFiles } from '../../lib/write.js'
 
@@ -32,8 +31,7 @@ const addMiddlewareCommand: Command = command({
     const middlewareName = await resolveMiddlewareName(ctx)
     const middlewareDescription = await resolveDescription(ctx)
 
-    const log = resolveLog(ctx)
-    const spinner = log.spinner('Generating middleware...')
+    ctx.spinner.start('Generating middleware...')
 
     const templateDir = join(import.meta.dirname, '..', '..', 'lib', 'templates', 'middleware')
     const [renderError, rendered] = await renderTemplate({
@@ -42,7 +40,7 @@ const addMiddlewareCommand: Command = command({
     })
 
     if (renderError) {
-      spinner.stop('Failed')
+      ctx.spinner.stop('Failed')
       return ctx.fail(renderError.message)
     }
 
@@ -55,11 +53,11 @@ const addMiddlewareCommand: Command = command({
     const [writeError, result] = await writeFiles({ files, outputDir, overwrite: false })
 
     if (writeError) {
-      spinner.stop('Failed')
+      ctx.spinner.stop('Failed')
       return ctx.fail(writeError.message)
     }
 
-    spinner.stop('Middleware created!')
+    ctx.spinner.stop('Middleware created!')
 
     const lines = [
       ...result.written.map((file) => `  created ${file}`),
@@ -67,7 +65,7 @@ const addMiddlewareCommand: Command = command({
     ]
     const summary = lines.join('\n')
     if (summary.length > 0) {
-      log.raw(summary)
+      ctx.log.raw(summary)
     }
   },
 })
@@ -92,7 +90,7 @@ async function resolveMiddlewareName(ctx: Context<AddMiddlewareArgs>): Promise<s
     }
     return ctx.args.name
   }
-  return resolveLog(ctx).text({
+  return ctx.prompts.text({
     message: 'Middleware name',
     placeholder: 'auth',
     validate: (value: string | undefined) => {
@@ -115,7 +113,7 @@ async function resolveDescription(ctx: Context<AddMiddlewareArgs>): Promise<stri
   if (ctx.args.description) {
     return ctx.args.description
   }
-  return resolveLog(ctx).text({
+  return ctx.prompts.text({
     defaultValue: '',
     message: 'Description',
     placeholder: 'What does this middleware do?',

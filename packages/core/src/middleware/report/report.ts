@@ -32,13 +32,13 @@ export function createReport(options?: { readonly output?: NodeJS.WritableStream
 
   return Object.freeze({
     check(input: CheckInput) {
-      output.write(formatCheck(input) + '\n')
+      output.write(`${formatCheck(input)}\n`)
     },
     finding(input: FindingInput) {
-      output.write(formatFinding(input) + '\n\n')
+      output.write(`${formatFinding(input)}\n\n`)
     },
     summary(input: SummaryInput) {
-      output.write('\n' + formatSummary(input) + '\n')
+      output.write(`\n${formatSummary(input)}\n`)
     },
   })
 }

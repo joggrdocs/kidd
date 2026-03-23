@@ -105,7 +105,7 @@ async function resolveProjectName(ctx: Context<InitArgs>): Promise<string> {
   return ctx.prompts.text({
     message: 'Project name',
     placeholder: 'my-cli',
-    validate: (value: string | undefined) => {
+    validate: (value) => {
       if (value === undefined || !isKebabCase(value)) {
         return 'Must be kebab-case (e.g. my-cli)'
       }

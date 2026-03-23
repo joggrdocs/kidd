@@ -9,7 +9,7 @@ import type { AsyncResult, Result } from '@kidd-cli/utils/fp'
 import { match } from 'ts-pattern'
 import { z } from 'zod'
 
-import type { LogSpinner } from '@/middleware/logger/types.js'
+import type { Spinner } from '@/context/types.js'
 
 import type { IconsCtx } from './context.js'
 import { listSystemFonts } from './list-system-fonts.js'
@@ -164,7 +164,7 @@ interface CtxFontParams {
  */
 interface FontSpinnerParams {
   readonly fontName: string
-  readonly spinner: LogSpinner
+  readonly spinner: Spinner
 }
 
 /**
@@ -174,7 +174,7 @@ interface FontSpinnerParams {
  */
 interface SlugSpinnerParams {
   readonly slug: string
-  readonly spinner: LogSpinner
+  readonly spinner: Spinner
 }
 
 // ---------------------------------------------------------------------------
@@ -190,13 +190,13 @@ interface SlugSpinnerParams {
  * @returns A Result with true on success or an IconsError on failure.
  */
 async function installWithSelection(ctx: IconsCtx): AsyncResult<boolean, IconsError> {
-  const s = ctx.log.spinner('Detecting installed fonts...')
+  ctx.spinner.start('Detecting installed fonts...')
   const matches = await detectMatchingFonts()
-  s.stop('Font detection complete')
+  ctx.spinner.stop('Font detection complete')
 
   const choices = buildFontChoices(matches)
 
-  const selected = await ctx.log.select({
+  const selected = await ctx.prompts.select({
     message: 'Select a Nerd Font to install',
     options: choices,
   })
@@ -215,7 +215,7 @@ async function installWithSelection(ctx: IconsCtx): AsyncResult<boolean, IconsEr
     })
   }
 
-  const action = await ctx.log.select({
+  const action = await ctx.prompts.select({
     message: 'How would you like to install?',
     options: [
       { label: 'Auto install', value: 'auto' },
@@ -244,7 +244,7 @@ async function installWithConfirmation({
   ctx,
   fontName,
 }: CtxFontParams): AsyncResult<boolean, IconsError> {
-  const confirmed = await ctx.log.confirm({
+  const confirmed = await ctx.prompts.confirm({
     message: `Nerd Fonts not detected. Install ${fontName} Nerd Font?`,
   })
 
@@ -382,17 +382,17 @@ async function installFontWithSpinner({
   ctx,
   fontName,
 }: CtxFontParams): AsyncResult<boolean, IconsError> {
-  const s = ctx.log.spinner(`Installing ${fontName} Nerd Font...`)
+  ctx.spinner.start(`Installing ${fontName} Nerd Font...`)
 
-  const result = await installFont({ fontName, spinner: s })
+  const result = await installFont({ fontName, spinner: ctx.spinner })
   const [error] = result
 
   if (error) {
-    s.stop(`Failed to install ${fontName} Nerd Font`)
+    ctx.spinner.stop(`Failed to install ${fontName} Nerd Font`)
     return result
   }
 
-  s.stop(`${fontName} Nerd Font installed successfully`)
+  ctx.spinner.stop(`${fontName} Nerd Font installed successfully`)
   return result
 }
 

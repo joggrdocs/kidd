@@ -14,18 +14,18 @@ export default command({
   positionals,
   description: 'Deploy a preview environment',
   handler: async (ctx) => {
-    const s = ctx.log.spinner(`Deploying preview from ${ctx.args.branch}`)
+    ctx.spinner.start(`Deploying preview from ${ctx.args.branch}`)
 
     if (ctx.args.clean) {
-      s.message('Running clean build')
+      ctx.spinner.message('Running clean build')
     }
 
-    s.message('Uploading artifacts')
-    s.message('Provisioning environment')
+    ctx.spinner.message('Uploading artifacts')
+    ctx.spinner.message('Provisioning environment')
 
     const deployUrl = `https://preview-${ctx.args.branch}.${ctx.config.org}.acme.dev`
 
-    s.stop('Preview deployed')
+    ctx.spinner.stop('Preview deployed')
 
     process.stdout.write(
       ctx.format.json({

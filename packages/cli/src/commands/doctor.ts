@@ -1,6 +1,6 @@
 import { loadConfig } from '@kidd-cli/config/loader'
 import { command } from '@kidd-cli/core'
-import type { Command, Context, Log } from '@kidd-cli/core'
+import type { Command, Context } from '@kidd-cli/core'
 import { match } from '@kidd-cli/utils/fp'
 import { readManifest } from '@kidd-cli/utils/manifest'
 import pc from 'picocolors'
@@ -8,7 +8,6 @@ import { z } from 'zod'
 
 import type { CheckContext, CheckResult, CheckStatus, FixResult } from '../lib/checks.js'
 import { CHECKS, createCheckContext, readRawPackageJson } from '../lib/checks.js'
-import { resolveLog } from '../lib/resolve-log.js'
 
 const options = z.object({
   fix: z.boolean().describe('Auto-fix issues where possible').optional(),
@@ -41,8 +40,7 @@ const doctorCommand: Command = command({
       rawPackageJson: rawPackageJson,
     })
 
-    const log = resolveLog(ctx)
-    const spinner = log.spinner('Running diagnostics...')
+    ctx.spinner.start('Running diagnostics...')
 
     const initialResults = await Promise.all(CHECKS.map((check) => check.run(context)))
 
@@ -50,9 +48,9 @@ const doctorCommand: Command = command({
     const fixed = fixResults.filter((r) => r.fixed).length
     const results = await resolveResults({ cwd, fixed, initialResults, shouldFix })
 
-    spinner.stop('Diagnostics complete')
+    ctx.spinner.stop('Diagnostics complete')
 
-    displayResults(log, results, fixResults)
+    displayResults(ctx, results, fixResults)
 
     const passed = results.filter((r) => r.status === 'pass').length
     const warnings = results.filter((r) => r.status === 'warn').length
@@ -60,7 +58,7 @@ const doctorCommand: Command = command({
 
     const summary = formatSummary({ failed, fixed, passed, total: results.length, warnings })
 
-    log.raw(summary)
+    ctx.log.raw(summary)
 
     if (failed > 0) {
       ctx.fail(`${failed} ${pluralizeCheck(failed)} failed`)
@@ -166,19 +164,19 @@ async function applyFixes(
  * Display check results with hints and fix indicators.
  *
  * @private
- * @param log - The log instance for output.
+ * @param ctx - The command context for logging.
  * @param results - The check results to display.
  * @param fixResults - The fix results (empty when --fix was not used).
  */
 function displayResults(
-  log: Log,
+  ctx: Context,
   results: readonly CheckResult[],
   fixResults: readonly FixResult[]
 ): void {
   const lines = results.map((result) => formatResultLine(result, fixResults))
   const output = lines.join('')
   if (output.length > 0) {
-    log.raw(output)
+    ctx.log.raw(output)
   }
 }
 

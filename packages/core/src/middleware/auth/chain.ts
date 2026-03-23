@@ -2,7 +2,7 @@ import { join } from 'node:path'
 
 import { match } from 'ts-pattern'
 
-import type { Log } from '@/middleware/logger/types.js'
+import type { Prompts } from '@/context/types.js'
 import type { ResolvedDirs } from '@/types/index.js'
 
 import {
@@ -31,14 +31,14 @@ const DEFAULT_PROMPT_MESSAGE = 'Enter your API key'
  * appropriate strategy function via pattern matching. Short-circuits
  * on the first successful resolution.
  *
- * @param options - Options with strategies, CLI name, and log instance.
+ * @param options - Options with strategies, CLI name, and prompts instance.
  * @returns The first resolved credential, or null if all strategies fail.
  */
 export async function runStrategyChain(options: {
   readonly strategies: readonly StrategyConfig[]
   readonly cliName: string
   readonly dirs: ResolvedDirs
-  readonly log: Log
+  readonly prompts: Prompts
 }): Promise<AuthCredential | null> {
   const defaultTokenVar = deriveTokenVar(options.cliName)
 
@@ -56,7 +56,7 @@ export async function runStrategyChain(options: {
  * @param configs - The strategy configs.
  * @param index - The current index.
  * @param defaultTokenVar - The derived default token env var name.
- * @param context - The resolve options for log access.
+ * @param context - The resolve options for prompts access.
  * @returns The first resolved credential, or null.
  */
 async function tryStrategies(
@@ -66,7 +66,7 @@ async function tryStrategies(
   context: {
     readonly cliName: string
     readonly dirs: ResolvedDirs
-    readonly log: Log
+    readonly prompts: Prompts
   }
 ): Promise<AuthCredential | null> {
   if (index >= configs.length) {
@@ -94,7 +94,7 @@ async function tryStrategies(
  * @private
  * @param config - The strategy config to dispatch.
  * @param defaultTokenVar - The derived default token env var name.
- * @param context - The resolve options for log access.
+ * @param context - The resolve options for prompts access.
  * @returns The resolved credential, or null.
  */
 async function dispatchStrategy(
@@ -103,7 +103,7 @@ async function dispatchStrategy(
   context: {
     readonly cliName: string
     readonly dirs: ResolvedDirs
-    readonly log: Log
+    readonly prompts: Prompts
   }
 ): Promise<AuthCredential | null> {
   return match(config)
@@ -147,7 +147,7 @@ async function dispatchStrategy(
           deviceAuthUrl: c.deviceAuthUrl,
           openBrowserOnStart: c.openBrowser ?? true,
           pollInterval: c.pollInterval ?? DEFAULT_DEVICE_CODE_POLL_INTERVAL,
-          log: context.log,
+          prompts: context.prompts,
           scopes: c.scopes ?? [],
           timeout: c.timeout ?? DEFAULT_DEVICE_CODE_TIMEOUT,
           tokenUrl: c.tokenUrl,
@@ -158,7 +158,7 @@ async function dispatchStrategy(
       (c): Promise<AuthCredential | null> =>
         resolveFromToken({
           message: c.message ?? DEFAULT_PROMPT_MESSAGE,
-          log: context.log,
+          prompts: context.prompts,
         })
     )
     .with({ source: 'custom' }, (c): Promise<AuthCredential | null> | AuthCredential | null =>

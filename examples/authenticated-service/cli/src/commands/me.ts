@@ -19,11 +19,11 @@ export default command({
   description: '[auth] Display the authenticated user',
   middleware: [requireAuth],
   handler: async (ctx) => {
-    const s = ctx.log.spinner('Fetching user...')
+    ctx.spinner.start('Fetching user...')
 
     const res = await ctx.api.get<User>('/user')
 
-    s.stop('User fetched')
+    ctx.spinner.stop('User fetched')
 
     if (ctx.args.json) {
       process.stdout.write(ctx.format.json(res.data))

@@ -1,6 +1,6 @@
 # Diagnostic Output
 
-Demonstrates the `ctx.logger` styled output methods for displaying linting, testing, and diagnostic results in the terminal.
+Demonstrates the `ctx.report` styled output methods for displaying linting, testing, and diagnostic results in the terminal.
 
 ## Commands
 
@@ -12,10 +12,10 @@ Demonstrates the `ctx.logger` styled output methods for displaying linting, test
 
 ## Output Methods Used
 
-- `ctx.logger.finding()` -- full lint finding with severity, rule, code frame, and help text
-- `ctx.logger.check()` -- single pass/fail/warn/skip/fix row
-- `ctx.logger.tally({ style: 'tally' })` -- labeled stat rows (e.g. Tests, Suites, Duration)
-- `ctx.logger.tally({ style: 'inline' })` -- pipe-separated one-liner stats footer
+- `ctx.report.finding()` -- full lint finding with severity, rule, code frame, and help text
+- `ctx.report.check()` -- single pass/fail/warn/skip/fix row
+- `ctx.report.summary({ style: 'tally' })` -- labeled stat rows (e.g. Tests, Suites, Duration)
+- `ctx.report.summary({ style: 'inline' })` -- pipe-separated one-liner stats footer
 - `ctx.colors` -- color formatting for summary values and terminal text
 
 ## Structure

@@ -1,6 +1,6 @@
 import { attemptAsync, isPlainObject, match } from '@kidd-cli/utils/fp'
 
-import type { Log } from '@/middleware/logger/types.js'
+import type { Prompts } from '@/context/types.js'
 
 import { createBearerCredential, postFormEncoded } from '../credential.js'
 import { isSecureAuthUrl, openBrowser } from '../oauth-server.js'
@@ -20,7 +20,7 @@ const DEVICE_CODE_GRANT_TYPE = 'urn:ietf:params:oauth:grant-type:device_code'
  * Resolve a bearer credential via OAuth 2.0 Device Authorization Grant (RFC 8628).
  *
  * 1. POSTs to the device authorization endpoint to obtain a device code
- * 2. Displays the verification URL and user code via log
+ * 2. Displays the verification URL and user code via prompts
  * 3. Optionally opens the verification URL in the browser
  * 4. Polls the token endpoint until authorization completes or times out
  *
@@ -34,7 +34,7 @@ export async function resolveFromDeviceCode(options: {
   readonly scopes: readonly string[]
   readonly pollInterval: number
   readonly timeout: number
-  readonly log: Log
+  readonly prompts: Prompts
   readonly openBrowserOnStart?: boolean
 }): Promise<AuthCredential | null> {
   if (!isSecureAuthUrl(options.deviceAuthUrl)) {
@@ -59,7 +59,7 @@ export async function resolveFromDeviceCode(options: {
     return null
   }
 
-  await displayUserCode(options.log, authResponse.verificationUri, authResponse.userCode)
+  await displayUserCode(options.prompts, authResponse.verificationUri, authResponse.userCode)
 
   if (options.openBrowserOnStart !== false) {
     openBrowser(authResponse.verificationUri)
@@ -172,18 +172,22 @@ function parseDeviceAuthResponse(data: unknown): DeviceAuthResponse | null {
 /**
  * Display the verification URL and user code to the user.
  *
- * Uses `log.text()` to show the information and wait for
+ * Uses `prompts.text()` to show the information and wait for
  * the user to press Enter to acknowledge.
  *
  * @private
- * @param log - The log instance.
+ * @param prompts - The prompts instance.
  * @param verificationUri - The URL the user should visit.
  * @param userCode - The code the user should enter.
  */
-async function displayUserCode(log: Log, verificationUri: string, userCode: string): Promise<void> {
+async function displayUserCode(
+  prompts: Prompts,
+  verificationUri: string,
+  userCode: string
+): Promise<void> {
   // User cancellation is non-fatal — polling will handle timeout
   await attemptAsync(() =>
-    log.text({
+    prompts.text({
       defaultValue: '',
       message: `Open ${verificationUri} and enter code: ${userCode} (press Enter to continue)`,
     })

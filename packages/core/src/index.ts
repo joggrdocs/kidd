@@ -15,6 +15,5 @@ export type {
   Resolvable,
 } from './types/index.js'
 export type { Colors } from 'picocolors/types'
-export type { Context } from './context/types.js'
-export type { Log, LogSpinner } from './middleware/logger/types.js'
+export type { Context, Log, Prompts, Spinner } from './context/types.js'
 export type { Report } from './middleware/report/types.js'

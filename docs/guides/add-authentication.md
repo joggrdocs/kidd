@@ -230,11 +230,11 @@ export default command({
   args,
   description: 'List repositories',
   handler: async (ctx) => {
-    const s = ctx.log.spinner('Fetching repos...')
+    ctx.spinner.start('Fetching repos...')
 
     const res = await ctx.api.get<Repo[]>('/repos')
 
-    s.stop(`Found ${String(res.data.length)} repos`)
+    ctx.spinner.stop(`Found ${String(res.data.length)} repos`)
 
     if (ctx.args.json) {
       process.stdout.write(ctx.format.json(res.data))

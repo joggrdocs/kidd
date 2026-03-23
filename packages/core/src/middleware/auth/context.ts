@@ -1,8 +1,8 @@
 import { ok } from '@kidd-cli/utils/fp'
 import type { AsyncResult, Result } from '@kidd-cli/utils/fp'
 
+import type { Prompts } from '@/context/types.js'
 import { createStore } from '@/lib/store/create-store.js'
-import type { Log } from '@/middleware/logger/types.js'
 import type { ResolvedDirs } from '@/types/index.js'
 
 import { runStrategyChain } from './chain.js'
@@ -23,7 +23,7 @@ export interface CreateAuthContextOptions {
   readonly strategies: readonly StrategyConfig[]
   readonly cliName: string
   readonly dirs: ResolvedDirs
-  readonly log: Log
+  readonly prompts: Prompts
   readonly resolveCredential: () => AuthCredential | null
   readonly validate?: ValidateCredential
 }
@@ -40,7 +40,7 @@ export interface CreateAuthContextOptions {
  * @returns An AuthContext instance.
  */
 export function createAuthContext(options: CreateAuthContextOptions): AuthContext {
-  const { strategies, cliName, dirs, log, resolveCredential, validate } = options
+  const { strategies, cliName, dirs, prompts, resolveCredential, validate } = options
 
   /**
    * Resolve the current credential from passive sources (file, env).
@@ -78,7 +78,7 @@ export function createAuthContext(options: CreateAuthContextOptions): AuthContex
     const resolved = await runStrategyChain({
       cliName,
       dirs,
-      log,
+      prompts,
       strategies: activeStrategies,
     })
 

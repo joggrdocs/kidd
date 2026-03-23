@@ -147,7 +147,7 @@ Works with providers that implement RFC 8628, including GitHub, Azure AD, Google
 
 ### token
 
-Interactively prompts the user for a token via `ctx.log.password()`. Best placed last in the strategy chain as a fallback. Aliased as `auth.apiKey()`.
+Interactively prompts the user for a token via `ctx.prompts.password()`. Best placed last in the strategy chain as a fallback. Aliased as `auth.apiKey()`.
 
 ```ts
 auth({

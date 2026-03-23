@@ -59,7 +59,7 @@ export default command({
     dry: z.boolean().default(false).describe('Dry run'),
   }),
   handler: async (ctx) => {
-    ctx.logger.info(`Deploying ${ctx.args.tag} to ${ctx.config.region}`)
+    ctx.log.info(`Deploying ${ctx.args.tag} to ${ctx.config.region}`)
   },
 })
 ```

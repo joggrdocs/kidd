@@ -30,10 +30,6 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
-    "./logger": {
-      "types": "./dist/middleware/logger.d.ts",
-      "default": "./dist/middleware/logger.js"
-    },
     "./config": {
       "types": "./dist/lib/config.d.ts",
       "default": "./dist/lib/config.js"

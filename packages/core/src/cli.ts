@@ -97,8 +97,11 @@ export async function cli<TSchema extends z.ZodType = z.ZodType>(
     const [runtimeError, runtime] = await createRuntime({
       config: options.config,
       dirs,
+      log: options.log,
       middleware: options.middleware,
       name: options.name,
+      prompts: options.prompts,
+      spinner: options.spinner,
       version,
     })
 

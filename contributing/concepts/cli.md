@@ -99,16 +99,18 @@ export default command({
 
 Every handler and middleware receives a `Context` object with the following properties:
 
-| Property | Description                                                       |
-| -------- | ----------------------------------------------------------------- |
-| `args`   | Parsed command arguments (typed by Zod schema)                    |
-| `config` | Loaded config (typed by config schema, deeply readonly)           |
-| `log`    | Unified logging, prompts, and spinner (via `logger()` middleware) |
-| `colors` | Color formatting utilities (picocolors)                           |
-| `format` | Pure string formatters (json, table) — no I/O                     |
-| `store`  | In-memory key-value store (mutable, for middleware data)          |
-| `fail`   | Throw a user-facing error with clean exit                         |
-| `meta`   | CLI name, version, and resolved command path                      |
+| Property  | Description                                                |
+| --------- | ---------------------------------------------------------- |
+| `args`    | Parsed command arguments (typed by Zod schema)             |
+| `config`  | Loaded config (typed by config schema, deeply readonly)    |
+| `log`     | Logging methods (info, success, error, warn, etc.)         |
+| `prompts` | Interactive prompts (confirm, text, select, etc.)          |
+| `spinner` | Spinner for long-running operations (start, stop, message) |
+| `colors`  | Color formatting utilities (picocolors)                    |
+| `format`  | Pure string formatters (json, table) — no I/O              |
+| `store`   | In-memory key-value store (mutable, for middleware data)   |
+| `fail`    | Throw a user-facing error with clean exit                  |
+| `meta`    | CLI name, version, and resolved command path               |
 
 All data properties (`args`, `config`, `meta`) are deeply readonly. The `store` is the only mutable property -- middleware uses it to pass typed data to handlers.
 
@@ -138,9 +140,9 @@ declare module '@kidd-cli/core' {
 Interactive prompts suspend execution until user input:
 
 ```ts
-const confirmed = await ctx.log.confirm({ message: 'Continue?' })
-const name = await ctx.log.text({ message: 'Project name' })
-const env = await ctx.log.select({
+const confirmed = await ctx.prompts.confirm({ message: 'Continue?' })
+const name = await ctx.prompts.text({ message: 'Project name' })
+const env = await ctx.prompts.select({
   message: 'Environment',
   options: [
     { value: 'staging', label: 'Staging' },

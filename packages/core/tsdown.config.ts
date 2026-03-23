@@ -14,7 +14,6 @@ export default defineConfig({
     'middleware/auth': 'src/middleware/auth/index.ts',
     'middleware/http': 'src/middleware/http/index.ts',
     'middleware/icons': 'src/middleware/icons/index.ts',
-    'middleware/logger': 'src/middleware/logger/index.ts',
     'middleware/report': 'src/middleware/report/index.ts',
     'test/index': 'src/test/index.ts',
     'ui/index': 'src/ui/index.ts',

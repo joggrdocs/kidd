@@ -16,10 +16,17 @@ function createMockCtx(options?: { readonly envToken?: string }) {
     fail: vi.fn((): never => {
       throw new Error('fail')
     }),
-    logger: {
+    colors: {},
+    format: { json: vi.fn(), table: vi.fn() },
+    log: {
       error: vi.fn(),
       info: vi.fn(),
+      intro: vi.fn(),
       message: vi.fn(),
+      newline: vi.fn(),
+      note: vi.fn(),
+      outro: vi.fn(),
+      raw: vi.fn(),
       step: vi.fn(),
       success: vi.fn(),
       warn: vi.fn(),
@@ -30,25 +37,12 @@ function createMockCtx(options?: { readonly envToken?: string }) {
       name: 'test-cli',
       version: '1.0.0',
     },
-    output: { markdown: vi.fn(), raw: vi.fn(), table: vi.fn(), write: vi.fn() },
-    log: {
+    prompts: {
       confirm: vi.fn(),
-      error: vi.fn(),
-      info: vi.fn(),
-      intro: vi.fn(),
-      message: vi.fn(),
       multiselect: vi.fn(),
-      newline: vi.fn(),
-      note: vi.fn(),
-      outro: vi.fn(),
       password: vi.fn(),
-      raw: vi.fn(),
       select: vi.fn(),
-      spinner: vi.fn(),
-      step: vi.fn(),
-      success: vi.fn(),
       text: vi.fn(),
-      warn: vi.fn(),
     },
     spinner: { message: vi.fn(), start: vi.fn(), stop: vi.fn() },
     store: {

@@ -23,33 +23,33 @@ import { exec } from 'node:child_process'
 import { installNerdFont } from './install.js'
 import { listSystemFonts } from './list-system-fonts.js'
 
-function createMockSpinner() {
-  return { message: vi.fn(), stop: vi.fn() }
-}
-
 function createMockCtx() {
-  const spinnerInstance = createMockSpinner()
   return {
     log: {
-      confirm: vi.fn(),
       error: vi.fn(),
       info: vi.fn(),
       intro: vi.fn(),
       message: vi.fn(),
-      multiselect: vi.fn(),
       newline: vi.fn(),
       note: vi.fn(),
       outro: vi.fn(),
-      password: vi.fn(),
       raw: vi.fn(),
-      select: vi.fn(),
-      spinner: vi.fn(() => spinnerInstance),
       step: vi.fn(),
       success: vi.fn(),
-      text: vi.fn(),
       warn: vi.fn(),
     },
-    spinnerInstance,
+    prompts: {
+      confirm: vi.fn(),
+      multiselect: vi.fn(),
+      password: vi.fn(),
+      select: vi.fn(),
+      text: vi.fn(),
+    },
+    spinner: {
+      message: vi.fn(),
+      start: vi.fn(),
+      stop: vi.fn(),
+    },
   }
 }
 
@@ -92,7 +92,7 @@ describe('installNerdFont()', () => {
 
     it('should accept valid alphanumeric font names', async () => {
       const ctx = createMockCtx()
-      vi.mocked(ctx.log.confirm).mockResolvedValue(false)
+      vi.mocked(ctx.prompts.confirm).mockResolvedValue(false)
 
       const [error, value] = await installNerdFont({ ctx, font: 'JetBrainsMono' })
 
@@ -102,7 +102,7 @@ describe('installNerdFont()', () => {
 
     it('should accept font names with hyphens', async () => {
       const ctx = createMockCtx()
-      vi.mocked(ctx.log.confirm).mockResolvedValue(false)
+      vi.mocked(ctx.prompts.confirm).mockResolvedValue(false)
 
       const [error, value] = await installNerdFont({ ctx, font: 'Go-Mono' })
 
@@ -114,19 +114,19 @@ describe('installNerdFont()', () => {
   describe('with font option (confirmation flow)', () => {
     it('should prompt for confirmation when font is provided', async () => {
       const ctx = createMockCtx()
-      vi.mocked(ctx.log.confirm).mockResolvedValue(false)
+      vi.mocked(ctx.prompts.confirm).mockResolvedValue(false)
 
       await installNerdFont({ ctx, font: 'Hack' })
 
-      expect(ctx.log.confirm).toHaveBeenCalledOnce()
-      expect(ctx.log.confirm).toHaveBeenCalledWith(
+      expect(ctx.prompts.confirm).toHaveBeenCalledOnce()
+      expect(ctx.prompts.confirm).toHaveBeenCalledWith(
         expect.objectContaining({ message: expect.stringContaining('Hack') })
       )
     })
 
     it('should return ok(false) when user declines confirmation', async () => {
       const ctx = createMockCtx()
-      vi.mocked(ctx.log.confirm).mockResolvedValue(false)
+      vi.mocked(ctx.prompts.confirm).mockResolvedValue(false)
 
       const [error, value] = await installNerdFont({ ctx, font: 'Hack' })
 
@@ -136,11 +136,11 @@ describe('installNerdFont()', () => {
 
     it('should call installFontWithSpinner when user confirms', async () => {
       const ctx = createMockCtx()
-      vi.mocked(ctx.log.confirm).mockResolvedValue(true)
+      vi.mocked(ctx.prompts.confirm).mockResolvedValue(true)
 
       await installNerdFont({ ctx, font: 'Hack' })
 
-      expect(ctx.log.spinner).toHaveBeenCalledWith(
+      expect(ctx.spinner.start).toHaveBeenCalledWith(
         expect.stringContaining('Installing Hack Nerd Font')
       )
     })
@@ -150,18 +150,18 @@ describe('installNerdFont()', () => {
     it('should detect matching fonts and show selection prompt', async () => {
       const ctx = createMockCtx()
       vi.mocked(listSystemFonts).mockResolvedValue([null, ['JetBrains Mono', 'Arial']])
-      vi.mocked(ctx.log.select).mockResolvedValue(undefined)
+      vi.mocked(ctx.prompts.select).mockResolvedValue(undefined)
 
       await installNerdFont({ ctx })
 
-      expect(ctx.log.spinner).toHaveBeenCalledWith('Detecting installed fonts...')
-      expect(ctx.log.select).toHaveBeenCalledOnce()
+      expect(ctx.spinner.start).toHaveBeenCalledWith('Detecting installed fonts...')
+      expect(ctx.prompts.select).toHaveBeenCalledOnce()
     })
 
     it('should return ok(false) when user cancels font selection', async () => {
       const ctx = createMockCtx()
       vi.mocked(listSystemFonts).mockResolvedValue([null, []])
-      vi.mocked(ctx.log.select).mockResolvedValue(undefined)
+      vi.mocked(ctx.prompts.select).mockResolvedValue(undefined)
 
       const [error, value] = await installNerdFont({ ctx })
 
@@ -172,7 +172,7 @@ describe('installNerdFont()', () => {
     it('should return ok(false) when user cancels action selection', async () => {
       const ctx = createMockCtx()
       vi.mocked(listSystemFonts).mockResolvedValue([null, []])
-      vi.mocked(ctx.log.select)
+      vi.mocked(ctx.prompts.select)
         .mockResolvedValueOnce('JetBrainsMono')
         .mockResolvedValueOnce(undefined)
 
@@ -187,11 +187,13 @@ describe('installNerdFont()', () => {
     it('should show spinner and attempt installation when auto is selected', async () => {
       const ctx = createMockCtx()
       vi.mocked(listSystemFonts).mockResolvedValue([null, []])
-      vi.mocked(ctx.log.select).mockResolvedValueOnce('JetBrainsMono').mockResolvedValueOnce('auto')
+      vi.mocked(ctx.prompts.select)
+        .mockResolvedValueOnce('JetBrainsMono')
+        .mockResolvedValueOnce('auto')
 
       await installNerdFont({ ctx })
 
-      expect(ctx.log.spinner).toHaveBeenCalledWith(
+      expect(ctx.spinner.start).toHaveBeenCalledWith(
         expect.stringContaining('Installing JetBrainsMono Nerd Font')
       )
     })
@@ -201,7 +203,7 @@ describe('installNerdFont()', () => {
     it('should display install commands when commands is selected', async () => {
       const ctx = createMockCtx()
       vi.mocked(listSystemFonts).mockResolvedValue([null, []])
-      vi.mocked(ctx.log.select)
+      vi.mocked(ctx.prompts.select)
         .mockResolvedValueOnce('JetBrainsMono')
         .mockResolvedValueOnce('commands')
 
@@ -226,20 +228,20 @@ describe('installNerdFont()', () => {
 
     it('should install via brew when brew is available', async () => {
       const ctx = createMockCtx()
-      vi.mocked(ctx.log.confirm).mockResolvedValue(true)
+      vi.mocked(ctx.prompts.confirm).mockResolvedValue(true)
 
       const [error, value] = await installNerdFont({ ctx, font: 'Hack' })
 
       expect(error).toBeNull()
       expect(value).toBeTruthy()
-      expect(ctx.spinnerInstance.stop).toHaveBeenCalledWith(
+      expect(ctx.spinner.stop).toHaveBeenCalledWith(
         expect.stringContaining('installed successfully')
       )
     })
 
     it('should fall back to download when brew is unavailable', async () => {
       const ctx = createMockCtx()
-      vi.mocked(ctx.log.confirm).mockResolvedValue(true)
+      vi.mocked(ctx.prompts.confirm).mockResolvedValue(true)
       vi.mocked(exec).mockImplementation(
         (cmd: string, _opts: unknown, cb?: (...args: readonly unknown[]) => void) => {
           const callback = cb ?? _opts
@@ -258,14 +260,14 @@ describe('installNerdFont()', () => {
 
       expect(error).toBeNull()
       expect(value).toBeTruthy()
-      expect(ctx.spinnerInstance.message).toHaveBeenCalledWith(
+      expect(ctx.spinner.message).toHaveBeenCalledWith(
         expect.stringContaining('Downloading Hack Nerd Font')
       )
     })
 
     it('should return error when brew install fails', async () => {
       const ctx = createMockCtx()
-      vi.mocked(ctx.log.confirm).mockResolvedValue(true)
+      vi.mocked(ctx.prompts.confirm).mockResolvedValue(true)
       vi.mocked(exec).mockImplementation(
         (cmd: string, _opts: unknown, cb?: (...args: readonly unknown[]) => void) => {
           const callback = cb ?? _opts
@@ -300,20 +302,20 @@ describe('installNerdFont()', () => {
 
     it('should install via download on linux', async () => {
       const ctx = createMockCtx()
-      vi.mocked(ctx.log.confirm).mockResolvedValue(true)
+      vi.mocked(ctx.prompts.confirm).mockResolvedValue(true)
 
       const [error, value] = await installNerdFont({ ctx, font: 'Hack' })
 
       expect(error).toBeNull()
       expect(value).toBeTruthy()
-      expect(ctx.spinnerInstance.message).toHaveBeenCalledWith(
+      expect(ctx.spinner.message).toHaveBeenCalledWith(
         expect.stringContaining('Downloading Hack Nerd Font')
       )
     })
 
     it('should return error when download fails', async () => {
       const ctx = createMockCtx()
-      vi.mocked(ctx.log.confirm).mockResolvedValue(true)
+      vi.mocked(ctx.prompts.confirm).mockResolvedValue(true)
       vi.mocked(exec).mockImplementation(
         (cmd: string, _opts: unknown, cb?: (...args: readonly unknown[]) => void) => {
           const callback = cb ?? _opts
@@ -348,7 +350,7 @@ describe('installNerdFont()', () => {
 
     it('should return error for unsupported platforms', async () => {
       const ctx = createMockCtx()
-      vi.mocked(ctx.log.confirm).mockResolvedValue(true)
+      vi.mocked(ctx.prompts.confirm).mockResolvedValue(true)
 
       const [error] = await installNerdFont({ ctx, font: 'Hack' })
 

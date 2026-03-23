@@ -35,24 +35,26 @@ function makeContext(argOverrides: Record<string, unknown> = {}): Context {
     }) as never,
     format: { json: vi.fn(() => ''), table: vi.fn(() => '') },
     log: {
-      confirm: vi.fn(),
       error: vi.fn(),
       info: vi.fn(),
       intro: vi.fn(),
       message: vi.fn(),
-      multiselect: vi.fn(),
       newline: vi.fn(),
       note: vi.fn(),
       outro: vi.fn(),
-      password: vi.fn(),
       raw: vi.fn(),
-      select: vi.fn(),
-      spinner: vi.fn(() => ({ message: vi.fn(), stop: vi.fn() })),
       step: vi.fn(),
       success: vi.fn(),
-      text: vi.fn(),
       warn: vi.fn(),
     },
+    prompts: {
+      confirm: vi.fn(),
+      multiselect: vi.fn(),
+      password: vi.fn(),
+      select: vi.fn(),
+      text: vi.fn(),
+    },
+    spinner: { message: vi.fn(), start: vi.fn(), stop: vi.fn() },
     meta: { command: ['add', 'command'], name: 'kidd', version: '0.0.0' },
     store: { clear: vi.fn(), delete: vi.fn(), get: vi.fn(), has: vi.fn(), set: vi.fn() },
   } as unknown as Context
@@ -126,8 +128,8 @@ describe('add command', () => {
         rootDir: '/project',
       },
     ])
-    vi.mocked(ctx.log.text).mockResolvedValueOnce('deploy').mockResolvedValueOnce('Deploy app')
-    vi.mocked(ctx.log.confirm).mockResolvedValueOnce(true)
+    vi.mocked(ctx.prompts.text).mockResolvedValueOnce('deploy').mockResolvedValueOnce('Deploy app')
+    vi.mocked(ctx.prompts.confirm).mockResolvedValueOnce(true)
     mockedRenderTemplate.mockResolvedValue([
       null,
       [{ content: 'code', relativePath: 'command.ts' }],
@@ -137,8 +139,8 @@ describe('add command', () => {
     const mod = await import('./command.js')
     await mod.default.handler!(ctx)
 
-    expect(ctx.log.text).toHaveBeenCalledTimes(2)
-    expect(ctx.log.confirm).toHaveBeenCalledTimes(1)
+    expect(ctx.prompts.text).toHaveBeenCalledTimes(2)
+    expect(ctx.prompts.confirm).toHaveBeenCalledTimes(1)
   })
 
   it('should render command template with correct variables', async () => {

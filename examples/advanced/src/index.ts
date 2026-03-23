@@ -2,7 +2,6 @@ import { cli } from '@kidd-cli/core'
 import type { ConfigType } from '@kidd-cli/core'
 import { http } from '@kidd-cli/core/http'
 import type { HttpClient } from '@kidd-cli/core/http'
-import { logger } from '@kidd-cli/core/logger'
 import { z } from 'zod'
 
 import telemetry from './middleware/telemetry.js'
@@ -33,7 +32,6 @@ cli({
   description: 'Acme platform CLI',
   help: { header: 'acme - the Acme platform CLI' },
   middleware: [
-    logger(),
     http({
       baseUrl: 'https://api.acme.dev',
       headers: (ctx) => ({

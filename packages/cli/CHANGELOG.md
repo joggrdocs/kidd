@@ -1,5 +1,15 @@
 # kidd-cli
 
+## 0.4.10
+
+### Patch Changes
+
+- 9cd2217: Move logger, spinner, and prompts off base Context into a `logger()` middleware (`ctx.log`). Extract diagnostics into a `report()` middleware (`ctx.report`).
+- Updated dependencies [9cd2217]
+- Updated dependencies [9e4abdc]
+  - @kidd-cli/core@0.11.0
+  - @kidd-cli/bundler@0.2.6
+
 ## 0.4.9
 
 ### Patch Changes

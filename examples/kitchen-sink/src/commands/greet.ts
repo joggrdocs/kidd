@@ -1,4 +1,5 @@
 import { command } from '@kidd-cli/core'
+import { match } from 'ts-pattern'
 import { z } from 'zod'
 
 const options = z.object({
@@ -16,10 +17,9 @@ export default command({
   handler: (ctx) => {
     const greeting = `Hello, ${ctx.args.name}!`
 
-    if (ctx.args.shout) {
-      ctx.log.raw(greeting.toUpperCase())
-    } else {
-      ctx.log.raw(greeting)
-    }
+    match(ctx.args.shout)
+      .with(true, () => ctx.log.raw(greeting.toUpperCase()))
+      .with(false, () => ctx.log.raw(greeting))
+      .exhaustive()
   },
 })

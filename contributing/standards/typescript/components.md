@@ -2,7 +2,7 @@
 
 ## Overview
 
-Standards for React/Ink components used in kidd CLI commands. Commands can use a `render` function instead of a `handler` to own the full terminal UI lifecycle with React components. These rules govern file conventions, component structure, colocation, and when to choose render mode over handler mode.
+Standards for React/Ink components used in kidd CLI commands. Commands can use `screen()` from `@kidd-cli/core/ui` to build interactive terminal UIs with React components. These rules govern file conventions, component structure, colocation, and when to choose screen mode over handler mode.
 
 ## Rules
 
@@ -12,19 +12,19 @@ Command files that contain JSX must use the `.tsx` extension. Files without JSX 
 
 #### Correct
 
-```
+```text
 commands/
 ├── deploy.ts            # handler-only command
-├── status.tsx           # render command with JSX
+├── status.tsx           # screen command with JSX
 └── dashboard/
-    ├── index.tsx         # parent render command
+    ├── index.tsx         # parent screen command
     └── _components/
         └── StatusTable.tsx
 ```
 
 #### Incorrect
 
-```
+```text
 commands/
 ├── status.ts            # contains JSX but uses .ts extension
 ```
@@ -92,7 +92,7 @@ Components used by a single command live in a `_components/` directory next to t
 
 #### Correct
 
-```
+```text
 commands/
 ├── status.tsx
 └── status/
@@ -107,7 +107,7 @@ Components used by multiple commands live in `src/ui/`. Import them with the `@/
 
 #### Correct
 
-```
+```text
 src/
 ├── ui/
 │   ├── Table.tsx
@@ -117,31 +117,35 @@ src/
     └── deploy.tsx       # imports from @/ui/Table.tsx
 ```
 
-### Choose `render` for Interactive or Stateful UI
+### Choose `screen()` for Interactive or Stateful UI
 
-Use `render` when the command needs React state, hooks, dynamic updates, or complex layout. Use `handler` for sequential operations that log output and exit.
+Use `screen()` when the command needs React state, hooks, dynamic updates, or complex layout. Use `command()` with a `handler` for sequential operations that log output and exit.
 
-| Use `render` when                              | Use `handler` when              |
-| ---------------------------------------------- | ------------------------------- |
-| UI updates over time (spinners, progress)      | Sequential log-and-exit flow    |
-| Interactive selection or input within the view | Simple prompts via `ctx.log`    |
-| Complex layout with multiple columns/sections  | Streaming text output           |
-| React hooks manage async state                 | One-shot data fetch and display |
+| Use `screen()` when                            | Use `command()` when             |
+| ---------------------------------------------- | -------------------------------- |
+| UI updates over time (spinners, progress)      | Sequential log-and-exit flow     |
+| Interactive selection or input within the view | Simple prompts via `ctx.prompts` |
+| Complex layout with multiple columns/sections  | Streaming text output            |
+| React hooks manage async state                 | One-shot data fetch and display  |
 
-#### Correct -- render mode
+#### Correct -- screen mode
 
 ```tsx
-import { render } from 'ink'
-import { command } from '@kidd-cli/core'
+import { screen, Box, Text, useApp } from '@kidd-cli/core/ui'
 
-import { Dashboard } from './_components/Dashboard.js'
+function Dashboard(): React.ReactElement {
+  const { exit } = useApp()
+  // ... interactive UI
+  return (
+    <Box>
+      <Text>Dashboard</Text>
+    </Box>
+  )
+}
 
-export default command({
+export default screen({
   description: 'Show live dashboard',
-  render(props) {
-    const { waitUntilExit } = render(<Dashboard {...props} />)
-    return waitUntilExit()
-  },
+  render: Dashboard,
 })
 ```
 
@@ -153,32 +157,62 @@ import { command } from '@kidd-cli/core'
 export default command({
   description: 'Deploy the application',
   handler(ctx) {
-    const s = ctx.log.spinner('Deploying...')
+    ctx.spinner.start('Deploying...')
     // ... deploy logic
-    s.stop('Deployed')
+    ctx.spinner.stop('Deployed')
   },
 })
 ```
 
-### The `render` Function Owns the Lifecycle
+### The `screen()` Factory Owns the Lifecycle
 
-The `render` function receives `RenderProps` (not the full `Context`) and is responsible for importing Ink, calling `render()`, and awaiting `waitUntilExit()`. The runtime does not import React or Ink on behalf of the command.
+The `screen()` factory handles Ink rendering, the `KiddProvider`, and exit behavior. The component receives parsed args as props. Runtime context (config, meta, store) is available via hooks.
 
 ```tsx
-import type { RenderProps } from '@kidd-cli/core'
+import { screen, useConfig, useMeta } from '@kidd-cli/core/ui'
 
-export default command({
+function StatusView({ env }: { readonly env: string }): React.ReactElement {
+  const config = useConfig()
+  const meta = useMeta()
+  // ... render UI using args (env), config, and meta
+}
+
+export default screen({
   description: 'Interactive status view',
-  render(props: RenderProps) {
-    // Command owns the Ink import and render call
-    const { render } = await import('ink')
-    const { waitUntilExit } = render(<StatusView {...props} />)
-    return waitUntilExit()
-  },
+  options: z.object({
+    env: z.string().default('staging').describe('Target environment'),
+  }),
+  render: StatusView,
 })
 ```
 
-`RenderProps` provides `args`, `config`, `meta`, `store`, and `colors`. It does not include `ctx.log`, `ctx.fail`, or middleware variables -- render commands manage their own output through React components.
+Available hooks inside screen components:
+
+| Hook          | Returns             | Description                     |
+| ------------- | ------------------- | ------------------------------- |
+| `useConfig()` | `Readonly<TConfig>` | Validated CLI config            |
+| `useMeta()`   | `Readonly<Meta>`    | CLI name, version, command path |
+| `useStore()`  | `Store`             | In-memory key-value store       |
+| `useApp()`    | `{ exit }`          | Ink app control (from `ink`)    |
+
+### Exit Behavior
+
+Screens default to `'manual'` exit — the component stays alive until `useApp().exit()` is called or the user presses Ctrl-C. Use `exit: 'auto'` for screens that render once and exit.
+
+```tsx
+// Manual exit (default) — stays alive until explicit exit
+export default screen({
+  description: 'Interactive dashboard',
+  render: Dashboard,
+})
+
+// Auto exit — renders once and exits
+export default screen({
+  description: 'Show status summary',
+  exit: 'auto',
+  render: StatusSummary,
+})
+```
 
 ### No `let` at Module Level
 
@@ -205,14 +239,14 @@ function Dashboard(props: DashboardProps): React.ReactElement {
 }
 ```
 
-### Use Ink Primitives for Layout
+### Use Ink Primitives from `@kidd-cli/core/ui`
 
-Use `Box` and `Text` from Ink for all layout. Do not write raw strings or use `console.log` inside components.
+Import all Ink primitives and `@inkjs/ui` components from `@kidd-cli/core/ui`. Do not import from `ink` or `@inkjs/ui` directly.
 
 #### Correct
 
 ```tsx
-import { Box, Text } from 'ink'
+import { Box, Text, Spinner, useApp } from '@kidd-cli/core/ui'
 
 function StatusRow(props: StatusRowProps): React.ReactElement {
   return (
@@ -227,6 +261,9 @@ function StatusRow(props: StatusRowProps): React.ReactElement {
 #### Incorrect
 
 ```tsx
+import { Box, Text } from 'ink' // direct ink import
+import { Spinner } from '@inkjs/ui' // direct @inkjs/ui import
+
 function StatusRow(props: StatusRowProps): React.ReactElement {
   console.log(`${props.name}: ${props.detail}`)
   return <></>

@@ -9,6 +9,7 @@
     "isolatedModules": true,
     "noUncheckedIndexedAccess": true,
     "esModuleInterop": true,
+    "jsx": "react-jsx",
     "skipLibCheck": true,
     "types": ["node"]
   }

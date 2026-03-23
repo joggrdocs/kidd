@@ -1,7 +1,7 @@
 import type { Tagged } from '@kidd-cli/utils/tag'
 import type { z } from 'zod'
 
-import type { Context } from '../context/types.js'
+import type { Context, Meta, Store } from '../context/types.js'
 import type { InferVariables, Middleware, MiddlewareEnv } from './middleware.js'
 import type { AnyRecord, Resolvable } from './utility.js'
 
@@ -114,6 +114,21 @@ export type HandlerFn<
   TConfig extends AnyRecord = AnyRecord,
   TVars = {}, // eslint-disable-line @typescript-eslint/ban-types -- empty intersection identity
 > = (ctx: Context<TArgs, TConfig> & Readonly<TVars>) => Promise<void> | void
+
+/**
+ * Internal render function signature used by `screen()` commands.
+ *
+ * The runtime detects this property on a Command and delegates to it
+ * instead of calling `handler`. Not part of the public `command()` API.
+ *
+ * @private
+ */
+export type ScreenRenderFn = (props: {
+  readonly args: Record<string, unknown>
+  readonly config: Readonly<Record<string, unknown>>
+  readonly meta: Readonly<Meta>
+  readonly store: Store
+}) => Promise<void> | void
 
 /**
  * Structured configuration for a command's subcommands.
@@ -246,6 +261,7 @@ export type Command<
     readonly positionals?: TPositionalsDef
     readonly middleware?: TMiddleware
     readonly commands?: CommandMap | Promise<CommandMap>
+    readonly render?: ScreenRenderFn
     readonly order?: readonly string[]
     readonly handler?: HandlerFn<
       InferArgsMerged<TOptionsDef, TPositionalsDef>,

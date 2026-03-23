@@ -1,6 +1,7 @@
 import { cli } from '@kidd-cli/core'
-import { auth } from '@kidd-cli/core/auth'
+import { auth, createAuthHeaders } from '@kidd-cli/core/auth'
 import type { HttpClient } from '@kidd-cli/core/http'
+import { http } from '@kidd-cli/core/http'
 
 declare module '@kidd-cli/core' {
   interface Context {
@@ -17,11 +18,7 @@ cli({
   help: { header: 'demo - authenticated service CLI' },
   middleware: [
     auth({
-      http: {
-        baseUrl: 'http://localhost:3001',
-        namespace: 'api',
-      },
-      resolvers: [
+      strategies: [
         auth.oauth({
           authUrl: 'http://localhost:3001/authorize',
           clientId: 'demo-client',
@@ -31,6 +28,11 @@ cli({
         }),
         auth.token({ message: 'Enter your API token (see README for valid tokens):' }),
       ],
+    }),
+    http({
+      baseUrl: 'http://localhost:3001',
+      headers: createAuthHeaders(),
+      namespace: 'api',
     }),
   ],
   name: 'demo',

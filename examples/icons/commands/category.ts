@@ -1,16 +1,13 @@
 import { command } from '@kidd-cli/core'
+import { z } from 'zod'
+
+const positionals = z.object({
+  name: z.enum(['git', 'devops', 'status', 'files']).describe('Icon category to display'),
+})
 
 export default command({
   description: 'List all icons in a category',
-  positionals: [
-    {
-      name: 'name',
-      type: 'string',
-      description: 'Icon category to display',
-      required: true,
-      choices: ['git', 'devops', 'status', 'files'],
-    },
-  ],
+  positionals,
   handler: (ctx) => {
     const resolved = ctx.icons.category(ctx.args.name)
 

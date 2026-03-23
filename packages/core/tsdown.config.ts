@@ -16,6 +16,7 @@ export default defineConfig({
     'middleware/icons': 'src/middleware/icons/index.ts',
     'middleware/report': 'src/middleware/report/index.ts',
     'test/index': 'src/test/index.ts',
+    'ui/index': 'src/ui/index.ts',
   },
   format: 'esm',
 })

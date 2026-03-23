@@ -54,6 +54,22 @@ export async function createRuntime<TSchema extends z.ZodType>(
         spinner: options.spinner,
       })
 
+      if (command.render) {
+        const renderFn = command.render
+        const [renderError] = await attemptAsync(async () => {
+          await renderFn({
+            args: ctx.args,
+            config: ctx.config,
+            meta: ctx.meta,
+            store: ctx.store,
+          })
+        })
+        if (renderError) {
+          return err(renderError)
+        }
+        return ok()
+      }
+
       const finalHandler = command.handler ?? (async () => {})
 
       // Accepted exception: generic context assembly requires type assertions.

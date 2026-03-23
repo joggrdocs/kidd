@@ -93,7 +93,7 @@ async function resolveMiddlewareName(ctx: Context<AddMiddlewareArgs>): Promise<s
   return ctx.prompts.text({
     message: 'Middleware name',
     placeholder: 'auth',
-    validate: (value) => {
+    validate: (value: string | undefined) => {
       if (value === undefined || !isKebabCase(value)) {
         return 'Must be kebab-case (e.g. auth)'
       }

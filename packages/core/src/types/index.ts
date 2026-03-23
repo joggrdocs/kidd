@@ -31,6 +31,7 @@ export type {
   CommandsConfig,
   HandlerFn,
   InferArgs,
+  ScreenRenderFn,
   InferArgsMerged,
   YargsArgDef,
 } from './command.js'

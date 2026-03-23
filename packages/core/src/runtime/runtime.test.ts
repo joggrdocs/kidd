@@ -288,4 +288,133 @@ describe('createRuntime()', () => {
 
     expect(execError).toBeNull()
   })
+
+  describe('render execution', () => {
+    it('should invoke render when present on the execution', async () => {
+      setupDefaults()
+      const renderFn = vi.fn().mockResolvedValue(undefined)
+
+      const { createRuntime } = await import('./runtime.js')
+      const [, runtime] = await createRuntime({
+        dirs: { global: '.my-cli', local: '.my-cli' },
+        name: 'my-cli',
+        version: '1.0.0',
+      })
+
+      const execution = makeExecution({ handler: undefined, render: renderFn })
+      const [execError] = await runtime!.execute(execution)
+
+      expect(execError).toBeNull()
+      expect(renderFn).toHaveBeenCalledOnce()
+    })
+
+    it('should pass args, config, meta, and store to render', async () => {
+      const validatedArgs = { env: 'staging', verbose: true }
+      const expectedMeta = {
+        command: ['deploy'],
+        dirs: { global: '.my-cli', local: '.my-cli' },
+        name: 'my-cli',
+        version: '2.0.0',
+      }
+      const fakeStore = {
+        clear: vi.fn(),
+        delete: vi.fn(),
+        get: vi.fn(),
+        has: vi.fn(),
+        set: vi.fn(),
+      }
+
+      setupDefaults()
+      mockedCreateArgsParser.mockReturnValue({
+        parse: vi.fn().mockReturnValue([null, validatedArgs]),
+      })
+      mockedCreateContext.mockReturnValue({
+        args: validatedArgs,
+        config: {},
+        meta: expectedMeta,
+        store: fakeStore,
+      } as unknown as Context)
+
+      const renderFn = vi.fn().mockResolvedValue(undefined)
+
+      const { createRuntime } = await import('./runtime.js')
+      const [, runtime] = await createRuntime({
+        dirs: { global: '.my-cli', local: '.my-cli' },
+        name: 'my-cli',
+        version: '2.0.0',
+      })
+
+      const execution = makeExecution({
+        commandPath: ['deploy'],
+        handler: undefined,
+        render: renderFn,
+      })
+      await runtime!.execute(execution)
+
+      expect(renderFn).toHaveBeenCalledWith({
+        args: validatedArgs,
+        config: {},
+        meta: expectedMeta,
+        store: fakeStore,
+      })
+    })
+
+    it('should skip middleware runner when render is present', async () => {
+      const mockRunnerExecute = vi.fn().mockResolvedValue(undefined)
+      setupDefaults()
+      mockedCreateRunner.mockReturnValue({ execute: mockRunnerExecute })
+      const renderFn = vi.fn().mockResolvedValue(undefined)
+
+      const { createRuntime } = await import('./runtime.js')
+      const [, runtime] = await createRuntime({
+        dirs: { global: '.my-cli', local: '.my-cli' },
+        name: 'my-cli',
+        version: '1.0.0',
+      })
+
+      const execution = makeExecution({ handler: vi.fn(), render: renderFn })
+      await runtime!.execute(execution)
+
+      expect(renderFn).toHaveBeenCalledOnce()
+      expect(mockRunnerExecute).not.toHaveBeenCalled()
+    })
+
+    it('should return err when render throws', async () => {
+      setupDefaults()
+      const renderFn = vi.fn().mockRejectedValue(new Error('Render failed'))
+
+      const { createRuntime } = await import('./runtime.js')
+      const [, runtime] = await createRuntime({
+        dirs: { global: '.my-cli', local: '.my-cli' },
+        name: 'my-cli',
+        version: '1.0.0',
+      })
+
+      const execution = makeExecution({ handler: undefined, render: renderFn })
+      const [execError] = await runtime!.execute(execution)
+
+      expect(execError).toBeInstanceOf(Error)
+      expect(execError!.message).toBe('Render failed')
+    })
+
+    it('should fall through to handler when render is undefined', async () => {
+      const mockRunnerExecute = vi.fn().mockResolvedValue(undefined)
+      setupDefaults()
+      mockedCreateRunner.mockReturnValue({ execute: mockRunnerExecute })
+
+      const { createRuntime } = await import('./runtime.js')
+      const [, runtime] = await createRuntime({
+        dirs: { global: '.my-cli', local: '.my-cli' },
+        name: 'my-cli',
+        version: '1.0.0',
+      })
+
+      const handler = vi.fn()
+      const execution = makeExecution({ handler, render: undefined })
+      const [execError] = await runtime!.execute(execution)
+
+      expect(execError).toBeNull()
+      expect(mockRunnerExecute).toHaveBeenCalledWith(expect.objectContaining({ handler }))
+    })
+  })
 })

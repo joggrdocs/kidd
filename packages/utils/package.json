@@ -68,7 +68,7 @@
   "dependencies": {
     "es-toolkit": "catalog:",
     "ts-pattern": "catalog:",
-    "type-fest": "^5.4.4",
+    "type-fest": "^5.5.0",
     "zod": "catalog:"
   },
   "devDependencies": {

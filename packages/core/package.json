@@ -65,6 +65,10 @@
     "./test": {
       "types": "./dist/test/index.d.ts",
       "default": "./dist/test/index.js"
+    },
+    "./ui": {
+      "types": "./dist/ui/index.d.ts",
+      "default": "./dist/ui/index.js"
     }
   },
   "scripts": {
@@ -88,23 +92,33 @@
     "liquidjs": "catalog:",
     "picocolors": "^1.1.1",
     "ts-pattern": "catalog:",
-    "yaml": "^2.8.2",
+    "yaml": "^2.8.3",
     "yargs": "^18.0.0",
     "zod": "catalog:"
   },
   "devDependencies": {
+    "@inkjs/ui": "^2.0.0",
     "@types/node": "catalog:",
+    "@types/react": "^19.2.14",
     "@types/yargs": "^17.0.35",
+    "ink": "^6.8.0",
+    "react": "^19.2.4",
     "tsdown": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
   },
   "peerDependencies": {
+    "@inkjs/ui": ">=2.0.0",
+    "ink": ">=5.0.0",
     "jiti": ">=2.0.0",
     "pino": ">=9.0.0",
+    "react": ">=18.0.0",
     "vitest": ">=2.0.0"
   },
   "peerDependenciesMeta": {
+    "@inkjs/ui": {
+      "optional": true
+    },
     "jiti": {
       "optional": true
     },
@@ -112,6 +126,12 @@
       "optional": true
     },
     "vitest": {
+      "optional": true
+    },
+    "ink": {
+      "optional": true
+    },
+    "react": {
       "optional": true
     }
   }

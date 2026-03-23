@@ -20,7 +20,7 @@ const DEVICE_CODE_GRANT_TYPE = 'urn:ietf:params:oauth:grant-type:device_code'
  * Resolve a bearer credential via OAuth 2.0 Device Authorization Grant (RFC 8628).
  *
  * 1. POSTs to the device authorization endpoint to obtain a device code
- * 2. Displays the verification URL and user code via log
+ * 2. Displays the verification URL and user code via prompts
  * 3. Optionally opens the verification URL in the browser
  * 4. Polls the token endpoint until authorization completes or times out
  *
@@ -172,11 +172,11 @@ function parseDeviceAuthResponse(data: unknown): DeviceAuthResponse | null {
 /**
  * Display the verification URL and user code to the user.
  *
- * Uses `log.text()` to show the information and wait for
+ * Uses `prompts.text()` to show the information and wait for
  * the user to press Enter to acknowledge.
  *
  * @private
- * @param log - The log instance.
+ * @param prompts - The prompts instance.
  * @param verificationUri - The URL the user should visit.
  * @param userCode - The code the user should enter.
  */

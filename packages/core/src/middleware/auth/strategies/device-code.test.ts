@@ -99,7 +99,7 @@ describe('resolveFromDeviceCode()', () => {
     expect(result).toBeNull()
   })
 
-  it('should display user code via log.text()', async () => {
+  it('should display user code via prompts.text()', async () => {
     const prompts = createMockPrompts()
     const fetchSpy = vi.spyOn(globalThis, 'fetch')
 

@@ -69,7 +69,7 @@ describe('Device Code E2E (resolveFromDeviceCode with real mock server)', () => 
     expect(result).toEqual({ token: 'device-e2e-token', type: 'bearer' })
   }, 10_000)
 
-  it('should display verification_uri and user_code via log.text()', async () => {
+  it('should display verification_uri and user_code via prompts.text()', async () => {
     const pollResponses: readonly DevicePollResponse[] = [
       { accessToken: 'display-token', type: 'success' },
     ]

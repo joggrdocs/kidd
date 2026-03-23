@@ -45,7 +45,6 @@ export function createTestContext<
 /**
  * Create a {@link Log} implementation with mocked methods.
  *
- * @param responses - Not used; log is logging-only now. Use `mockPrompts` for prompt mocking.
  * @returns A Log implementation with vi.fn() stubs.
  */
 export function mockLog(): Log {

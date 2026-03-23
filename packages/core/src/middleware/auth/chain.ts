@@ -31,7 +31,7 @@ const DEFAULT_PROMPT_MESSAGE = 'Enter your API key'
  * appropriate strategy function via pattern matching. Short-circuits
  * on the first successful resolution.
  *
- * @param options - Options with strategies, CLI name, and log instance.
+ * @param options - Options with strategies, CLI name, and prompts instance.
  * @returns The first resolved credential, or null if all strategies fail.
  */
 export async function runStrategyChain(options: {
@@ -56,7 +56,7 @@ export async function runStrategyChain(options: {
  * @param configs - The strategy configs.
  * @param index - The current index.
  * @param defaultTokenVar - The derived default token env var name.
- * @param context - The resolve options for log access.
+ * @param context - The resolve options for prompts access.
  * @returns The first resolved credential, or null.
  */
 async function tryStrategies(
@@ -94,7 +94,7 @@ async function tryStrategies(
  * @private
  * @param config - The strategy config to dispatch.
  * @param defaultTokenVar - The derived default token env var name.
- * @param context - The resolve options for log access.
+ * @param context - The resolve options for prompts access.
  * @returns The resolved credential, or null.
  */
 async function dispatchStrategy(

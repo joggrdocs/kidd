@@ -1,9 +1,18 @@
+import type { z as Z } from 'zod'
 import { z } from 'zod'
+
+import type {
+  ApiKeyCredential,
+  AuthCredential,
+  BasicCredential,
+  BearerCredential,
+  CustomCredential,
+} from './types.js'
 
 /**
  * Zod schema for bearer credentials.
  */
-export const bearerCredentialSchema = z.object({
+export const bearerCredentialSchema: Z.ZodType<BearerCredential> = z.object({
   token: z.string().min(1),
   type: z.literal('bearer'),
 })
@@ -11,7 +20,7 @@ export const bearerCredentialSchema = z.object({
 /**
  * Zod schema for basic auth credentials.
  */
-export const basicCredentialSchema = z.object({
+export const basicCredentialSchema: Z.ZodType<BasicCredential> = z.object({
   password: z.string().min(1),
   type: z.literal('basic'),
   username: z.string().min(1),
@@ -20,7 +29,7 @@ export const basicCredentialSchema = z.object({
 /**
  * Zod schema for API key credentials.
  */
-export const apiKeyCredentialSchema = z.object({
+export const apiKeyCredentialSchema: Z.ZodType<ApiKeyCredential> = z.object({
   headerName: z.string().min(1),
   key: z.string().min(1),
   type: z.literal('api-key'),
@@ -29,7 +38,7 @@ export const apiKeyCredentialSchema = z.object({
 /**
  * Zod schema for custom header credentials.
  */
-export const customCredentialSchema = z.object({
+export const customCredentialSchema: Z.ZodType<CustomCredential> = z.object({
   headers: z.record(z.string(), z.string()),
   type: z.literal('custom'),
 })
@@ -38,9 +47,9 @@ export const customCredentialSchema = z.object({
  * Zod discriminated union schema for validating auth.json credential payloads.
  * Validates against all four credential types using the `type` field as discriminator.
  */
-export const authCredentialSchema = z.discriminatedUnion('type', [
-  bearerCredentialSchema,
-  basicCredentialSchema,
-  apiKeyCredentialSchema,
-  customCredentialSchema,
+export const authCredentialSchema: Z.ZodType<AuthCredential> = z.discriminatedUnion('type', [
+  z.object({ token: z.string().min(1), type: z.literal('bearer') }),
+  z.object({ password: z.string().min(1), type: z.literal('basic'), username: z.string().min(1) }),
+  z.object({ headerName: z.string().min(1), key: z.string().min(1), type: z.literal('api-key') }),
+  z.object({ headers: z.record(z.string(), z.string()), type: z.literal('custom') }),
 ])

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { createTestContext, mockPrompts } from './context.js'
+import { createTestContext, mockLog, mockPrompts, mockSpinner } from './context.js'
 
 describe('test context factory', () => {
   it('should return a context with default args', () => {
@@ -13,9 +13,9 @@ describe('test context factory', () => {
     expect(ctx.meta).toMatchObject({ command: ['test'], name: 'test-app', version: '0.0.0' })
   })
 
-  it('should capture logger output via stdout', () => {
+  it('should capture log output via stdout', () => {
     const { ctx, stdout } = createTestContext()
-    ctx.logger.print('hello world')
+    ctx.log.raw('hello world')
     expect(stdout()).toBe('hello world\n')
   })
 
@@ -36,26 +36,32 @@ describe('test context factory', () => {
     expect(ctx.meta).toMatchObject({ command: ['deploy'], name: 'my-cli', version: '2.0.0' })
   })
 
+  it('should accept custom log', () => {
+    const log = mockLog()
+    const { ctx } = createTestContext({ log })
+    expect(ctx.log).toBe(log)
+  })
+
   it('should accept custom prompts', () => {
     const prompts = mockPrompts({ confirm: [true] })
     const { ctx } = createTestContext({ prompts })
     expect(ctx.prompts).toBe(prompts)
   })
 
-  it('should provide stub prompts by default', async () => {
-    const { ctx } = createTestContext()
-    const result = await ctx.prompts.confirm({ message: 'ok?' })
-    expect(result).toBeFalsy()
+  it('should accept custom spinner', () => {
+    const spinner = mockSpinner()
+    const { ctx } = createTestContext({ spinner })
+    expect(ctx.spinner).toBe(spinner)
   })
 
-  it('should provide stub spinner by default', () => {
+  it('should provide spinner with stub methods by default', () => {
     const { ctx } = createTestContext()
     expect(() => ctx.spinner.start('loading...')).not.toThrow()
     expect(() => ctx.spinner.stop('done')).not.toThrow()
   })
 })
 
-describe('mock prompts factory', () => {
+describe('mockPrompts factory', () => {
   it('should return confirm responses in order', async () => {
     const prompts = mockPrompts({ confirm: [true, false, true] })
     expect(await prompts.confirm({ message: '1' })).toBeTruthy()

@@ -24,24 +24,17 @@ function makeContext(): Context {
     config: {},
     fail: vi.fn(),
     format: { json: vi.fn(() => ''), table: vi.fn(() => '') },
-    logger: {
-      check: vi.fn(),
-      child: vi.fn(),
-      debug: vi.fn(),
+    log: {
       error: vi.fn(),
-      fatal: vi.fn(),
-      finding: vi.fn(),
       info: vi.fn(),
       intro: vi.fn(),
       message: vi.fn(),
       newline: vi.fn(),
       note: vi.fn(),
       outro: vi.fn(),
-      print: vi.fn(),
+      raw: vi.fn(),
       step: vi.fn(),
       success: vi.fn(),
-      tally: vi.fn(),
-      trace: vi.fn(),
       warn: vi.fn(),
     },
     meta: { command: ['dev'], name: 'kidd', version: '0.0.0' },
@@ -103,7 +96,7 @@ describe('dev command', () => {
     const mod = await import('./dev.js')
     await mod.default.handler!(ctx)
 
-    expect(ctx.logger.success).toHaveBeenCalledWith('Rebuilt successfully')
+    expect(ctx.log.success).toHaveBeenCalledWith('Rebuilt successfully')
   })
 
   it('should call fail when watch returns an error', async () => {

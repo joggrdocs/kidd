@@ -1,8 +1,14 @@
 import type { AsyncResult, Result } from '@kidd-cli/utils/fp'
 import type { z } from 'zod'
 
-import type { Context } from '@/context/types.js'
-import type { ArgsDef, CliConfigOptions, Middleware, ResolvedDirs } from '@/types/index.js'
+import type { Context, Log, Prompts, Spinner } from '@/context/types.js'
+import type {
+  ArgsDef,
+  CliConfigOptions,
+  Middleware,
+  ResolvedDirs,
+  ScreenRenderFn,
+} from '@/types/index.js'
 
 /**
  * Options for creating a runtime via `createRuntime`.
@@ -13,6 +19,9 @@ export interface RuntimeOptions<TSchema extends z.ZodType = z.ZodType> {
   readonly dirs: ResolvedDirs
   readonly config?: CliConfigOptions<TSchema>
   readonly middleware?: Middleware[]
+  readonly log?: Log
+  readonly prompts?: Prompts
+  readonly spinner?: Spinner
 }
 
 /**
@@ -20,6 +29,7 @@ export interface RuntimeOptions<TSchema extends z.ZodType = z.ZodType> {
  */
 export interface ResolvedExecution {
   readonly handler: ((ctx: Context) => Promise<void> | void) | undefined
+  readonly render: ScreenRenderFn | undefined
   readonly middleware: Middleware[]
   readonly options: ArgsDef | undefined
   readonly positionals: ArgsDef | undefined
@@ -57,6 +67,7 @@ export interface ArgsParser {
  */
 export interface ResolvedCommand {
   readonly handler: ((ctx: Context) => Promise<void> | void) | undefined
+  readonly render: ScreenRenderFn | undefined
   readonly middleware: Middleware[]
   readonly options: ArgsDef | undefined
   readonly positionals: ArgsDef | undefined

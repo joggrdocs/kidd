@@ -9,6 +9,8 @@ import type { AsyncResult, Result } from '@kidd-cli/utils/fp'
 import { match } from 'ts-pattern'
 import { z } from 'zod'
 
+import type { Spinner } from '@/context/types.js'
+
 import type { IconsCtx } from './context.js'
 import { listSystemFonts } from './list-system-fonts.js'
 import type { IconsError } from './types.js'
@@ -156,13 +158,23 @@ interface CtxFontParams {
 }
 
 /**
- * Parameters for functions that operate on a context and slug.
+ * Parameters for functions that operate on a font name and spinner.
  *
  * @private
  */
-interface CtxSlugParams {
-  readonly ctx: IconsCtx
+interface FontSpinnerParams {
+  readonly fontName: string
+  readonly spinner: Spinner
+}
+
+/**
+ * Parameters for functions that operate on a slug and spinner.
+ *
+ * @private
+ */
+interface SlugSpinnerParams {
   readonly slug: string
+  readonly spinner: Spinner
 }
 
 // ---------------------------------------------------------------------------
@@ -174,7 +186,7 @@ interface CtxSlugParams {
  * and let the user pick.
  *
  * @private
- * @param ctx - The icons context with prompts, spinner, and logger.
+ * @param ctx - The icons context with the unified log API.
  * @returns A Result with true on success or an IconsError on failure.
  */
 async function installWithSelection(ctx: IconsCtx): AsyncResult<boolean, IconsError> {
@@ -353,7 +365,7 @@ async function showInstallCommands({
 
   return ok(
     lines.reduce((_acc, line) => {
-      ctx.logger.info(line)
+      ctx.log.info(line)
       return false
     }, false)
   )
@@ -372,7 +384,7 @@ async function installFontWithSpinner({
 }: CtxFontParams): AsyncResult<boolean, IconsError> {
   ctx.spinner.start(`Installing ${fontName} Nerd Font...`)
 
-  const result = await installFont({ ctx, fontName })
+  const result = await installFont({ fontName, spinner: ctx.spinner })
   const [error] = result
 
   if (error) {
@@ -388,13 +400,16 @@ async function installFontWithSpinner({
  * Install a Nerd Font by name, dispatching to the platform-appropriate method.
  *
  * @private
- * @param params - The icons context and font name.
+ * @param params - The font name and spinner.
  * @returns A Result with true on success or an IconsError on failure.
  */
-async function installFont({ ctx, fontName }: CtxFontParams): AsyncResult<boolean, IconsError> {
+async function installFont({
+  fontName,
+  spinner,
+}: FontSpinnerParams): AsyncResult<boolean, IconsError> {
   return match(process.platform)
-    .with('darwin', () => installDarwin({ ctx, fontName }))
-    .with('linux', () => installLinux({ ctx, fontName }))
+    .with('darwin', () => installDarwin({ fontName, spinner }))
+    .with('linux', () => installLinux({ fontName, spinner }))
     .otherwise(() =>
       Promise.resolve(
         iconsError({ message: `Unsupported platform: ${process.platform}`, type: 'install_failed' })
@@ -406,29 +421,35 @@ async function installFont({ ctx, fontName }: CtxFontParams): AsyncResult<boolea
  * Install a Nerd Font on macOS via Homebrew or direct download.
  *
  * @private
- * @param params - The icons context and font name.
+ * @param params - The font name and spinner.
  * @returns A Result with true on success or an IconsError on failure.
  */
-async function installDarwin({ ctx, fontName }: CtxFontParams): AsyncResult<boolean, IconsError> {
+async function installDarwin({
+  fontName,
+  spinner,
+}: FontSpinnerParams): AsyncResult<boolean, IconsError> {
   const slug = fontNameToSlug(fontName)
   const hasBrew = await checkBrewAvailable()
 
   if (hasBrew) {
-    return installViaBrew({ ctx, slug })
+    return installViaBrew({ slug, spinner })
   }
 
-  return installViaDownload({ ctx, fontName })
+  return installViaDownload({ fontName, spinner })
 }
 
 /**
  * Install a Nerd Font on Linux via direct download.
  *
  * @private
- * @param params - The icons context and font name.
+ * @param params - The font name and spinner.
  * @returns A Result with true on success or an IconsError on failure.
  */
-async function installLinux({ ctx, fontName }: CtxFontParams): AsyncResult<boolean, IconsError> {
-  return installViaDownload({ ctx, fontName })
+async function installLinux({
+  fontName,
+  spinner,
+}: FontSpinnerParams): AsyncResult<boolean, IconsError> {
+  return installViaDownload({ fontName, spinner })
 }
 
 /**
@@ -446,12 +467,15 @@ async function checkBrewAvailable(): Promise<boolean> {
  * Install a Nerd Font via Homebrew cask.
  *
  * @private
- * @param params - The icons context and cask slug.
+ * @param params - The cask slug and spinner.
  * @returns A Result with true on success or an IconsError on failure.
  */
-async function installViaBrew({ ctx, slug }: CtxSlugParams): AsyncResult<boolean, IconsError> {
+async function installViaBrew({
+  slug,
+  spinner,
+}: SlugSpinnerParams): AsyncResult<boolean, IconsError> {
   try {
-    ctx.spinner.message(`Installing font-${slug}-nerd-font via Homebrew...`)
+    spinner.message(`Installing font-${slug}-nerd-font via Homebrew...`)
     await execAsync(`brew install --cask font-${slug}-nerd-font`)
     return ok(true)
   } catch {
@@ -469,13 +493,13 @@ async function installViaBrew({ ctx, slug }: CtxSlugParams): AsyncResult<boolean
  * and refreshes the font cache on Linux.
  *
  * @private
- * @param params - The icons context and font name.
+ * @param params - The font name and spinner.
  * @returns A Result with true on success or an IconsError on failure.
  */
 async function installViaDownload({
-  ctx,
   fontName,
-}: CtxFontParams): AsyncResult<boolean, IconsError> {
+  spinner,
+}: FontSpinnerParams): AsyncResult<boolean, IconsError> {
   const fontDir = match(process.platform)
     .with('darwin', () => join(homedir(), 'Library', 'Fonts'))
     .otherwise(() => join(homedir(), '.local', 'share', 'fonts'))
@@ -486,16 +510,16 @@ async function installViaDownload({
     const url = `https://github.com/ryanoasis/nerd-fonts/releases/latest/download/${fontName}.zip`
     const tmpZip = join(fontDir, `${fontName}.zip`)
 
-    ctx.spinner.message(`Downloading ${fontName} Nerd Font...`)
+    spinner.message(`Downloading ${fontName} Nerd Font...`)
     await execAsync(`curl -fsSL -o "${tmpZip}" "${url}"`, { timeout: 120_000 })
 
-    ctx.spinner.message(`Extracting ${fontName} Nerd Font...`)
+    spinner.message(`Extracting ${fontName} Nerd Font...`)
     await execAsync(`unzip -o "${tmpZip}" -d "${fontDir}"`)
 
     await rm(tmpZip, { force: true })
 
     if (process.platform === 'linux') {
-      ctx.spinner.message('Refreshing font cache...')
+      spinner.message('Refreshing font cache...')
       await execAsync('fc-cache -fv')
     }
 

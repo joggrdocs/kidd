@@ -16,5 +16,5 @@ export default middleware(async (ctx, next) => {
 
   await next()
 
-  ctx.logger.info(`Telemetry: ${JSON.stringify(event)}`)
+  ctx.log.info(`Telemetry: ${JSON.stringify(event)}`)
 })

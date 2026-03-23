@@ -54,7 +54,7 @@ export default command({
       ctx.fail(error.message)
     }
 
-    ctx.logger.success('Logged in')
+    ctx.log.success('Logged in')
   },
 })
 ```
@@ -75,7 +75,7 @@ export default command({
       ctx.fail(error.message)
     }
 
-    ctx.logger.success('Logged out')
+    ctx.log.success('Logged out')
   },
 })
 ```
@@ -98,7 +98,7 @@ export default command({
       return ctx.fail('Not authenticated. Run `my-app login` first.')
     }
 
-    ctx.logger.info('Authenticated')
+    ctx.log.info('Authenticated')
   },
 })
 ```
@@ -131,7 +131,7 @@ export default command({
   description: 'Display the authenticated user',
   middleware: [requireAuth],
   handler: async (ctx) => {
-    ctx.logger.info('Authenticated')
+    ctx.log.info('Authenticated')
   },
 })
 ```

@@ -53,24 +53,17 @@ function makeContext(argOverrides: Record<string, unknown> = {}): Context {
     config: {},
     fail: vi.fn(),
     format: { json: vi.fn(() => ''), table: vi.fn(() => '') },
-    logger: {
-      check: vi.fn(),
-      child: vi.fn(),
-      debug: vi.fn(),
+    log: {
       error: vi.fn(),
-      fatal: vi.fn(),
-      finding: vi.fn(),
       info: vi.fn(),
       intro: vi.fn(),
       message: vi.fn(),
       newline: vi.fn(),
       note: vi.fn(),
       outro: vi.fn(),
-      print: vi.fn(),
+      raw: vi.fn(),
       step: vi.fn(),
       success: vi.fn(),
-      tally: vi.fn(),
-      trace: vi.fn(),
       warn: vi.fn(),
     },
     meta: { command: ['doctor'], name: 'kidd', version: '0.0.0' },
@@ -142,8 +135,8 @@ describe('doctor command', () => {
 
     expect(ctx.spinner.start).toHaveBeenCalledWith('Running diagnostics...')
     expect(ctx.spinner.stop).toHaveBeenCalledWith('Diagnostics complete')
-    expect(ctx.logger.print).toHaveBeenCalledWith(expect.stringContaining('config'))
-    expect(ctx.logger.print).toHaveBeenCalledWith(expect.stringContaining('version'))
+    expect(ctx.log.raw).toHaveBeenCalledWith(expect.stringContaining('config'))
+    expect(ctx.log.raw).toHaveBeenCalledWith(expect.stringContaining('version'))
     expect(ctx.fail).not.toHaveBeenCalled()
   })
 
@@ -197,7 +190,7 @@ describe('doctor command', () => {
     const mod = await import('./doctor.js')
     await mod.default.handler!(ctx)
 
-    expect(ctx.logger.print).toHaveBeenCalledWith(
+    expect(ctx.log.raw).toHaveBeenCalledWith(
       expect.stringContaining('3 checks, 1 passed, 1 warnings, 1 failed')
     )
   })
@@ -238,8 +231,8 @@ describe('doctor command', () => {
     await mod.default.handler!(ctx)
 
     expect(fixFn).toHaveBeenCalled()
-    expect(ctx.logger.print).toHaveBeenCalledWith(expect.stringContaining('Added type module'))
-    expect(ctx.logger.print).toHaveBeenCalledWith(expect.stringContaining('fix'))
+    expect(ctx.log.raw).toHaveBeenCalledWith(expect.stringContaining('Added type module'))
+    expect(ctx.log.raw).toHaveBeenCalledWith(expect.stringContaining('fix'))
   })
 
   it('should not apply fixes when --fix is not set', async () => {
@@ -354,6 +347,6 @@ describe('doctor command', () => {
     const mod = await import('./doctor.js')
     await mod.default.handler!(ctx)
 
-    expect(ctx.logger.print).toHaveBeenCalledWith(expect.stringContaining('2 fixed'))
+    expect(ctx.log.raw).toHaveBeenCalledWith(expect.stringContaining('2 fixed'))
   })
 })

@@ -8,7 +8,7 @@ describe('run handler utility', () => {
   it('should execute command handler with test context', async () => {
     const cmd = command({
       handler(ctx) {
-        ctx.logger.print(`name=${ctx.args.name}`)
+        ctx.log.raw(`name=${ctx.args.name}`)
       },
     })
 

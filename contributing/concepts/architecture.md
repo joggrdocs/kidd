@@ -132,18 +132,18 @@ Shared utilities consumed by the core and extension layers:
 
 The `Context` is the central object threaded through every middleware and command handler. It carries all request-scoped data and utilities for a single CLI invocation.
 
-| Property  | Type                           | Mutable | Description                                     |
-| --------- | ------------------------------ | ------- | ----------------------------------------------- |
-| `args`    | `DeepReadonly<TArgs>`          | No      | Parsed and validated command arguments          |
-| `config`  | `DeepReadonly<TConfig>`        | No      | Loaded and validated config file contents       |
-| `logger`  | `CliLogger`                    | No      | Structured terminal logger via `@clack/prompts` |
-| `prompts` | `Prompts`                      | No      | Interactive input (confirm, text, select, etc.) |
-| `spinner` | `Spinner`                      | No      | Terminal spinner for long-running operations    |
-| `colors`  | `Colors`                       | No      | Color formatting utilities (picocolors)         |
-| `format`  | `Format`                       | No      | Pure string formatters (json, table)            |
-| `store`   | `Store`                        | Yes     | In-memory key-value store for middleware data   |
-| `fail`    | `(message, options?) => never` | No      | Throw a user-facing error with clean exit       |
-| `meta`    | `DeepReadonly<Meta>`           | No      | CLI name, version, resolved command path        |
+| Property  | Type                           | Mutable | Description                                                |
+| --------- | ------------------------------ | ------- | ---------------------------------------------------------- |
+| `args`    | `DeepReadonly<TArgs>`          | No      | Parsed and validated command arguments                     |
+| `config`  | `DeepReadonly<TConfig>`        | No      | Loaded and validated config file contents                  |
+| `log`     | `Log`                          | No      | Logging methods (info, success, error, warn, etc.)         |
+| `prompts` | `Prompts`                      | No      | Interactive prompts (confirm, text, select, etc.)          |
+| `spinner` | `Spinner`                      | No      | Spinner for long-running operations (start, stop, message) |
+| `colors`  | `Colors`                       | No      | Color formatting utilities (picocolors)                    |
+| `format`  | `Format`                       | No      | Pure string formatters (json, table)                       |
+| `store`   | `Store`                        | Yes     | In-memory key-value store for middleware data              |
+| `fail`    | `(message, options?) => never` | No      | Throw a user-facing error with clean exit                  |
+| `meta`    | `DeepReadonly<Meta>`           | No      | CLI name, version, resolved command path                   |
 
 All data properties (`args`, `config`, `meta`) are deeply readonly at the type level. The `store` is the only mutable property -- it exists for middleware-to-handler data flow.
 
@@ -224,7 +224,7 @@ sequenceDiagram
 2. **Clean args** -- Internal yargs keys (`_`, `$0`, dashed duplicates) are stripped
 3. **Validate args** -- If the command defines a Zod schema, args are validated against it
 4. **Load config** -- Config file (`.{name}.jsonc`, `.json`, or `.yaml`) is discovered, parsed, and validated
-5. **Create context** -- `createContext()` assembles logger, spinner, output, store, prompts, errors, and meta
+5. **Create context** -- `createContext()` assembles store, format, colors, log, prompts, spinner, errors, and meta
 6. **Run middleware** -- Root middleware wraps command middleware in an onion model; each calls `next()` to continue
 7. **Execute handler** -- The matched command's handler runs with the fully constructed context
 8. **Exit** -- `ContextError` caught at the CLI boundary produces a clean exit with code; success exits 0

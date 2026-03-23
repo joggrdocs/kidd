@@ -28,7 +28,7 @@ export default command({
     ctx.spinner.start('Validating scripts')
 
     if (ctx.args.fix) {
-      ctx.logger.print('Running with auto-fix enabled')
+      ctx.log.raw('Running with auto-fix enabled')
     }
 
     ctx.spinner.stop('Validation complete')
@@ -112,11 +112,32 @@ export default command({
 })
 ```
 
+**With render mode (`.tsx`):**
+
+Commands that need React/Ink UI use a `render` function instead of `handler`. The file must use the `.tsx` extension.
+
+```tsx
+import { render } from 'ink'
+import { command } from '@kidd-cli/core'
+
+import { StatusView } from './_components/StatusView.js'
+
+export default command({
+  description: 'Show live status dashboard',
+  render(props) {
+    const { waitUntilExit } = render(<StatusView {...props} />)
+    return waitUntilExit()
+  },
+})
+```
+
+The `render` function receives `RenderProps` (with `args`, `config`, `meta`, `store`, `colors`) and owns the full Ink lifecycle. Place command-private components in a `_components/` directory next to the command file. See the [Components standard](../standards/typescript/components.md) for full conventions.
+
 ### 2. Register the command
 
 Commands are auto-registered via the autoloader when placed in the commands directory. The autoloader discovers files that:
 
-- Have a `.ts` or `.js` extension (not `.d.ts`)
+- Have a `.ts`, `.tsx`, or `.js` extension (not `.d.ts`)
 - Do not start with `_` or `.`
 - Export a default `Command` object (created by the `command()` factory)
 

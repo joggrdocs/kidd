@@ -2,7 +2,7 @@ import { ok } from '@kidd-cli/utils/fp'
 import type { AsyncResult } from '@kidd-cli/utils/fp'
 import { match } from 'ts-pattern'
 
-import type { CliLogger, Prompts, Spinner } from '@/context/types.js'
+import type { Context } from '@/context/types.js'
 
 import { getIconsByCategory } from './definitions.js'
 import { installNerdFont } from './install.js'
@@ -15,11 +15,7 @@ import type { IconCategory, IconDefinition, IconsContext, IconsError } from './t
 /**
  * Minimal context subset needed by the icons context factory.
  */
-export interface IconsCtx {
-  readonly logger: CliLogger
-  readonly prompts: Prompts
-  readonly spinner: Spinner
-}
+export type IconsCtx = Pick<Context, 'log' | 'prompts' | 'spinner'>
 
 /**
  * Options for {@link createIconsContext}.

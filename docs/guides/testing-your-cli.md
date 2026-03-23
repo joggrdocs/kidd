@@ -27,7 +27,7 @@ import { runHandler } from '@kidd-cli/core/test'
 
 const greet = command({
   handler(ctx) {
-    ctx.logger.print(`Hello, ${ctx.args.name}!`)
+    ctx.log.raw(`Hello, ${ctx.args.name}!`)
   },
 })
 
@@ -87,7 +87,7 @@ const deploy = command({
   async handler(ctx) {
     const confirmed = await ctx.prompts.confirm({ message: 'Deploy to production?' })
     if (confirmed) {
-      ctx.logger.print('Deploying...')
+      ctx.log.raw('Deploying...')
     }
   },
 })
@@ -132,7 +132,7 @@ const { ctx, stdout } = createTestContext({
   meta: { command: ['deploy'], name: 'my-cli', version: '1.0.0' },
 })
 
-ctx.logger.print('hello')
+ctx.log.raw('hello')
 expect(stdout()).toBe('hello\n')
 ```
 
@@ -148,7 +148,7 @@ import { runCommand } from '@kidd-cli/core/test'
 const greet = command({
   options: { name: { type: 'string', required: true } },
   handler(ctx) {
-    ctx.logger.print(`Hello, ${ctx.args.name}!`)
+    ctx.log.raw(`Hello, ${ctx.args.name}!`)
   },
 })
 

@@ -1,4 +1,4 @@
-export const KEBAB_CASE_CHARS_RE = /^[a-z][\da-z-]*$/
+export const KEBAB_CASE_CHARS_RE: RegExp = /^[a-z][\da-z-]*$/
 
 /**
  * Check whether a string is valid kebab-case.

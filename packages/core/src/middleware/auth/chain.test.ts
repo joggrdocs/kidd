@@ -104,7 +104,7 @@ describe('resolveFromToken()', () => {
   it('should return BearerCredential when user provides input', async () => {
     const prompts = { password: vi.fn().mockResolvedValue('user-token') } as unknown as Prompts
 
-    const result = await resolveFromToken({ message: 'Enter token', prompts })
+    const result = await resolveFromToken({ prompts, message: 'Enter token' })
 
     expect(result).toEqual({ token: 'user-token', type: 'bearer' })
   })
@@ -114,7 +114,7 @@ describe('resolveFromToken()', () => {
       password: vi.fn().mockRejectedValue(new Error('cancelled')),
     } as unknown as Prompts
 
-    const result = await resolveFromToken({ message: 'Enter token', prompts })
+    const result = await resolveFromToken({ prompts, message: 'Enter token' })
 
     expect(result).toBeNull()
   })
@@ -122,7 +122,7 @@ describe('resolveFromToken()', () => {
   it('should return null when user provides empty input', async () => {
     const prompts = { password: vi.fn().mockResolvedValue('') } as unknown as Prompts
 
-    const result = await resolveFromToken({ message: 'Enter token', prompts })
+    const result = await resolveFromToken({ prompts, message: 'Enter token' })
 
     expect(result).toBeNull()
   })

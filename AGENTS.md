@@ -83,6 +83,7 @@ Before making changes, read the relevant standards in [`contributing/standards/`
 | Conditionals    | [`typescript/conditionals.md`](contributing/standards/typescript/conditionals.md)       |
 | Testing         | [`typescript/testing.md`](contributing/standards/typescript/testing.md)                 |
 | Utilities       | [`typescript/utilities.md`](contributing/standards/typescript/utilities.md)             |
+| Components      | [`typescript/components.md`](contributing/standards/typescript/components.md)           |
 | Git commits     | [`git-commits.md`](contributing/standards/git-commits.md)                               |
 | Pull requests   | [`git-pulls.md`](contributing/standards/git-pulls.md)                                   |
 | Documentation   | [`documentation/writing.md`](contributing/standards/documentation/writing.md)           |

@@ -147,7 +147,7 @@ function registerSingleCommand(options: RegisterSingleCommandOptions): void {
         })
       )
 
-      if (cmd.handler) {
+      if (cmd.handler || cmd.render) {
         yargsBuilder.demandCommand(0)
       } else {
         yargsBuilder.demandCommand(1, 'You must specify a subcommand.')
@@ -167,6 +167,7 @@ function registerSingleCommand(options: RegisterSingleCommandOptions): void {
       middleware: (cmd.middleware ?? []) as Middleware[],
       options: cmd.options,
       positionals: cmd.positionals,
+      render: cmd.render as ((props: Record<string, unknown>) => Promise<void> | void) | undefined,
     }
   }
 

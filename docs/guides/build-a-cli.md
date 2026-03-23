@@ -24,7 +24,7 @@ const deploy = command({
     dryRun: z.boolean().default(false).describe('Preview without applying'),
   }),
   async handler(ctx) {
-    ctx.logger.info(`Deploying to ${ctx.args.env}`)
+    ctx.log.info(`Deploying to ${ctx.args.env}`)
   },
 })
 ```
@@ -59,7 +59,7 @@ import { middleware } from '@kidd-cli/core'
 const timing = middleware(async (ctx, next) => {
   const start = Date.now()
   await next()
-  ctx.logger.info(`Completed in ${Date.now() - start}ms`)
+  ctx.log.info(`Completed in ${Date.now() - start}ms`)
 })
 
 cli({
@@ -84,7 +84,7 @@ const deploy = command({
   description: 'Deploy the application',
   middleware: [requireAuth],
   async handler(ctx) {
-    ctx.logger.print('Deploying')
+    ctx.log.raw('Deploying')
   },
 })
 ```
@@ -245,15 +245,14 @@ const [error, result] = await config.load()
 
 kidd exposes focused utilities through sub-exports.
 
-**Logger** -- structured terminal output:
+**Log** -- structured terminal output is available on every context:
 
 ```ts
-import { cliLogger } from '@kidd-cli/core/logger'
-
-cliLogger.intro('My CLI')
-cliLogger.info('Processing...')
-cliLogger.success('Complete')
-cliLogger.outro('Done')
+// In any command handler or middleware:
+ctx.log.intro('My CLI')
+ctx.log.info('Processing...')
+ctx.log.success('Complete')
+ctx.log.outro('Done')
 ```
 
 **Store** -- file-backed JSON store for persistent data (separate from the in-memory `ctx.store` used for middleware-to-handler data flow):

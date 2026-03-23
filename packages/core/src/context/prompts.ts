@@ -1,10 +1,23 @@
+/**
+ * Factory for creating the interactive prompt methods on the context.
+ *
+ * @module
+ */
+
 import * as clack from '@clack/prompts'
 
 import { DEFAULT_EXIT_CODE, createContextError } from './error.js'
 import type { Prompts } from './types.js'
 
+// ---------------------------------------------------------------------------
+// Public API
+// ---------------------------------------------------------------------------
+
 /**
  * Create the interactive prompt methods for a context.
+ *
+ * Each method delegates to `@clack/prompts` and unwraps cancel signals
+ * into a ContextError so the CLI runner can exit cleanly.
  *
  * @returns A Prompts instance backed by clack.
  */

@@ -38,8 +38,8 @@ function createDefaultOptions(prompts: Prompts): {
   return {
     clientId: CLIENT_ID,
     deviceAuthUrl: DEVICE_AUTH_URL,
-    pollInterval: 100,
     prompts,
+    pollInterval: 100,
     scopes: ['openid'],
     timeout: 60_000,
     tokenUrl: TOKEN_URL,

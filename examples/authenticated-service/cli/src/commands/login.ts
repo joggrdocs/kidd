@@ -9,6 +9,6 @@ export default command({
       ctx.fail(error.message)
     }
 
-    ctx.logger.success('Logged in')
+    ctx.log.success('Logged in')
   },
 })

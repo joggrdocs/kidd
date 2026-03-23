@@ -1,6 +1,5 @@
 import type { Colors } from 'picocolors/types'
 
-import type { CliLogger } from '@/lib/logger.js'
 import type {
   AnyRecord,
   DeepReadonly,
@@ -44,8 +43,6 @@ export interface Store<TMap extends AnyRecord = StoreMap> {
   delete(key: string): boolean
   clear(): void
 }
-
-export type { CliLogger }
 
 /**
  * Options for a yes/no confirmation prompt.
@@ -99,6 +96,68 @@ export interface MultiSelectOptions<TValue> {
   readonly required?: boolean
 }
 
+// ---------------------------------------------------------------------------
+// Log
+// ---------------------------------------------------------------------------
+
+/**
+ * Structured logging API backed by `@clack/prompts` for styled terminal output.
+ *
+ * Provides info, success, error, warning, step, message, intro/outro,
+ * note, and raw output methods. Does not include prompts or spinners —
+ * those are separate on `ctx.prompts` and `ctx.spinner`.
+ */
+export interface Log {
+  /**
+   * Log an informational message.
+   */
+  readonly info: (message: string) => void
+  /**
+   * Log a success message.
+   */
+  readonly success: (message: string) => void
+  /**
+   * Log an error message.
+   */
+  readonly error: (message: string) => void
+  /**
+   * Log a warning message.
+   */
+  readonly warn: (message: string) => void
+  /**
+   * Log a step indicator message.
+   */
+  readonly step: (message: string) => void
+  /**
+   * Log a message with an optional custom symbol prefix.
+   */
+  readonly message: (message: string, opts?: { readonly symbol?: string }) => void
+  /**
+   * Print an intro banner with an optional title.
+   */
+  readonly intro: (title?: string) => void
+  /**
+   * Print an outro banner with an optional closing message.
+   */
+  readonly outro: (message?: string) => void
+  /**
+   * Display a boxed note with an optional title.
+   */
+  readonly note: (message?: string, title?: string) => void
+  /**
+   * Write a blank line to the output stream.
+   */
+  readonly newline: () => void
+  /**
+   * Write raw text followed by a newline to the output stream.
+   */
+  readonly raw: (text: string) => void
+}
+
+// ---------------------------------------------------------------------------
+// Prompts
+// ---------------------------------------------------------------------------
+
 /**
  * Interactive prompt methods available on the context.
  *
@@ -113,6 +172,10 @@ export interface Prompts {
   password(opts: TextOptions): Promise<string>
 }
 
+// ---------------------------------------------------------------------------
+// Spinner
+// ---------------------------------------------------------------------------
+
 /**
  * Terminal spinner for indicating long-running operations.
  */
@@ -121,6 +184,10 @@ export interface Spinner {
   stop(message?: string): void
   message(message: string): void
 }
+
+// ---------------------------------------------------------------------------
+// Format
+// ---------------------------------------------------------------------------
 
 /**
  * Pure string formatters for data serialization (no I/O).
@@ -135,6 +202,10 @@ export interface Format {
    */
   table(rows: readonly Record<string, unknown>[]): string
 }
+
+// ---------------------------------------------------------------------------
+// Meta
+// ---------------------------------------------------------------------------
 
 /**
  * CLI metadata available on the context. Deeply immutable at the type level.
@@ -151,7 +222,7 @@ export interface Meta {
   /**
    * The resolved command path (e.g. `['deploy', 'preview']`).
    */
-  readonly command: string[]
+  readonly command: readonly string[]
   /**
    * Resolved directory names for file-backed stores.
    *
@@ -161,16 +232,21 @@ export interface Meta {
   readonly dirs: ResolvedDirs
 }
 
+// ---------------------------------------------------------------------------
+// Context
+// ---------------------------------------------------------------------------
+
 /**
  * The context object threaded through every handler, middleware, and hook.
+ *
+ * Contains framework-level primitives: parsed args, validated config, CLI
+ * metadata, a key-value store, formatting helpers, logging, prompts, a
+ * spinner, and a fail function. Additional capabilities (e.g. `report`,
+ * `auth`) are added by middleware via `decorateContext`.
  *
  * All data properties (args, config, meta) are deeply readonly — attempting
  * to mutate any nested property produces a compile-time error. Use `ctx.store`
  * for mutable state that flows between middleware and handlers.
- *
- * Register types (`KiddArgs`, `CliConfig`, etc.) are merged with generics so
- * consumers can use module augmentation for project-wide defaults without
- * threading generics everywhere.
  *
  * @typeParam TArgs - Parsed args type (inferred from the command's zod/yargs args definition).
  * @typeParam TConfig - Config type (inferred from the zod schema passed to `cli({ config: { schema } })`).
@@ -201,10 +277,9 @@ export interface Context<
   readonly format: Format
 
   /**
-   * Structured logger backed by @clack/prompts for styled terminal output.
-   * Also provides check, finding, and tally methods for structured output.
+   * Structured logger for styled terminal output.
    */
-  readonly logger: CliLogger
+  readonly log: Log
 
   /**
    * Interactive prompts (confirm, text, select, multiselect, password).

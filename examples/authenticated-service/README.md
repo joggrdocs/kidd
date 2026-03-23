@@ -87,11 +87,12 @@ Open `ui/index.html` in a browser. Select a token, connect, and use the buttons 
 
 ## Auth Middleware Configuration
 
-The CLI uses the `auth()` middleware with an integrated HTTP client and resolver builders:
+The CLI uses the `auth()` middleware for credential management and `http()` with `createAuthHeaders()` for authenticated API calls:
 
 ```ts
-import { auth } from '@kidd-cli/core/auth'
+import { auth, createAuthHeaders } from '@kidd-cli/core/auth'
 import type { HttpClient } from '@kidd-cli/core/http'
+import { http } from '@kidd-cli/core/http'
 
 declare module '@kidd-cli/core' {
   interface Context {
@@ -102,11 +103,7 @@ declare module '@kidd-cli/core' {
 cli({
   middleware: [
     auth({
-      http: {
-        baseUrl: 'http://localhost:3001',
-        namespace: 'api',
-      },
-      resolvers: [
+      strategies: [
         auth.oauth({
           authUrl: 'http://localhost:3001/authorize',
           clientId: 'demo-client',
@@ -117,13 +114,18 @@ cli({
         auth.token({ message: 'Enter your API token (see README for valid tokens):' }),
       ],
     }),
+    http({
+      baseUrl: 'http://localhost:3001',
+      headers: createAuthHeaders(),
+      namespace: 'api',
+    }),
   ],
 })
 ```
 
-### Resolvers
+### Strategies
 
-| Resolver       | Description                                                                 |
+| Strategy       | Description                                                                 |
 | -------------- | --------------------------------------------------------------------------- |
 | `auth.oauth()` | Opens browser, runs PKCE authorization code flow with local callback server |
 | `auth.token()` | Falls back to interactive terminal input                                    |
@@ -141,9 +143,9 @@ cli({
 
 ### HTTP client
 
-The `auth({ http })` pattern creates an HTTP client that automatically injects the bearer token. Commands use it as:
+The `http()` middleware with `createAuthHeaders()` creates an HTTP client that automatically injects the bearer token from `ctx.auth`. Commands use it as:
 
 ```ts
 const res = await ctx.api.get<User>('/user')
-ctx.logger.info(res.data.login)
+ctx.log.info(res.data.login)
 ```

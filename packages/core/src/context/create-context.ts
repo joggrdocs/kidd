@@ -2,23 +2,22 @@ import * as clack from '@clack/prompts'
 import pc from 'picocolors'
 import type { Colors } from 'picocolors/types'
 
-import { createCliLogger } from '@/lib/logger.js'
-import type { CliLogger } from '@/lib/logger.js'
+import { createLog } from '@/lib/log.js'
 import type { AnyRecord, KiddStore, Merge, ResolvedDirs } from '@/types/index.js'
 
 import { createContextError } from './error.js'
 import { createContextFormat } from './format.js'
 import { createContextPrompts } from './prompts.js'
 import { createMemoryStore } from './store.js'
-import type { Context, Format, Meta, Prompts, Spinner, Store, StoreMap } from './types.js'
+import type { Context, Format, Log, Meta, Prompts, Spinner, Store, StoreMap } from './types.js'
 
 /**
  * Options for creating a {@link Context} instance via {@link createContext}.
  *
  * Carries the parsed args, validated config, and CLI metadata needed to
  * assemble a fully-wired context. Optional overrides allow callers to inject
- * custom {@link CliLogger}, {@link Prompts}, and {@link Spinner} implementations;
- * when omitted, default @clack/prompts-backed instances are used.
+ * custom {@link Log}, {@link Prompts}, and {@link Spinner} implementations;
+ * when omitted, default `@clack/prompts`-backed instances are used.
  */
 export interface CreateContextOptions<TArgs extends AnyRecord, TConfig extends AnyRecord> {
   readonly args: TArgs
@@ -29,7 +28,7 @@ export interface CreateContextOptions<TArgs extends AnyRecord, TConfig extends A
     readonly command: string[]
     readonly dirs: ResolvedDirs
   }
-  readonly logger?: CliLogger
+  readonly log?: Log
   readonly prompts?: Prompts
   readonly spinner?: Spinner
 }
@@ -37,7 +36,7 @@ export interface CreateContextOptions<TArgs extends AnyRecord, TConfig extends A
 /**
  * Create the {@link Context} object threaded through middleware and command handlers.
  *
- * Assembles logger, spinner, format, store, prompts, and meta from
+ * Assembles log, spinner, format, store, prompts, and meta from
  * the provided options into a single immutable context. Each sub-system is
  * constructed via its own factory so this function remains a lean orchestrator.
  *
@@ -47,7 +46,7 @@ export interface CreateContextOptions<TArgs extends AnyRecord, TConfig extends A
 export function createContext<TArgs extends AnyRecord, TConfig extends AnyRecord>(
   options: CreateContextOptions<TArgs, TConfig>
 ): Context<TArgs, TConfig> {
-  const ctxLogger: CliLogger = options.logger ?? createCliLogger()
+  const ctxLog: Log = options.log ?? createLog()
   const ctxSpinner: Spinner = options.spinner ?? clack.spinner()
   const ctxFormat: Format = createContextFormat()
   const ctxStore: Store<Merge<KiddStore, StoreMap>> = createMemoryStore()
@@ -59,7 +58,7 @@ export function createContext<TArgs extends AnyRecord, TConfig extends AnyRecord
     version: options.meta.version,
   }
 
-  // Middleware-augmented properties (e.g. `auth`) are added at runtime.
+  // Middleware-augmented properties (e.g. `report`, `auth`) are added at runtime.
   // See `decorateContext` — they are intentionally absent here.
   return {
     args: options.args as Context<TArgs, TConfig>['args'],
@@ -71,7 +70,7 @@ export function createContext<TArgs extends AnyRecord, TConfig extends AnyRecord
       throw createContextError(message, failOptions)
     },
     format: ctxFormat,
-    logger: ctxLogger,
+    log: ctxLog,
     meta: ctxMeta as Context<TArgs, TConfig>['meta'],
     prompts: ctxPrompts,
     spinner: ctxSpinner,

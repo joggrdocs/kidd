@@ -5,12 +5,14 @@ const options = z.object({
   clean: z.boolean().default(false).describe('Clean build before deploying'),
 })
 
+const positionals = z.object({
+  branch: z.string().default('main').describe('Branch to deploy'),
+})
+
 export default command({
   options,
+  positionals,
   description: 'Deploy a preview environment',
-  positionals: [
-    { name: 'branch', type: 'string', description: 'Branch to deploy', default: 'main' },
-  ],
   handler: async (ctx) => {
     ctx.spinner.start(`Deploying preview from ${ctx.args.branch}`)
 

@@ -26,7 +26,7 @@ function createMockPrompts(): Prompts {
     password: vi.fn(),
     select: vi.fn(),
     text: vi.fn(),
-  }
+  } as unknown as Prompts
 }
 
 describe('createAuthContext()', () => {

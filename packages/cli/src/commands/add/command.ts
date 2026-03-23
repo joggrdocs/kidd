@@ -73,7 +73,7 @@ const addCommandCommand: Command = command({
     ]
     const summary = lines.join('\n')
     if (summary.length > 0) {
-      ctx.logger.print(summary)
+      ctx.log.raw(summary)
     }
   },
 })
@@ -101,7 +101,7 @@ async function resolveCommandName(ctx: Context<AddCommandArgs>): Promise<string>
   return ctx.prompts.text({
     message: 'Command name',
     placeholder: 'deploy',
-    validate: (value) => {
+    validate: (value: string | undefined) => {
       if (value === undefined || !isKebabCase(value)) {
         return 'Must be kebab-case (e.g. deploy)'
       }

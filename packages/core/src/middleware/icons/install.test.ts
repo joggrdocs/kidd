@@ -25,10 +25,15 @@ import { listSystemFonts } from './list-system-fonts.js'
 
 function createMockCtx() {
   return {
-    logger: {
+    log: {
       error: vi.fn(),
       info: vi.fn(),
+      intro: vi.fn(),
       message: vi.fn(),
+      newline: vi.fn(),
+      note: vi.fn(),
+      outro: vi.fn(),
+      raw: vi.fn(),
       step: vi.fn(),
       success: vi.fn(),
       warn: vi.fn(),
@@ -40,7 +45,11 @@ function createMockCtx() {
       select: vi.fn(),
       text: vi.fn(),
     },
-    spinner: { message: vi.fn(), start: vi.fn(), stop: vi.fn() },
+    spinner: {
+      message: vi.fn(),
+      start: vi.fn(),
+      stop: vi.fn(),
+    },
   }
 }
 
@@ -202,7 +211,7 @@ describe('installNerdFont()', () => {
 
       expect(error).toBeNull()
       expect(value).toBeFalsy()
-      expect(ctx.logger.info).toHaveBeenCalled()
+      expect(ctx.log.info).toHaveBeenCalled()
     })
   })
 

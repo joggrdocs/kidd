@@ -58,7 +58,7 @@ const doctorCommand: Command = command({
 
     const summary = formatSummary({ failed, fixed, passed, total: results.length, warnings })
 
-    ctx.logger.print(summary)
+    ctx.log.raw(summary)
 
     if (failed > 0) {
       ctx.fail(`${failed} ${pluralizeCheck(failed)} failed`)
@@ -164,19 +164,19 @@ async function applyFixes(
  * Display check results with hints and fix indicators.
  *
  * @private
- * @param ctx - The command context.
+ * @param ctx - The command context for logging.
  * @param results - The check results to display.
  * @param fixResults - The fix results (empty when --fix was not used).
  */
 function displayResults(
-  ctx: Context<DoctorArgs>,
+  ctx: Context,
   results: readonly CheckResult[],
   fixResults: readonly FixResult[]
 ): void {
   const lines = results.map((result) => formatResultLine(result, fixResults))
   const output = lines.join('')
   if (output.length > 0) {
-    ctx.logger.print(output)
+    ctx.log.raw(output)
   }
 }
 

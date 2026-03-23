@@ -75,10 +75,10 @@ const initCommand: Command = command({
 
     ctx.spinner.stop('Project created!')
 
-    ctx.logger.newline()
-    ctx.logger.print('Next steps:')
-    ctx.logger.print(`  cd ${projectName}`)
-    ctx.logger.print(`  ${packageManager} install`)
+    ctx.log.newline()
+    ctx.log.raw('Next steps:')
+    ctx.log.raw(`  cd ${projectName}`)
+    ctx.log.raw(`  ${packageManager} install`)
   },
 })
 
@@ -105,7 +105,7 @@ async function resolveProjectName(ctx: Context<InitArgs>): Promise<string> {
   return ctx.prompts.text({
     message: 'Project name',
     placeholder: 'my-cli',
-    validate: (value) => {
+    validate: (value: string | undefined) => {
       if (value === undefined || !isKebabCase(value)) {
         return 'Must be kebab-case (e.g. my-cli)'
       }

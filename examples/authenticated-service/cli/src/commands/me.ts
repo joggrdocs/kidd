@@ -30,8 +30,8 @@ export default command({
       return
     }
 
-    ctx.logger.info(`Login: ${res.data.login}`)
-    ctx.logger.info(`Name:  ${res.data.name}`)
-    ctx.logger.info(`Email: ${res.data.email}`)
+    ctx.log.info(`Login: ${res.data.login}`)
+    ctx.log.info(`Name:  ${res.data.name}`)
+    ctx.log.info(`Email: ${res.data.email}`)
   },
 })

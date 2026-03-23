@@ -65,7 +65,7 @@ const addMiddlewareCommand: Command = command({
     ]
     const summary = lines.join('\n')
     if (summary.length > 0) {
-      ctx.logger.print(summary)
+      ctx.log.raw(summary)
     }
   },
 })
@@ -93,7 +93,7 @@ async function resolveMiddlewareName(ctx: Context<AddMiddlewareArgs>): Promise<s
   return ctx.prompts.text({
     message: 'Middleware name',
     placeholder: 'auth',
-    validate: (value) => {
+    validate: (value: string | undefined) => {
       if (value === undefined || !isKebabCase(value)) {
         return 'Must be kebab-case (e.g. auth)'
       }

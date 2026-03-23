@@ -51,7 +51,7 @@ const buildCommand: Command = command({
 
     if (!shouldCompile) {
       ctx.spinner.stop('Build complete')
-      ctx.logger.note(
+      ctx.log.note(
         formatBuildNote({
           cwd,
           entryFile: buildOutput.entryFile,
@@ -79,7 +79,7 @@ const buildCommand: Command = command({
     }
 
     ctx.spinner.stop('Build complete')
-    ctx.logger.note(
+    ctx.log.note(
       formatBuildNote({
         cwd,
         entryFile: buildOutput.entryFile,
@@ -88,7 +88,7 @@ const buildCommand: Command = command({
       }),
       'Bundle'
     )
-    ctx.logger.note(formatBinariesNote({ binaries: compileOutput.binaries, cwd }), 'Binaries')
+    ctx.log.note(formatBinariesNote({ binaries: compileOutput.binaries, cwd }), 'Binaries')
   },
 })
 

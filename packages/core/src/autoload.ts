@@ -8,7 +8,7 @@ import { match } from 'ts-pattern'
 
 import type { AutoloadOptions, Command, CommandMap } from './types/index.js'
 
-const VALID_EXTENSIONS = new Set(['.ts', '.js', '.mjs'])
+const VALID_EXTENSIONS = new Set(['.ts', '.js', '.mjs', '.tsx', '.jsx'])
 const INDEX_NAME = 'index'
 
 /**
@@ -121,6 +121,7 @@ function findIndexInEntries(entries: Dirent[]): Dirent | undefined {
     (entry) =>
       entry.isFile() &&
       !entry.name.endsWith('.d.ts') &&
+      !entry.name.endsWith('.d.tsx') &&
       VALID_EXTENSIONS.has(extname(entry.name)) &&
       basename(entry.name, extname(entry.name)) === INDEX_NAME
   )
@@ -190,7 +191,7 @@ function isCommandFile(entry: Dirent): boolean {
   if (entry.name.startsWith('_') || entry.name.startsWith('.')) {
     return false
   }
-  if (entry.name.endsWith('.d.ts')) {
+  if (entry.name.endsWith('.d.ts') || entry.name.endsWith('.d.tsx')) {
     return false
   }
   if (!VALID_EXTENSIONS.has(extname(entry.name))) {

@@ -34,7 +34,7 @@ export default command({
     name: { type: 'string', description: 'Name to greet', demandOption: true },
   },
   handler: async (ctx) => {
-    ctx.logger.info(`Hello, ${ctx.args.name}!`)
+    ctx.log.info(`Hello, ${ctx.args.name}!`)
   },
 })
 ```
@@ -68,7 +68,7 @@ export default defineConfig({
 | Export                   | Description                        |
 | ------------------------ | ---------------------------------- |
 | `@kidd-cli/core`         | CLI bootstrap, command, middleware |
-| `@kidd-cli/core/logger`  | Structured logging                 |
+| `@kidd-cli/core/report`  | Structured reporting middleware    |
 | `@kidd-cli/core/config`  | Runtime config access              |
 | `@kidd-cli/core/format`  | Terminal formatting utilities      |
 | `@kidd-cli/core/store`   | Key-value store                    |

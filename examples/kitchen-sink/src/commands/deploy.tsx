@@ -1,6 +1,4 @@
-import { Spinner } from '@inkjs/ui'
-import { Box, Text, useApp } from '@kidd-cli/core/ui'
-import { screen } from '@kidd-cli/core/ui'
+import { Box, screen, Spinner, Text, useApp } from '@kidd-cli/core/ui'
 import React, { useEffect, useState } from 'react'
 import { match } from 'ts-pattern'
 import { z } from 'zod'

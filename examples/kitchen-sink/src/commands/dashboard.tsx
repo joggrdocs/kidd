@@ -1,6 +1,4 @@
-import { Select, TextInput } from '@inkjs/ui'
-import { Box, Text, useApp, useInput } from '@kidd-cli/core/ui'
-import { screen } from '@kidd-cli/core/ui'
+import { Box, screen, Select, Text, TextInput, useApp, useInput } from '@kidd-cli/core/ui'
 import React, { useState } from 'react'
 import { match } from 'ts-pattern'
 

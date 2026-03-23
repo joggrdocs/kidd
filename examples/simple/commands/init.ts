@@ -36,8 +36,8 @@ export default command({
 
     ctx.spinner.start(`Scaffolding ${name}`)
 
-    ctx.logger.info(`Template: ${template}`)
-    ctx.logger.info(`Features: ${features.join(', ')}`)
+    ctx.log.info(`Template: ${template}`)
+    ctx.log.info(`Features: ${features.join(', ')}`)
 
     ctx.spinner.stop(`Created ${name}`)
   },

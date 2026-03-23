@@ -35,9 +35,9 @@ export interface CheckInput {
 }
 
 /**
- * A labeled row in a tally-style summary block.
+ * A labeled row in a summary block.
  */
-export interface TallyStat {
+export interface SummaryStat {
   /**
    * Row label (e.g. "Tests", "Duration").
    */
@@ -49,32 +49,32 @@ export interface TallyStat {
 }
 
 /**
- * Tally block: labeled rows aligned in a block.
+ * Summary block: labeled rows aligned in a block.
  *
  * ```
  *   Tests     3 passed | 2 failed (5)
  *   Duration  5.63s
  * ```
  */
-export interface TallyBlockInput {
+export interface SummaryBlockInput {
   /**
-   * Display as a multi-row tally block.
+   * Display as a multi-row summary block.
    */
   readonly style: 'tally'
   /**
    * One or more labeled stat rows.
    */
-  readonly stats: readonly TallyStat[]
+  readonly stats: readonly SummaryStat[]
 }
 
 /**
- * Tally inline: pipe-separated one-liner.
+ * Summary inline: pipe-separated one-liner.
  *
  * ```
  *   1 error | 3 warnings | 95 files | in 142ms
  * ```
  */
-export interface TallyInlineInput {
+export interface SummaryInlineInput {
   /**
    * Display as a single-line stats footer.
    */
@@ -86,9 +86,9 @@ export interface TallyInlineInput {
 }
 
 /**
- * Discriminated union for tally output.
+ * Discriminated union for summary output.
  */
-export type TallyInput = TallyBlockInput | TallyInlineInput
+export type SummaryInput = SummaryBlockInput | SummaryInlineInput
 
 /**
  * Annotation applied to a line in a code frame.

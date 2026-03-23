@@ -34,6 +34,6 @@ export default command({
 
     ctx.spinner.stop('Repo created')
 
-    ctx.logger.success(`Created ${res.data.full_name} (id: ${String(res.data.id)})`)
+    ctx.log.success(`Created ${res.data.full_name} (id: ${String(res.data.id)})`)
   },
 })

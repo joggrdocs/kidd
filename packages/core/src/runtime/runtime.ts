@@ -43,12 +43,15 @@ export async function createRuntime<TSchema extends z.ZodType>(
       const ctx = createContext({
         args: validatedArgs,
         config,
+        log: options.log,
         meta: {
           command: [...command.commandPath],
           dirs: options.dirs,
           name: options.name,
           version: options.version,
         },
+        prompts: options.prompts,
+        spinner: options.spinner,
       })
 
       const finalHandler = command.handler ?? (async () => {})

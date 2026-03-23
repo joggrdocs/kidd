@@ -138,7 +138,7 @@ async function resolveInstallStatus({
   })
 
   if (error) {
-    ctx.logger.warn(`Auto-setup failed: ${error.message}`)
+    ctx.log.warn(`Auto-setup failed: ${error.message}`)
   }
 
   return result === true

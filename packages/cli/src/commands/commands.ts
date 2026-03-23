@@ -45,11 +45,11 @@ const commandsCommand: KiddCommand = command({
     ctx.spinner.stop('Commands')
 
     if (tree.length === 0) {
-      ctx.logger.print('No commands found')
+      ctx.log.raw('No commands found')
       return
     }
 
-    ctx.logger.print(renderTree(tree))
+    ctx.log.raw(renderTree(tree))
   },
 })
 

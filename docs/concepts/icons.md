@@ -82,7 +82,7 @@ Resolve an icon name to its display string. Returns the Nerd Font glyph when fon
 export default command({
   async handler(ctx) {
     const icon = ctx.icons.get('branch')
-    ctx.logger.info(`${icon} Current branch: main`)
+    ctx.log.info(`${icon} Current branch: main`)
   },
 })
 ```
@@ -93,7 +93,7 @@ Check whether an icon name exists in the definitions (built-in or custom).
 
 ```ts
 if (ctx.icons.has('deploy')) {
-  ctx.logger.info(`${ctx.icons.get('deploy')} Deploying...`)
+  ctx.log.info(`${ctx.icons.get('deploy')} Deploying...`)
 }
 ```
 
@@ -105,8 +105,8 @@ Retrieve all resolved icons for a category as a record of name-to-glyph mappings
 const statusIcons = ctx.icons.category('status')
 // { success: '...', error: '...', warning: '...', ... }
 
-ctx.logger.info(`${statusIcons.success} Build passed`)
-ctx.logger.error(`${statusIcons.error} Tests failed`)
+ctx.log.info(`${statusIcons.success} Build passed`)
+ctx.log.error(`${statusIcons.error} Tests failed`)
 ```
 
 ### `ctx.icons.installed()`
@@ -115,7 +115,7 @@ Check whether Nerd Fonts are available. When `forceSetup` is enabled, this alway
 
 ```ts
 if (!ctx.icons.installed()) {
-  ctx.logger.warn('Nerd Fonts not detected. Icons will use emoji fallback.')
+  ctx.log.warn('Nerd Fonts not detected. Icons will use emoji fallback.')
 }
 ```
 
@@ -127,7 +127,7 @@ Interactively prompt the user to install Nerd Fonts. Returns a Result tuple with
 if (!ctx.icons.installed()) {
   const [error, result] = await ctx.icons.setup()
   if (error) {
-    ctx.logger.warn(`Font install failed: ${error.message}`)
+    ctx.log.warn(`Font install failed: ${error.message}`)
   }
 }
 ```

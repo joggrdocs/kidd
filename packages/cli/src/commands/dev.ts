@@ -46,7 +46,7 @@ export default devCommand
  * without `let` reassignment.
  *
  * @private
- * @param ctx - The command context for spinner and logger access.
+ * @param ctx - The command context for logging and spinner access.
  * @returns A callback suitable for the watch `onSuccess` parameter.
  */
 function createOnSuccess(ctx: Context): () => void {
@@ -59,6 +59,6 @@ function createOnSuccess(ctx: Context): () => void {
       return
     }
 
-    ctx.logger.success('Rebuilt successfully')
+    ctx.log.success('Rebuilt successfully')
   }
 }

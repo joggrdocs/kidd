@@ -4,9 +4,9 @@ export default command({
   description: 'Show Nerd Font detection status and all icons',
   handler: (ctx) => {
     if (ctx.icons.installed()) {
-      ctx.logger.success('Nerd Fonts detected - showing Nerd Font glyphs')
+      ctx.log.success('Nerd Fonts detected - showing Nerd Font glyphs')
     } else {
-      ctx.logger.warn('Nerd Fonts not detected - showing emoji fallbacks')
+      ctx.log.warn('Nerd Fonts not detected - showing emoji fallbacks')
     }
 
     const categories = [
@@ -17,11 +17,11 @@ export default command({
     ]
 
     const _logged = categories.map(({ label, name }) => {
-      ctx.logger.info('')
-      ctx.logger.info(label)
+      ctx.log.info('')
+      ctx.log.info(label)
       const icons = ctx.icons.category(name)
       return Object.entries(icons).map(([iconName, glyph]) =>
-        ctx.logger.info(`  ${glyph}  ${iconName}`)
+        ctx.log.info(`  ${glyph}  ${iconName}`)
       )
     })
   },

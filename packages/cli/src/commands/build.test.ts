@@ -34,24 +34,17 @@ function makeContext(argOverrides: Record<string, unknown> = {}): Context {
       throw new Error(msg)
     }) as never,
     format: { json: vi.fn(() => ''), table: vi.fn(() => '') },
-    logger: {
-      check: vi.fn(),
-      child: vi.fn(),
-      debug: vi.fn(),
+    log: {
       error: vi.fn(),
-      fatal: vi.fn(),
-      finding: vi.fn(),
       info: vi.fn(),
       intro: vi.fn(),
       message: vi.fn(),
       newline: vi.fn(),
       note: vi.fn(),
       outro: vi.fn(),
-      print: vi.fn(),
+      raw: vi.fn(),
       step: vi.fn(),
       success: vi.fn(),
-      tally: vi.fn(),
-      trace: vi.fn(),
       warn: vi.fn(),
     },
     meta: { command: ['build'], name: 'kidd', version: '0.0.0' },
@@ -229,7 +222,7 @@ describe('build command', () => {
       const mod = await import('./build.js')
       await mod.default.handler!(ctx)
 
-      const noteCall = vi.mocked(ctx.logger.note).mock.calls[0]!
+      const noteCall = vi.mocked(ctx.log.note).mock.calls[0]!
       expect(noteCall[0]).toContain('entry    dist/index.js')
       expect(noteCall[0]).toContain('output   dist')
       expect(noteCall[0]).toContain('version  1.0.0')
@@ -266,7 +259,7 @@ describe('build command', () => {
       const mod = await import('./build.js')
       await mod.default.handler!(ctx)
 
-      const mockNote = ctx.logger.note as ReturnType<typeof vi.fn>
+      const mockNote = ctx.log.note as ReturnType<typeof vi.fn>
       const binariesNote = mockNote.mock.calls.find((call) => call[1] === 'Binaries')
       expect(binariesNote).toBeDefined()
       if (!binariesNote) {

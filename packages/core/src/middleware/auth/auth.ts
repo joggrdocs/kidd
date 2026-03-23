@@ -75,7 +75,6 @@ function createAuth(options: AuthOptions): Middleware {
   return middleware((ctx, next) => {
     const cliName = ctx.meta.name
     const dirs = resolveAuthDirs(ctx.meta.dirs, authDirs)
-
     const authContext = createAuthContext({
       cliName,
       dirs,

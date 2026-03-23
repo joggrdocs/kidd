@@ -27,15 +27,15 @@ const RESULTS = [
 export default command({
   description: 'Run tests on the project (simulated)',
   handler: (ctx) => {
-    ctx.logger.info('Running tests...')
-    ctx.logger.newline()
+    ctx.log.info('Running tests...')
+    ctx.log.newline()
 
     RESULTS.reduce((_acc, result) => {
-      ctx.logger.check(result)
+      ctx.report.check(result)
       return _acc
     }, undefined)
 
-    ctx.logger.tally({
+    ctx.report.summary({
       stats: [
         {
           label: 'Tests',

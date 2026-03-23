@@ -34,27 +34,19 @@ function makeContext(argOverrides: Record<string, unknown> = {}): Context {
       throw new Error(msg)
     }) as never,
     format: { json: vi.fn(() => ''), table: vi.fn(() => '') },
-    logger: {
-      check: vi.fn(),
-      child: vi.fn(),
-      debug: vi.fn(),
+    log: {
       error: vi.fn(),
-      fatal: vi.fn(),
-      finding: vi.fn(),
       info: vi.fn(),
       intro: vi.fn(),
       message: vi.fn(),
       newline: vi.fn(),
       note: vi.fn(),
       outro: vi.fn(),
-      print: vi.fn(),
+      raw: vi.fn(),
       step: vi.fn(),
       success: vi.fn(),
-      tally: vi.fn(),
-      trace: vi.fn(),
       warn: vi.fn(),
     },
-    meta: { command: ['add', 'command'], name: 'kidd', version: '0.0.0' },
     prompts: {
       confirm: vi.fn(),
       multiselect: vi.fn(),
@@ -63,6 +55,7 @@ function makeContext(argOverrides: Record<string, unknown> = {}): Context {
       text: vi.fn(),
     },
     spinner: { message: vi.fn(), start: vi.fn(), stop: vi.fn() },
+    meta: { command: ['add', 'command'], name: 'kidd', version: '0.0.0' },
     store: { clear: vi.fn(), delete: vi.fn(), get: vi.fn(), has: vi.fn(), set: vi.fn() },
   } as unknown as Context
 }

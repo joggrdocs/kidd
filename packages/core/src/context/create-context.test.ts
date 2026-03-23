@@ -1,37 +1,8 @@
-import * as clack from '@clack/prompts'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 
 import { createContext } from './create-context.js'
 import type { ContextError } from './error.js'
 import { isContextError } from './error.js'
-
-const mockSpinnerInstance = vi.hoisted(() => ({
-  message: vi.fn(),
-  start: vi.fn(),
-  stop: vi.fn(),
-}))
-
-const mockLog = vi.hoisted(() => ({
-  error: vi.fn(),
-  info: vi.fn(),
-  message: vi.fn(),
-  step: vi.fn(),
-  success: vi.fn(),
-  warn: vi.fn(),
-}))
-
-vi.mock(import('@clack/prompts'), async (importOriginal) => ({
-  ...(await importOriginal()),
-  cancel: vi.fn(),
-  confirm: vi.fn(),
-  isCancel: vi.fn(() => false),
-  log: mockLog,
-  multiselect: vi.fn(),
-  password: vi.fn(),
-  select: vi.fn(),
-  spinner: vi.fn(() => mockSpinnerInstance),
-  text: vi.fn(),
-}))
 
 function defaultOptions(): {
   args: { name: string; verbose: boolean }
@@ -56,10 +27,6 @@ function defaultOptions(): {
 }
 
 describe('createContext()', () => {
-  beforeEach(() => {
-    vi.clearAllMocks()
-  })
-
   // ---------------------------------------------------------------------------
   // Args, config
   // ---------------------------------------------------------------------------
@@ -97,63 +64,6 @@ describe('createContext()', () => {
     it('has the correct command path', () => {
       const ctx = createContext(defaultOptions())
       expect(ctx.meta.command).toEqual(['deploy', 'preview'])
-    })
-  })
-
-  // ---------------------------------------------------------------------------
-  // Logger
-  // ---------------------------------------------------------------------------
-
-  describe('logger', () => {
-    it('uses the provided logger when given', () => {
-      const customLogger = {
-        check: vi.fn(),
-        error: vi.fn(),
-        finding: vi.fn(),
-        info: vi.fn(),
-        intro: vi.fn(),
-        message: vi.fn(),
-        newline: vi.fn(),
-        note: vi.fn(),
-        outro: vi.fn(),
-        print: vi.fn(),
-        step: vi.fn(),
-        success: vi.fn(),
-        tally: vi.fn(),
-        warn: vi.fn(),
-      }
-      const ctx = createContext({ ...defaultOptions(), logger: customLogger })
-      expect(ctx.logger).toBe(customLogger)
-    })
-
-    it('delegates error to clack log.error', () => {
-      const ctx = createContext(defaultOptions())
-      ctx.logger.error('test error')
-      expect(mockLog.error).toHaveBeenCalledWith('test error')
-    })
-
-    it('delegates warn to clack log.warn', () => {
-      const ctx = createContext(defaultOptions())
-      ctx.logger.warn('test warn')
-      expect(mockLog.warn).toHaveBeenCalledWith('test warn')
-    })
-
-    it('delegates info to clack log.info', () => {
-      const ctx = createContext(defaultOptions())
-      ctx.logger.info('test info')
-      expect(mockLog.info).toHaveBeenCalledWith('test info')
-    })
-
-    it('delegates success to clack log.success', () => {
-      const ctx = createContext(defaultOptions())
-      ctx.logger.success('test success')
-      expect(mockLog.success).toHaveBeenCalledWith('test success')
-    })
-
-    it('delegates step to clack log.step', () => {
-      const ctx = createContext(defaultOptions())
-      ctx.logger.step('test step')
-      expect(mockLog.step).toHaveBeenCalledWith('test step')
     })
   })
 
@@ -327,152 +237,6 @@ describe('createContext()', () => {
         const result = ctx.format.table([])
         expect(result).toBe('')
       })
-    })
-  })
-
-  // ---------------------------------------------------------------------------
-  // Spinner
-  // ---------------------------------------------------------------------------
-
-  // ---------------------------------------------------------------------------
-  // Prompts
-  // ---------------------------------------------------------------------------
-
-  describe('prompts', () => {
-    describe('confirm()', () => {
-      it('returns the confirmed value', async () => {
-        vi.mocked(clack.confirm).mockResolvedValue(true)
-        vi.mocked(clack.isCancel).mockReturnValue(false)
-        const ctx = createContext(defaultOptions())
-        const result = await ctx.prompts.confirm({ message: 'Continue?' })
-        expect(result).toBeTruthy()
-      })
-
-      it('throws ContextError on cancel', async () => {
-        const cancelSymbol = Symbol('cancel')
-        vi.mocked(clack.confirm).mockResolvedValue(cancelSymbol as unknown as boolean)
-        vi.mocked(clack.isCancel).mockReturnValue(true)
-        const ctx = createContext(defaultOptions())
-        await expect(ctx.prompts.confirm({ message: 'Continue?' })).rejects.toThrow()
-      })
-    })
-
-    describe('text()', () => {
-      it('returns the entered text', async () => {
-        vi.mocked(clack.text).mockResolvedValue('hello')
-        vi.mocked(clack.isCancel).mockReturnValue(false)
-        const ctx = createContext(defaultOptions())
-        const result = await ctx.prompts.text({ message: 'Enter text' })
-        expect(result).toBe('hello')
-      })
-
-      it('throws ContextError on cancel', async () => {
-        const cancelSymbol = Symbol('cancel')
-        vi.mocked(clack.text).mockResolvedValue(cancelSymbol as unknown as string)
-        vi.mocked(clack.isCancel).mockReturnValue(true)
-        const ctx = createContext(defaultOptions())
-        await expect(ctx.prompts.text({ message: 'Enter text' })).rejects.toThrow()
-      })
-    })
-
-    describe('select()', () => {
-      it('returns the selected value', async () => {
-        vi.mocked(clack.select).mockResolvedValue('option-a')
-        vi.mocked(clack.isCancel).mockReturnValue(false)
-        const ctx = createContext(defaultOptions())
-        const result = await ctx.prompts.select({
-          message: 'Pick one',
-          options: [{ label: 'Option A', value: 'option-a' }],
-        })
-        expect(result).toBe('option-a')
-      })
-
-      it('throws ContextError on cancel', async () => {
-        const cancelSymbol = Symbol('cancel')
-        vi.mocked(clack.select).mockResolvedValue(cancelSymbol)
-        vi.mocked(clack.isCancel).mockReturnValue(true)
-        const ctx = createContext(defaultOptions())
-        await expect(
-          ctx.prompts.select({
-            message: 'Pick one',
-            options: [{ label: 'A', value: 'a' }],
-          })
-        ).rejects.toThrow()
-      })
-    })
-
-    describe('multiselect()', () => {
-      it('returns the selected values', async () => {
-        vi.mocked(clack.multiselect).mockResolvedValue(['a', 'b'])
-        vi.mocked(clack.isCancel).mockReturnValue(false)
-        const ctx = createContext(defaultOptions())
-        const result = await ctx.prompts.multiselect({
-          message: 'Pick many',
-          options: [
-            { label: 'A', value: 'a' },
-            { label: 'B', value: 'b' },
-          ],
-        })
-        expect(result).toEqual(['a', 'b'])
-      })
-
-      it('throws ContextError on cancel', async () => {
-        const cancelSymbol = Symbol('cancel')
-        vi.mocked(clack.multiselect).mockResolvedValue(cancelSymbol as unknown as string[])
-        vi.mocked(clack.isCancel).mockReturnValue(true)
-        const ctx = createContext(defaultOptions())
-        await expect(
-          ctx.prompts.multiselect({
-            message: 'Pick many',
-            options: [{ label: 'A', value: 'a' }],
-          })
-        ).rejects.toThrow()
-      })
-    })
-
-    describe('password()', () => {
-      it('returns the entered password', async () => {
-        vi.mocked(clack.password).mockResolvedValue('secret123')
-        vi.mocked(clack.isCancel).mockReturnValue(false)
-        const ctx = createContext(defaultOptions())
-        const result = await ctx.prompts.password({ message: 'Enter password' })
-        expect(result).toBe('secret123')
-      })
-
-      it('throws ContextError on cancel', async () => {
-        const cancelSymbol = Symbol('cancel')
-        vi.mocked(clack.password).mockResolvedValue(cancelSymbol as unknown as string)
-        vi.mocked(clack.isCancel).mockReturnValue(true)
-        const ctx = createContext(defaultOptions())
-        await expect(ctx.prompts.password({ message: 'Enter password' })).rejects.toThrow()
-      })
-    })
-
-    it('calls clack.cancel when user cancels a prompt', async () => {
-      const cancelSymbol = Symbol('cancel')
-      vi.mocked(clack.text).mockResolvedValue(cancelSymbol as unknown as string)
-      vi.mocked(clack.isCancel).mockReturnValue(true)
-      const ctx = createContext(defaultOptions())
-      try {
-        await ctx.prompts.text({ message: 'test' })
-      } catch {
-        // Expected
-      }
-      expect(clack.cancel).toHaveBeenCalledWith('Operation cancelled.')
-    })
-
-    it('cancel error has code PROMPT_CANCELLED', async () => {
-      const cancelSymbol = Symbol('cancel')
-      vi.mocked(clack.text).mockResolvedValue(cancelSymbol as unknown as string)
-      vi.mocked(clack.isCancel).mockReturnValue(true)
-      const ctx = createContext(defaultOptions())
-      try {
-        await ctx.prompts.text({ message: 'test' })
-        expect.unreachable('should have thrown')
-      } catch (error) {
-        expect(isContextError(error)).toBeTruthy()
-        expect((error as ContextError).code).toBe('PROMPT_CANCELLED')
-      }
     })
   })
 })

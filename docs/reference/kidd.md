@@ -16,7 +16,7 @@ const deploy = command({
     dryRun: z.boolean().default(false).describe('Preview without applying'),
   }),
   async handler(ctx) {
-    ctx.logger.info(`Deploying to ${ctx.args.env}`)
+    ctx.log.info(`Deploying to ${ctx.args.env}`)
   },
 })
 ```
@@ -38,7 +38,7 @@ const deploy = command({
     dryRun: { type: 'boolean', description: 'Preview without applying', default: false },
   },
   async handler(ctx) {
-    ctx.logger.info(`Deploying to ${ctx.args.env}`)
+    ctx.log.info(`Deploying to ${ctx.args.env}`)
   },
 })
 ```
@@ -107,7 +107,7 @@ Middleware runs before command handlers. It receives the context and a `next` fu
 const timing = middleware(async (ctx, next) => {
   const start = Date.now()
   await next()
-  ctx.logger.info(`Completed in ${Date.now() - start}ms`)
+  ctx.log.info(`Completed in ${Date.now() - start}ms`)
 })
 ```
 
@@ -166,8 +166,8 @@ The `Context` object is threaded through every handler and middleware. See [Cont
 | --------- | ----------------------------------------- | ------------------------------------------------------------------ |
 | `args`    | `DeepReadonly<Merge<KiddArgs, TArgs>>`    | Parsed and validated command args                                  |
 | `config`  | `DeepReadonly<Merge<CliConfig, TConfig>>` | Validated runtime config                                           |
-| `logger`  | `CliLogger`                               | Structured terminal logger + styled output (check, finding, tally) |
-| `prompts` | `Prompts`                                 | Interactive prompts (confirm, text, select, multiselect, password) |
+| `log`     | `Log`                                     | Logging methods (info, success, error, warn, etc.)                 |
+| `prompts` | `Prompts`                                 | Interactive prompts (confirm, text, select, etc.)                  |
 | `spinner` | `Spinner`                                 | Spinner for long-running operations (start, stop, message)         |
 | `colors`  | `Colors`                                  | Color formatting utilities (picocolors)                            |
 | `format`  | `Format`                                  | Pure string formatters (json, table) — no I/O                      |
@@ -261,13 +261,15 @@ Returns the same `ctx` reference with the new property attached.
 
 | Export                   | Purpose                                                                                                                                               |
 | ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `@kidd-cli/core/logger`  | Structured terminal logger (`createCliLogger`, `cliLogger`)                                                                                           |
 | `@kidd-cli/core/config`  | Config loading and validation (`createConfigClient`)                                                                                                  |
 | `@kidd-cli/core/store`   | File-backed JSON store (`createStore`)                                                                                                                |
 | `@kidd-cli/core/project` | Git root resolution, path utilities (`findProjectRoot`, `isInSubmodule`, `getParentRepoRoot`, `resolvePath`, `resolveLocalPath`, `resolveGlobalPath`) |
 | `@kidd-cli/core/format`  | Standalone format functions (`formatCheck`, `formatFinding`, `formatCodeFrame`, `formatTally`, `formatDuration`)                                      |
 | `@kidd-cli/core/auth`    | Auth middleware, credential types, strategies (`auth`)                                                                                                |
 | `@kidd-cli/core/http`    | Typed HTTP client middleware (`http`, `createHttpClient`)                                                                                             |
+| `@kidd-cli/core/icons`   | Icon set middleware (`icons`)                                                                                                                         |
+| `@kidd-cli/core/report`  | Structured reporting middleware (`report`, `createReport`)                                                                                            |
+| `@kidd-cli/core/test`    | Test utilities (`createTestContext`, `mockLog`, `mockPrompts`, `mockSpinner`)                                                                         |
 
 ## Resources
 

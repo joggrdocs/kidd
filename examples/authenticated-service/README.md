@@ -145,5 +145,5 @@ The `auth({ http })` pattern creates an HTTP client that automatically injects t
 
 ```ts
 const res = await ctx.api.get<User>('/user')
-ctx.logger.info(res.data.login)
+ctx.log.info(res.data.login)
 ```

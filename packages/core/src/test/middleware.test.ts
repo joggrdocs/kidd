@@ -9,7 +9,7 @@ import { runMiddleware } from './middleware.js'
 describe('run middleware utility', () => {
   it('should execute a single middleware', async () => {
     const mw = middleware(async (ctx, next) => {
-      ctx.logger.print('middleware ran')
+      ctx.log.raw('middleware ran')
       await next()
     })
 
@@ -19,12 +19,12 @@ describe('run middleware utility', () => {
 
   it('should execute middleware in order', async () => {
     const first = middleware(async (ctx, next) => {
-      ctx.logger.print('first')
+      ctx.log.raw('first')
       await next()
     })
 
     const second = middleware(async (ctx, next) => {
-      ctx.logger.print('second')
+      ctx.log.raw('second')
       await next()
     })
 
@@ -50,7 +50,7 @@ describe('run middleware utility', () => {
 
   it('should accept context overrides', async () => {
     const mw = middleware(async (ctx, next) => {
-      ctx.logger.print(`name=${ctx.args.name}`)
+      ctx.log.raw(`name=${ctx.args.name}`)
       await next()
     })
 
@@ -67,7 +67,7 @@ describe('run middleware utility', () => {
     })
 
     const second = middleware(async (ctx, next) => {
-      ctx.logger.print('should not run')
+      ctx.log.raw('should not run')
       await next()
     })
 

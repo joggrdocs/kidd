@@ -29,24 +29,17 @@ function makeContext(): Context {
       throw new Error(msg)
     }) as never,
     format: { json: vi.fn(() => ''), table: vi.fn(() => '') },
-    logger: {
-      check: vi.fn(),
-      child: vi.fn(),
-      debug: vi.fn(),
+    log: {
       error: vi.fn(),
-      fatal: vi.fn(),
-      finding: vi.fn(),
       info: vi.fn(),
       intro: vi.fn(),
       message: vi.fn(),
       newline: vi.fn(),
       note: vi.fn(),
       outro: vi.fn(),
-      print: vi.fn(),
+      raw: vi.fn(),
       step: vi.fn(),
       success: vi.fn(),
-      tally: vi.fn(),
-      trace: vi.fn(),
       warn: vi.fn(),
     },
     meta: { command: ['commands'], name: 'kidd', version: '0.0.0' },
@@ -86,7 +79,7 @@ describe('commands command', () => {
     const mod = await import('./commands.js')
     await mod.default.handler!(ctx)
 
-    expect(ctx.logger.print).toHaveBeenCalledWith('No commands found')
+    expect(ctx.log.raw).toHaveBeenCalledWith('No commands found')
   })
 
   it('should render single command with description', async () => {
@@ -100,7 +93,7 @@ describe('commands command', () => {
     const mod = await import('./commands.js')
     await mod.default.handler!(ctx)
 
-    expect(ctx.logger.print).toHaveBeenCalledWith('└── deploy — Deploy the app')
+    expect(ctx.log.raw).toHaveBeenCalledWith('└── deploy — Deploy the app')
   })
 
   it('should render command without description', async () => {
@@ -114,7 +107,7 @@ describe('commands command', () => {
     const mod = await import('./commands.js')
     await mod.default.handler!(ctx)
 
-    expect(ctx.logger.print).toHaveBeenCalledWith('└── build')
+    expect(ctx.log.raw).toHaveBeenCalledWith('└── build')
   })
 
   it('should render multiple commands sorted alphabetically', async () => {
@@ -131,7 +124,7 @@ describe('commands command', () => {
     await mod.default.handler!(ctx)
 
     const expected = ['├── add — Add', '├── build — Build', '└── deploy — Deploy'].join('\n')
-    expect(ctx.logger.print).toHaveBeenCalledWith(expected)
+    expect(ctx.log.raw).toHaveBeenCalledWith(expected)
   })
 
   it('should use continuation connector for non-final entries', async () => {
@@ -146,7 +139,7 @@ describe('commands command', () => {
     const mod = await import('./commands.js')
     await mod.default.handler!(ctx)
 
-    const output = vi.mocked(ctx.logger.print).mock.calls[0]![0] as string
+    const output = vi.mocked(ctx.log.raw).mock.calls[0]![0] as string
     expect(output).toContain('├── alpha')
   })
 
@@ -162,7 +155,7 @@ describe('commands command', () => {
     const mod = await import('./commands.js')
     await mod.default.handler!(ctx)
 
-    const output = vi.mocked(ctx.logger.print).mock.calls[0]![0] as string
+    const output = vi.mocked(ctx.log.raw).mock.calls[0]![0] as string
     expect(output).toContain('└── beta')
   })
 
@@ -188,7 +181,7 @@ describe('commands command', () => {
       '    ├── child1 — Child one',
       '    └── child2 — Child two',
     ].join('\n')
-    expect(ctx.logger.print).toHaveBeenCalledWith(expected)
+    expect(ctx.log.raw).toHaveBeenCalledWith(expected)
   })
 
   it('should handle deeply nested commands with three levels', async () => {
@@ -215,7 +208,7 @@ describe('commands command', () => {
     const expected = ['└── root — Root', '    └── mid — Middle', '        └── leaf — Leaf'].join(
       '\n'
     )
-    expect(ctx.logger.print).toHaveBeenCalledWith(expected)
+    expect(ctx.log.raw).toHaveBeenCalledWith(expected)
   })
 
   it('should use config commands directory when available', async () => {
@@ -253,7 +246,7 @@ describe('commands command', () => {
     const mod = await import('./commands.js')
     await mod.default.handler!(ctx)
 
-    expect(ctx.logger.print).toHaveBeenCalledWith('No commands found')
+    expect(ctx.log.raw).toHaveBeenCalledWith('No commands found')
   })
 
   it('should render sibling and nested commands with correct prefixes', async () => {
@@ -274,7 +267,7 @@ describe('commands command', () => {
     await mod.default.handler!(ctx)
 
     const expected = ['├── alpha — Alpha', '│   └── sub — Sub', '└── beta — Beta'].join('\n')
-    expect(ctx.logger.print).toHaveBeenCalledWith(expected)
+    expect(ctx.log.raw).toHaveBeenCalledWith(expected)
   })
 
   it('should respect subcommand order when specified', async () => {
@@ -302,7 +295,7 @@ describe('commands command', () => {
       '    ├── preview — Preview deploy',
       '    └── staging — Staging deploy',
     ].join('\n')
-    expect(ctx.logger.print).toHaveBeenCalledWith(expected)
+    expect(ctx.log.raw).toHaveBeenCalledWith(expected)
   })
 
   it('should warn and skip unknown names in order array', async () => {
@@ -329,7 +322,7 @@ describe('commands command', () => {
     const expected = ['└── parent — Parent', '    ├── alpha — Alpha', '    └── beta — Beta'].join(
       '\n'
     )
-    expect(ctx.logger.print).toHaveBeenCalledWith(expected)
+    expect(ctx.log.raw).toHaveBeenCalledWith(expected)
     warnSpy.mockRestore()
   })
 
@@ -357,7 +350,7 @@ describe('commands command', () => {
     const expected = ['└── parent — Parent', '    ├── beta — Beta', '    └── alpha — Alpha'].join(
       '\n'
     )
-    expect(ctx.logger.print).toHaveBeenCalledWith(expected)
+    expect(ctx.log.raw).toHaveBeenCalledWith(expected)
     warnSpy.mockRestore()
   })
 })

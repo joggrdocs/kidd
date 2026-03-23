@@ -30,10 +30,6 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
-    "./logger": {
-      "types": "./dist/lib/logger.d.ts",
-      "default": "./dist/lib/logger.js"
-    },
     "./config": {
       "types": "./dist/lib/config.d.ts",
       "default": "./dist/lib/config.js"
@@ -61,6 +57,10 @@
     "./icons": {
       "types": "./dist/middleware/icons.d.ts",
       "default": "./dist/middleware/icons.js"
+    },
+    "./report": {
+      "types": "./dist/middleware/report.d.ts",
+      "default": "./dist/middleware/report.js"
     },
     "./test": {
       "types": "./dist/test/index.d.ts",

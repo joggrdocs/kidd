@@ -52,13 +52,13 @@ const addConfigCommand: Command = command({
     ]
     const summary = lines.join('\n')
     if (summary.length > 0) {
-      ctx.logger.print(summary)
+      ctx.log.raw(summary)
     }
 
-    ctx.logger.newline()
-    ctx.logger.print('Next steps:')
-    ctx.logger.print('  1. Add fields to the config schema in src/config.ts')
-    ctx.logger.print('  2. Import and pass the schema to cli({ config: { schema: configSchema } })')
+    ctx.log.newline()
+    ctx.log.raw('Next steps:')
+    ctx.log.raw('  1. Add fields to the config schema in src/config.ts')
+    ctx.log.raw('  2. Import and pass the schema to cli({ config: { schema: configSchema } })')
   },
 })
 

@@ -9,6 +9,9 @@
 
 export {
   Box,
+  kittyFlags,
+  kittyModifiers,
+  measureElement,
   Newline,
   render,
   Spacer,
@@ -20,18 +23,26 @@ export {
   useFocus,
   useFocusManager,
   useInput,
+  useIsScreenReaderEnabled,
   useStderr,
   useStdin,
   useStdout,
 } from 'ink'
 export type {
+  AppProps,
   BoxProps,
+  CursorPosition,
   DOMElement,
   Instance,
   Key,
+  KittyFlagName,
+  KittyKeyboardOptions,
   NewlineProps,
   RenderOptions,
   StaticProps,
+  StderrProps,
+  StdinProps,
+  StdoutProps,
   TextProps,
   TransformProps,
 } from 'ink'

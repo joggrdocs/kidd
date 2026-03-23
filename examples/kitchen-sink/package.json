@@ -9,16 +9,16 @@
     "typecheck": "tsgo --noEmit"
   },
   "dependencies": {
-    "@inkjs/ui": ">=2.0.0",
+    "@inkjs/ui": "^2.0.0",
     "@kidd-cli/core": "workspace:*",
-    "ink": ">=5.0.0",
-    "react": ">=19.0.0",
+    "ink": "^6.8.0",
+    "react": "^19.2.4",
     "ts-pattern": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {
     "@kidd-cli/cli": "workspace:*",
-    "@types/react": "^19.0.0",
+    "@types/react": "^19.2.14",
     "tsdown": "catalog:",
     "tsx": "catalog:",
     "typescript": "catalog:"

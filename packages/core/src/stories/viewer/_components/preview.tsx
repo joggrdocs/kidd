@@ -1,5 +1,6 @@
 import { Box, Text } from 'ink'
 import type { ComponentType, ReactElement } from 'react'
+import { useMemo } from 'react'
 
 import type { Decorator, Story } from '../../types.js'
 import { EmptyState } from './empty-state.js'
@@ -34,9 +35,10 @@ export function Preview({ story, currentProps }: PreviewProps): ReactElement {
     return <EmptyState />
   }
 
-  const DecoratedComponent = applyDecorators(
-    story.component as ComponentType<Record<string, unknown>>,
-    story.decorators
+  const DecoratedComponent = useMemo(
+    () =>
+      applyDecorators(story.component as ComponentType<Record<string, unknown>>, story.decorators),
+    [story.component, story.decorators]
   )
 
   return (
@@ -45,7 +47,7 @@ export function Preview({ story, currentProps }: PreviewProps): ReactElement {
         <Text bold>{story.name}</Text>
         <StoryDescription description={story.description} />
       </Box>
-      <ErrorBoundary>
+      <ErrorBoundary key={story.name}>
         <DecoratedComponent {...currentProps} />
       </ErrorBoundary>
     </Box>

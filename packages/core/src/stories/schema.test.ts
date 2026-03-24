@@ -54,11 +54,12 @@ describe('schemaToFieldDescriptors()', () => {
     expect(field).toMatchObject({ name: 'tags', control: 'json', zodTypeName: 'array' })
   })
 
-  it('should map z.array(z.enum()) to a multiselect control', () => {
+  it('should map z.array(z.enum()) to a multiselect control with options', () => {
     const schema = z.object({ roles: z.array(z.enum(['admin', 'user'])) })
     const [field] = schemaToFieldDescriptors(schema)
 
     expect(field).toMatchObject({ name: 'roles', control: 'multiselect', zodTypeName: 'array' })
+    expect(field.options).toEqual(['admin', 'user'])
   })
 
   it('should mark optional fields with isOptional true', () => {

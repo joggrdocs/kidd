@@ -161,13 +161,40 @@ function resolveDefaultValue(value: unknown, fallback: unknown): unknown {
  */
 function extractOptions(typeName: string, def: ZodDef): readonly string[] | undefined {
   return match(typeName)
-    .with('enum', 'nativeEnum', () => {
-      if (def.entries) {
-        return Object.values(def.entries).map(String)
-      }
-      return undefined
-    })
+    .with('enum', 'nativeEnum', () => extractEnumEntries(def))
+    .with('array', () => extractArrayElementOptions(def))
     .otherwise(() => undefined)
+}
+
+/**
+ * Extract enum entries from a Zod enum or nativeEnum definition.
+ *
+ * @private
+ * @param def - The Zod definition to inspect.
+ * @returns An array of string options, or undefined.
+ */
+function extractEnumEntries(def: ZodDef): readonly string[] | undefined {
+  if (def.entries) {
+    return Object.values(def.entries).map(String)
+  }
+  return undefined
+}
+
+/**
+ * Extract options from an array element type when the element is an enum.
+ *
+ * @private
+ * @param def - The Zod array definition to inspect.
+ * @returns An array of string options, or undefined.
+ */
+function extractArrayElementOptions(def: ZodDef): readonly string[] | undefined {
+  if (def.element) {
+    const elementDef = (def.element as { _def: ZodDef })._def
+    if (elementDef.type === 'enum' || elementDef.type === 'nativeEnum') {
+      return extractEnumEntries(elementDef)
+    }
+  }
+  return undefined
 }
 
 /**

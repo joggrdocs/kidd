@@ -4,6 +4,7 @@ import type { ReactElement } from 'react'
 import { match } from 'ts-pattern'
 
 import { ConfirmInput } from '../../../ui/confirm.js'
+import { MultiSelect } from '../../../ui/multi-select.js'
 import { Select } from '../../../ui/select.js'
 import { TextInput } from '../../../ui/text-input.js'
 import type { FieldControlKind } from '../../types.js'
@@ -75,9 +76,14 @@ export function FieldControl({
     })
     .with('multiselect', () => {
       const selectOptions = buildSelectOptions(options)
+      const defaultSelected = toStringArray(value)
       return (
         <Box flexDirection="column">
-          <Select options={selectOptions} onChange={(selected) => onChange([selected])} />
+          <MultiSelect
+            options={selectOptions}
+            defaultValue={defaultSelected}
+            onSubmit={(selectedValues) => onChange(selectedValues)}
+          />
           <Text dimColor>(current: {JSON.stringify(value)})</Text>
         </Box>
       )
@@ -154,6 +160,21 @@ function buildSelectOptions(options: readonly string[] | undefined): Option[] {
     return []
   }
   return options.map((opt) => ({ label: opt, value: opt }))
+}
+
+/**
+ * Coerce a value into a string array. Returns an empty array when
+ * the value is not an array.
+ *
+ * @private
+ * @param value - The value to coerce.
+ * @returns A string array.
+ */
+function toStringArray(value: unknown): string[] {
+  if (Array.isArray(value)) {
+    return value.map(String)
+  }
+  return []
 }
 
 /**

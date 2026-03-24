@@ -1,5 +1,5 @@
 {
-  "name": "@examples/kitchen-sink",
+  "name": "@examples/tui",
   "version": "0.0.0",
   "private": true,
   "type": "module",

@@ -1,4 +1,13 @@
-import { Box, screen, Select, Text, TextInput, useApp, useInput } from '@kidd-cli/core/ui'
+import {
+  Box,
+  screen,
+  Select,
+  Text,
+  TextInput,
+  useApp,
+  useFullScreen,
+  useInput,
+} from '@kidd-cli/core/ui'
 import React, { useState } from 'react'
 import { match } from 'ts-pattern'
 
@@ -75,9 +84,10 @@ function LogLevel({ level }: { readonly level: LogEntry['level'] }): React.React
 }
 
 /**
- * Status bar showing keyboard hints at the bottom.
+ * Status bar showing keyboard hints and terminal dimensions at the bottom.
  */
 function StatusBar({ view }: { readonly view: View }): React.ReactElement {
+  const { columns, rows } = useFullScreen()
   const hint = match(view)
     .with('menu', () => 'arrows: navigate | enter: select')
     .with('tasks', () => 'arrows: navigate | enter: select | b: back')
@@ -86,8 +96,11 @@ function StatusBar({ view }: { readonly view: View }): React.ReactElement {
     .exhaustive()
 
   return (
-    <Box borderStyle="single" borderColor="gray" paddingX={1}>
+    <Box borderStyle="single" borderColor="gray" paddingX={1} justifyContent="space-between">
       <Text color="gray">{hint} | q: quit</Text>
+      <Text color="gray">
+        {columns}x{rows}
+      </Text>
     </Box>
   )
 }
@@ -250,5 +263,6 @@ function Dashboard(): React.ReactElement {
  */
 export default screen({
   description: 'Launch an interactive dashboard with tasks, logs, and settings',
+  fullscreen: true,
   render: Dashboard,
 })

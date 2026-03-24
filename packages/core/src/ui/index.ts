@@ -13,7 +13,6 @@ export {
   kittyModifiers,
   measureElement,
   Newline,
-  render,
   Spacer,
   Static,
   Text,
@@ -33,12 +32,10 @@ export type {
   BoxProps,
   CursorPosition,
   DOMElement,
-  Instance,
   Key,
   KittyFlagName,
   KittyKeyboardOptions,
   NewlineProps,
-  RenderOptions,
   StaticProps,
   StderrProps,
   StdinProps,
@@ -67,9 +64,7 @@ export type { TextInputProps } from './text-input.js'
 
 export type { Option } from '@inkjs/ui'
 
-export { KiddProvider } from './provider.js'
-export type { KiddProviderProps } from './provider.js'
-export { useConfig, useMeta, useStore } from './provider.js'
+export { useCommandContext } from './provider.js'
 
 export { screen } from './screen.js'
-export type { ScreenDef, ScreenExit, ScreenRenderProps } from './screen.js'
+export type { ScreenDef, ScreenExit } from './screen.js'

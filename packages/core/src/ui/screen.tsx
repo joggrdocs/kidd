@@ -2,7 +2,7 @@ import { withTag } from '@kidd-cli/utils/tag'
 import type { ComponentType } from 'react'
 import React from 'react'
 
-import type { Meta, Store } from '../context/types.js'
+import type { Context } from '../context/types.js'
 import type { ArgsDef, Command, InferArgsMerged, Resolvable } from '../types/index.js'
 import { KiddProvider } from './provider.js'
 
@@ -80,21 +80,11 @@ export interface ScreenDef<
 }
 
 /**
- * Props passed internally to the screen render function by the runtime.
- */
-export interface ScreenRenderProps {
-  readonly args: Record<string, unknown>
-  readonly config: Readonly<Record<string, unknown>>
-  readonly meta: Readonly<Meta>
-  readonly store: Store
-}
-
-/**
  * Define a screen command that renders a React/Ink TUI.
  *
  * The `render` property accepts a React component that receives the
- * parsed args as props. Runtime context (config, meta, store) is
- * available via hooks: `useConfig()`, `useMeta()`, `useStore()`.
+ * parsed args as props. The full command context — including any
+ * middleware-decorated properties — is available via `useCommandContext()`.
  *
  * @param def - Screen definition including description, options, exit behavior, and render component.
  * @returns A tagged Command object compatible with the kidd autoloader and command map.
@@ -106,12 +96,12 @@ export function screen<
   const exitMode = def.exit ?? 'manual'
   const ScreenComponent = def.render as ComponentType<Record<string, unknown>>
 
-  const renderFn = async (props: ScreenRenderProps): Promise<void> => {
+  const renderFn = async (ctx: Context): Promise<void> => {
     const { render: inkRender } = await import('ink')
 
     const instance = inkRender(
-      <KiddProvider value={{ config: props.config, meta: props.meta, store: props.store }}>
-        <ScreenComponent {...props.args} />
+      <KiddProvider value={ctx}>
+        <ScreenComponent {...ctx.args} />
       </KiddProvider>
     )
 

@@ -308,32 +308,11 @@ describe('createRuntime()', () => {
       expect(renderFn).toHaveBeenCalledOnce()
     })
 
-    it('should pass args, config, meta, and store to render', async () => {
-      const validatedArgs = { env: 'staging', verbose: true }
-      const expectedMeta = {
-        command: ['deploy'],
-        dirs: { global: '.my-cli', local: '.my-cli' },
-        name: 'my-cli',
-        version: '2.0.0',
-      }
-      const fakeStore = {
-        clear: vi.fn(),
-        delete: vi.fn(),
-        get: vi.fn(),
-        has: vi.fn(),
-        set: vi.fn(),
-      }
+    it('should pass the full context to render', async () => {
+      const fakeContext = { args: { env: 'staging' }, mock: 'context' } as unknown as Context
 
       setupDefaults()
-      mockedCreateArgsParser.mockReturnValue({
-        parse: vi.fn().mockReturnValue([null, validatedArgs]),
-      })
-      mockedCreateContext.mockReturnValue({
-        args: validatedArgs,
-        config: {},
-        meta: expectedMeta,
-        store: fakeStore,
-      } as unknown as Context)
+      mockedCreateContext.mockReturnValue(fakeContext)
 
       const renderFn = vi.fn().mockResolvedValue(undefined)
 
@@ -351,12 +330,7 @@ describe('createRuntime()', () => {
       })
       await runtime!.execute(execution)
 
-      expect(renderFn).toHaveBeenCalledWith({
-        args: validatedArgs,
-        config: {},
-        meta: expectedMeta,
-        store: fakeStore,
-      })
+      expect(renderFn).toHaveBeenCalledWith(fakeContext)
     })
 
     it('should skip middleware runner when render is present', async () => {

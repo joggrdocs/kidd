@@ -2,9 +2,9 @@ import { hasTag } from '@kidd-cli/utils/tag'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { z } from 'zod'
 
-import type { Store } from '../context/types.js'
+import type { Context, Store } from '../context/types.js'
 
-vi.mock('ink', () => ({
+vi.mock(import('ink'), () => ({
   render: vi.fn(() => ({
     unmount: vi.fn(),
     waitUntilExit: vi.fn().mockResolvedValue(undefined),
@@ -35,6 +35,24 @@ const baseMeta = Object.freeze({
   name: 'test-cli',
   version: '1.0.0',
 })
+
+function makeContext(overrides?: Partial<Context>): Context {
+  return {
+    args: {},
+    colors: {} as Context['colors'],
+    config: {},
+    fail: () => {
+      throw new Error('fail')
+    },
+    format: {} as Context['format'],
+    log: {} as Context['log'],
+    meta: baseMeta,
+    prompts: {} as Context['prompts'],
+    spinner: {} as Context['spinner'],
+    store: makeStore(),
+    ...overrides,
+  } as Context
+}
 
 describe('screen()', () => {
   beforeEach(() => {
@@ -134,7 +152,7 @@ describe('screen() render function', () => {
     const { screen } = await import('./screen.js')
     const cmd = screen({ render: StubComponent })
 
-    await cmd.render!({ args: {}, config: {}, meta: baseMeta, store: makeStore() })
+    await cmd.render!(makeContext())
 
     expect(mockedInkRender).toHaveBeenCalledOnce()
   })
@@ -144,23 +162,22 @@ describe('screen() render function', () => {
     const cmd = screen({ render: StubComponent })
     const args = { env: 'production', verbose: true }
 
-    await cmd.render!({ args, config: {}, meta: baseMeta, store: makeStore() })
+    await cmd.render!(makeContext({ args }))
 
     const rendered = mockedInkRender.mock.calls[0]![0] as React.ReactElement
     const providerChildren = rendered.props.children as React.ReactElement
     expect(providerChildren.props).toMatchObject(args)
   })
 
-  it('should wrap component in KiddProvider with config, meta, and store', async () => {
+  it('should wrap component in KiddProvider with the full context', async () => {
     const { screen } = await import('./screen.js')
     const cmd = screen({ render: StubComponent })
-    const config = { debug: true }
-    const store = makeStore()
+    const ctx = makeContext({ config: { debug: true } })
 
-    await cmd.render!({ args: {}, config, meta: baseMeta, store })
+    await cmd.render!(ctx)
 
     const rendered = mockedInkRender.mock.calls[0]![0] as React.ReactElement
-    expect(rendered.props.value).toMatchObject({ config, meta: baseMeta, store })
+    expect(rendered.props.value).toBe(ctx)
   })
 
   it('should wait until exit', async () => {
@@ -173,7 +190,7 @@ describe('screen() render function', () => {
     const { screen } = await import('./screen.js')
     const cmd = screen({ render: StubComponent })
 
-    await cmd.render!({ args: {}, config: {}, meta: baseMeta, store: makeStore() })
+    await cmd.render!(makeContext())
 
     expect(waitUntilExit).toHaveBeenCalledOnce()
   })
@@ -188,7 +205,7 @@ describe('screen() render function', () => {
     const { screen } = await import('./screen.js')
     const cmd = screen({ render: StubComponent })
 
-    await cmd.render!({ args: {}, config: {}, meta: baseMeta, store: makeStore() })
+    await cmd.render!(makeContext())
 
     expect(unmount).not.toHaveBeenCalled()
   })
@@ -204,7 +221,7 @@ describe('screen() render function', () => {
     const { screen } = await import('./screen.js')
     const cmd = screen({ exit: 'auto', render: StubComponent })
 
-    const renderPromise = cmd.render!({ args: {}, config: {}, meta: baseMeta, store: makeStore() })
+    const renderPromise = cmd.render!(makeContext())
 
     // Flush microtasks (dynamic import) and timers (setTimeout in auto-exit)
     await vi.advanceTimersByTimeAsync(0)

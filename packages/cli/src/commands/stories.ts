@@ -1,7 +1,7 @@
 import process from 'node:process'
 
 import { command } from '@kidd-cli/core'
-import type { Command, Context } from '@kidd-cli/core'
+import type { Command, CommandContext } from '@kidd-cli/core'
 import {
   createStoryImporter,
   createStoryRegistry,
@@ -26,7 +26,7 @@ const options = z.object({
 const storiesCommand: Command = command({
   description: 'Browse and preview component stories in the terminal',
   options,
-  handler: async (ctx: Context<{ readonly include?: string }>) => {
+  handler: async (ctx: CommandContext<{ readonly include?: string }>) => {
     const cwd = process.cwd()
     const importer = createStoryImporter()
     const registry = createStoryRegistry()

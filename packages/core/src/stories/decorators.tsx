@@ -25,7 +25,7 @@ export interface LayoutOptions {
 
 /**
  * Wrap a story component in a {@link KiddProvider} with the given screen context.
- * Required for components that use `useCommandContext()`.
+ * Required for components that use `useScreenContext()`.
  *
  * @param ctx - The screen context to provide.
  * @returns A decorator that wraps the story in a KiddProvider.

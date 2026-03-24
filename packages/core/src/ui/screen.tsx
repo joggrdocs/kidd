@@ -149,7 +149,7 @@ export function screen<
       await instance.waitUntilExit()
     } finally {
       if (isFullscreen) {
-        process.stdout.write('\u001B[?1049l')
+        process.stdout.write('\u001B[2J\u001B[H\u001B[?1049l')
       }
     }
   }

@@ -1,5 +1,22 @@
 # kidd-cli
 
+## 0.5.0
+
+### Minor Changes
+
+- ed3eb91: Fix `--compile` failures on CI
+
+  - Moved `chokidar`, `magicast`, and `giget` externalization from `bun build --compile` to the tsdown `neverBundle` config. These c12 optional deps were causing failures in strict pnpm layouts (e.g. GitHub Actions) where Bun couldn't resolve them even when marked as `--external`.
+  - Added `--verbose` flag to `kidd build` that surfaces bun's stderr output on compile failures.
+  - Captured stderr from `execFile` in `execBunBuild` so compile errors include actionable diagnostics.
+
+### Patch Changes
+
+- Updated dependencies [ed3eb91]
+- Updated dependencies [ed3eb91]
+  - @kidd-cli/bundler@0.3.0
+  - @kidd-cli/core@0.12.0
+
 ## 0.4.10
 
 ### Patch Changes

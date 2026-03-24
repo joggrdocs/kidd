@@ -2,7 +2,7 @@ import * as clack from '@clack/prompts'
 import pc from 'picocolors'
 import type { Colors } from 'picocolors/types'
 
-import { createDotDirectoryClient } from '@/lib/dotdir/index.js'
+import { createDotDirectory } from '@/lib/dotdir/index.js'
 import { createLog } from '@/lib/log.js'
 import type { AnyRecord, KiddStore, Merge, ResolvedDirs } from '@/types/index.js'
 
@@ -68,7 +68,7 @@ export function createContext<TArgs extends AnyRecord, TConfig extends AnyRecord
     version: options.meta.version,
   }
 
-  const ctxDotdir = createDotDirectoryClient({ dirs: options.meta.dirs })
+  const ctxDotdir = createDotDirectory({ dirs: options.meta.dirs })
 
   // Middleware-augmented properties (e.g. `report`, `auth`) are added at runtime.
   // See `decorateContext` — they are intentionally absent here.

@@ -1,5 +1,6 @@
 export { createDotDirectoryClient } from './create-dot-directory-client.js'
 export { createDotDirectory } from './create-dot-directory.js'
+
 export { createProtectionRegistry } from './protection.js'
 export type {
   AccessOptions,

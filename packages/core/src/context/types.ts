@@ -1,6 +1,6 @@
 import type { Colors } from 'picocolors/types'
 
-import type { DotDirectoryClient } from '@/lib/dotdir/types.js'
+import type { DotDirectory } from '@/lib/dotdir/types.js'
 import type {
   AnyRecord,
   DeepReadonly,
@@ -298,10 +298,10 @@ export interface CommandContext<
   readonly config: DeepReadonly<Merge<CliConfig, TConfig>>
 
   /**
-   * Scoped dot directory client for reading/writing files in the CLI's
+   * Dot directory manager for reading/writing files in the CLI's
    * dot directories (e.g. `~/.myapp/`, `<project>/.myapp/`).
    */
-  readonly dotdir: DotDirectoryClient
+  readonly dotdir: DotDirectory
 
   /**
    * Pure string formatters for data serialization (no I/O).

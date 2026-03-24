@@ -4,7 +4,7 @@ import type { DotDirectoryLocation, ProtectedFileEntry, ProtectionRegistry } fro
  * Create a {@link ProtectionRegistry} backed by a `Set<string>`.
  *
  * Keys are serialized as `"location:filename"`. The registry is shared
- * by reference across all `DotDirectory` instances from the same client.
+ * by reference across all `DotDirectoryClient` instances from the same `DotDirectory`.
  *
  * @returns A frozen ProtectionRegistry instance.
  */

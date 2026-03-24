@@ -68,7 +68,7 @@ export interface ReadJsonOptions<T = unknown> extends AccessOptions {
 }
 
 // ---------------------------------------------------------------------------
-// DotDirectory
+// DotDirectoryClient
 // ---------------------------------------------------------------------------
 
 /**
@@ -77,7 +77,7 @@ export interface ReadJsonOptions<T = unknown> extends AccessOptions {
  * Provides read, write, exists, remove, and path resolution operations
  * that respect the shared protection registry.
  */
-export interface DotDirectory {
+export interface DotDirectoryClient {
   readonly dir: string
   readonly ensure: () => Result<string, DotDirectoryError>
   readonly read: (filename: string, options?: AccessOptions) => Result<string, DotDirectoryError>
@@ -101,16 +101,16 @@ export interface DotDirectory {
 }
 
 // ---------------------------------------------------------------------------
-// DotDirectoryClient
+// DotDirectory
 // ---------------------------------------------------------------------------
 
 /**
- * Client for obtaining scoped {@link DotDirectory} handles and managing
- * the protection registry.
+ * Root dot directory manager for obtaining scoped {@link DotDirectoryClient}
+ * handles and managing the protection registry.
  */
-export interface DotDirectoryClient {
-  readonly global: () => DotDirectory
-  readonly local: () => Result<DotDirectory, DotDirectoryError>
+export interface DotDirectory {
+  readonly global: () => DotDirectoryClient
+  readonly local: () => Result<DotDirectoryClient, DotDirectoryError>
   readonly protect: (entry: ProtectedFileEntry) => void
 }
 

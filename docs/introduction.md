@@ -39,40 +39,40 @@ Commands live in `src/commands/`, middleware in `src/middleware/`, and the entry
 
 ## Feature matrix
 
-| Feature | Description |
-| --- | --- |
-| Typed commands | Zod schemas for args with full inference |
-| Middleware pipelines | Composable onion model for cross-cutting concerns |
-| Config discovery | Automatic file loading with Zod validation |
-| Authentication | OAuth PKCE, device code, env vars, file tokens |
-| Terminal UI | Logger, spinner, prompts, colors, formatters |
-| HTTP client | Typed fetch wrapper with auth header injection |
-| Icons | Nerd Font glyphs with emoji fallback |
-| Build & compile | ESM bundling via tsdown, standalone binaries via Bun |
+| Feature              | Description                                          |
+| -------------------- | ---------------------------------------------------- |
+| Typed commands       | Zod schemas for args with full inference             |
+| Middleware pipelines | Composable onion model for cross-cutting concerns    |
+| Config discovery     | Automatic file loading with Zod validation           |
+| Authentication       | OAuth PKCE, device code, env vars, file tokens       |
+| Terminal UI          | Logger, spinner, prompts, colors, formatters         |
+| HTTP client          | Typed fetch wrapper with auth header injection       |
+| Icons                | Nerd Font glyphs with emoji fallback                 |
+| Build & compile      | ESM bundling via tsdown, standalone binaries via Bun |
 
 ## Sub-exports
 
 The `@kidd-cli/core` package exposes focused sub-exports so you only import what you need:
 
-| Export | Purpose |
-| --- | --- |
-| `@kidd-cli/core` | Commands, middleware, context, module augmentation |
-| `@kidd-cli/core/auth` | Auth middleware and credential strategies |
-| `@kidd-cli/core/http` | HTTP client middleware |
-| `@kidd-cli/core/icons` | Nerd Font icon middleware |
-| `@kidd-cli/core/config` | Config client for loading outside cli() |
-| `@kidd-cli/core/logger` | Standalone terminal logger |
-| `@kidd-cli/core/store` | File-backed JSON store |
-| `@kidd-cli/core/project` | Git root resolution and path utilities |
-| `@kidd-cli/core/format` | Standalone format functions |
-| `@kidd-cli/core/test` | Test utilities for commands and middleware |
+| Export                   | Purpose                                            |
+| ------------------------ | -------------------------------------------------- |
+| `@kidd-cli/core`         | Commands, middleware, context, module augmentation |
+| `@kidd-cli/core/auth`    | Auth middleware and credential strategies          |
+| `@kidd-cli/core/http`    | HTTP client middleware                             |
+| `@kidd-cli/core/icons`   | Nerd Font icon middleware                          |
+| `@kidd-cli/core/config`  | Config client for loading outside cli()            |
+| `@kidd-cli/core/logger`  | Standalone terminal logger                         |
+| `@kidd-cli/core/store`   | File-backed JSON store                             |
+| `@kidd-cli/core/project` | Git root resolution and path utilities             |
+| `@kidd-cli/core/format`  | Standalone format functions                        |
+| `@kidd-cli/core/test`    | Test utilities for commands and middleware         |
 
 ## Packages
 
-| Package | Description |
-| --- | --- |
+| Package                             | Description                                                  |
+| ----------------------------------- | ------------------------------------------------------------ |
 | [`@kidd-cli/core`](/reference/kidd) | Commands, middleware, config, context, auth, HTTP, and icons |
-| [`@kidd-cli/cli`](/reference/cli) | Scaffolding, building, diagnostics, and code generation |
+| [`@kidd-cli/cli`](/reference/cli)   | Scaffolding, building, diagnostics, and code generation      |
 
 ## Next steps
 

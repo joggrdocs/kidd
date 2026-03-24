@@ -167,7 +167,7 @@ Below are examples of what the config files look like in each supported format.
   // API endpoint for the service
   "apiUrl": "https://api.example.com",
   "org": "my-org",
-  "region": "us-east-1"
+  "region": "us-east-1",
 }
 ```
 

@@ -242,11 +242,11 @@ The `env`, `dotenv`, `token`, `oauth`, and `device-code` strategies always produ
 
 ## Module Augmentation
 
-Augment `Context` to get typed access to `ctx.auth`:
+Augment `CommandContext` to get typed access to `ctx.auth`:
 
 ```ts
 declare module '@kidd-cli/core' {
-  interface Context {
+  interface CommandContext {
     readonly auth: AuthContext
   }
 }

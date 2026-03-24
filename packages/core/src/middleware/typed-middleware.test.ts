@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { command } from '@/command.js'
 import { decorateContext } from '@/context/decorate.js'
 import { createContext } from '@/context/index.js'
-import type { Context } from '@/context/types.js'
+import type { CommandContext } from '@/context/types.js'
 import { middleware } from '@/middleware.js'
 
 vi.mock(import('@clack/prompts'), async (importOriginal) => ({
@@ -55,7 +55,7 @@ interface Organization {
  * Create a minimal test context.
  * @private
  */
-function createTestContext(): Context {
+function createTestContext(): CommandContext {
   return createContext({
     args: {},
     config: {},
@@ -73,9 +73,9 @@ function createTestContext(): Context {
  * @private
  */
 async function runMiddlewareChain(
-  ctx: Context,
+  ctx: CommandContext,
   ...middlewares: readonly {
-    readonly handler: (ctx: Context, next: () => Promise<void>) => Promise<void> | void
+    readonly handler: (ctx: CommandContext, next: () => Promise<void>) => Promise<void> | void
   }[]
 ): Promise<void> {
   const run = (index: number): Promise<void> => {
@@ -114,7 +114,7 @@ describe('typed middleware', () => {
       await runMiddlewareChain(ctx, loadUser)
       handler(ctx)
 
-      const receivedCtx = handler.mock.calls[0]![0] as Context & Readonly<{ user: User }>
+      const receivedCtx = handler.mock.calls[0]![0] as CommandContext & Readonly<{ user: User }>
       expect(receivedCtx.user).toEqual(testUser)
       expect(receivedCtx.user.role).toBe('admin')
     })
@@ -146,7 +146,7 @@ describe('typed middleware', () => {
       await runMiddlewareChain(ctx, loadUser, loadOrg)
       handler(ctx)
 
-      const receivedCtx = handler.mock.calls[0]![0] as Context &
+      const receivedCtx = handler.mock.calls[0]![0] as CommandContext &
         Readonly<{ user: User; org: Organization }>
       expect(receivedCtx.user).toEqual(testUser)
       expect(receivedCtx.org).toEqual(testOrg)
@@ -171,7 +171,7 @@ describe('typed middleware', () => {
       handler(ctx)
 
       expect(handler).toHaveBeenCalledTimes(1)
-      const receivedCtx = handler.mock.calls[0]![0] as Context
+      const receivedCtx = handler.mock.calls[0]![0] as CommandContext
       expect(receivedCtx.args).toBeDefined()
       expect(receivedCtx.meta).toBeDefined()
     })
@@ -188,7 +188,7 @@ describe('typed middleware', () => {
       })
 
       const readUser = middleware(async (ctx, next) => {
-        const ctxWithUser = ctx as Context & Readonly<{ user: User }>
+        const ctxWithUser = ctx as CommandContext & Readonly<{ user: User }>
         readValues.push(ctxWithUser.user)
         await next()
       })

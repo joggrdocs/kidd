@@ -3,7 +3,7 @@ import { join } from 'node:path'
 import { P, isNil, match } from '@kidd-cli/utils/fp'
 
 import { decorateContext } from '@/context/decorate.js'
-import type { Context } from '@/context/types.js'
+import type { CommandContext } from '@/context/types.js'
 import { middleware } from '@/middleware.js'
 import type { DirsConfig, Middleware, ResolvedDirs } from '@/types/index.js'
 
@@ -50,7 +50,7 @@ export interface AuthFactory {
   readonly token: (options?: TokenStrategyOptions) => TokenSourceConfig
   readonly apiKey: (options?: TokenStrategyOptions) => TokenSourceConfig
   readonly custom: (fn: CustomStrategyFn) => CustomSourceConfig
-  readonly headers: () => (ctx: Context) => Readonly<Record<string, string>>
+  readonly headers: () => (ctx: CommandContext) => Readonly<Record<string, string>>
   readonly require: (options?: AuthRequireOptions) => Middleware
 }
 

@@ -28,7 +28,7 @@ export interface StoreMap {
 }
 
 /**
- * Typed key-value store available on every {@link Context}.
+ * Typed key-value store available on every {@link CommandContext}.
  *
  * Provides `get`, `set`, `has`, `delete`, and `clear` over an in-memory
  * `Map`. The generic `TMap` constrains keys and values so consumers
@@ -237,7 +237,7 @@ export interface Meta {
 // ---------------------------------------------------------------------------
 
 /**
- * Keys on {@link Context} that are incompatible with React/Ink rendering.
+ * Keys on {@link CommandContext} that are incompatible with React/Ink rendering.
  *
  * These properties write directly to stdout/stderr or control terminal I/O,
  * which conflicts with Ink's rendering model. They are omitted from
@@ -246,7 +246,7 @@ export interface Meta {
 export type ImperativeContextKeys = 'colors' | 'fail' | 'format' | 'log' | 'prompts' | 'spinner'
 
 /**
- * Context subset available inside `screen()` components via `useCommandContext()`.
+ * Context subset available inside `screen()` components via `useScreenContext()`.
  *
  * Omits imperative I/O properties (`log`, `spinner`, `prompts`, `fail`,
  * `colors`, `format`) that conflict with Ink's declarative rendering model.
@@ -259,7 +259,7 @@ export type ImperativeContextKeys = 'colors' | 'fail' | 'format' | 'log' | 'prom
 export type ScreenContext<
   TArgs extends AnyRecord = AnyRecord,
   TConfig extends AnyRecord = AnyRecord,
-> = Omit<Context<TArgs, TConfig>, ImperativeContextKeys>
+> = Omit<CommandContext<TArgs, TConfig>, ImperativeContextKeys>
 
 /**
  * The context object threaded through every handler, middleware, and hook.
@@ -276,7 +276,7 @@ export type ScreenContext<
  * @typeParam TArgs - Parsed args type (inferred from the command's zod/yargs args definition).
  * @typeParam TConfig - Config type (inferred from the zod schema passed to `cli({ config: { schema } })`).
  */
-export interface Context<
+export interface CommandContext<
   TArgs extends AnyRecord = AnyRecord,
   TConfig extends AnyRecord = AnyRecord,
 > {

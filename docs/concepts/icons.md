@@ -27,10 +27,10 @@ Detection is purely filesystem-based -- it scans well-known font directories rat
 
 **Platform-specific font directories:**
 
-| Platform  | Directories scanned                                                                                                            |
-| --------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| **macOS** | `~/Library/Fonts`, `/Library/Fonts`, `/System/Library/Fonts`, `/System/Library/Fonts/Supplemental`, `/Network/Library/Fonts`   |
-| **Linux** | `/usr/share/fonts`, `/usr/local/share/fonts`, `~/.fonts`, `~/.local/share/fonts`                                               |
+| Platform    | Directories scanned                                                                                                          |
+| ----------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| **macOS**   | `~/Library/Fonts`, `/Library/Fonts`, `/System/Library/Fonts`, `/System/Library/Fonts/Supplemental`, `/Network/Library/Fonts` |
+| **Linux**   | `/usr/share/fonts`, `/usr/local/share/fonts`, `~/.fonts`, `~/.local/share/fonts`                                             |
 | **Windows** | `%WINDIR%\Fonts`, `%LOCALAPPDATA%\Microsoft\Windows\Fonts`                                                                   |
 
 Directories that do not exist are silently skipped. If the entire scan fails, the middleware treats Nerd Fonts as not installed and falls back to emoji.
@@ -62,7 +62,7 @@ When `forceSetup` is enabled, the install prompt is shown regardless of whether 
 
 ### Module Augmentation
 
-Importing `@kidd-cli/core/icons` automatically augments the `Context` interface with `readonly icons: IconsContext`. No manual type augmentation or casting is needed -- once the middleware is registered, `ctx.icons` is fully typed in all command handlers.
+Importing `@kidd-cli/core/icons` automatically augments the `CommandContext` interface with `readonly icons: IconsContext`. No manual type augmentation or casting is needed -- once the middleware is registered, `ctx.icons` is fully typed in all command handlers.
 
 ```ts
 // This import triggers the module augmentation:
@@ -220,56 +220,56 @@ The following tables list every built-in icon with its name, Nerd Font glyph cod
 
 ### Git
 
-| Name        | Nerd Font   | Emoji Fallback              |
-| ----------- | ----------- | --------------------------- |
-| `branch`    | `\uE725`    | `\u{1F500}` twisted arrows  |
-| `clone`     | `\uF24D`    | `\u{1F4CB}` clipboard        |
-| `commit`    | `\uE729`    | `\u{1F4DD}` memo             |
-| `compare`   | `\uE728`    | `\u{1F504}` counterclockwise arrows |
-| `fetch`     | `\uEC1D`    | `\u{2B07}\uFE0F` down arrow |
-| `fork`      | `\uF126`    | `\u{1F500}` twisted arrows  |
-| `git`       | `\uE702`    | `\u{1F4BB}` laptop           |
-| `merge`     | `\uE727`    | `\u{1F500}` twisted arrows  |
-| `pr`        | `\uE726`    | `\u{1F4E5}` inbox tray       |
-| `tag`       | `\uF02B`    | `\u{1F3F7}\uFE0F` label     |
-| `worktree`  | `\uEF81`    | `\u{1F333}` deciduous tree   |
+| Name       | Nerd Font | Emoji Fallback                      |
+| ---------- | --------- | ----------------------------------- |
+| `branch`   | `\uE725`  | `\u{1F500}` twisted arrows          |
+| `clone`    | `\uF24D`  | `\u{1F4CB}` clipboard               |
+| `commit`   | `\uE729`  | `\u{1F4DD}` memo                    |
+| `compare`  | `\uE728`  | `\u{1F504}` counterclockwise arrows |
+| `fetch`    | `\uEC1D`  | `\u{2B07}\uFE0F` down arrow         |
+| `fork`     | `\uF126`  | `\u{1F500}` twisted arrows          |
+| `git`      | `\uE702`  | `\u{1F4BB}` laptop                  |
+| `merge`    | `\uE727`  | `\u{1F500}` twisted arrows          |
+| `pr`       | `\uE726`  | `\u{1F4E5}` inbox tray              |
+| `tag`      | `\uF02B`  | `\u{1F3F7}\uFE0F` label             |
+| `worktree` | `\uEF81`  | `\u{1F333}` deciduous tree          |
 
 ### DevOps
 
-| Name         | Nerd Font   | Emoji Fallback                    |
-| ------------ | ----------- | --------------------------------- |
-| `ci`         | `\uF013`    | `\u{2699}\uFE0F` gear            |
-| `cloud`      | `\uF0C2`    | `\u{2601}\uFE0F` cloud           |
-| `deploy`     | `\uF135`    | `\u{1F680}` rocket               |
-| `docker`     | `\uF21F`    | `\u{1F433}` whale                |
-| `kubernetes` | `\uE81D`    | `\u{2638}\uFE0F` wheel of dharma |
-| `server`     | `\uF233`    | `\u{1F5A5}\uFE0F` desktop        |
-| `terminal`   | `\uF120`    | `\u{1F4BB}` laptop               |
+| Name         | Nerd Font | Emoji Fallback                   |
+| ------------ | --------- | -------------------------------- |
+| `ci`         | `\uF013`  | `\u{2699}\uFE0F` gear            |
+| `cloud`      | `\uF0C2`  | `\u{2601}\uFE0F` cloud           |
+| `deploy`     | `\uF135`  | `\u{1F680}` rocket               |
+| `docker`     | `\uF21F`  | `\u{1F433}` whale                |
+| `kubernetes` | `\uE81D`  | `\u{2638}\uFE0F` wheel of dharma |
+| `server`     | `\uF233`  | `\u{1F5A5}\uFE0F` desktop        |
+| `terminal`   | `\uF120`  | `\u{1F4BB}` laptop               |
 
 ### Status
 
-| Name      | Nerd Font   | Emoji Fallback                 |
-| --------- | ----------- | ------------------------------ |
-| `error`   | `\uF05C`    | `\u{274C}` cross mark          |
-| `info`    | `\uF129`    | `\u{2139}\uFE0F` information   |
-| `pending` | `\uF254`    | `\u{23F3}` hourglass           |
-| `running` | `\uF04B`    | `\u{25B6}\uFE0F` play button   |
-| `stopped` | `\uF28D`    | `\u{23F9}\uFE0F` stop button   |
-| `success` | `\uF05D`    | `\u{2705}` check mark          |
-| `warning` | `\uF071`    | `\u{26A0}\uFE0F` warning       |
+| Name      | Nerd Font | Emoji Fallback               |
+| --------- | --------- | ---------------------------- |
+| `error`   | `\uF05C`  | `\u{274C}` cross mark        |
+| `info`    | `\uF129`  | `\u{2139}\uFE0F` information |
+| `pending` | `\uF254`  | `\u{23F3}` hourglass         |
+| `running` | `\uF04B`  | `\u{25B6}\uFE0F` play button |
+| `stopped` | `\uF28D`  | `\u{23F9}\uFE0F` stop button |
+| `success` | `\uF05D`  | `\u{2705}` check mark        |
+| `warning` | `\uF071`  | `\u{26A0}\uFE0F` warning     |
 
 ### Files
 
-| Name         | Nerd Font   | Emoji Fallback                |
-| ------------ | ----------- | ----------------------------- |
-| `config`     | `\uF013`    | `\u{2699}\uFE0F` gear        |
-| `file`       | `\uF15B`    | `\u{1F4C4}` page facing up   |
-| `folder`     | `\uF07B`    | `\u{1F4C1}` file folder      |
-| `javascript` | `\uE781`    | `\u{1F4C4}` page facing up   |
-| `json`       | `\uE80B`    | `\u{1F4C4}` page facing up   |
-| `lock`       | `\uF023`    | `\u{1F512}` locked           |
-| `markdown`   | `\uE73E`    | `\u{1F4C4}` page facing up   |
-| `typescript` | `\uE8CA`    | `\u{1F4C4}` page facing up   |
+| Name         | Nerd Font | Emoji Fallback             |
+| ------------ | --------- | -------------------------- |
+| `config`     | `\uF013`  | `\u{2699}\uFE0F` gear      |
+| `file`       | `\uF15B`  | `\u{1F4C4}` page facing up |
+| `folder`     | `\uF07B`  | `\u{1F4C1}` file folder    |
+| `javascript` | `\uE781`  | `\u{1F4C4}` page facing up |
+| `json`       | `\uE80B`  | `\u{1F4C4}` page facing up |
+| `lock`       | `\uF023`  | `\u{1F512}` locked         |
+| `markdown`   | `\uE73E`  | `\u{1F4C4}` page facing up |
+| `typescript` | `\uE8CA`  | `\u{1F4C4}` page facing up |
 
 ## Usage Patterns
 

@@ -247,19 +247,19 @@ auth.custom(async () => {
 
 The auth middleware decorates `ctx.auth` with an `AuthContext`:
 
-| Property           | Type                                     | Description                                     |
-| ------------------ | ---------------------------------------- | ----------------------------------------------- |
-| `credential()`     | `AuthCredential \| null`                 | Passively resolved credential (file, env)       |
-| `authenticated()`  | `boolean`                                | Whether a passive credential exists             |
-| `login(options?)`  | `AsyncResult<AuthCredential, AuthError>` | Run interactive strategies, persist, and return |
-| `logout()`         | `AsyncResult<string, AuthError>`         | Remove stored credential from disk              |
+| Property          | Type                                     | Description                                     |
+| ----------------- | ---------------------------------------- | ----------------------------------------------- |
+| `credential()`    | `AuthCredential \| null`                 | Passively resolved credential (file, env)       |
+| `authenticated()` | `boolean`                                | Whether a passive credential exists             |
+| `login(options?)` | `AsyncResult<AuthCredential, AuthError>` | Run interactive strategies, persist, and return |
+| `logout()`        | `AsyncResult<string, AuthError>`         | Remove stored credential from disk              |
 
 `login()` accepts an optional `LoginOptions` object to override strategies or add a validate callback for a single login attempt:
 
-| LoginOptions Field | Type                    | Description                                       |
-| ------------------ | ----------------------- | ------------------------------------------------- |
+| LoginOptions Field | Type                        | Description                                      |
+| ------------------ | --------------------------- | ------------------------------------------------ |
 | `strategies`       | `readonly StrategyConfig[]` | Override the default strategy list for this call |
-| `validate`         | `ValidateCredential`    | Validate the credential before persisting          |
+| `validate`         | `ValidateCredential`        | Validate the credential before persisting        |
 
 ### `ctx.auth.login()`
 
@@ -285,12 +285,12 @@ if (error) {
 
 ### AuthError
 
-| AuthError `type`        | Description                                          |
-| ----------------------- | ---------------------------------------------------- |
-| `'no_credential'`       | No strategy produced a credential                    |
-| `'save_failed'`         | Credential resolved but failed to persist            |
-| `'remove_failed'`       | Failed to remove the credential file                 |
-| `'validation_failed'`   | Credential resolved but failed the validate callback |
+| AuthError `type`      | Description                                          |
+| --------------------- | ---------------------------------------------------- |
+| `'no_credential'`     | No strategy produced a credential                    |
+| `'save_failed'`       | Credential resolved but failed to persist            |
+| `'remove_failed'`     | Failed to remove the credential file                 |
+| `'validation_failed'` | Credential resolved but failed the validate callback |
 
 ## Requiring Authentication
 

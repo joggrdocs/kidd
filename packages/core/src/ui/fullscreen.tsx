@@ -23,7 +23,13 @@ import { createContext, useContext, useEffect, useState } from 'react'
 const ENTER_ALT_SCREEN = '\u001B[?1049h'
 
 /** ANSI: return to the normal screen buffer. */
-const LEAVE_ALT_SCREEN = '\u001B[?1049l'
+export const LEAVE_ALT_SCREEN = '\u001B[?1049l'
+
+/** ANSI: clear the entire screen. */
+const CLEAR_SCREEN = '\u001B[2J'
+
+/** ANSI: move the cursor to the top-left corner. */
+const CURSOR_HOME = '\u001B[H'
 
 /** ANSI: hide the cursor. */
 const HIDE_CURSOR = '\u001B[?25l'
@@ -207,6 +213,8 @@ function writeLeaveSequence({
   readonly hideCursor: boolean
   readonly write: (data: string) => void
 }): void {
+  write(CLEAR_SCREEN)
+  write(CURSOR_HOME)
   if (hideCursor) {
     write(SHOW_CURSOR)
   }

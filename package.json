@@ -2,11 +2,11 @@
   "name": "kidd-mono",
   "version": "1.0.0",
   "private": true,
-  "type": "module",
   "description": "",
   "keywords": [],
   "license": "MIT",
   "author": "",
+  "type": "module",
   "scripts": {
     "format": "oxfmt",
     "format:fix": "oxfmt --write",

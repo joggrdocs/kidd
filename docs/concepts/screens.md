@@ -44,7 +44,9 @@ function DeployPipeline({ target }: { readonly target: string }): React.ReactEle
       setDone(true)
       exit()
     }, 3000)
-    return () => { clearTimeout(timer) }
+    return () => {
+      clearTimeout(timer)
+    }
   }, [exit])
 
   return (
@@ -118,7 +120,9 @@ function Status(): React.ReactElement {
   const config = useConfig<{ apiUrl: string }>()
   const meta = useMeta()
   return (
-    <Text>{meta.name} v{meta.version} -- {config.apiUrl}</Text>
+    <Text>
+      {meta.name} v{meta.version} -- {config.apiUrl}
+    </Text>
   )
 }
 ```
@@ -131,14 +135,14 @@ This means middleware like `auth()`, `report()`, or custom middleware will not r
 
 ## When to use screen() vs command()
 
-| Use case | Approach |
-| ---------------------------------------- | ------------------------------------ |
-| Sequential log output | `command()` with handler |
-| One-shot prompts then exit | `command()` with handler |
-| Interactive dashboard | `screen()` with manual exit |
+| Use case                            | Approach                            |
+| ----------------------------------- | ----------------------------------- |
+| Sequential log output               | `command()` with handler            |
+| One-shot prompts then exit          | `command()` with handler            |
+| Interactive dashboard               | `screen()` with manual exit         |
 | Progress pipeline with live updates | `screen()` with auto or manual exit |
-| Selection UI with navigation | `screen()` with manual exit |
-| Simple status display | Either works |
+| Selection UI with navigation        | `screen()` with manual exit         |
+| Simple status display               | Either works                        |
 
 ## File conventions
 

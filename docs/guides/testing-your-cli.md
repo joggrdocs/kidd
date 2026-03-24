@@ -287,15 +287,15 @@ it('should exit with code 1 on error', async () => {
 
 ## API Reference
 
-| Function                                 | Purpose                                                              |
-| ---------------------------------------- | -------------------------------------------------------------------- |
-| `createTestContext(overrides?)`          | Create a fully-mocked Context with captured output                   |
-| `runHandler({ cmd, overrides? })`        | Execute a single command handler in isolation                        |
+| Function                                     | Purpose                                                              |
+| -------------------------------------------- | -------------------------------------------------------------------- |
+| `createTestContext(overrides?)`              | Create a fully-mocked Context with captured output                   |
+| `runHandler({ cmd, overrides? })`            | Execute a single command handler in isolation                        |
 | `runMiddleware({ middlewares, overrides? })` | Execute a middleware chain with a no-op terminal handler             |
-| `runCommand(options)`                    | Execute a full CLI pipeline in-process                               |
-| `mockPrompts(responses)`                 | Create a Prompts implementation with pre-programmed responses        |
-| `setupTestLifecycle()`                   | Wire up beforeEach/afterEach hooks for process.argv and process.exit |
-| `createWritableCapture()`                | Create a writable stream that captures output to a string buffer     |
+| `runCommand(options)`                        | Execute a full CLI pipeline in-process                               |
+| `mockPrompts(responses)`                     | Create a Prompts implementation with pre-programmed responses        |
+| `setupTestLifecycle()`                       | Wire up beforeEach/afterEach hooks for process.argv and process.exit |
+| `createWritableCapture()`                    | Create a writable stream that captures output to a string buffer     |
 
 ## Troubleshooting
 

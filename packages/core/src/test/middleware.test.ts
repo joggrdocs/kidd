@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { decorateContext } from '@/context/decorate.js'
-import type { Context } from '@/context/types.js'
+import type { CommandContext } from '@/context/types.js'
 import { middleware } from '@/middleware.js'
 
 import { runMiddleware } from './middleware.js'
@@ -39,7 +39,7 @@ describe('run middleware utility', () => {
     })
 
     const { ctx } = await runMiddleware({ middlewares: [mw] })
-    const decorated = ctx as Context & Readonly<{ user: string }>
+    const decorated = ctx as CommandContext & Readonly<{ user: string }>
     expect(decorated.user).toBe('Alice')
   })
 

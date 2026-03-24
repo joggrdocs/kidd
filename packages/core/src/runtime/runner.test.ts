@@ -2,7 +2,7 @@ import { runTestCli, setArgv, setupTestLifecycle } from '@test/index.js'
 import { describe, expect, it, vi } from 'vitest'
 
 import { command } from '@/command.js'
-import type { Context } from '@/context/types.js'
+import type { CommandContext } from '@/context/types.js'
 import { middleware } from '@/middleware.js'
 import type { CommandMap } from '@/types/index.js'
 
@@ -100,7 +100,7 @@ describe('middleware()', () => {
   })
 
   it('middleware receives the context', async () => {
-    const receivedCtx: Context[] = []
+    const receivedCtx: CommandContext[] = []
 
     const mw = middleware(async (ctx, next) => {
       receivedCtx.push(ctx)

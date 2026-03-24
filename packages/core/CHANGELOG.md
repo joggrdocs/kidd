@@ -1,5 +1,13 @@
 # kidd
 
+## 0.13.0
+
+### Minor Changes
+
+- 10799c2: Clear the alternate screen buffer before leaving fullscreen mode to prevent lingering content
+- a53ee68: Add fullscreen mode for screens via alternate screen buffer. New `fullscreen` option on `ScreenDef`, `<FullScreen>` component, `useFullScreen` hook, and `useTerminalSize` hook.
+- adb2879: Replace `useConfig()`, `useMeta()`, and `useStore()` screen hooks with a single `useCommandContext()` hook that returns a `ScreenContext`. The `ScreenContext` type exposes data properties (`args`, `config`, `meta`, `store`) and middleware-decorated properties (`auth`, `http`, etc.) while omitting imperative I/O properties (`log`, `spinner`, `prompts`, `fail`, `colors`, `format`) that conflict with Ink's rendering model. Remove internal `KiddProvider`, `KiddProviderProps`, `ScreenRenderProps`, `render`, `Instance`, and `RenderOptions` from the public UI exports.
+
 ## 0.12.0
 
 ### Minor Changes

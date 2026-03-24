@@ -20,10 +20,10 @@ cli({
 
 The middleware accepts optional configuration:
 
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `output` | `NodeJS.WritableStream` | `process.stderr` | Output stream for report output |
-| `report` | `Report` | -- | Custom Report implementation (useful for testing) |
+| Option   | Type                    | Default          | Description                                       |
+| -------- | ----------------------- | ---------------- | ------------------------------------------------- |
+| `output` | `NodeJS.WritableStream` | `process.stderr` | Output stream for report output                   |
+| `report` | `Report`                | --               | Custom Report implementation (useful for testing) |
 
 ## Report API
 
@@ -57,10 +57,7 @@ ctx.report.finding({
   help: 'Remove the unused variable or prefix with _',
   frame: {
     filePath: 'src/index.ts',
-    lines: [
-      "import { config } from './config.js'",
-      "import { run } from './run.js'",
-    ],
+    lines: ["import { config } from './config.js'", "import { run } from './run.js'"],
     startLine: 1,
     annotation: {
       line: 1,
@@ -141,9 +138,7 @@ export default command({
 
     ctx.report.summary({
       style: 'tally',
-      stats: [
-        { label: 'Checks', value: '2 passed | 1 failed (3)' },
-      ],
+      stats: [{ label: 'Checks', value: '2 passed | 1 failed (3)' }],
     })
   },
 })
@@ -151,13 +146,13 @@ export default command({
 
 ## Module augmentation
 
-When using the report middleware, augment the Context interface to get type-safe access:
+When using the report middleware, augment the CommandContext interface to get type-safe access:
 
 ```ts
 import type { Report } from '@kidd-cli/core/report'
 
 declare module '@kidd-cli/core' {
-  interface Context {
+  interface CommandContext {
     readonly report: Report
   }
 }

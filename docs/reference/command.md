@@ -22,18 +22,18 @@ const deploy = command({
 
 ## CommandDef
 
-| Field | Type | Default | Description |
-| ------------- | --------------------------------- | ------- | ----------------------------------------------------------------- |
-| `description` | `Resolvable<string>` | -- | Human-readable description (static or function) |
-| `options` | `ArgsDef` | -- | Option (flag) definitions -- Zod schema or yargs-native format |
-| `positionals` | `ArgsDef` | -- | Positional argument definitions |
-| `handler` | `(ctx: Context) => Promise<void>` | -- | Command handler function |
-| `middleware` | `Middleware[]` | -- | Command-scoped middleware |
-| `commands` | `CommandMap` | -- | Nested subcommands |
-| `hidden` | `Resolvable<boolean>` | -- | When true, hidden from help output |
-| `deprecated` | `Resolvable<string \| boolean>` | -- | Marks the command as deprecated |
-| `name` | `string` | -- | Explicit command name (overrides autoload filename) |
-| `aliases` | `readonly string[]` | -- | Alternative names |
+| Field         | Type                                     | Default | Description                                                    |
+| ------------- | ---------------------------------------- | ------- | -------------------------------------------------------------- |
+| `description` | `Resolvable<string>`                     | --      | Human-readable description (static or function)                |
+| `options`     | `ArgsDef`                                | --      | Option (flag) definitions -- Zod schema or yargs-native format |
+| `positionals` | `ArgsDef`                                | --      | Positional argument definitions                                |
+| `handler`     | `(ctx: CommandContext) => Promise<void>` | --      | Command handler function                                       |
+| `middleware`  | `Middleware[]`                           | --      | Command-scoped middleware                                      |
+| `commands`    | `CommandMap`                             | --      | Nested subcommands                                             |
+| `hidden`      | `Resolvable<boolean>`                    | --      | When true, hidden from help output                             |
+| `deprecated`  | `Resolvable<string \| boolean>`          | --      | Marks the command as deprecated                                |
+| `name`        | `string`                                 | --      | Explicit command name (overrides autoload filename)            |
+| `aliases`     | `readonly string[]`                      | --      | Alternative names                                              |
 
 ## Yargs-native arg format
 
@@ -59,17 +59,17 @@ const deploy = command({
 
 ### YargsArgDef
 
-| Field | Type | Description |
+| Field         | Type                                           | Description                                           |
 | ------------- | ---------------------------------------------- | ----------------------------------------------------- |
-| `type` | `'string' \| 'number' \| 'boolean' \| 'array'` | Argument type |
-| `description` | `string` | Help text |
-| `required` | `boolean` | Whether the arg is required |
-| `default` | `unknown` | Default value |
-| `alias` | `string \| string[]` | Short aliases |
-| `choices` | `readonly string[]` | Allowed values |
-| `hidden` | `Resolvable<boolean>` | Omit from `--help` output (flag still works) |
-| `deprecated` | `Resolvable<string \| boolean>` | Show deprecation notice in help and on use |
-| `group` | `string` | Group heading in help output (e.g. `'Auth Options:'`) |
+| `type`        | `'string' \| 'number' \| 'boolean' \| 'array'` | Argument type                                         |
+| `description` | `string`                                       | Help text                                             |
+| `required`    | `boolean`                                      | Whether the arg is required                           |
+| `default`     | `unknown`                                      | Default value                                         |
+| `alias`       | `string \| string[]`                           | Short aliases                                         |
+| `choices`     | `readonly string[]`                            | Allowed values                                        |
+| `hidden`      | `Resolvable<boolean>`                          | Omit from `--help` output (flag still works)          |
+| `deprecated`  | `Resolvable<string \| boolean>`                | Show deprecation notice in help and on use            |
+| `group`       | `string`                                       | Group heading in help output (e.g. `'Auth Options:'`) |
 
 ## Hidden and deprecated
 
@@ -80,21 +80,27 @@ Both accept a static value or a function (`Resolvable<T>`), resolved once at reg
 const debug = command({
   description: 'Internal debugging tools',
   hidden: true,
-  handler: async (ctx) => { /* ... */ },
+  handler: async (ctx) => {
+    /* ... */
+  },
 })
 
 // Conditionally hidden
 const experimental = command({
   description: 'Experimental feature',
   hidden: () => process.env['NODE_ENV'] === 'production',
-  handler: async (ctx) => { /* ... */ },
+  handler: async (ctx) => {
+    /* ... */
+  },
 })
 
 // Deprecated with message
 const oldDeploy = command({
   description: 'Deploy (legacy)',
   deprecated: 'Use "deploy-v2" instead',
-  handler: async (ctx) => { /* ... */ },
+  handler: async (ctx) => {
+    /* ... */
+  },
 })
 ```
 

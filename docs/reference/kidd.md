@@ -4,18 +4,18 @@ API reference for `@kidd-cli/core`. The runtime framework for building CLI appli
 
 ## JavaScript API
 
-| Function | Description |
-| ------------------------------ | -------------------------------------------------- |
-| [command()](./command.md) | Define a command with typed options and a handler |
-| [middleware()](./middleware.md) | Define middleware that wraps command execution |
-| [cli()](./bootstrap.md) | Bootstrap and run a CLI application |
-| [screen()](./screen.md) | Define a screen command with a React/Ink render |
-| [report()](./report.md) | Structured reporting middleware for diagnostics |
+| Function                        | Description                                       |
+| ------------------------------- | ------------------------------------------------- |
+| [command()](./command.md)       | Define a command with typed options and a handler |
+| [middleware()](./middleware.md) | Define middleware that wraps command execution    |
+| [cli()](./bootstrap.md)         | Bootstrap and run a CLI application               |
+| [screen()](./screen.md)         | Define a screen command with a React/Ink render   |
+| [report()](./report.md)         | Structured reporting middleware for diagnostics   |
 
 ## Core types
 
-| Reference | Description |
-| -------------------------------- | ------------------------------------------ |
+| Reference               | Description                                                 |
+| ----------------------- | ----------------------------------------------------------- |
 | [Context](./context.md) | The central object threaded through handlers and middleware |
 
 ## Resources

@@ -116,7 +116,7 @@ function debouncedReload(
   }
   const timer = setTimeout(() => {
     state.timers.delete(filePath)
-    reloadStoryFile(filePath, options)
+    reloadStoryFile(filePath, options).catch(() => undefined)
   }, debounceMs)
   state.timers.set(filePath, timer)
 }

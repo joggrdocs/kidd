@@ -22,7 +22,7 @@ export function schemaToFieldDescriptors(
     const { inner, isOptional, defaultValue } = unwrapZodType(fieldSchema)
     const innerDef = (inner as { _def: ZodDef })._def
     const typeName = innerDef.type ?? 'unknown'
-    const control = resolveControlKind(typeName, innerDef)
+    const control = resolveControlKind({ typeName, def: innerDef })
     const { description } = inner as { description?: string }
 
     return Object.freeze({
@@ -40,11 +40,16 @@ export function schemaToFieldDescriptors(
 /**
  * Map a Zod type name and definition to a field control kind.
  *
- * @param typeName - The Zod type name from `_def.type`.
- * @param def - The Zod definition object for additional inspection.
+ * @param options - The type name and Zod definition to resolve.
  * @returns The resolved control kind for the prop editor.
  */
-export function resolveControlKind(typeName: string, def: ZodDef): FieldControlKind {
+export function resolveControlKind({
+  typeName,
+  def,
+}: {
+  readonly typeName: string
+  readonly def: ZodDef
+}): FieldControlKind {
   return match(typeName)
     .with('string', () => 'text' as const)
     .with('number', () => 'number' as const)
@@ -61,7 +66,10 @@ export function resolveControlKind(typeName: string, def: ZodDef): FieldControlK
 // Private
 // ---------------------------------------------------------------------------
 
-interface ZodDef {
+/**
+ * Minimal Zod definition shape used for schema introspection.
+ */
+export interface ZodDef {
   readonly type?: string
   readonly innerType?: z.ZodTypeAny
   readonly defaultValue?: unknown
@@ -137,6 +145,9 @@ function resolveDefaultValue(value: unknown, fallback: unknown): unknown {
   if (value === undefined) {
     return fallback
   }
+  if (typeof value === 'function') {
+    return (value as () => unknown)()
+  }
   return value
 }
 
@@ -152,13 +163,13 @@ function extractOptions(typeName: string, def: ZodDef): readonly string[] | unde
   return match(typeName)
     .with('enum', () => {
       if (def.entries) {
-        return Object.values(def.entries) as readonly string[]
+        return Object.values(def.entries).map(String)
       }
       return undefined
     })
     .with('nativeEnum', () => {
       if (def.entries) {
-        return Object.values(def.entries) as readonly string[]
+        return Object.values(def.entries).map(String)
       }
       return undefined
     })

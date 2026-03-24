@@ -1,6 +1,6 @@
 import { Box, Text, useInput } from 'ink'
 import type { ReactElement } from 'react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { match } from 'ts-pattern'
 
 import type { FieldDescriptor } from '../../types.js'
@@ -42,6 +42,18 @@ export function PropsEditor({
   isFocused,
 }: PropsEditorProps): ReactElement {
   const [focusedFieldIndex, setFocusedFieldIndex] = useState(0)
+
+  useEffect(() => {
+    setFocusedFieldIndex((current) => {
+      if (fields.length === 0) {
+        return 0
+      }
+      if (current >= fields.length) {
+        return fields.length - 1
+      }
+      return current
+    })
+  }, [fields.length])
 
   useInput(
     (_input, key) => {

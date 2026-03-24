@@ -125,30 +125,30 @@ describe('schemaToFieldDescriptors()', () => {
 
 describe('resolveControlKind()', () => {
   it('should return text for string type', () => {
-    expect(resolveControlKind('string', {})).toBe('text')
+    expect(resolveControlKind({ typeName: 'string', def: {} })).toBe('text')
   })
 
   it('should return number for number type', () => {
-    expect(resolveControlKind('number', {})).toBe('number')
+    expect(resolveControlKind({ typeName: 'number', def: {} })).toBe('number')
   })
 
   it('should return boolean for boolean type', () => {
-    expect(resolveControlKind('boolean', {})).toBe('boolean')
+    expect(resolveControlKind({ typeName: 'boolean', def: {} })).toBe('boolean')
   })
 
   it('should return select for enum type', () => {
-    expect(resolveControlKind('enum', {})).toBe('select')
+    expect(resolveControlKind({ typeName: 'enum', def: {} })).toBe('select')
   })
 
   it('should return readonly for literal type', () => {
-    expect(resolveControlKind('literal', {})).toBe('readonly')
+    expect(resolveControlKind({ typeName: 'literal', def: {} })).toBe('readonly')
   })
 
   it('should return json for object type', () => {
-    expect(resolveControlKind('object', {})).toBe('json')
+    expect(resolveControlKind({ typeName: 'object', def: {} })).toBe('json')
   })
 
   it('should return json for unknown types', () => {
-    expect(resolveControlKind('map', {})).toBe('json')
+    expect(resolveControlKind({ typeName: 'map', def: {} })).toBe('json')
   })
 })

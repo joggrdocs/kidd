@@ -68,7 +68,7 @@ function StoryDescription({
 }: {
   readonly description: string | undefined
 }): ReactElement | null {
-  if (description === null || description === undefined) {
+  if (description === undefined) {
     return null
   }
   return <Text dimColor> - {description}</Text>

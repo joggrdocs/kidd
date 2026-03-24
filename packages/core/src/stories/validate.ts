@@ -11,14 +11,16 @@ export interface FieldError {
 /**
  * Validate props against a Zod schema, returning per-field errors.
  *
- * @param schema - The Zod object schema to validate against.
- * @param props - The props object to validate.
+ * @param options - The schema and props to validate.
  * @returns An array of frozen field errors, empty when validation passes.
  */
-export function validateProps(
-  schema: z.ZodObject<z.ZodRawShape>,
-  props: Record<string, unknown>
-): readonly FieldError[] {
+export function validateProps({
+  schema,
+  props,
+}: {
+  readonly schema: z.ZodObject<z.ZodRawShape>
+  readonly props: Record<string, unknown>
+}): readonly FieldError[] {
   const result = schema.safeParse(props)
   if (result.success) {
     return []

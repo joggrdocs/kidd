@@ -65,7 +65,7 @@ export function StoriesApp({ registry }: StoriesAppProps): ReactElement {
     if (selectedStory === null) {
       return [] as const
     }
-    return validateProps(selectedStory.schema, currentProps)
+    return validateProps({ schema: selectedStory.schema, props: currentProps })
   }, [selectedStory, currentProps])
 
   const handleSelect = useCallback(

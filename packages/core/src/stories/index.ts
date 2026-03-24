@@ -13,6 +13,7 @@ export { withContext, withFullScreen, withLayout } from './decorators.js'
 export type { LayoutOptions } from './decorators.js'
 
 export { schemaToFieldDescriptors, resolveControlKind } from './schema.js'
+export type { ZodDef } from './schema.js'
 
 export { validateProps } from './validate.js'
 export type { FieldError } from './validate.js'

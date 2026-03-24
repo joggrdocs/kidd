@@ -65,6 +65,16 @@ export default defineConfig({
           path: "/concepts/icons",
           include: "docs/concepts/icons.md",
         },
+        {
+          title: "Screens",
+          path: "/concepts/screens",
+          include: "docs/concepts/screens.md",
+        },
+        {
+          title: "Reporting",
+          path: "/concepts/reporting",
+          include: "docs/concepts/reporting.md",
+        },
       ],
     },
 
@@ -97,19 +107,53 @@ export default defineConfig({
       ],
     },
 
-    // ── Reference ──
+    // ── Reference: JavaScript ──
     {
-      title: "Reference",
+      title: "JavaScript",
       path: "/reference",
       icon: "pixelarticons:terminal",
       items: [
         {
-          title: "@kidd-cli/core",
-          path: "/reference/kidd",
-          include: "docs/reference/kidd.md",
+          title: "command()",
+          path: "/reference/command",
+          include: "docs/reference/command.md",
         },
         {
-          title: "@kidd-cli/cli",
+          title: "middleware()",
+          path: "/reference/middleware",
+          include: "docs/reference/middleware.md",
+        },
+        {
+          title: "cli()",
+          path: "/reference/bootstrap",
+          include: "docs/reference/bootstrap.md",
+        },
+        {
+          title: "Context",
+          path: "/reference/context",
+          include: "docs/reference/context.md",
+        },
+        {
+          title: "screen()",
+          path: "/reference/screen",
+          include: "docs/reference/screen.md",
+        },
+        {
+          title: "report()",
+          path: "/reference/report",
+          include: "docs/reference/report.md",
+        },
+      ],
+    },
+
+    // ── Reference: CLI ──
+    {
+      title: "CLI",
+      path: "/reference/cli",
+      icon: "pixelarticons:command",
+      items: [
+        {
+          title: "CLI",
           path: "/reference/cli",
           include: "docs/reference/cli.md",
         },

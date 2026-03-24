@@ -393,5 +393,5 @@ MY_APP_TOKEN=ghp_abc123 my-app repos
 ## References
 
 - [Authentication Concepts](../concepts/authentication.md)
-- [kidd API Reference](../reference/kidd.md)
+- [Core Reference](../reference/kidd.md)
 - [Context](../concepts/context.md)

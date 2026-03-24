@@ -164,6 +164,6 @@ See [Context](./context.md) for the full `ctx.fail()` API and all other context 
 
 ## References
 
-- [kidd API Reference](../reference/kidd.md)
+- [Core Reference](../reference/kidd.md)
 - [Context](./context.md)
 - [Build a CLI](../guides/build-a-cli.md)

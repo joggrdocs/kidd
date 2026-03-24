@@ -455,6 +455,6 @@ http({
 
 ## References
 
-- [kidd API Reference](../reference/kidd.md)
+- [Core Reference](../reference/kidd.md)
 - [Context](./context.md)
 - [Add Authentication Guide](../guides/add-authentication.md)

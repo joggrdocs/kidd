@@ -1,6 +1,6 @@
-# @kidd-cli/cli
+# CLI
 
-DX companion CLI for kidd projects. Provides scaffolding, building, diagnostics, and code generation commands.
+Developer CLI for kidd projects. Scaffolding, building, diagnostics, and code generation.
 
 ## Installation
 
@@ -183,6 +183,6 @@ kidd commands
 
 ## References
 
-- [@kidd-cli/core API Reference](./kidd.md)
+- [Core](./kidd.md)
 - [Build a CLI](../guides/build-a-cli.md)
 - [Configuration](../concepts/configuration.md)

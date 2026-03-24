@@ -282,9 +282,21 @@ declare module '@kidd-cli/core' {
 | `KiddStore` | `ctx.store`  | Global store keys merged into the store type                                                    |
 | `StoreMap`  | `ctx.store`  | The store's full key-value shape -- extend this to register typed keys (merges with `KiddStore`) |
 
+## Context in screen commands
+
+Screen commands defined with `screen()` do not receive a `Context` object. Instead, parsed args are passed directly as props to the React component, and runtime values are accessed via hooks:
+
+| Hook | Returns | Context equivalent |
+|------|---------|-------------------|
+| `useConfig()` | `Readonly<TConfig>` | `ctx.config` |
+| `useMeta()` | `Readonly<Meta>` | `ctx.meta` |
+| `useStore()` | `Store` | `ctx.store` |
+
+See [Screens](./screens.md) for details.
+
 ## References
 
-- [kidd API Reference](../reference/kidd.md)
+- [Core Reference](../reference/kidd.md)
 - [Lifecycle](./lifecycle.md)
 - [Configuration](./configuration.md)
 - [Authentication](./authentication.md)

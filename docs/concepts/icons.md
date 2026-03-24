@@ -381,6 +381,6 @@ When the font install fails, a warning is logged and the middleware falls back t
 
 ## References
 
-- [kidd API Reference](../reference/kidd.md)
+- [Core Reference](../reference/kidd.md)
 - [Context](./context.md)
 - [Lifecycle](./lifecycle.md)

@@ -78,14 +78,22 @@ export function mapToWatchConfig(params: {
 // ---------------------------------------------------------------------------
 
 /**
- * Combine Node.js builtins with user-specified externals.
+ * Optional peer dependencies of `c12` (the config loader) that are behind
+ * dynamic `import()` calls and never execute at runtime. Externalizing them
+ * at the tsdown level strips the imports from the bundle so `bun build --compile`
+ * does not attempt to resolve them in strict pnpm layouts (e.g. CI).
+ */
+const C12_OPTIONAL_DEPS: readonly string[] = ['chokidar', 'magicast', 'giget']
+
+/**
+ * Combine Node.js builtins, c12 optional deps, and user-specified externals.
  *
  * @private
  * @param userExternals - Additional packages to mark as external.
  * @returns Combined array of externals for tsdown's `deps.neverBundle`.
  */
 function buildExternals(userExternals: readonly string[]): (string | RegExp)[] {
-  return [...NODE_BUILTINS, ...userExternals]
+  return [...NODE_BUILTINS, ...C12_OPTIONAL_DEPS, ...userExternals]
 }
 
 /**

@@ -11,11 +11,13 @@ export default command({
   handler: (ctx) => {
     const resolved = ctx.icons.category(ctx.args.name)
 
-    ctx.output.table(
-      Object.entries(resolved).map(([name, glyph]) => ({
-        Glyph: glyph,
-        Name: name,
-      }))
+    ctx.log.raw(
+      ctx.format.table(
+        Object.entries(resolved).map(([name, glyph]) => ({
+          Glyph: glyph,
+          Name: name,
+        }))
+      )
     )
   },
 })

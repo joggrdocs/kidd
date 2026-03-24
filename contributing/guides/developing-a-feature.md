@@ -5,7 +5,7 @@ Ship a feature end-to-end: branch, code, test, changeset, PR, and merge.
 ## Prerequisites
 
 - Local environment set up (see [Getting Started](./getting-started.md))
-- Familiarity with relevant [standards](../README.md)
+- Familiarity with relevant [standards](https://github.com/joggrdocs/kidd/blob/main/contributing/README.md)
 
 ## Steps
 

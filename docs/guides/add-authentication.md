@@ -222,12 +222,12 @@ interface Repo {
   readonly private: boolean
 }
 
-const args = z.object({
+const listOptions = z.object({
   json: z.boolean().default(false).describe('Output as JSON'),
 })
 
 export default command({
-  args,
+  options: listOptions,
   description: 'List repositories',
   handler: async (ctx) => {
     ctx.spinner.start('Fetching repos...')
@@ -393,5 +393,5 @@ MY_APP_TOKEN=ghp_abc123 my-app repos
 ## References
 
 - [Authentication Concepts](../concepts/authentication.md)
-- [kidd API Reference](../reference/kidd.md)
+- [Core Reference](../reference/kidd.md)
 - [Context](../concepts/context.md)

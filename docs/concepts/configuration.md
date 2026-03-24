@@ -75,7 +75,7 @@ declare module '@kidd-cli/core' {
 }
 ```
 
-This keeps the schema as the single source of truth — `CliConfig` is always derived from it, so they can never drift apart. Every command handler now sees `ctx.config.apiUrl` and `ctx.config.org` as fully typed properties.
+This keeps the schema as the single source of truth -- `CliConfig` is always derived from it, so they can never drift apart. Every command handler now sees `ctx.config.apiUrl` and `ctx.config.org` as fully typed properties.
 
 You can scaffold this setup automatically:
 
@@ -155,8 +155,121 @@ When `config.load()` or `config.find()` is called, files are searched in this or
 
 The first matching file wins. Files are checked in extension order: `.jsonc`, `.json`, `.yaml`.
 
+## Config File Examples
+
+Below are examples of what the config files look like in each supported format.
+
+### JSONC
+
+```jsonc
+// .my-app.jsonc
+{
+  // API endpoint for the service
+  "apiUrl": "https://api.example.com",
+  "org": "my-org",
+  "region": "us-east-1"
+}
+```
+
+### JSON
+
+```json
+{
+  "apiUrl": "https://api.example.com",
+  "org": "my-org",
+  "region": "us-east-1"
+}
+```
+
+### YAML
+
+```yaml
+# .my-app.yaml
+apiUrl: https://api.example.com
+org: my-org
+region: us-east-1
+```
+
+## Common Patterns
+
+### Optional config
+
+When config is optional (not every project has a config file), handle the `[null, null]` return from `config.load()`:
+
+```ts
+const config = createConfigClient({ name: 'my-app', schema: MySchema })
+const [error, result] = await config.load()
+
+if (error) {
+  console.error('Invalid config:', error.message)
+  process.exit(1)
+}
+
+// result is null when no config file found -- use defaults
+const settings = result ? result.config : { apiUrl: 'https://localhost:3000' }
+```
+
+### Writing config from a setup command
+
+Use `config.write()` to create a config file from user input:
+
+```ts
+const setupCommand = command({
+  description: 'Configure the CLI',
+  async handler(ctx) {
+    const apiUrl = await ctx.prompts.text({ message: 'API URL' })
+    const org = await ctx.prompts.text({ message: 'Organization' })
+
+    const config = createConfigClient({ name: 'my-app', schema: configSchema })
+    const [error] = await config.write({ apiUrl, org }, { format: 'jsonc' })
+
+    if (error) {
+      ctx.fail(`Failed to write config: ${error.message}`)
+    }
+
+    ctx.logger.success('Config saved')
+  },
+})
+```
+
+### Environment-specific config
+
+Use different config file names for different environments:
+
+```ts
+cli({
+  name: 'my-app',
+  version: '1.0.0',
+  config: {
+    schema: configSchema,
+    name: process.env['NODE_ENV'] === 'production' ? 'my-app-prod' : 'my-app',
+  },
+  commands: { deploy },
+})
+```
+
+## Troubleshooting
+
+### Config validation fails
+
+**Issue:** `config.load()` returns a validation error.
+
+**Fix:** The Zod schema must match the shape of your config file. Use `z.object({}).passthrough()` during migration if you need to accept unknown keys temporarily. Check for typos in field names and ensure types match (e.g., a number field should not contain a string in the config file).
+
+### Config file not discovered
+
+**Issue:** `config.load()` returns `[null, null]` even though a config file exists.
+
+**Fix:** Verify the file is named `.<cli-name>.<ext>` (note the leading dot). The `<cli-name>` must match the `name` passed to `createConfigClient()` or `cli()`. Supported extensions: `.jsonc`, `.json`, `.yaml`.
+
+### YAML parsing error
+
+**Issue:** YAML config fails to load with a parse error.
+
+**Fix:** YAML is sensitive to indentation. Ensure consistent use of spaces (not tabs). Verify the file is valid YAML using an online validator.
+
 ## References
 
-- [kidd API Reference](../reference/kidd.md)
+- [Core Reference](../reference/kidd.md)
 - [Context](./context.md)
 - [@kidd-cli/cli Reference](../reference/cli.md)

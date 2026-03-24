@@ -276,6 +276,41 @@ const appDir = resolvePath({ dirName: '.my-app' })
 
 `findProjectRoot` returns `ProjectRoot | null` (with `path` and `isSubmodule` properties). `resolvePath` accepts `{ dirName, source?, startDir? }` and resolves to a local or global directory path.
 
+### 9. Define a screen command
+
+For interactive terminal UIs, use `screen()` instead of `command()`. Screen commands render a React component using Ink.
+
+```tsx
+import { Box, screen, Text, useApp } from '@kidd-cli/core/ui'
+import React from 'react'
+import { z } from 'zod'
+
+function Greeting({ name }: { readonly name: string }): React.ReactElement {
+  const { exit } = useApp()
+
+  React.useEffect(() => {
+    const timer = setTimeout(() => exit(), 2000)
+    return () => { clearTimeout(timer) }
+  }, [exit])
+
+  return (
+    <Box padding={1}>
+      <Text color="green" bold>Hello, {name}!</Text>
+    </Box>
+  )
+}
+
+export default screen({
+  description: 'Greet with a styled UI',
+  options: z.object({
+    name: z.string().describe('Name to greet'),
+  }),
+  render: Greeting,
+})
+```
+
+Screen commands use `.tsx` files and access runtime context via hooks (`useConfig()`, `useMeta()`, `useStore()`) instead of the `ctx` object. See [Screens](../concepts/screens.md) for the full guide.
+
 ## Verification
 
 ```bash
@@ -305,4 +340,5 @@ npx my-app deploy --env staging --dry-run
 
 ## References
 
-- [kidd API Reference](../reference/kidd.md)
+- [Core Reference](../reference/kidd.md)
+- [Screens](../concepts/screens.md)

@@ -4,7 +4,7 @@ kidd ships test utilities at `@kidd-cli/core/test` so you can test commands, mid
 
 ## Install
 
-The utilities live inside `@kidd-cli/core` — no extra package required:
+The utilities live inside `@kidd-cli/core` -- no extra package required:
 
 ```ts
 import {
@@ -33,7 +33,10 @@ const greet = command({
 
 describe('greet', () => {
   it('should greet the user by name', async () => {
-    const { stdout } = await runHandler(greet, { args: { name: 'Alice' } })
+    const { stdout } = await runHandler({
+      cmd: greet,
+      overrides: { args: { name: 'Alice' } },
+    })
     expect(stdout()).toBe('Hello, Alice!\n')
   })
 
@@ -43,7 +46,7 @@ describe('greet', () => {
         ctx.fail('missing name')
       },
     })
-    const { error } = await runHandler(failCmd)
+    const { error } = await runHandler({ cmd: failCmd })
     expect(error?.message).toBe('missing name')
   })
 })
@@ -65,7 +68,7 @@ const loadUser = middleware(async (ctx, next) => {
 
 describe('loadUser', () => {
   it('should decorate context with user', async () => {
-    const { ctx } = await runMiddleware([loadUser])
+    const { ctx } = await runMiddleware({ middlewares: [loadUser] })
     expect(ctx.user).toEqual({ id: 'u-1', name: 'Alice' })
   })
 })
@@ -92,13 +95,13 @@ const deploy = command({
 describe('deploy', () => {
   it('should deploy when confirmed', async () => {
     const prompts = mockPrompts({ confirm: [true] })
-    const { stdout } = await runHandler(deploy, { prompts })
+    const { stdout } = await runHandler({ cmd: deploy, overrides: { prompts } })
     expect(stdout()).toContain('Deploying...')
   })
 
   it('should skip deploy when denied', async () => {
     const prompts = mockPrompts({ confirm: [false] })
-    const { stdout } = await runHandler(deploy, { prompts })
+    const { stdout } = await runHandler({ cmd: deploy, overrides: { prompts } })
     expect(stdout()).toBe('')
   })
 })
@@ -143,7 +146,7 @@ import { command } from '@kidd-cli/core'
 import { runCommand } from '@kidd-cli/core/test'
 
 const greet = command({
-  args: { name: { type: 'string', required: true } },
+  options: { name: { type: 'string', required: true } },
   handler(ctx) {
     ctx.log.raw(`Hello, ${ctx.args.name}!`)
   },
@@ -156,6 +159,113 @@ describe('CLI integration', () => {
       commands: { greet },
     })
     expect(exitCode).toBeUndefined() // No exit = success
+  })
+})
+```
+
+## Testing with Auth
+
+Commands that depend on `ctx.auth` need the auth context decorated before the handler runs. Use `createTestContext` and `decorateContext` to attach a mock auth object:
+
+```ts
+import { describe, expect, it } from 'vitest'
+import { command, decorateContext } from '@kidd-cli/core'
+import { createTestContext } from '@kidd-cli/core/test'
+
+const whoami = command({
+  async handler(ctx) {
+    if (!ctx.auth.authenticated()) {
+      ctx.fail('Not authenticated')
+    }
+    ctx.logger.print('Logged in')
+  },
+})
+
+describe('whoami', () => {
+  it('should print when authenticated', () => {
+    const { ctx, stdout } = createTestContext()
+
+    decorateContext(ctx, 'auth', {
+      authenticated: () => true,
+      credential: () => ({ type: 'bearer', token: 'test-token' }),
+      login: async () => [null, { type: 'bearer', token: 'test-token' }],
+      logout: async () => [null, '~/.my-app/auth.json'],
+    })
+
+    whoami.handler(ctx)
+    expect(stdout()).toContain('Logged in')
+  })
+
+  it('should fail when not authenticated', () => {
+    const { ctx } = createTestContext()
+
+    decorateContext(ctx, 'auth', {
+      authenticated: () => false,
+      credential: () => null,
+      login: async () => [{ type: 'no_credential', message: 'No credential' }, null],
+      logout: async () => [null, ''],
+    })
+
+    expect(() => whoami.handler(ctx)).toThrow('Not authenticated')
+  })
+})
+```
+
+## Testing with Config
+
+Pass config values via the `overrides` to test commands that read `ctx.config`:
+
+```ts
+import { describe, expect, it } from 'vitest'
+import { command } from '@kidd-cli/core'
+import { runHandler } from '@kidd-cli/core/test'
+
+const status = command({
+  async handler(ctx) {
+    ctx.logger.print(`API: ${ctx.config.apiUrl}`)
+  },
+})
+
+describe('status', () => {
+  it('should display the configured API URL', async () => {
+    const { stdout } = await runHandler({
+      cmd: status,
+      overrides: { config: { apiUrl: 'https://api.example.com' } },
+    })
+    expect(stdout()).toContain('https://api.example.com')
+  })
+})
+```
+
+## Testing Icons
+
+Commands that use `ctx.icons` need the icons context decorated. Use `createTestContext` and `decorateContext` to attach a mock:
+
+```ts
+import { describe, expect, it } from 'vitest'
+import { command, decorateContext } from '@kidd-cli/core'
+import { createTestContext } from '@kidd-cli/core/test'
+
+const deploy = command({
+  async handler(ctx) {
+    ctx.logger.print(`${ctx.icons.get('deploy')} Deploying...`)
+  },
+})
+
+describe('deploy', () => {
+  it('should include the deploy icon', async () => {
+    const { ctx, stdout } = createTestContext()
+
+    decorateContext(ctx, 'icons', {
+      get: (name) => (name === 'deploy' ? '[rocket]' : ''),
+      has: () => true,
+      installed: () => false,
+      setup: async () => [null, true],
+      category: () => ({}),
+    })
+
+    await deploy.handler(ctx)
+    expect(stdout()).toContain('[rocket] Deploying...')
   })
 })
 ```
@@ -180,9 +290,23 @@ it('should exit with code 1 on error', async () => {
 | Function                                 | Purpose                                                              |
 | ---------------------------------------- | -------------------------------------------------------------------- |
 | `createTestContext(overrides?)`          | Create a fully-mocked Context with captured output                   |
-| `runHandler(command, overrides?)`        | Execute a single command handler in isolation                        |
-| `runMiddleware(middlewares, overrides?)` | Execute a middleware chain with a no-op terminal handler             |
+| `runHandler({ cmd, overrides? })`        | Execute a single command handler in isolation                        |
+| `runMiddleware({ middlewares, overrides? })` | Execute a middleware chain with a no-op terminal handler             |
 | `runCommand(options)`                    | Execute a full CLI pipeline in-process                               |
 | `mockPrompts(responses)`                 | Create a Prompts implementation with pre-programmed responses        |
 | `setupTestLifecycle()`                   | Wire up beforeEach/afterEach hooks for process.argv and process.exit |
 | `createWritableCapture()`                | Create a writable stream that captures output to a string buffer     |
+
+## Troubleshooting
+
+### Handler throws unexpectedly
+
+**Issue:** `runHandler` rejects instead of returning an error.
+
+**Fix:** `runHandler` catches `ContextError` (from `ctx.fail()`) and returns it as `error`. Other exceptions propagate as rejections. Ensure your handler uses `ctx.fail()` for expected errors.
+
+### Prompts consumed out of order
+
+**Issue:** `mockPrompts` returns the wrong response.
+
+**Fix:** Responses are consumed in call order per type. If your handler calls `confirm` twice, queue two values: `mockPrompts({ confirm: [true, false] })`.

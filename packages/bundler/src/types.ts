@@ -107,6 +107,7 @@ export interface WatchParams {
 export interface CompileParams {
   readonly config: KiddConfig
   readonly cwd: string
+  readonly verbose?: boolean
   readonly onTargetStart?: (target: CompileTarget) => void | Promise<void>
   readonly onTargetComplete?: (target: CompileTarget) => void | Promise<void>
 }

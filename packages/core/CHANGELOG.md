@@ -1,5 +1,21 @@
 # kidd
 
+## 0.12.0
+
+### Minor Changes
+
+- ed3eb91: Add module augmentation to report middleware
+
+  - Added `declare module` augmentation so `ctx.report` is typed on all commands when `report()` middleware is registered at the `cli()` level, matching the existing `icons` middleware pattern.
+  - Fixed `icons` example to use `ctx.log.raw()` and `ctx.format.table()` instead of removed `ctx.output` API.
+
+## 0.11.0
+
+### Minor Changes
+
+- 9cd2217: Move logger, spinner, and prompts off base Context into a `logger()` middleware (`ctx.log`). Extract diagnostics into a `report()` middleware (`ctx.report`).
+- 9e4abdc: Add `screen()` factory for building React/Ink TUI commands. Screens receive parsed args as component props; runtime context is available via `useConfig()`, `useMeta()`, and `useStore()` hooks through a `KiddProvider`. Export all Ink primitives and `@inkjs/ui` components from `@kidd-cli/core/ui`. Add `.tsx`/`.jsx` support to the bundler command scanner.
+
 ## 0.10.0
 
 ### Minor Changes

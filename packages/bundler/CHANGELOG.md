@@ -1,5 +1,21 @@
 # @kidd-cli/bundler
 
+## 0.3.0
+
+### Minor Changes
+
+- ed3eb91: Fix `--compile` failures on CI
+
+  - Moved `chokidar`, `magicast`, and `giget` externalization from `bun build --compile` to the tsdown `neverBundle` config. These c12 optional deps were causing failures in strict pnpm layouts (e.g. GitHub Actions) where Bun couldn't resolve them even when marked as `--external`.
+  - Added `--verbose` flag to `kidd build` that surfaces bun's stderr output on compile failures.
+  - Captured stderr from `execFile` in `execBunBuild` so compile errors include actionable diagnostics.
+
+## 0.2.6
+
+### Patch Changes
+
+- 9e4abdc: Add `screen()` factory for building React/Ink TUI commands. Screens receive parsed args as component props; runtime context is available via `useConfig()`, `useMeta()`, and `useStore()` hooks through a `KiddProvider`. Export all Ink primitives and `@inkjs/ui` components from `@kidd-cli/core/ui`. Add `.tsx`/`.jsx` support to the bundler command scanner.
+
 ## 0.2.5
 
 ### Patch Changes

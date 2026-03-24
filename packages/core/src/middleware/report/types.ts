@@ -63,3 +63,19 @@ export interface ReportEnv {
     readonly report: Report
   }
 }
+
+// ---------------------------------------------------------------------------
+// Module augmentation
+// ---------------------------------------------------------------------------
+
+/**
+ * Augments the base {@link Context} with an optional `report` property.
+ *
+ * When a consumer imports `@kidd-cli/core/report`, this declaration merges
+ * `report` onto `Context` so that `ctx.report` is typed without manual casting.
+ */
+declare module '@kidd-cli/core' {
+  interface Context {
+    readonly report: Report
+  }
+}

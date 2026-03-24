@@ -102,7 +102,7 @@ export interface DotDirectoryClient {
   ) => Result<string, DotDirectoryError>
   readonly exists: (filename: string) => boolean
   readonly remove: (filename: string, options?: AccessOptions) => Result<string, DotDirectoryError>
-  readonly path: (filename: string) => string
+  readonly path: (filename: string) => Result<string, DotDirectoryError>
 }
 
 // ---------------------------------------------------------------------------

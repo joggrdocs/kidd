@@ -216,7 +216,10 @@ describe('createDotDirectoryClient()', () => {
     it('should return the full absolute path for a filename', () => {
       const dotdir = createDotDirectoryClient({ dir: tmpDir, location: 'global', registry })
 
-      expect(dotdir.path('config.json')).toBe(join(tmpDir, 'config.json'))
+      const [error, filePath] = dotdir.path('config.json')
+
+      expect(error).toBeNull()
+      expect(filePath).toBe(join(tmpDir, 'config.json'))
     })
   })
 
@@ -340,7 +343,10 @@ describe('createDotDirectoryClient()', () => {
       registry.add({ filename: 'auth.json', location: 'global' })
       const dotdir = createDotDirectoryClient({ dir: tmpDir, location: 'global', registry })
 
-      expect(dotdir.path('auth.json')).toBe(join(tmpDir, 'auth.json'))
+      const [error, filePath] = dotdir.path('auth.json')
+
+      expect(error).toBeNull()
+      expect(filePath).toBe(join(tmpDir, 'auth.json'))
     })
 
     it('should not block files in a different location', () => {

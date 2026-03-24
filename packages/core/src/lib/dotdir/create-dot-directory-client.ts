@@ -1,5 +1,5 @@
 import { existsSync, lstatSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs'
-import { join, resolve, sep } from 'node:path'
+import { resolve, sep } from 'node:path'
 
 import { attempt } from '@kidd-cli/utils/fp'
 import type { Result } from '@kidd-cli/utils/fp'
@@ -52,17 +52,15 @@ export function createDotDirectoryClient(options: {
       ]
     }
 
-    if (existsSync(resolved)) {
-      const [, stat] = attempt<ReturnType<typeof lstatSync>, Error>(() => lstatSync(resolved))
-      if (stat && stat.isSymbolicLink()) {
-        return [
-          {
-            message: `Path "${filename}" is a symbolic link, which is not allowed.`,
-            type: 'path_traversal',
-          },
-          null,
-        ]
-      }
+    const [, stat] = attempt(() => lstatSync(resolved))
+    if (stat && stat.isSymbolicLink()) {
+      return [
+        {
+          message: `Path "${filename}" is a symbolic link, which is not allowed.`,
+          type: 'path_traversal',
+        },
+        null,
+      ]
     }
 
     return [null, resolved]
@@ -173,8 +171,12 @@ export function createDotDirectoryClient(options: {
       return [pathError, null]
     }
 
+    const [ensureError] = ensure()
+    if (ensureError) {
+      return [ensureError, null]
+    }
+
     const [error] = attempt<void, Error>(() => {
-      mkdirSync(resolvedDir, { mode: 0o700, recursive: true })
       writeFileSync(filePath, content, { encoding: 'utf8', mode: 0o600 })
     })
 
@@ -316,12 +318,15 @@ export function createDotDirectoryClient(options: {
   /**
    * Resolve the full absolute path for a filename within the directory.
    *
+   * Validates the filename against path traversal and symlink checks
+   * via {@link safePath}.
+   *
    * @private
    * @param filename - The filename to resolve.
-   * @returns The absolute path.
+   * @returns A Result with the absolute path on success, or a path_traversal error.
    */
-  function resolvePath(filename: string): string {
-    return join(resolvedDir, filename)
+  function resolvePath(filename: string): Result<string, DotDirectoryError> {
+    return safePath(filename)
   }
 
   return Object.freeze({

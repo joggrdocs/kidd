@@ -14,6 +14,6 @@ export default command({
     }
 
     const glyph = ctx.icons.get(ctx.args.name)
-    ctx.output.write(`${glyph}  ${ctx.args.name}`)
+    ctx.log.raw(`${glyph}  ${ctx.args.name}`)
   },
 })

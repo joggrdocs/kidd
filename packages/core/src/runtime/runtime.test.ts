@@ -290,8 +290,10 @@ describe('createRuntime()', () => {
   })
 
   describe('render execution', () => {
-    it('should invoke render when present on the execution', async () => {
+    it('should pass render as the handler to runner.execute', async () => {
+      const mockRunnerExecute = vi.fn().mockResolvedValue(undefined)
       setupDefaults()
+      mockedCreateRunner.mockReturnValue({ execute: mockRunnerExecute })
       const renderFn = vi.fn().mockResolvedValue(undefined)
 
       const { createRuntime } = await import('./runtime.js')
@@ -305,35 +307,12 @@ describe('createRuntime()', () => {
       const [execError] = await runtime!.execute(execution)
 
       expect(execError).toBeNull()
-      expect(renderFn).toHaveBeenCalledOnce()
+      expect(mockRunnerExecute).toHaveBeenCalledWith(
+        expect.objectContaining({ handler: renderFn })
+      )
     })
 
-    it('should pass the full context to render', async () => {
-      const fakeContext = { args: { env: 'staging' }, mock: 'context' } as unknown as Context
-
-      setupDefaults()
-      mockedCreateContext.mockReturnValue(fakeContext)
-
-      const renderFn = vi.fn().mockResolvedValue(undefined)
-
-      const { createRuntime } = await import('./runtime.js')
-      const [, runtime] = await createRuntime({
-        dirs: { global: '.my-cli', local: '.my-cli' },
-        name: 'my-cli',
-        version: '2.0.0',
-      })
-
-      const execution = makeExecution({
-        commandPath: ['deploy'],
-        handler: undefined,
-        render: renderFn,
-      })
-      await runtime!.execute(execution)
-
-      expect(renderFn).toHaveBeenCalledWith(fakeContext)
-    })
-
-    it('should skip middleware runner when render is present', async () => {
+    it('should run render through middleware runner', async () => {
       const mockRunnerExecute = vi.fn().mockResolvedValue(undefined)
       setupDefaults()
       mockedCreateRunner.mockReturnValue({ execute: mockRunnerExecute })
@@ -346,15 +325,51 @@ describe('createRuntime()', () => {
         version: '1.0.0',
       })
 
-      const execution = makeExecution({ handler: vi.fn(), render: renderFn })
+      const commandMiddleware = [{ handler: vi.fn() }]
+      const execution = makeExecution({
+        handler: vi.fn(),
+        middleware: commandMiddleware as never,
+        render: renderFn,
+      })
       await runtime!.execute(execution)
 
-      expect(renderFn).toHaveBeenCalledOnce()
-      expect(mockRunnerExecute).not.toHaveBeenCalled()
+      expect(mockRunnerExecute).toHaveBeenCalledOnce()
+      expect(mockRunnerExecute).toHaveBeenCalledWith(
+        expect.objectContaining({
+          handler: renderFn,
+          middleware: commandMiddleware,
+        })
+      )
+    })
+
+    it('should prefer render over handler when both are present', async () => {
+      const mockRunnerExecute = vi.fn().mockResolvedValue(undefined)
+      setupDefaults()
+      mockedCreateRunner.mockReturnValue({ execute: mockRunnerExecute })
+      const renderFn = vi.fn().mockResolvedValue(undefined)
+      const handlerFn = vi.fn().mockResolvedValue(undefined)
+
+      const { createRuntime } = await import('./runtime.js')
+      const [, runtime] = await createRuntime({
+        dirs: { global: '.my-cli', local: '.my-cli' },
+        name: 'my-cli',
+        version: '1.0.0',
+      })
+
+      const execution = makeExecution({ handler: handlerFn, render: renderFn })
+      await runtime!.execute(execution)
+
+      expect(mockRunnerExecute).toHaveBeenCalledWith(
+        expect.objectContaining({ handler: renderFn })
+      )
     })
 
     it('should return err when render throws', async () => {
       setupDefaults()
+      mockedCreateRunner.mockReturnValue({
+        execute: vi.fn().mockRejectedValue(new Error('Render failed')),
+      })
+
       const renderFn = vi.fn().mockRejectedValue(new Error('Render failed'))
 
       const { createRuntime } = await import('./runtime.js')

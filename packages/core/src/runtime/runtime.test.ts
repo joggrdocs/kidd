@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import type { Context } from '@/context/types.js'
+import type { CommandContext } from '@/context/types.js'
 
 import type { ResolvedExecution } from './types.js'
 
@@ -49,7 +49,7 @@ function setupDefaults(): void {
   mockedCreateRunner.mockReturnValue({
     execute: vi.fn().mockResolvedValue(undefined),
   })
-  mockedCreateContext.mockReturnValue({ mock: 'context' } as unknown as Context)
+  mockedCreateContext.mockReturnValue({ mock: 'context' } as unknown as CommandContext)
 }
 
 describe('createRuntime()', () => {
@@ -197,9 +197,9 @@ describe('createRuntime()', () => {
     )
 
     const passedHandler = mockRunnerExecute.mock.calls[0][0].handler as (
-      ctx: Context
+      ctx: CommandContext
     ) => Promise<void>
-    await expect(passedHandler({} as Context)).resolves.toBeUndefined()
+    await expect(passedHandler({} as CommandContext)).resolves.toBeUndefined()
   })
 
   it('should return err when runner.execute throws', async () => {
@@ -366,8 +366,8 @@ describe('createRuntime()', () => {
       mockedCreateRunner.mockReturnValue({
         execute: vi
           .fn()
-          .mockImplementation(async (opts: { handler: (ctx: Context) => Promise<void> }) =>
-            opts.handler({} as Context)
+          .mockImplementation(async (opts: { handler: (ctx: CommandContext) => Promise<void> }) =>
+            opts.handler({} as CommandContext)
           ),
       })
 

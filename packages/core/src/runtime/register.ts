@@ -2,7 +2,7 @@ import { hasTag } from '@kidd-cli/utils/tag'
 import { match } from 'ts-pattern'
 import type { Argv } from 'yargs'
 
-import type { Context } from '@/context/types.js'
+import type { CommandContext } from '@/context/types.js'
 import type {
   ArgsDef,
   Command,
@@ -170,7 +170,7 @@ function registerSingleCommand(options: RegisterSingleCommandOptions): void {
     // Cannot be narrowed further inside the yargs callback boundary.
     resolved.ref = {
       commandPath: [...parentPath, name],
-      handler: cmd.handler as ((ctx: Context) => Promise<void> | void) | undefined,
+      handler: cmd.handler as ((ctx: CommandContext) => Promise<void> | void) | undefined,
       middleware: (cmd.middleware ?? []) as Middleware[],
       options: cmd.options,
       positionals: cmd.positionals,

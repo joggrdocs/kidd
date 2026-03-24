@@ -62,7 +62,7 @@ When `forceSetup` is enabled, the install prompt is shown regardless of whether 
 
 ### Module Augmentation
 
-Importing `@kidd-cli/core/icons` automatically augments the `Context` interface with `readonly icons: IconsContext`. No manual type augmentation or casting is needed -- once the middleware is registered, `ctx.icons` is fully typed in all command handlers.
+Importing `@kidd-cli/core/icons` automatically augments the `CommandContext` interface with `readonly icons: IconsContext`. No manual type augmentation or casting is needed -- once the middleware is registered, `ctx.icons` is fully typed in all command handlers.
 
 ```ts
 // This import triggers the module augmentation:

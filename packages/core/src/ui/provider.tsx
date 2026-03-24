@@ -43,10 +43,10 @@ export function KiddProvider({ children, value }: KiddProviderProps): ReactEleme
  *
  * @returns The current screen context.
  */
-export function useCommandContext<TContext extends ScreenContext = ScreenContext>(): TContext {
+export function useScreenContext<TContext extends ScreenContext = ScreenContext>(): TContext {
   const ctx = useContext(KiddContext)
   if (!ctx) {
-    throw new Error('useCommandContext must be used inside a screen() component')
+    throw new Error('useScreenContext must be used inside a screen() component')
   }
   return ctx as TContext
 }

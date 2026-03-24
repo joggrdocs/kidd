@@ -1,7 +1,7 @@
 import { isFunction } from '@kidd-cli/utils/fp'
 
 import { decorateContext } from '@/context/decorate.js'
-import type { Context } from '@/context/types.js'
+import type { CommandContext } from '@/context/types.js'
 import { middleware } from '@/middleware.js'
 import type { Middleware } from '@/types/index.js'
 
@@ -54,7 +54,7 @@ export function http(options: HttpOptions): Middleware {
  * @returns The resolved headers record or undefined.
  */
 function resolveHeaders(
-  ctx: Context,
+  ctx: CommandContext,
   headers: HttpOptions['headers']
 ): Readonly<Record<string, string>> | undefined {
   if (headers === undefined) {

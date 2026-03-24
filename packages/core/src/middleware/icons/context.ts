@@ -2,7 +2,7 @@ import { ok } from '@kidd-cli/utils/fp'
 import type { AsyncResult } from '@kidd-cli/utils/fp'
 import { match } from 'ts-pattern'
 
-import type { Context } from '@/context/types.js'
+import type { CommandContext } from '@/context/types.js'
 
 import { getIconsByCategory } from './definitions.js'
 import { installNerdFont } from './install.js'
@@ -15,7 +15,7 @@ import type { IconCategory, IconDefinition, IconsContext, IconsError } from './t
 /**
  * Minimal context subset needed by the icons context factory.
  */
-export type IconsCtx = Pick<Context, 'log' | 'prompts' | 'spinner'>
+export type IconsCtx = Pick<CommandContext, 'log' | 'prompts' | 'spinner'>
 
 /**
  * Options for {@link createIconsContext}.

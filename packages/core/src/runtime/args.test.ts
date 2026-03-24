@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { z } from 'zod'
 
 import { command } from '@/command.js'
-import type { Context } from '@/context/types.js'
+import type { CommandContext } from '@/context/types.js'
 import type { CommandMap } from '@/types/index.js'
 
 const mockSpinnerInstance = vi.hoisted(() => ({
@@ -58,7 +58,7 @@ describe('args with zod schema', () => {
     })
 
     expect(handler).toHaveBeenCalledTimes(1)
-    const ctx = handler.mock.calls[0]![0] as Context
+    const ctx = handler.mock.calls[0]![0] as CommandContext
     expect(ctx.args).toMatchObject({ name: 'Alice' })
   })
 
@@ -83,7 +83,7 @@ describe('args with zod schema', () => {
     })
 
     expect(handler).toHaveBeenCalledTimes(1)
-    const ctx = handler.mock.calls[0]![0] as Context
+    const ctx = handler.mock.calls[0]![0] as CommandContext
     expect(ctx.args).toMatchObject({ name: 'Bob' })
   })
 
@@ -108,7 +108,7 @@ describe('args with zod schema', () => {
     })
 
     expect(handler).toHaveBeenCalledTimes(1)
-    const ctx = handler.mock.calls[0]![0] as Context
+    const ctx = handler.mock.calls[0]![0] as CommandContext
     expect(ctx.args).toMatchObject({ greeting: 'hello', name: 'Charlie' })
   })
 
@@ -132,7 +132,7 @@ describe('args with zod schema', () => {
     })
 
     expect(handler).toHaveBeenCalledTimes(1)
-    const ctx = handler.mock.calls[0]![0] as Context
+    const ctx = handler.mock.calls[0]![0] as CommandContext
     expect(ctx.args).toMatchObject({ count: 42 })
   })
 
@@ -156,7 +156,7 @@ describe('args with zod schema', () => {
     })
 
     expect(handler).toHaveBeenCalledTimes(1)
-    const ctx = handler.mock.calls[0]![0] as Context
+    const ctx = handler.mock.calls[0]![0] as CommandContext
     expect(ctx.args).toMatchObject({ verbose: true })
   })
 })
@@ -182,7 +182,7 @@ describe('args with yargs native format', () => {
     })
 
     expect(handler).toHaveBeenCalledTimes(1)
-    const ctx = handler.mock.calls[0]![0] as Context
+    const ctx = handler.mock.calls[0]![0] as CommandContext
     expect(ctx.args).toMatchObject({ name: 'Diana' })
   })
 

@@ -3,7 +3,7 @@ import type { AsyncResult } from '@kidd-cli/utils/fp'
 import type { z } from 'zod'
 
 import { createContext } from '@/context/index.js'
-import type { Context } from '@/context/types.js'
+import type { CommandContext } from '@/context/types.js'
 import { createConfigClient } from '@/lib/config/index.js'
 import type { CliConfigOptions, Middleware } from '@/types/index.js'
 
@@ -60,8 +60,8 @@ export async function createRuntime<TSchema extends z.ZodType>(
       // The generics are validated at the createContext call site.
       const [execError] = await attemptAsync(() =>
         runner.execute({
-          ctx: ctx as Context,
-          handler: finalHandler as (ctx: Context) => Promise<void> | void,
+          ctx: ctx as CommandContext,
+          handler: finalHandler as (ctx: CommandContext) => Promise<void> | void,
           middleware: command.middleware,
         })
       )

@@ -1,4 +1,4 @@
-import type { Context } from '@/context/types.js'
+import type { CommandContext } from '@/context/types.js'
 import type { Middleware } from '@/types/index.js'
 
 import type { MiddlewareExecutor } from './types.js'
@@ -23,7 +23,7 @@ import type { MiddlewareExecutor } from './types.js'
 export function createMiddlewareExecutor(rootMiddleware: Middleware[]): MiddlewareExecutor {
   return {
     async execute({ ctx, handler, middleware }): Promise<void> {
-      const commandHandler = async (innerCtx: Context): Promise<void> => {
+      const commandHandler = async (innerCtx: CommandContext): Promise<void> => {
         await runMiddlewareChain(middleware, innerCtx, handler)
       }
       await runMiddlewareChain(rootMiddleware, ctx, commandHandler)
@@ -49,8 +49,8 @@ export function createMiddlewareExecutor(rootMiddleware: Middleware[]): Middlewa
  */
 async function runMiddlewareChain(
   middlewares: Middleware[],
-  ctx: Context,
-  finalHandler: (ctx: Context) => Promise<void> | void
+  ctx: CommandContext,
+  finalHandler: (ctx: CommandContext) => Promise<void> | void
 ): Promise<void> {
   async function executeChain(index: number): Promise<void> {
     if (index >= middlewares.length) {

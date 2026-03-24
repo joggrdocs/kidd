@@ -1,20 +1,20 @@
 import { describe, expect, it } from 'vitest'
 
-import type { Context } from '@/context/types.js'
+import type { CommandContext } from '@/context/types.js'
 
 import { createAuthHeaders } from './headers.js'
 
 function createMockCtx(options?: {
   readonly credential?: { readonly type: string; readonly [key: string]: unknown } | null
-}): Context {
+}): CommandContext {
   if (options === undefined) {
-    return {} as Context
+    return {} as CommandContext
   }
 
   const { credential } = options
 
   if (credential === undefined) {
-    return {} as Context
+    return {} as CommandContext
   }
 
   return {
@@ -24,7 +24,7 @@ function createMockCtx(options?: {
       login: async () => [null, credential] as const,
       logout: async () => [null, ''] as const,
     },
-  } as unknown as Context
+  } as unknown as CommandContext
 }
 
 describe('createAuthHeaders()', () => {
@@ -56,7 +56,7 @@ describe('createAuthHeaders()', () => {
 
   it('should return empty record when ctx has no auth', () => {
     const resolveHeaders = createAuthHeaders()
-    const ctx = {} as Context
+    const ctx = {} as CommandContext
 
     const headers = resolveHeaders(ctx)
 

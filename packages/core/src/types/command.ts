@@ -1,7 +1,7 @@
 import type { Tagged } from '@kidd-cli/utils/tag'
 import type { z } from 'zod'
 
-import type { Context, Meta, Store } from '../context/types.js'
+import type { Context } from '../context/types.js'
 import type { InferVariables, Middleware, MiddlewareEnv } from './middleware.js'
 import type { AnyRecord, Resolvable } from './utility.js'
 
@@ -123,12 +123,7 @@ export type HandlerFn<
  *
  * @private
  */
-export type ScreenRenderFn = (props: {
-  readonly args: Record<string, unknown>
-  readonly config: Readonly<Record<string, unknown>>
-  readonly meta: Readonly<Meta>
-  readonly store: Store
-}) => Promise<void> | void
+export type ScreenRenderFn = (ctx: Context) => Promise<void> | void
 
 /**
  * Structured configuration for a command's subcommands.

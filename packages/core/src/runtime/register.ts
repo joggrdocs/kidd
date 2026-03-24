@@ -3,7 +3,14 @@ import { match } from 'ts-pattern'
 import type { Argv } from 'yargs'
 
 import type { Context } from '@/context/types.js'
-import type { ArgsDef, Command, CommandMap, Middleware, YargsArgDef } from '@/types/index.js'
+import type {
+  ArgsDef,
+  Command,
+  CommandMap,
+  Middleware,
+  ScreenRenderFn,
+  YargsArgDef,
+} from '@/types/index.js'
 
 import { registerCommandArgs } from './args/index.js'
 import { isZodSchema, zodSchemaToPositionalMeta } from './args/zod.js'
@@ -167,7 +174,7 @@ function registerSingleCommand(options: RegisterSingleCommandOptions): void {
       middleware: (cmd.middleware ?? []) as Middleware[],
       options: cmd.options,
       positionals: cmd.positionals,
-      render: cmd.render as ((props: Record<string, unknown>) => Promise<void> | void) | undefined,
+      render: cmd.render as ScreenRenderFn | undefined,
     }
   }
 

@@ -1,10 +1,25 @@
 import { withTag } from '@kidd-cli/utils/tag'
+import { omit } from 'es-toolkit'
 import type { ComponentType } from 'react'
 import React from 'react'
 
-import type { Meta, Store } from '../context/types.js'
+import type { Context, ImperativeContextKeys, ScreenContext } from '../context/types.js'
 import type { ArgsDef, Command, InferArgsMerged, Resolvable } from '../types/index.js'
 import { KiddProvider } from './provider.js'
+
+/**
+ * Keys to strip from the full Context when creating the ScreenContext.
+ *
+ * @private
+ */
+const IMPERATIVE_KEYS: readonly ImperativeContextKeys[] = [
+  'colors',
+  'fail',
+  'format',
+  'log',
+  'prompts',
+  'spinner',
+]
 
 // ---------------------------------------------------------------------------
 // Types
@@ -80,21 +95,11 @@ export interface ScreenDef<
 }
 
 /**
- * Props passed internally to the screen render function by the runtime.
- */
-export interface ScreenRenderProps {
-  readonly args: Record<string, unknown>
-  readonly config: Readonly<Record<string, unknown>>
-  readonly meta: Readonly<Meta>
-  readonly store: Store
-}
-
-/**
  * Define a screen command that renders a React/Ink TUI.
  *
  * The `render` property accepts a React component that receives the
- * parsed args as props. Runtime context (config, meta, store) is
- * available via hooks: `useConfig()`, `useMeta()`, `useStore()`.
+ * parsed args as props. The full command context — including any
+ * middleware-decorated properties — is available via `useCommandContext()`.
  *
  * @param def - Screen definition including description, options, exit behavior, and render component.
  * @returns A tagged Command object compatible with the kidd autoloader and command map.
@@ -106,12 +111,13 @@ export function screen<
   const exitMode = def.exit ?? 'manual'
   const ScreenComponent = def.render as ComponentType<Record<string, unknown>>
 
-  const renderFn = async (props: ScreenRenderProps): Promise<void> => {
+  const renderFn = async (ctx: Context): Promise<void> => {
     const { render: inkRender } = await import('ink')
+    const screenCtx = toScreenContext(ctx)
 
     const instance = inkRender(
-      <KiddProvider value={{ config: props.config, meta: props.meta, store: props.store }}>
-        <ScreenComponent {...props.args} />
+      <KiddProvider value={screenCtx}>
+        <ScreenComponent {...ctx.args} />
       </KiddProvider>
     )
 
@@ -143,6 +149,18 @@ export function screen<
 // ---------------------------------------------------------------------------
 // Private
 // ---------------------------------------------------------------------------
+
+/**
+ * Strip imperative I/O properties from a full {@link Context} to produce
+ * a {@link ScreenContext} safe for use inside React/Ink components.
+ *
+ * @private
+ * @param ctx - The full command context.
+ * @returns A ScreenContext with imperative keys removed.
+ */
+function toScreenContext(ctx: Context): ScreenContext {
+  return omit(ctx, [...IMPERATIVE_KEYS]) as unknown as ScreenContext
+}
 
 /**
  * Resolve a {@link Resolvable} value.

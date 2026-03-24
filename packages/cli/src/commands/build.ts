@@ -13,6 +13,7 @@ import { extractConfig } from '../lib/config-helpers.js'
 const options = z.object({
   compile: z.boolean().optional().describe('Compile to standalone binaries after bundling'),
   targets: z.array(z.string()).optional().describe('Compile targets (implies --compile)'),
+  verbose: z.boolean().optional().describe('Show detailed error output on compile failure'),
 })
 
 type BuildArgs = z.infer<typeof options>
@@ -71,6 +72,7 @@ const buildCommand: Command = command({
       cwd,
       onTargetComplete: (target) => ctx.spinner.message(`Compiled ${resolveTargetLabel(target)}`),
       onTargetStart: (target) => ctx.spinner.message(`Compiling ${resolveTargetLabel(target)}...`),
+      verbose: ctx.args.verbose,
     })
 
     if (compileError) {

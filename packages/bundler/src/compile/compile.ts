@@ -12,15 +12,6 @@ import { DEFAULT_COMPILE_TARGETS } from '../constants.js'
 import type { CompileOutput, CompileParams, CompiledBinary } from '../types.js'
 
 /**
- * Packages to externalize during `bun build --compile`.
- *
- * These are optional peer dependencies of `c12` (the config loader) that bun
- * eagerly tries to resolve even though they are behind dynamic `import()` calls
- * that never execute at runtime in a compiled CLI.
- */
-const COMPILE_EXTERNALS: readonly string[] = ['chokidar', 'magicast', 'giget']
-
-/**
  * Human-readable labels for each compile target.
  */
 const COMPILE_TARGET_LABELS: Readonly<Record<CompileTarget, string>> = {
@@ -66,6 +57,7 @@ export async function compile(params: CompileParams): AsyncResult<CompileOutput>
         name: resolved.compile.name,
         outDir: resolved.compileOutDir,
         target,
+        verbose: params.verbose ?? false,
       })
 
       if (result[0] === null && params.onTargetComplete) {
@@ -105,6 +97,7 @@ async function compileSingleTarget(params: {
   readonly name: string
   readonly target: CompileTarget
   readonly isMultiTarget: boolean
+  readonly verbose: boolean
 }): AsyncResult<CompiledBinary> {
   const binaryName = resolveBinaryName(params.name, params.target, params.isMultiTarget)
   const outfile = join(params.outDir, binaryName)
@@ -117,13 +110,12 @@ async function compileSingleTarget(params: {
     outfile,
     '--target',
     mapCompileTarget(params.target),
-    ...COMPILE_EXTERNALS.flatMap((pkg) => ['--external', pkg]),
   ]
 
   const [execError] = await execBunBuild(args)
   if (execError) {
     return err(
-      new Error(`bun build --compile failed for target ${params.target}`, { cause: execError })
+      new Error(formatCompileError(params.target, execError, params.verbose), { cause: execError })
     )
   }
 
@@ -194,6 +186,33 @@ function mapCompileTarget(target: CompileTarget): string {
 }
 
 /**
+ * Build a descriptive error message for a failed compile target.
+ *
+ * When verbose is enabled, extracts stderr from the exec error so the
+ * underlying bun error is surfaced instead of being buried in the cause chain.
+ *
+ * @private
+ * @param target - The compile target that failed.
+ * @param execError - The error returned by execFile.
+ * @param verbose - Whether to include stderr output in the message.
+ * @returns A formatted error message, including stderr when verbose is true.
+ */
+function formatCompileError(target: CompileTarget, execError: Error, verbose: boolean): string {
+  const header = `bun build --compile failed for target ${target}`
+
+  if (!verbose) {
+    return header
+  }
+
+  const { stderr } = execError as { stderr?: string }
+  if (stderr && stderr.trim().length > 0) {
+    return `${header}\n${stderr.trim()}`
+  }
+
+  return header
+}
+
+/**
  * Promisified wrapper around `execFile` to invoke `bun build`.
  *
  * @private
@@ -202,9 +221,10 @@ function mapCompileTarget(target: CompileTarget): string {
  */
 function execBunBuild(args: readonly string[]): AsyncResult<string> {
   return new Promise((resolve) => {
-    execFileCb('bun', [...args], (error, stdout) => {
+    execFileCb('bun', [...args], (error, stdout, stderr) => {
       if (error) {
-        resolve(err(error))
+        const enriched = Object.assign(error, { stderr })
+        resolve(err(enriched))
         return
       }
 

@@ -1,10 +1,14 @@
+import process from 'node:process'
+
 import { withTag } from '@kidd-cli/utils/tag'
 import { omit } from 'es-toolkit'
 import type { ComponentType } from 'react'
 import React from 'react'
+import { match } from 'ts-pattern'
 
 import type { Context, ImperativeContextKeys, ScreenContext } from '../context/types.js'
 import type { ArgsDef, Command, InferArgsMerged, Resolvable } from '../types/index.js'
+import { FullScreen } from './fullscreen.js'
 import { KiddProvider } from './provider.js'
 
 /**
@@ -86,6 +90,13 @@ export interface ScreenDef<
   readonly exit?: ScreenExit
 
   /**
+   * When `true`, the screen renders in the terminal's alternate screen
+   * buffer (fullscreen mode). Preserves the user's scrollback history
+   * and restores it on exit.
+   */
+  readonly fullscreen?: boolean
+
+  /**
    * A React component that receives the parsed args as props.
    *
    * Can be a component reference (`render: MyComponent`) or an inline
@@ -109,17 +120,23 @@ export function screen<
   TPositionalsDef extends ArgsDef = ArgsDef,
 >(def: ScreenDef<TOptionsDef, TPositionalsDef>): Command {
   const exitMode = def.exit ?? 'manual'
+  const isFullscreen = def.fullscreen === true
   const ScreenComponent = def.render as ComponentType<Record<string, unknown>>
 
   const renderFn = async (ctx: Context): Promise<void> => {
     const { render: inkRender } = await import('ink')
     const screenCtx = toScreenContext(ctx)
 
-    const instance = inkRender(
-      <KiddProvider value={screenCtx}>
-        <ScreenComponent {...ctx.args} />
-      </KiddProvider>
-    )
+    const children = match(isFullscreen)
+      .with(true, () => (
+        <FullScreen>
+          <ScreenComponent {...ctx.args} />
+        </FullScreen>
+      ))
+      .with(false, () => <ScreenComponent {...ctx.args} />)
+      .exhaustive()
+
+    const instance = inkRender(<KiddProvider value={screenCtx}>{children}</KiddProvider>)
 
     if (exitMode === 'auto') {
       const { unmount } = instance
@@ -128,7 +145,13 @@ export function screen<
       }, 0)
     }
 
-    await instance.waitUntilExit()
+    try {
+      await instance.waitUntilExit()
+    } finally {
+      if (isFullscreen) {
+        process.stdout.write('\u001B[?1049l')
+      }
+    }
   }
 
   return withTag(

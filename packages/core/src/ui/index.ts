@@ -67,5 +67,8 @@ export type { Option } from '@inkjs/ui'
 export { useCommandContext } from './provider.js'
 export type { ScreenContext } from '../context/types.js'
 
+export { FullScreen, useFullScreen, useTerminalSize } from './fullscreen.js'
+export type { FullScreenProps, FullScreenState, TerminalSize } from './fullscreen.js'
+
 export { screen } from './screen.js'
 export type { ScreenDef, ScreenExit } from './screen.js'

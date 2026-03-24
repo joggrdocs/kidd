@@ -6,7 +6,16 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { createDotDirectory } from './create-dot-directory.js'
 
+/**
+ * Shared mutable state for the homedir mock.
+ *
+ * `vi.mock` is hoisted and must reference module-scoped state.
+ * The `let` binding is required by the mock closure and is reassigned
+ * per-test in `beforeEach`. This is an accepted exception to the
+ * no-`let` rule for test infrastructure.
+ */
 let globalHome: string
+let tmpDir: string
 
 vi.mock(import('node:os'), async (importOriginal) => {
   const actual = await importOriginal()
@@ -17,7 +26,6 @@ vi.mock(import('node:os'), async (importOriginal) => {
 })
 
 describe('createDotDirectory()', () => {
-  let tmpDir: string
   const DIR_NAME = '.myapp'
 
   beforeEach(() => {
@@ -57,7 +65,7 @@ describe('createDotDirectory()', () => {
       const [error, dotdir] = client.local()
 
       expect(error).toBeNull()
-      expect(dotdir.dir).toContain(DIR_NAME)
+      expect(dotdir.dir).toBe(join(tmpDir, DIR_NAME))
     })
   })
 

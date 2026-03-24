@@ -18,7 +18,12 @@ export type DotDirectoryLocation = 'local' | 'global'
  * Error returned by dot directory operations.
  */
 export interface DotDirectoryError {
-  readonly type: 'no_project_root' | 'protected_file' | 'fs_error' | 'parse_error'
+  readonly type:
+    | 'no_project_root'
+    | 'protected_file'
+    | 'path_traversal'
+    | 'fs_error'
+    | 'parse_error'
   readonly message: string
 }
 

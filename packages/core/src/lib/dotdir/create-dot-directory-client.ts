@@ -1,5 +1,5 @@
-import { existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs'
-import { join } from 'node:path'
+import { existsSync, lstatSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs'
+import { join, resolve, sep } from 'node:path'
 
 import { attempt } from '@kidd-cli/utils/fp'
 import type { Result } from '@kidd-cli/utils/fp'
@@ -20,6 +20,7 @@ import type {
  *
  * All filesystem operations are synchronous (consistent with {@link FileStore}).
  * Protected files are checked against the shared {@link ProtectionRegistry}.
+ * Filenames are validated to prevent path traversal outside the scoped directory.
  *
  * @param options - Directory path, location scope, and protection registry.
  * @returns A frozen DotDirectoryClient instance.
@@ -30,6 +31,42 @@ export function createDotDirectoryClient(options: {
   readonly registry: ProtectionRegistry
 }): DotDirectoryClient {
   const { dir, location, registry } = options
+  const resolvedDir = resolve(dir)
+
+  /**
+   * Resolve a filename and validate it stays within the scoped directory.
+   *
+   * @private
+   * @param filename - The filename to resolve.
+   * @returns A Result with the resolved path on success, or a path_traversal error.
+   */
+  function safePath(filename: string): Result<string, DotDirectoryError> {
+    const resolved = resolve(resolvedDir, filename)
+    if (!resolved.startsWith(resolvedDir + sep) && resolved !== resolvedDir) {
+      return [
+        {
+          message: `Path "${filename}" escapes the dot directory boundary.`,
+          type: 'path_traversal',
+        },
+        null,
+      ]
+    }
+
+    if (existsSync(resolved)) {
+      const [, stat] = attempt<ReturnType<typeof lstatSync>, Error>(() => lstatSync(resolved))
+      if (stat && stat.isSymbolicLink()) {
+        return [
+          {
+            message: `Path "${filename}" is a symbolic link, which is not allowed.`,
+            type: 'path_traversal',
+          },
+          null,
+        ]
+      }
+    }
+
+    return [null, resolved]
+  }
 
   /**
    * Check whether a file is protected and access was not explicitly opted-in.
@@ -65,17 +102,20 @@ export function createDotDirectoryClient(options: {
    */
   function ensure(): Result<string, DotDirectoryError> {
     const [error] = attempt<void, Error>(() => {
-      mkdirSync(dir, { mode: 0o700, recursive: true })
+      mkdirSync(resolvedDir, { mode: 0o700, recursive: true })
     })
 
     if (error) {
       return [
-        { message: `Failed to create directory "${dir}": ${error.message}`, type: 'fs_error' },
+        {
+          message: `Failed to create directory "${resolvedDir}": ${error.message}`,
+          type: 'fs_error',
+        },
         null,
       ]
     }
 
-    return [null, dir]
+    return [null, resolvedDir]
   }
 
   /**
@@ -95,7 +135,11 @@ export function createDotDirectoryClient(options: {
       return [protectionError, null]
     }
 
-    const filePath = join(dir, filename)
+    const [pathError, filePath] = safePath(filename)
+    if (pathError) {
+      return [pathError, null]
+    }
+
     const [error, content] = attempt<string, Error>(() => readFileSync(filePath, 'utf8'))
 
     if (error) {
@@ -124,9 +168,13 @@ export function createDotDirectoryClient(options: {
       return [protectionError, null]
     }
 
-    const filePath = join(dir, filename)
+    const [pathError, filePath] = safePath(filename)
+    if (pathError) {
+      return [pathError, null]
+    }
+
     const [error] = attempt<void, Error>(() => {
-      mkdirSync(dir, { mode: 0o700, recursive: true })
+      mkdirSync(resolvedDir, { mode: 0o700, recursive: true })
       writeFileSync(filePath, content, { encoding: 'utf8', mode: 0o600 })
     })
 
@@ -215,10 +263,14 @@ export function createDotDirectoryClient(options: {
    *
    * @private
    * @param filename - The filename to check.
-   * @returns True if the file exists.
+   * @returns True if the file exists and the path is within the directory boundary.
    */
   function fileExists(filename: string): boolean {
-    return existsSync(join(dir, filename))
+    const [pathError, filePath] = safePath(filename)
+    if (pathError) {
+      return false
+    }
+    return existsSync(filePath)
   }
 
   /**
@@ -238,7 +290,10 @@ export function createDotDirectoryClient(options: {
       return [protectionError, null]
     }
 
-    const filePath = join(dir, filename)
+    const [pathError, filePath] = safePath(filename)
+    if (pathError) {
+      return [pathError, null]
+    }
 
     if (!existsSync(filePath)) {
       return [null, filePath]
@@ -266,11 +321,11 @@ export function createDotDirectoryClient(options: {
    * @returns The absolute path.
    */
   function resolvePath(filename: string): string {
-    return join(dir, filename)
+    return join(resolvedDir, filename)
   }
 
   return Object.freeze({
-    dir,
+    dir: resolvedDir,
     ensure,
     exists: fileExists,
     path: resolvePath,

@@ -221,6 +221,50 @@ describe('createDotDirectoryClient()', () => {
   })
 
   // -------------------------------------------------------------------------
+  // Path traversal
+  // -------------------------------------------------------------------------
+
+  describe('path traversal', () => {
+    it('should reject read with a traversal filename', () => {
+      const dotdir = createDotDirectoryClient({ dir: tmpDir, location: 'global', registry })
+
+      const [error] = dotdir.read('../../../etc/passwd')
+
+      expect(error).toMatchObject({ type: 'path_traversal' })
+    })
+
+    it('should reject write with a traversal filename', () => {
+      const dotdir = createDotDirectoryClient({ dir: tmpDir, location: 'global', registry })
+
+      const [error] = dotdir.write('../escape.txt', 'malicious')
+
+      expect(error).toMatchObject({ type: 'path_traversal' })
+    })
+
+    it('should reject remove with a traversal filename', () => {
+      const dotdir = createDotDirectoryClient({ dir: tmpDir, location: 'global', registry })
+
+      const [error] = dotdir.remove('../escape.txt')
+
+      expect(error).toMatchObject({ type: 'path_traversal' })
+    })
+
+    it('should reject readJson with a traversal filename', () => {
+      const dotdir = createDotDirectoryClient({ dir: tmpDir, location: 'global', registry })
+
+      const [error] = dotdir.readJson('../../../etc/shadow')
+
+      expect(error).toMatchObject({ type: 'path_traversal' })
+    })
+
+    it('should return false for exists with a traversal filename', () => {
+      const dotdir = createDotDirectoryClient({ dir: tmpDir, location: 'global', registry })
+
+      expect(dotdir.exists('../../../etc/passwd')).toBe(false)
+    })
+  })
+
+  // -------------------------------------------------------------------------
   // Protection
   // -------------------------------------------------------------------------
 

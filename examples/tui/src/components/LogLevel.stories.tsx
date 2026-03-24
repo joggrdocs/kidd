@@ -1,7 +1,7 @@
 import { stories } from '@kidd-cli/core/stories'
 import { z } from 'zod'
 
-import { LogLevel } from './LogLevel.js'
+import { LogLevel } from './LogLevel'
 
 const schema = z.object({
   level: z.enum(['info', 'warn', 'error']).describe('Log severity level'),

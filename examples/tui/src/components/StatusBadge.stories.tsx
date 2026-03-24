@@ -1,7 +1,7 @@
 import { stories } from '@kidd-cli/core/stories'
 import { z } from 'zod'
 
-import { StatusBadge } from './StatusBadge.js'
+import { StatusBadge } from './StatusBadge'
 
 const schema = z.object({
   status: z.enum(['done', 'in-progress', 'todo']).describe('Current task status'),

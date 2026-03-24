@@ -1,7 +1,7 @@
 import { story } from '@kidd-cli/core/stories'
 import { z } from 'zod'
 
-import { Greeting } from './Greeting.js'
+import { Greeting } from './Greeting'
 
 const schema = z.object({
   name: z.string().describe('Name to greet'),

@@ -201,7 +201,7 @@ export function createDotDirectoryClient(options: {
       return [
         {
           message: `Failed to serialize "${filename}": ${stringifyError.message}`,
-          type: 'fs_error',
+          type: 'parse_error',
         },
         null,
       ]

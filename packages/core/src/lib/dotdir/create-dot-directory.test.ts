@@ -51,20 +51,13 @@ describe('createDotDirectory()', () => {
 
   describe('local', () => {
     it('should return a DotDirectoryClient when inside a project root', () => {
-      vi.stubEnv('PWD', tmpDir)
+      vi.spyOn(process, 'cwd').mockReturnValue(tmpDir)
       const client = createDotDirectory({ dirs: { global: DIR_NAME, local: DIR_NAME } })
 
-      // resolveLocalPath uses findProjectRoot which searches from cwd by default,
-      // but we can verify the shape works by checking no error on Result
       const [error, dotdir] = client.local()
 
-      // This may fail if the test runner is not inside a git repo,
-      // but the kidd repo itself is a git repo so it should resolve
-      if (error) {
-        expect(error).toMatchObject({ type: 'no_project_root' })
-      } else {
-        expect(dotdir.dir).toContain(DIR_NAME)
-      }
+      expect(error).toBeNull()
+      expect(dotdir.dir).toContain(DIR_NAME)
     })
   })
 

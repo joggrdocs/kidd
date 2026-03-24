@@ -1,4 +1,4 @@
-import type { Context } from '@/context/types.js'
+import type { CommandContext } from '@/context/types.js'
 
 // ---------------------------------------------------------------------------
 // Response
@@ -83,5 +83,5 @@ export interface HttpOptions {
   readonly baseUrl: string
   readonly headers?:
     | Readonly<Record<string, string>>
-    | ((ctx: Context) => Readonly<Record<string, string>>)
+    | ((ctx: CommandContext) => Readonly<Record<string, string>>)
 }

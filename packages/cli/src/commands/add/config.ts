@@ -1,7 +1,7 @@
 import { join } from 'node:path'
 
 import { command } from '@kidd-cli/core'
-import type { Command, Context } from '@kidd-cli/core'
+import type { Command, CommandContext } from '@kidd-cli/core'
 import { readManifest } from '@kidd-cli/utils/manifest'
 
 import { detectProject } from '../../lib/detect.js'
@@ -10,7 +10,7 @@ import { writeFiles } from '../../lib/write.js'
 
 const addConfigCommand: Command = command({
   description: 'Add a config schema to your project',
-  handler: async (ctx: Context) => {
+  handler: async (ctx: CommandContext) => {
     const cwd = process.cwd()
 
     const [detectError, project] = await detectProject(cwd)

@@ -1,4 +1,4 @@
-import type { Context } from '@kidd-cli/core'
+import type { CommandContext } from '@kidd-cli/core'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock(import('@kidd-cli/bundler'), () => ({
@@ -22,7 +22,7 @@ const mockedBuild = vi.mocked(build)
 const mockedCompile = vi.mocked(compile)
 const mockedLoadConfig = vi.mocked(loadConfig)
 
-function makeContext(argOverrides: Record<string, unknown> = {}): Context {
+function makeContext(argOverrides: Record<string, unknown> = {}): CommandContext {
   return {
     args: {
       compile: undefined,
@@ -57,7 +57,7 @@ function makeContext(argOverrides: Record<string, unknown> = {}): Context {
     },
     spinner: { message: vi.fn(), start: vi.fn(), stop: vi.fn() },
     store: { clear: vi.fn(), delete: vi.fn(), get: vi.fn(), has: vi.fn(), set: vi.fn() },
-  } as unknown as Context
+  } as unknown as CommandContext
 }
 
 function setupBuildSuccess(): void {

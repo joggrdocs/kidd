@@ -2,6 +2,7 @@ import * as clack from '@clack/prompts'
 import pc from 'picocolors'
 import type { Colors } from 'picocolors/types'
 
+import { createDotDirectoryClient } from '@/lib/dotdir/index.js'
 import { createLog } from '@/lib/log.js'
 import type { AnyRecord, KiddStore, Merge, ResolvedDirs } from '@/types/index.js'
 
@@ -9,10 +10,19 @@ import { createContextError } from './error.js'
 import { createContextFormat } from './format.js'
 import { createContextPrompts } from './prompts.js'
 import { createMemoryStore } from './store.js'
-import type { Context, Format, Log, Meta, Prompts, Spinner, Store, StoreMap } from './types.js'
+import type {
+  CommandContext,
+  Format,
+  Log,
+  Meta,
+  Prompts,
+  Spinner,
+  Store,
+  StoreMap,
+} from './types.js'
 
 /**
- * Options for creating a {@link Context} instance via {@link createContext}.
+ * Options for creating a {@link CommandContext} instance via {@link createContext}.
  *
  * Carries the parsed args, validated config, and CLI metadata needed to
  * assemble a fully-wired context. Optional overrides allow callers to inject
@@ -34,18 +44,18 @@ export interface CreateContextOptions<TArgs extends AnyRecord, TConfig extends A
 }
 
 /**
- * Create the {@link Context} object threaded through middleware and command handlers.
+ * Create the {@link CommandContext} object threaded through middleware and command handlers.
  *
  * Assembles log, spinner, format, store, prompts, and meta from
  * the provided options into a single immutable context. Each sub-system is
  * constructed via its own factory so this function remains a lean orchestrator.
  *
  * @param options - Args, config, and meta for the current invocation.
- * @returns A fully constructed Context.
+ * @returns A fully constructed CommandContext.
  */
 export function createContext<TArgs extends AnyRecord, TConfig extends AnyRecord>(
   options: CreateContextOptions<TArgs, TConfig>
-): Context<TArgs, TConfig> {
+): CommandContext<TArgs, TConfig> {
   const ctxLog: Log = options.log ?? createLog()
   const ctxSpinner: Spinner = options.spinner ?? clack.spinner()
   const ctxFormat: Format = createContextFormat()
@@ -57,13 +67,15 @@ export function createContext<TArgs extends AnyRecord, TConfig extends AnyRecord
     name: options.meta.name,
     version: options.meta.version,
   }
+  const ctxDotdir = createDotDirectoryClient({ dirs: options.meta.dirs })
 
   // Middleware-augmented properties (e.g. `report`, `auth`) are added at runtime.
   // See `decorateContext` — they are intentionally absent here.
   return {
-    args: options.args as Context<TArgs, TConfig>['args'],
+    args: options.args as CommandContext<TArgs, TConfig>['args'],
     colors: Object.freeze({ ...pc }) as Colors,
-    config: options.config as Context<TArgs, TConfig>['config'],
+    config: options.config as CommandContext<TArgs, TConfig>['config'],
+    dotdir: ctxDotdir,
     fail(message: string, failOptions?: { code?: string; exitCode?: number }): never {
       // Accepted exception: ctx.fail() is typed `never` and caught by the CLI boundary.
       // This is the framework's halt mechanism — the runner catches the thrown ContextError.
@@ -71,9 +83,9 @@ export function createContext<TArgs extends AnyRecord, TConfig extends AnyRecord
     },
     format: ctxFormat,
     log: ctxLog,
-    meta: ctxMeta as Context<TArgs, TConfig>['meta'],
+    meta: ctxMeta as CommandContext<TArgs, TConfig>['meta'],
     prompts: ctxPrompts,
     spinner: ctxSpinner,
     store: ctxStore,
-  } as Context<TArgs, TConfig>
+  } as CommandContext<TArgs, TConfig>
 }

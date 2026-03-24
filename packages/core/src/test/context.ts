@@ -11,7 +11,7 @@ import { createWritableCapture } from './capture.js'
 import type { PromptResponses, TestContextOptions, TestContextResult } from './types.js'
 
 /**
- * Create a fully-mocked {@link Context} for unit testing.
+ * Create a fully-mocked {@link CommandContext} for unit testing.
  *
  * The log instance writes to an in-memory buffer by default.
  * Override via `overrides.log`, `overrides.prompts`, or `overrides.spinner`.

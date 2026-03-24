@@ -1,4 +1,4 @@
-import type { Context } from '@kidd-cli/core'
+import type { CommandContext } from '@kidd-cli/core'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { CheckContext, CheckResult, DiagnosticCheck, FixResult } from '../lib/checks.js'
@@ -44,7 +44,7 @@ const mockedCreateCheckContext = vi.mocked(createCheckContext)
 const mockedReadRawPackageJson = vi.mocked(readRawPackageJson)
 const mockedChecks = CHECKS as DiagnosticCheck[]
 
-function makeContext(argOverrides: Record<string, unknown> = {}): Context {
+function makeContext(argOverrides: Record<string, unknown> = {}): CommandContext {
   return {
     args: {
       fix: false,
@@ -76,7 +76,7 @@ function makeContext(argOverrides: Record<string, unknown> = {}): Context {
     },
     spinner: { message: vi.fn(), start: vi.fn(), stop: vi.fn() },
     store: { clear: vi.fn(), delete: vi.fn(), get: vi.fn(), has: vi.fn(), set: vi.fn() },
-  } as unknown as Context
+  } as unknown as CommandContext
 }
 
 function makeCheckResult(overrides: Partial<CheckResult> = {}): CheckResult {

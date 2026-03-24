@@ -47,7 +47,7 @@ export function createAuthRequire(options?: AuthRequireOptions): Middleware {
 /**
  * Runtime property check that avoids TypeScript's `in` narrowing.
  *
- * The `Context` interface declares `auth` via module augmentation,
+ * The `CommandContext` interface declares `auth` via module augmentation,
  * so `!('auth' in ctx)` narrows to `never`. This function uses an
  * `unknown` cast to bypass the narrowing and perform a pure runtime
  * check.

@@ -3,7 +3,7 @@ import { join } from 'node:path'
 import { loadConfig } from '@kidd-cli/config/loader'
 import type { LoadConfigResult } from '@kidd-cli/config/loader'
 import { command } from '@kidd-cli/core'
-import type { Command, Context } from '@kidd-cli/core'
+import type { Command, CommandContext } from '@kidd-cli/core'
 import { z } from 'zod'
 
 import { detectProject } from '../../lib/detect.js'
@@ -22,7 +22,7 @@ type AddCommandArgs = z.infer<typeof options>
 const addCommandCommand: Command = command({
   options,
   description: 'Add a new command to your project',
-  handler: async (ctx: Context<AddCommandArgs>) => {
+  handler: async (ctx: CommandContext<AddCommandArgs>) => {
     const cwd = process.cwd()
 
     const [detectError, project] = await detectProject(cwd)
@@ -91,7 +91,7 @@ export default addCommandCommand
  * @returns The validated command name.
  * @private
  */
-async function resolveCommandName(ctx: Context<AddCommandArgs>): Promise<string> {
+async function resolveCommandName(ctx: CommandContext<AddCommandArgs>): Promise<string> {
   if (ctx.args.name) {
     if (!isKebabCase(ctx.args.name)) {
       return ctx.fail('Command name must be kebab-case (e.g. deploy)')
@@ -117,7 +117,7 @@ async function resolveCommandName(ctx: Context<AddCommandArgs>): Promise<string>
  * @returns The command description string.
  * @private
  */
-async function resolveDescription(ctx: Context<AddCommandArgs>): Promise<string> {
+async function resolveDescription(ctx: CommandContext<AddCommandArgs>): Promise<string> {
   if (ctx.args.description) {
     return ctx.args.description
   }
@@ -135,7 +135,7 @@ async function resolveDescription(ctx: Context<AddCommandArgs>): Promise<string>
  * @returns True when the command should include a zod args schema.
  * @private
  */
-async function resolveIncludeArgs(ctx: Context<AddCommandArgs>): Promise<boolean> {
+async function resolveIncludeArgs(ctx: CommandContext<AddCommandArgs>): Promise<boolean> {
   if (ctx.args.args !== undefined) {
     return ctx.args.args
   }

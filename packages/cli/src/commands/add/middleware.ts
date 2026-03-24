@@ -1,7 +1,7 @@
 import { join } from 'node:path'
 
 import { command } from '@kidd-cli/core'
-import type { Command, Context } from '@kidd-cli/core'
+import type { Command, CommandContext } from '@kidd-cli/core'
 import { z } from 'zod'
 
 import { detectProject } from '../../lib/detect.js'
@@ -19,7 +19,7 @@ type AddMiddlewareArgs = z.infer<typeof options>
 const addMiddlewareCommand: Command = command({
   options,
   description: 'Add a new middleware to your project',
-  handler: async (ctx: Context<AddMiddlewareArgs>) => {
+  handler: async (ctx: CommandContext<AddMiddlewareArgs>) => {
     const [detectError, project] = await detectProject(process.cwd())
     if (detectError) {
       return ctx.fail(detectError.message)
@@ -83,7 +83,7 @@ export default addMiddlewareCommand
  * @returns The validated middleware name.
  * @private
  */
-async function resolveMiddlewareName(ctx: Context<AddMiddlewareArgs>): Promise<string> {
+async function resolveMiddlewareName(ctx: CommandContext<AddMiddlewareArgs>): Promise<string> {
   if (ctx.args.name) {
     if (!isKebabCase(ctx.args.name)) {
       return ctx.fail('Middleware name must be kebab-case (e.g. auth)')
@@ -109,7 +109,7 @@ async function resolveMiddlewareName(ctx: Context<AddMiddlewareArgs>): Promise<s
  * @returns The middleware description string.
  * @private
  */
-async function resolveDescription(ctx: Context<AddMiddlewareArgs>): Promise<string> {
+async function resolveDescription(ctx: CommandContext<AddMiddlewareArgs>): Promise<string> {
   if (ctx.args.description) {
     return ctx.args.description
   }

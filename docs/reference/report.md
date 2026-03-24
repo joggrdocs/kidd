@@ -105,7 +105,7 @@ Middleware environment descriptor. Declares that `ctx.report` will be available 
 import type { Report } from '@kidd-cli/core/report'
 
 declare module '@kidd-cli/core' {
-  interface Context {
+  interface CommandContext {
     readonly report: Report
   }
 }

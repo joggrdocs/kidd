@@ -1,7 +1,7 @@
 import type { AsyncResult, Result } from '@kidd-cli/utils/fp'
 import type { z } from 'zod'
 
-import type { Context, Log, Prompts, Spinner } from '@/context/types.js'
+import type { CommandContext, Log, Prompts, Spinner } from '@/context/types.js'
 import type {
   ArgsDef,
   CliConfigOptions,
@@ -28,7 +28,7 @@ export interface RuntimeOptions<TSchema extends z.ZodType = z.ZodType> {
  * A resolved command execution descriptor passed to `Runtime.execute`.
  */
 export interface ResolvedExecution {
-  readonly handler: ((ctx: Context) => Promise<void> | void) | undefined
+  readonly handler: ((ctx: CommandContext) => Promise<void> | void) | undefined
   readonly render: ScreenRenderFn | undefined
   readonly middleware: Middleware[]
   readonly options: ArgsDef | undefined
@@ -49,8 +49,8 @@ export interface Runtime {
  */
 export interface MiddlewareExecutor {
   readonly execute: (options: {
-    readonly ctx: Context
-    readonly handler: (ctx: Context) => Promise<void> | void
+    readonly ctx: CommandContext
+    readonly handler: (ctx: CommandContext) => Promise<void> | void
     readonly middleware: Middleware[]
   }) => Promise<void>
 }
@@ -66,7 +66,7 @@ export interface ArgsParser {
  * A resolved command reference captured during yargs command registration.
  */
 export interface ResolvedCommand {
-  readonly handler: ((ctx: Context) => Promise<void> | void) | undefined
+  readonly handler: ((ctx: CommandContext) => Promise<void> | void) | undefined
   readonly render: ScreenRenderFn | undefined
   readonly middleware: Middleware[]
   readonly options: ArgsDef | undefined

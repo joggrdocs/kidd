@@ -146,13 +146,13 @@ export default command({
 
 ## Module augmentation
 
-When using the report middleware, augment the Context interface to get type-safe access:
+When using the report middleware, augment the CommandContext interface to get type-safe access:
 
 ```ts
 import type { Report } from '@kidd-cli/core/report'
 
 declare module '@kidd-cli/core' {
-  interface Context {
+  interface CommandContext {
     readonly report: Report
   }
 }

@@ -1,6 +1,6 @@
 import type { vi } from 'vitest'
 
-import type { Context, Log, Prompts, Spinner } from '@/context/types.js'
+import type { CommandContext, Log, Prompts, Spinner } from '@/context/types.js'
 import type {
   AnyRecord,
   CliConfigOptions,
@@ -45,7 +45,7 @@ export interface TestContextResult<
   TArgs extends AnyRecord = AnyRecord,
   TConfig extends AnyRecord = AnyRecord,
 > {
-  readonly ctx: Context<TArgs, TConfig>
+  readonly ctx: CommandContext<TArgs, TConfig>
   readonly stdout: () => string
 }
 
@@ -59,7 +59,7 @@ export interface HandlerResult<
   TArgs extends AnyRecord = AnyRecord,
   TConfig extends AnyRecord = AnyRecord,
 > {
-  readonly ctx: Context<TArgs, TConfig>
+  readonly ctx: CommandContext<TArgs, TConfig>
   readonly stdout: () => string
   readonly error: Error | undefined
 }
@@ -74,7 +74,7 @@ export interface MiddlewareResult<
   TArgs extends AnyRecord = AnyRecord,
   TConfig extends AnyRecord = AnyRecord,
 > {
-  readonly ctx: Context<TArgs, TConfig>
+  readonly ctx: CommandContext<TArgs, TConfig>
   readonly stdout: () => string
 }
 

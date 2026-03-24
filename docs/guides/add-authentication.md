@@ -178,7 +178,7 @@ import { http } from '@kidd-cli/core/http'
 import type { HttpClient } from '@kidd-cli/core/http'
 
 declare module '@kidd-cli/core' {
-  interface Context {
+  interface CommandContext {
     readonly api: HttpClient
   }
 }

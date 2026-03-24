@@ -63,7 +63,7 @@ import { decorateContext, middleware } from '@kidd-cli/core'
 import type { HttpClient } from '@kidd-cli/core/http'
 
 declare module '@kidd-cli/core' {
-  interface Context {
+  interface CommandContext {
     readonly github: HttpClient
   }
 }
@@ -74,13 +74,13 @@ const github = middleware(async (ctx, next) => {
 })
 ```
 
-| Parameter | Type      | Description                             |
-| --------- | --------- | --------------------------------------- |
-| `ctx`     | `Context` | The context instance (mutated in place) |
-| `key`     | `string`  | The property name                       |
-| `value`   | `unknown` | The property value                      |
+| Parameter | Type             | Description                             |
+| --------- | ---------------- | --------------------------------------- |
+| `ctx`     | `CommandContext` | The context instance (mutated in place) |
+| `key`     | `string`         | The property name                       |
+| `value`   | `unknown`        | The property value                      |
 
-Returns the same `ctx` reference. The property is non-writable and non-configurable after assignment. Pair with module augmentation on the `Context` interface for compile-time visibility.
+Returns the same `ctx` reference. The property is non-writable and non-configurable after assignment. Pair with module augmentation on the `CommandContext` interface for compile-time visibility.
 
 ## References
 

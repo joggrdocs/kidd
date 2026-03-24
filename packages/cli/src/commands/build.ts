@@ -5,7 +5,7 @@ import type { CompiledBinary } from '@kidd-cli/bundler'
 import type { CompileTarget, KiddConfig } from '@kidd-cli/config'
 import { loadConfig } from '@kidd-cli/config/loader'
 import { command } from '@kidd-cli/core'
-import type { Command, Context } from '@kidd-cli/core'
+import type { Command, CommandContext } from '@kidd-cli/core'
 import { z } from 'zod'
 
 import { extractConfig } from '../lib/config-helpers.js'
@@ -29,7 +29,7 @@ type BuildArgs = z.infer<typeof options>
 const buildCommand: Command = command({
   options,
   description: 'Build a kidd CLI project for production',
-  handler: async (ctx: Context<BuildArgs>) => {
+  handler: async (ctx: CommandContext<BuildArgs>) => {
     const cwd = process.cwd()
 
     const [, configResult] = await loadConfig({ cwd })

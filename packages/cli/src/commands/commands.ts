@@ -3,7 +3,7 @@ import { join } from 'node:path'
 
 import { loadConfig } from '@kidd-cli/config/loader'
 import { autoload, command } from '@kidd-cli/core'
-import type { Command as KiddCommand, Context } from '@kidd-cli/core'
+import type { Command as KiddCommand, CommandContext } from '@kidd-cli/core'
 
 import { extractConfig } from '../lib/config-helpers.js'
 
@@ -25,7 +25,7 @@ interface TreeEntry {
  */
 const commandsCommand: KiddCommand = command({
   description: 'Display the command tree for a kidd CLI project',
-  handler: async (ctx: Context) => {
+  handler: async (ctx: CommandContext) => {
     const cwd = process.cwd()
 
     const [, configResult] = await loadConfig({ cwd })

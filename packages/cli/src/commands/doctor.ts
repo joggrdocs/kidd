@@ -1,6 +1,6 @@
 import { loadConfig } from '@kidd-cli/config/loader'
 import { command } from '@kidd-cli/core'
-import type { Command, Context } from '@kidd-cli/core'
+import type { Command, CommandContext } from '@kidd-cli/core'
 import { match } from '@kidd-cli/utils/fp'
 import { readManifest } from '@kidd-cli/utils/manifest'
 import pc from 'picocolors'
@@ -24,7 +24,7 @@ type DoctorArgs = z.infer<typeof options>
 const doctorCommand: Command = command({
   options,
   description: 'Diagnose common kidd project issues',
-  handler: async (ctx: Context<DoctorArgs>) => {
+  handler: async (ctx: CommandContext<DoctorArgs>) => {
     const cwd = process.cwd()
     const shouldFix = ctx.args.fix === true
 
@@ -169,7 +169,7 @@ async function applyFixes(
  * @param fixResults - The fix results (empty when --fix was not used).
  */
 function displayResults(
-  ctx: Context,
+  ctx: CommandContext,
   results: readonly CheckResult[],
   fixResults: readonly FixResult[]
 ): void {

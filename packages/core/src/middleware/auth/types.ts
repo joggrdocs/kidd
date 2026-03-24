@@ -273,13 +273,13 @@ export interface AuthOptions {
 // ---------------------------------------------------------------------------
 
 /**
- * Augments the base {@link Context} with an optional `auth` property.
+ * Augments the base {@link CommandContext} with an optional `auth` property.
  *
  * When a consumer imports `kidd/auth`, this declaration merges `auth`
- * onto `Context` so that `ctx.auth` is typed without manual casting.
+ * onto `CommandContext` so that `ctx.auth` is typed without manual casting.
  */
 declare module '@kidd-cli/core' {
-  interface Context {
+  interface CommandContext {
     readonly auth: AuthContext
   }
 }

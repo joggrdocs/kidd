@@ -284,7 +284,7 @@ declare module '@kidd-cli/core' {
 
 ## Context in screen commands
 
-Screen commands defined with `screen()` do not receive a `Context` object. Instead, parsed args are passed directly as props to the React component, and runtime values are accessed via hooks:
+Screen commands defined with `screen()` do not receive a `CommandContext` object. Instead, parsed args are passed directly as props to the React component, and runtime values are accessed via hooks:
 
 | Hook          | Returns             | Context equivalent |
 | ------------- | ------------------- | ------------------ |

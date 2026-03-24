@@ -68,11 +68,11 @@ export default command({
 
 ```tsx
 // commands/dashboard.tsx
-import { screen, Box, Text, useCommandContext } from '@kidd-cli/core/ui'
+import { screen, Box, Text, useScreenContext } from '@kidd-cli/core/ui'
 import { z } from 'zod'
 
 function Dashboard({ env }: { env: string }) {
-  const ctx = useCommandContext()
+  const ctx = useScreenContext()
   return (
     <Box flexDirection="column">
       <Text bold>Dashboard — {env}</Text>

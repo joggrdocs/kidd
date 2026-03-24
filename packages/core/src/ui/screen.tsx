@@ -6,7 +6,7 @@ import type { ComponentType } from 'react'
 import React from 'react'
 import { match } from 'ts-pattern'
 
-import type { Context, ImperativeContextKeys, ScreenContext } from '../context/types.js'
+import type { CommandContext, ImperativeContextKeys, ScreenContext } from '../context/types.js'
 import type { ArgsDef, Command, InferArgsMerged, Resolvable } from '../types/index.js'
 import { FullScreen, LEAVE_ALT_SCREEN } from './fullscreen.js'
 import { KiddProvider } from './provider.js'
@@ -110,7 +110,7 @@ export interface ScreenDef<
  *
  * The `render` property accepts a React component that receives the
  * parsed args as props. The full command context — including any
- * middleware-decorated properties — is available via `useCommandContext()`.
+ * middleware-decorated properties — is available via `useScreenContext()`.
  *
  * @param def - Screen definition including description, options, exit behavior, and render component.
  * @returns A tagged Command object compatible with the kidd autoloader and command map.
@@ -123,7 +123,7 @@ export function screen<
   const isFullscreen = def.fullscreen === true
   const ScreenComponent = def.render as ComponentType<Record<string, unknown>>
 
-  const renderFn = async (ctx: Context): Promise<void> => {
+  const renderFn = async (ctx: CommandContext): Promise<void> => {
     const { render: inkRender } = await import('ink')
     const screenCtx = toScreenContext(ctx)
 
@@ -174,14 +174,14 @@ export function screen<
 // ---------------------------------------------------------------------------
 
 /**
- * Strip imperative I/O properties from a full {@link Context} to produce
+ * Strip imperative I/O properties from a full {@link CommandContext} to produce
  * a {@link ScreenContext} safe for use inside React/Ink components.
  *
  * @private
  * @param ctx - The full command context.
  * @returns A ScreenContext with imperative keys removed.
  */
-function toScreenContext(ctx: Context): ScreenContext {
+function toScreenContext(ctx: CommandContext): ScreenContext {
   return omit(ctx, [...IMPERATIVE_KEYS]) as unknown as ScreenContext
 }
 

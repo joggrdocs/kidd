@@ -1,5 +1,11 @@
 # @kidd-cli/bundler
 
+## 0.3.1
+
+### Patch Changes
+
+- 82740fc: Check that `bun` exists in PATH before compiling; return a descriptive error when it is missing
+
 ## 0.3.0
 
 ### Minor Changes

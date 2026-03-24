@@ -1,5 +1,6 @@
 import type { Colors } from 'picocolors/types'
 
+import type { DotDirectory } from '@/lib/dotdir/types.js'
 import type {
   AnyRecord,
   DeepReadonly,
@@ -295,6 +296,12 @@ export interface CommandContext<
    * Runtime config validated against the zod schema. Deeply immutable.
    */
   readonly config: DeepReadonly<Merge<CliConfig, TConfig>>
+
+  /**
+   * Dot directory manager for reading/writing files in the CLI's
+   * dot directories (e.g. `~/.myapp/`, `<project>/.myapp/`).
+   */
+  readonly dotdir: DotDirectory
 
   /**
    * Pure string formatters for data serialization (no I/O).

@@ -16,4 +16,10 @@ export type {
 } from './types/index.js'
 export type { Colors } from 'picocolors/types'
 export type { CommandContext, Log, Prompts, Spinner } from './context/types.js'
+export type {
+  DotDirectory,
+  DotDirectoryClient,
+  DotDirectoryError,
+  ProtectedFileEntry,
+} from './lib/dotdir/types.js'
 export type { Report } from './middleware/report/types.js'

@@ -1,5 +1,16 @@
 # kidd-cli
 
+## 0.5.1
+
+### Patch Changes
+
+- Updated dependencies [82740fc]
+- Updated dependencies [10799c2]
+- Updated dependencies [a53ee68]
+- Updated dependencies [adb2879]
+  - @kidd-cli/bundler@0.3.1
+  - @kidd-cli/core@0.13.0
+
 ## 0.5.0
 
 ### Minor Changes

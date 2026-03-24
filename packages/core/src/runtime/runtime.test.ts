@@ -307,9 +307,7 @@ describe('createRuntime()', () => {
       const [execError] = await runtime!.execute(execution)
 
       expect(execError).toBeNull()
-      expect(mockRunnerExecute).toHaveBeenCalledWith(
-        expect.objectContaining({ handler: renderFn })
-      )
+      expect(mockRunnerExecute).toHaveBeenCalledWith(expect.objectContaining({ handler: renderFn }))
     })
 
     it('should run render through middleware runner', async () => {
@@ -359,18 +357,19 @@ describe('createRuntime()', () => {
       const execution = makeExecution({ handler: handlerFn, render: renderFn })
       await runtime!.execute(execution)
 
-      expect(mockRunnerExecute).toHaveBeenCalledWith(
-        expect.objectContaining({ handler: renderFn })
-      )
+      expect(mockRunnerExecute).toHaveBeenCalledWith(expect.objectContaining({ handler: renderFn }))
     })
 
     it('should return err when render throws', async () => {
       setupDefaults()
-      mockedCreateRunner.mockReturnValue({
-        execute: vi.fn().mockRejectedValue(new Error('Render failed')),
-      })
-
       const renderFn = vi.fn().mockRejectedValue(new Error('Render failed'))
+      mockedCreateRunner.mockReturnValue({
+        execute: vi
+          .fn()
+          .mockImplementation(async (opts: { handler: (ctx: Context) => Promise<void> }) =>
+            opts.handler({} as Context)
+          ),
+      })
 
       const { createRuntime } = await import('./runtime.js')
       const [, runtime] = await createRuntime({

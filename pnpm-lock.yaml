@@ -310,6 +310,15 @@ importers:
       '@types/fs-extra':
         specifier: ^11.0.4
         version: 11.0.4
+      '@types/react':
+        specifier: ^19.2.14
+        version: 19.2.14
+      ink:
+        specifier: ^6.8.0
+        version: 6.8.0(@types/react@19.2.14)(react@19.2.4)
+      react:
+        specifier: ^19.2.4
+        version: 19.2.4
       tsdown:
         specifier: 'catalog:'
         version: 0.21.4(@typescript/native-preview@7.0.0-dev.20260323.1)(typescript@5.9.3)

@@ -20,9 +20,9 @@ const timing = middleware(async (ctx, next) => {
 function middleware<TEnv>(fn: MiddlewareFn): Middleware<TEnv>
 ```
 
-| Parameter | Type | Description |
-| --------- | --------------- | ----------------------------------------------- |
-| `fn` | `MiddlewareFn` | Function receiving `(ctx, next)` |
+| Parameter | Type           | Description                      |
+| --------- | -------------- | -------------------------------- |
+| `fn`      | `MiddlewareFn` | Function receiving `(ctx, next)` |
 
 The `TEnv` type parameter declares environment requirements (e.g., which properties middleware adds to `ctx`).
 
@@ -74,11 +74,11 @@ const github = middleware(async (ctx, next) => {
 })
 ```
 
-| Parameter | Type | Description |
+| Parameter | Type      | Description                             |
 | --------- | --------- | --------------------------------------- |
-| `ctx` | `Context` | The context instance (mutated in place) |
-| `key` | `string` | The property name |
-| `value` | `unknown` | The property value |
+| `ctx`     | `Context` | The context instance (mutated in place) |
+| `key`     | `string`  | The property name                       |
+| `value`   | `unknown` | The property value                      |
 
 Returns the same `ctx` reference. The property is non-writable and non-configurable after assignment. Pair with module augmentation on the `Context` interface for compile-time visibility.
 

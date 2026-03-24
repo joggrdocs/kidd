@@ -290,12 +290,16 @@ function Greeting({ name }: { readonly name: string }): React.ReactElement {
 
   React.useEffect(() => {
     const timer = setTimeout(() => exit(), 2000)
-    return () => { clearTimeout(timer) }
+    return () => {
+      clearTimeout(timer)
+    }
   }, [exit])
 
   return (
     <Box padding={1}>
-      <Text color="green" bold>Hello, {name}!</Text>
+      <Text color="green" bold>
+        Hello, {name}!
+      </Text>
     </Box>
   )
 }

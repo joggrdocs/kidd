@@ -237,6 +237,31 @@ export interface Meta {
 // ---------------------------------------------------------------------------
 
 /**
+ * Keys on {@link Context} that are incompatible with React/Ink rendering.
+ *
+ * These properties write directly to stdout/stderr or control terminal I/O,
+ * which conflicts with Ink's rendering model. They are omitted from
+ * {@link ScreenContext} to prevent misuse in screen components.
+ */
+export type ImperativeContextKeys = 'colors' | 'fail' | 'format' | 'log' | 'prompts' | 'spinner'
+
+/**
+ * Context subset available inside `screen()` components via `useCommandContext()`.
+ *
+ * Omits imperative I/O properties (`log`, `spinner`, `prompts`, `fail`,
+ * `colors`, `format`) that conflict with Ink's declarative rendering model.
+ * Retains data properties (`args`, `config`, `meta`, `store`) and any
+ * middleware-decorated properties (`auth`, `http`, etc.).
+ *
+ * @typeParam TArgs - Parsed args type.
+ * @typeParam TConfig - Config type.
+ */
+export type ScreenContext<
+  TArgs extends AnyRecord = AnyRecord,
+  TConfig extends AnyRecord = AnyRecord,
+> = Omit<Context<TArgs, TConfig>, ImperativeContextKeys>
+
+/**
  * The context object threaded through every handler, middleware, and hook.
  *
  * Contains framework-level primitives: parsed args, validated config, CLI

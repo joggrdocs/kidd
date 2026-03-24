@@ -1,23 +1,26 @@
 import type { ReactElement, ReactNode } from 'react'
 import { createContext, useContext } from 'react'
 
-import type { Context } from '../context/types.js'
+import type { ScreenContext } from '../context/types.js'
 
-const KiddContext = createContext<Context | null>(null)
+const KiddContext = createContext<ScreenContext | null>(null)
 
 /**
  * Props for the {@link KiddProvider} component.
+ *
+ * @private
  */
 export interface KiddProviderProps {
   readonly children: ReactNode
-  readonly value: Context
+  readonly value: ScreenContext
 }
 
 /**
- * Provider that injects the kidd command context into the React tree.
+ * Provider that injects the kidd screen context into the React tree.
  * Screens rendered by the kidd runtime are automatically wrapped in
  * this provider.
  *
+ * @private
  * @param props - Provider props containing the context value and children.
  * @returns A React element wrapping children with the kidd context.
  */
@@ -30,14 +33,17 @@ export function KiddProvider({ children, value }: KiddProviderProps): ReactEleme
 // ---------------------------------------------------------------------------
 
 /**
- * Access the full command context from within a screen component.
+ * Access the command context from within a screen component.
  *
- * Returns the same {@link Context} object available in `command()` handlers,
- * including middleware-decorated properties such as `auth` and `http`.
+ * Returns a {@link ScreenContext} containing data properties (`args`,
+ * `config`, `meta`, `store`) and middleware-decorated properties (`auth`,
+ * `http`, etc.). Imperative I/O properties (`log`, `spinner`, `prompts`,
+ * `fail`, `colors`, `format`) are omitted because they conflict with
+ * Ink's declarative rendering model.
  *
- * @returns The current command context.
+ * @returns The current screen context.
  */
-export function useCommandContext<TContext extends Context = Context>(): TContext {
+export function useCommandContext<TContext extends ScreenContext = ScreenContext>(): TContext {
   const ctx = useContext(KiddContext)
   if (!ctx) {
     throw new Error('useCommandContext must be used inside a screen() component')

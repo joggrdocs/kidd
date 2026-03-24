@@ -1,10 +1,25 @@
 import { withTag } from '@kidd-cli/utils/tag'
+import { omit } from 'es-toolkit'
 import type { ComponentType } from 'react'
 import React from 'react'
 
-import type { Context } from '../context/types.js'
+import type { Context, ImperativeContextKeys, ScreenContext } from '../context/types.js'
 import type { ArgsDef, Command, InferArgsMerged, Resolvable } from '../types/index.js'
 import { KiddProvider } from './provider.js'
+
+/**
+ * Keys to strip from the full Context when creating the ScreenContext.
+ *
+ * @private
+ */
+const IMPERATIVE_KEYS: readonly ImperativeContextKeys[] = [
+  'colors',
+  'fail',
+  'format',
+  'log',
+  'prompts',
+  'spinner',
+]
 
 // ---------------------------------------------------------------------------
 // Types
@@ -98,9 +113,10 @@ export function screen<
 
   const renderFn = async (ctx: Context): Promise<void> => {
     const { render: inkRender } = await import('ink')
+    const screenCtx = toScreenContext(ctx)
 
     const instance = inkRender(
-      <KiddProvider value={ctx}>
+      <KiddProvider value={screenCtx}>
         <ScreenComponent {...ctx.args} />
       </KiddProvider>
     )
@@ -133,6 +149,18 @@ export function screen<
 // ---------------------------------------------------------------------------
 // Private
 // ---------------------------------------------------------------------------
+
+/**
+ * Strip imperative I/O properties from a full {@link Context} to produce
+ * a {@link ScreenContext} safe for use inside React/Ink components.
+ *
+ * @private
+ * @param ctx - The full command context.
+ * @returns A ScreenContext with imperative keys removed.
+ */
+function toScreenContext(ctx: Context): ScreenContext {
+  return omit(ctx, [...IMPERATIVE_KEYS]) as unknown as ScreenContext
+}
 
 /**
  * Resolve a {@link Resolvable} value.

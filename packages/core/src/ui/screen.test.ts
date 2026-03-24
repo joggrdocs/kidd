@@ -2,7 +2,7 @@ import { hasTag } from '@kidd-cli/utils/tag'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { z } from 'zod'
 
-import type { Context, Store } from '../context/types.js'
+import type { Context, ScreenContext, Store } from '../context/types.js'
 
 vi.mock(import('ink'), () => ({
   render: vi.fn(() => ({
@@ -169,7 +169,7 @@ describe('screen() render function', () => {
     expect(providerChildren.props).toMatchObject(args)
   })
 
-  it('should wrap component in KiddProvider with the full context', async () => {
+  it('should wrap component in KiddProvider with a ScreenContext', async () => {
     const { screen } = await import('./screen.js')
     const cmd = screen({ render: StubComponent })
     const ctx = makeContext({ config: { debug: true } })
@@ -177,7 +177,15 @@ describe('screen() render function', () => {
     await cmd.render!(ctx)
 
     const rendered = mockedInkRender.mock.calls[0]![0] as React.ReactElement
-    expect(rendered.props.value).toBe(ctx)
+    const providerValue = rendered.props.value as ScreenContext
+    expect(providerValue.config).toEqual({ debug: true })
+    expect(providerValue.meta).toBe(baseMeta)
+    expect(providerValue).not.toHaveProperty('log')
+    expect(providerValue).not.toHaveProperty('spinner')
+    expect(providerValue).not.toHaveProperty('prompts')
+    expect(providerValue).not.toHaveProperty('fail')
+    expect(providerValue).not.toHaveProperty('colors')
+    expect(providerValue).not.toHaveProperty('format')
   })
 
   it('should wait until exit', async () => {

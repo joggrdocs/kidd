@@ -65,6 +65,7 @@ export type { TextInputProps } from './text-input.js'
 export type { Option } from '@inkjs/ui'
 
 export { useCommandContext } from './provider.js'
+export type { ScreenContext } from '../context/types.js'
 
 export { screen } from './screen.js'
 export type { ScreenDef, ScreenExit } from './screen.js'

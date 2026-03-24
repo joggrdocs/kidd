@@ -2,6 +2,7 @@ import * as clack from '@clack/prompts'
 import pc from 'picocolors'
 import type { Colors } from 'picocolors/types'
 
+import { createDotDirectoryClient } from '@/lib/dotdir/index.js'
 import { createLog } from '@/lib/log.js'
 import type { AnyRecord, KiddStore, Merge, ResolvedDirs } from '@/types/index.js'
 
@@ -67,12 +68,15 @@ export function createContext<TArgs extends AnyRecord, TConfig extends AnyRecord
     version: options.meta.version,
   }
 
+  const ctxDotdir = createDotDirectoryClient({ dirs: options.meta.dirs })
+
   // Middleware-augmented properties (e.g. `report`, `auth`) are added at runtime.
   // See `decorateContext` — they are intentionally absent here.
   return {
     args: options.args as CommandContext<TArgs, TConfig>['args'],
     colors: Object.freeze({ ...pc }) as Colors,
     config: options.config as CommandContext<TArgs, TConfig>['config'],
+    dotdir: ctxDotdir,
     fail(message: string, failOptions?: { code?: string; exitCode?: number }): never {
       // Accepted exception: ctx.fail() is typed `never` and caught by the CLI boundary.
       // This is the framework's halt mechanism — the runner catches the thrown ContextError.

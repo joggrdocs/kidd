@@ -85,6 +85,7 @@ function createAuth(options: AuthOptions): Middleware {
     })
 
     decorateContext(ctx, 'auth', authContext)
+    ctx.dotdir.protect({ filename: DEFAULT_AUTH_FILENAME, location: 'global' })
 
     return next()
   })

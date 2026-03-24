@@ -45,6 +45,11 @@ function createMockCtx(options?: { readonly envToken?: string }) {
       text: vi.fn(),
     },
     spinner: { message: vi.fn(), start: vi.fn(), stop: vi.fn() },
+    dotdir: {
+      global: vi.fn(),
+      local: vi.fn(),
+      protect: vi.fn(),
+    },
     store: {
       clear: () => store.clear(),
       delete: (key: string) => store.delete(key),

@@ -64,6 +64,32 @@ export default command({
 })
 ```
 
+### Add a screen
+
+```tsx
+// commands/dashboard.tsx
+import { screen, Box, Text, useCommandContext } from '@kidd-cli/core/ui'
+import { z } from 'zod'
+
+function Dashboard({ env }: { env: string }) {
+  const ctx = useCommandContext()
+  return (
+    <Box flexDirection="column">
+      <Text bold>Dashboard — {env}</Text>
+      <Text>Region: {ctx.config.region}</Text>
+    </Box>
+  )
+}
+
+export default screen({
+  description: 'Launch an interactive dashboard',
+  options: z.object({
+    env: z.string().default('staging').describe('Target environment'),
+  }),
+  render: Dashboard,
+})
+```
+
 ### Run it
 
 ```bash

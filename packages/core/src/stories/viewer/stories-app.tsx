@@ -70,10 +70,10 @@ export function StoriesApp({ registry }: StoriesAppProps): ReactElement {
 
   const handleSelect = useCallback(
     (id: string) => {
+      const resolved = resolveStory(entries, id)
       setSelectedStoryId(id)
-      const story = resolveStory(entries, id)
-      if (story !== null) {
-        setCurrentProps({ ...story.props })
+      if (resolved !== null) {
+        setCurrentProps({ ...resolved.props })
       }
     },
     [entries]

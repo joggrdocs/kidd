@@ -32,6 +32,7 @@ export type { StoryWatcher, WatcherOptions } from './watcher.js'
 
 export { StoriesApp } from './viewer/stories-app.js'
 
+export { STORY_FILE_SUFFIXES } from './types.js'
 export type {
   Decorator,
   FieldControlKind,

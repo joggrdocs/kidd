@@ -161,13 +161,7 @@ function resolveDefaultValue(value: unknown, fallback: unknown): unknown {
  */
 function extractOptions(typeName: string, def: ZodDef): readonly string[] | undefined {
   return match(typeName)
-    .with('enum', () => {
-      if (def.entries) {
-        return Object.values(def.entries).map(String)
-      }
-      return undefined
-    })
-    .with('nativeEnum', () => {
+    .with('enum', 'nativeEnum', () => {
       if (def.entries) {
         return Object.values(def.entries).map(String)
       }

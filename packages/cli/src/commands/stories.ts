@@ -41,26 +41,25 @@ const storiesCommand: Command = command({
       include: includePatterns,
     })
 
-    ;[...result.entries].map(([name, entry]: [string, StoryEntry]) => {
+    const storyCount = [...result.entries].reduce((count, [name, entry]: [string, StoryEntry]) => {
       registry.set(name, entry)
-      return name
-    })
+      return count + 1
+    }, 0)
 
-    if (result.errors.length > 0) {
-      result.errors.map((error: DiscoverError) =>
-        ctx.log.warn(`Failed to load ${error.filePath}: ${error.message}`)
-      )
-    }
+    const warningCount = result.errors.reduce((count, error: DiscoverError) => {
+      ctx.log.warn(`Failed to load ${error.filePath}: ${error.message}`)
+      return count + 1
+    }, 0)
 
-    if (registry.getAll().size === 0) {
-      ctx.spinner.stop('No stories found')
+    if (storyCount === 0) {
+      ctx.spinner.stop(`No stories found (${warningCount} warnings)`)
       ctx.log.info(
         'Create a .stories.tsx or .stories.jsx file in your src/ directory to get started.'
       )
       return
     }
 
-    ctx.spinner.stop(`Found ${registry.getAll().size} stories`)
+    ctx.spinner.stop(`Found ${storyCount} stories`)
 
     const watcher = createStoryWatcher({
       directories: [cwd],

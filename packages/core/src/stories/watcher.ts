@@ -3,6 +3,7 @@ import { resolve } from 'node:path'
 
 import type { StoryImporter } from './importer.js'
 import type { StoryRegistry } from './registry.js'
+import { STORY_FILE_SUFFIXES } from './types.js'
 
 /**
  * Options for creating a story watcher.
@@ -32,12 +33,7 @@ export interface StoryWatcher {
  */
 export function createStoryWatcher(options: WatcherOptions): StoryWatcher {
   const debounceMs = options.debounceMs ?? 150
-  const state: WatcherState = {
-    timers: new Map<string, ReturnType<typeof setTimeout>>(),
-    watchers: [],
-  }
-
-  options.directories.map((dir) => {
+  const watchers = options.directories.map((dir) => {
     const watcher = watch(dir, { recursive: true }, (_event, filename) => {
       if (filename === null || filename === undefined) {
         return
@@ -48,20 +44,18 @@ export function createStoryWatcher(options: WatcherOptions): StoryWatcher {
       const absolutePath = resolve(dir, filename)
       debouncedReload(absolutePath, debounceMs, state, options)
     })
-    state.watchers.push(watcher)
     return watcher
   })
 
+  const state: WatcherState = {
+    timers: new Map<string, ReturnType<typeof setTimeout>>(),
+    watchers,
+  }
+
   return Object.freeze({
     close: (): void => {
-      state.watchers.map((w) => {
-        w.close()
-        return w
-      })
-      ;[...state.timers.values()].map((timer) => {
-        clearTimeout(timer)
-        return timer
-      })
+      const _closed = state.watchers.map(closeWatcher)
+      const _cleared = [...state.timers.values()].map(clearTimer)
       state.timers.clear()
     },
   })
@@ -76,7 +70,31 @@ export function createStoryWatcher(options: WatcherOptions): StoryWatcher {
  */
 interface WatcherState {
   readonly timers: Map<string, ReturnType<typeof setTimeout>>
-  readonly watchers: ReturnType<typeof watch>[]
+  readonly watchers: readonly ReturnType<typeof watch>[]
+}
+
+/**
+ * Close an fs watcher and return it.
+ *
+ * @private
+ * @param watcher - The watcher to close.
+ * @returns The closed watcher.
+ */
+function closeWatcher(watcher: ReturnType<typeof watch>): ReturnType<typeof watch> {
+  watcher.close()
+  return watcher
+}
+
+/**
+ * Clear a timeout and return its id.
+ *
+ * @private
+ * @param timer - The timer to clear.
+ * @returns The cleared timer id.
+ */
+function clearTimer(timer: ReturnType<typeof setTimeout>): ReturnType<typeof setTimeout> {
+  clearTimeout(timer)
+  return timer
 }
 
 /**
@@ -87,12 +105,7 @@ interface WatcherState {
  * @returns `true` when the filename ends with a story extension.
  */
 function isStoryFile(filename: string): boolean {
-  return (
-    filename.endsWith('.stories.tsx') ||
-    filename.endsWith('.stories.ts') ||
-    filename.endsWith('.stories.jsx') ||
-    filename.endsWith('.stories.js')
-  )
+  return STORY_FILE_SUFFIXES.some((suffix) => filename.endsWith(suffix))
 }
 
 /**

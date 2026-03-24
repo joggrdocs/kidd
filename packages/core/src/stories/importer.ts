@@ -1,3 +1,4 @@
+import { toError } from '@kidd-cli/utils/fp'
 import { hasTag } from '@kidd-cli/utils/tag'
 import { createJiti } from 'jiti'
 
@@ -34,10 +35,7 @@ export function createStoryImporter(): StoryImporter {
 
         return [null, entry as StoryEntry]
       } catch (error) {
-        if (error instanceof Error) {
-          return [error, null]
-        }
-        return [new Error(String(error)), null]
+        return [toError(error), null]
       }
     },
   })

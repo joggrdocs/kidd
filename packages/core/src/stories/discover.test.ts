@@ -1,25 +1,9 @@
-import { withTag } from '@kidd-cli/utils/tag'
 import { describe, expect, it, vi } from 'vitest'
 
+import { createMockStory } from './__test__/mock-story.js'
 import { discoverStories } from './discover.js'
 import type { StoryImporter } from './importer.js'
-import type { Story, StoryEntry } from './types.js'
-
-function createMockStory(name: string): StoryEntry {
-  return Object.freeze(
-    withTag(
-      {
-        name,
-        component: () => null,
-        schema: {} as Story['schema'],
-        props: {},
-        decorators: Object.freeze([]),
-        description: undefined,
-      },
-      'Story'
-    )
-  ) as StoryEntry
-}
+import type { StoryEntry } from './types.js'
 
 function createMockImporter(
   handler: (filePath: string) => Promise<[Error, null] | [null, StoryEntry]>

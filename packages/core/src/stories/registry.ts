@@ -38,6 +38,9 @@ export function createStoryRegistry(): StoryRegistry {
     get: (name: string): StoryEntry | undefined => state.entries.get(name),
 
     set: (name: string, entry: StoryEntry): void => {
+      if (state.entries.get(name) === entry) {
+        return
+      }
       state.entries.set(name, entry)
       notify(state)
     },
@@ -87,5 +90,8 @@ interface RegistryState {
  */
 function notify(state: RegistryState): void {
   state.snapshot = new Map(state.entries)
-  ;[...state.listeners].map((listener) => listener())
+  const _notified = [...state.listeners].map((listener) => {
+    listener()
+    return true
+  })
 }

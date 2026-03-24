@@ -1,7 +1,7 @@
 import { hasTag } from '@kidd-cli/utils/tag'
 import { Box, Text, useInput } from 'ink'
 import type { ReactElement } from 'react'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { match } from 'ts-pattern'
 
 import type { Story, StoryEntry, StoryGroup } from '../../types.js'
@@ -45,8 +45,8 @@ interface SidebarItem {
  * @returns A rendered sidebar element.
  */
 export function Sidebar({ entries, selectedId, onSelect, isFocused }: SidebarProps): ReactElement {
-  const items = buildSidebarItems(entries)
-  const selectableItems = items.filter((item) => !item.isGroupHeader)
+  const items = useMemo(() => buildSidebarItems(entries), [entries])
+  const selectableItems = useMemo(() => items.filter((item) => !item.isGroupHeader), [items])
   const [highlightIndex, setHighlightIndex] = useState(0)
 
   useEffect(() => {

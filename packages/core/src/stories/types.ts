@@ -102,3 +102,14 @@ export type StoryGroup = Tagged<
  * A registry entry that is either a single {@link Story} or a {@link StoryGroup}.
  */
 export type StoryEntry = Story | StoryGroup
+
+/**
+ * File suffixes that identify story files (e.g. `.stories.tsx`).
+ * Shared between discovery and file watching.
+ */
+export const STORY_FILE_SUFFIXES: readonly string[] = [
+  '.stories.tsx',
+  '.stories.ts',
+  '.stories.jsx',
+  '.stories.js',
+]

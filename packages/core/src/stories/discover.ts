@@ -3,6 +3,7 @@ import { resolve } from 'node:path'
 
 import type { StoryImporter } from './importer.js'
 import type { StoryEntry } from './types.js'
+import { STORY_FILE_SUFFIXES } from './types.js'
 
 /**
  * Options for story discovery.
@@ -31,12 +32,7 @@ export interface DiscoverError {
 }
 
 /** Default include patterns for story file discovery. */
-const DEFAULT_INCLUDE: readonly string[] = [
-  'src/**/*.stories.tsx',
-  'src/**/*.stories.ts',
-  'src/**/*.stories.jsx',
-  'src/**/*.stories.js',
-]
+const DEFAULT_INCLUDE: readonly string[] = STORY_FILE_SUFFIXES.map((suffix) => `src/**/*${suffix}`)
 
 /**
  * Default exclude patterns for story file discovery.
@@ -107,22 +103,24 @@ async function collectFilePaths(
 }
 
 /**
- * Collect all values from an async iterable into an array.
+ * Drain an async iterable into an array.
  *
  * @private
  * @param iterable - The async iterable to consume.
  * @returns A promise resolving to an array of all yielded values.
  */
 async function collectAsyncIterable<T>(iterable: AsyncIterable<T>): Promise<readonly T[]> {
+  const results: T[] = []
   const iterator = iterable[Symbol.asyncIterator]()
-  const step = async (acc: readonly T[]): Promise<readonly T[]> => {
-    const result = await iterator.next()
-    if (result.done) {
-      return acc
+  const drain = async (): Promise<readonly T[]> => {
+    const next = await iterator.next()
+    if (next.done) {
+      return results
     }
-    return step([...acc, result.value])
+    results.push(next.value)
+    return drain()
   }
-  return step([])
+  return drain()
 }
 
 /**

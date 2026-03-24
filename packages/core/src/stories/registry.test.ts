@@ -1,24 +1,7 @@
-import { withTag } from '@kidd-cli/utils/tag'
 import { describe, expect, it, vi } from 'vitest'
 
+import { createMockStory } from './__test__/mock-story.js'
 import { createStoryRegistry } from './registry.js'
-import type { Story, StoryEntry } from './types.js'
-
-function createMockStory(name: string): StoryEntry {
-  return Object.freeze(
-    withTag(
-      {
-        name,
-        component: () => null,
-        schema: {} as Story['schema'],
-        props: {},
-        decorators: Object.freeze([]),
-        description: undefined,
-      },
-      'Story'
-    )
-  ) as StoryEntry
-}
 
 describe('story registry', () => {
   it('should return an empty snapshot initially', () => {

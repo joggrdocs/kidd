@@ -35,6 +35,11 @@ const COMPILE_TARGET_LABELS: Readonly<Record<CompileTarget, string>> = {
  * @returns A result tuple with compile output on success or an Error on failure.
  */
 export async function compile(params: CompileParams): AsyncResult<CompileOutput> {
+  const [bunCheckError] = await checkBunExists()
+  if (bunCheckError) {
+    return err(bunCheckError)
+  }
+
   const resolved = resolveConfig(params)
   const bundledEntry = detectBuildEntry(resolved.buildOutDir)
 
@@ -210,6 +215,31 @@ function formatCompileError(target: CompileTarget, execError: Error, verbose: bo
   }
 
   return header
+}
+
+/**
+ * Check whether the `bun` binary is available on the system PATH.
+ *
+ * @private
+ * @returns A result tuple with `null` on success or an Error when `bun` is not found.
+ */
+function checkBunExists(): AsyncResult<null> {
+  return new Promise((resolve) => {
+    execFileCb('bun', ['--version'], (error) => {
+      if (error) {
+        resolve(
+          err(
+            new Error(
+              'bun is not installed or not found in PATH. Install it from https://bun.sh to use compile.'
+            )
+          )
+        )
+        return
+      }
+
+      resolve(ok(null))
+    })
+  })
 }
 
 /**

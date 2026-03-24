@@ -31,6 +31,7 @@ export { createStoryWatcher } from './watcher.js'
 export type { StoryWatcher, WatcherOptions } from './watcher.js'
 
 export { StoriesApp } from './viewer/stories-app.js'
+export { StoriesScreen } from './viewer/stories-screen.js'
 
 export { STORY_FILE_SUFFIXES } from './types.js'
 export type {

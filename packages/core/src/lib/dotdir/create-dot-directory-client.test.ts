@@ -22,7 +22,7 @@ describe('createDotDirectoryClient()', () => {
   })
 
   // -------------------------------------------------------------------------
-  // dir
+  // Dir
   // -------------------------------------------------------------------------
 
   describe('dir', () => {
@@ -34,7 +34,7 @@ describe('createDotDirectoryClient()', () => {
   })
 
   // -------------------------------------------------------------------------
-  // ensure
+  // Ensure
   // -------------------------------------------------------------------------
 
   describe('ensure', () => {
@@ -46,7 +46,7 @@ describe('createDotDirectoryClient()', () => {
 
       expect(error).toBeNull()
       expect(result).toBe(dir)
-      expect(existsSync(dir)).toBe(true)
+      expect(existsSync(dir)).toBeTruthy()
     })
 
     it('should succeed when the directory already exists', () => {
@@ -60,7 +60,7 @@ describe('createDotDirectoryClient()', () => {
   })
 
   // -------------------------------------------------------------------------
-  // write / read
+  // Write / Read
   // -------------------------------------------------------------------------
 
   describe('write', () => {
@@ -81,7 +81,7 @@ describe('createDotDirectoryClient()', () => {
       const [error] = dotdir.write('file.txt', 'content')
 
       expect(error).toBeNull()
-      expect(existsSync(join(dir, 'file.txt'))).toBe(true)
+      expect(existsSync(join(dir, 'file.txt'))).toBeTruthy()
     })
   })
 
@@ -106,7 +106,7 @@ describe('createDotDirectoryClient()', () => {
   })
 
   // -------------------------------------------------------------------------
-  // writeJson / readJson
+  // WriteJson / ReadJson
   // -------------------------------------------------------------------------
 
   describe('writeJson', () => {
@@ -164,7 +164,7 @@ describe('createDotDirectoryClient()', () => {
   })
 
   // -------------------------------------------------------------------------
-  // exists
+  // Exists
   // -------------------------------------------------------------------------
 
   describe('exists', () => {
@@ -172,18 +172,18 @@ describe('createDotDirectoryClient()', () => {
       writeFileSync(join(tmpDir, 'test.txt'), 'x')
       const dotdir = createDotDirectoryClient({ dir: tmpDir, location: 'global', registry })
 
-      expect(dotdir.exists('test.txt')).toBe(true)
+      expect(dotdir.exists('test.txt')).toBeTruthy()
     })
 
     it('should return false when the file does not exist', () => {
       const dotdir = createDotDirectoryClient({ dir: tmpDir, location: 'global', registry })
 
-      expect(dotdir.exists('missing.txt')).toBe(false)
+      expect(dotdir.exists('missing.txt')).toBeFalsy()
     })
   })
 
   // -------------------------------------------------------------------------
-  // remove
+  // Remove
   // -------------------------------------------------------------------------
 
   describe('remove', () => {
@@ -195,7 +195,7 @@ describe('createDotDirectoryClient()', () => {
 
       expect(error).toBeNull()
       expect(filePath).toBe(join(tmpDir, 'temp.txt'))
-      expect(existsSync(join(tmpDir, 'temp.txt'))).toBe(false)
+      expect(existsSync(join(tmpDir, 'temp.txt'))).toBeFalsy()
     })
 
     it('should succeed when the file does not exist', () => {
@@ -209,7 +209,7 @@ describe('createDotDirectoryClient()', () => {
   })
 
   // -------------------------------------------------------------------------
-  // path
+  // Path
   // -------------------------------------------------------------------------
 
   describe('path', () => {
@@ -263,7 +263,7 @@ describe('createDotDirectoryClient()', () => {
     it('should return false for exists with a traversal filename', () => {
       const dotdir = createDotDirectoryClient({ dir: tmpDir, location: 'global', registry })
 
-      expect(dotdir.exists('../../../etc/passwd')).toBe(false)
+      expect(dotdir.exists('../../../etc/passwd')).toBeFalsy()
     })
   })
 
@@ -336,7 +336,7 @@ describe('createDotDirectoryClient()', () => {
       registry.add({ filename: 'auth.json', location: 'global' })
       const dotdir = createDotDirectoryClient({ dir: tmpDir, location: 'global', registry })
 
-      expect(dotdir.exists('auth.json')).toBe(true)
+      expect(dotdir.exists('auth.json')).toBeTruthy()
     })
 
     it('should not block path on a protected file', () => {

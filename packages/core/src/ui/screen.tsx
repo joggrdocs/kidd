@@ -8,7 +8,7 @@ import { match } from 'ts-pattern'
 
 import type { Context, ImperativeContextKeys, ScreenContext } from '../context/types.js'
 import type { ArgsDef, Command, InferArgsMerged, Resolvable } from '../types/index.js'
-import { FullScreen } from './fullscreen.js'
+import { FullScreen, LEAVE_ALT_SCREEN } from './fullscreen.js'
 import { KiddProvider } from './provider.js'
 
 /**
@@ -149,7 +149,7 @@ export function screen<
       await instance.waitUntilExit()
     } finally {
       if (isFullscreen) {
-        process.stdout.write('\u001B[?1049l')
+        process.stdout.write(LEAVE_ALT_SCREEN)
       }
     }
   }

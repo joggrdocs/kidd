@@ -23,7 +23,7 @@ import { createContext, useContext, useEffect, useState } from 'react'
 const ENTER_ALT_SCREEN = '\u001B[?1049h'
 
 /** ANSI: return to the normal screen buffer. */
-const LEAVE_ALT_SCREEN = '\u001B[?1049l'
+export const LEAVE_ALT_SCREEN = '\u001B[?1049l'
 
 /** ANSI: clear the entire screen. */
 const CLEAR_SCREEN = '\u001B[2J'

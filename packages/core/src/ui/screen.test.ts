@@ -2,7 +2,7 @@ import { hasTag } from '@kidd-cli/utils/tag'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { z } from 'zod'
 
-import type { Context, ScreenContext, Store } from '../context/types.js'
+import type { CommandContext, ScreenContext, Store } from '../context/types.js'
 
 vi.mock(import('ink'), () => ({
   render: vi.fn(() => ({
@@ -36,22 +36,22 @@ const baseMeta = Object.freeze({
   version: '1.0.0',
 })
 
-function makeContext(overrides?: Partial<Context>): Context {
+function makeContext(overrides?: Partial<CommandContext>): CommandContext {
   return {
     args: {},
-    colors: {} as Context['colors'],
+    colors: {} as CommandContext['colors'],
     config: {},
     fail: () => {
       throw new Error('fail')
     },
-    format: {} as Context['format'],
-    log: {} as Context['log'],
+    format: {} as CommandContext['format'],
+    log: {} as CommandContext['log'],
     meta: baseMeta,
-    prompts: {} as Context['prompts'],
-    spinner: {} as Context['spinner'],
+    prompts: {} as CommandContext['prompts'],
+    spinner: {} as CommandContext['spinner'],
     store: makeStore(),
     ...overrides,
-  } as Context
+  } as CommandContext
 }
 
 describe('screen()', () => {

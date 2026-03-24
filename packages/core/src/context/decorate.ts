@@ -1,14 +1,14 @@
-import type { Context } from './types.js'
+import type { CommandContext } from './types.js'
 
 /**
  * Add a typed, immutable property to a context instance.
  *
  * Middleware authors use this to extend ctx with custom properties.
- * Pair with module augmentation on Context for type safety:
+ * Pair with module augmentation on CommandContext for type safety:
  *
  * ```ts
  * declare module '@kidd-cli/core' {
- *   interface Context {
+ *   interface CommandContext {
  *     readonly github: HttpClient
  *   }
  * }
@@ -27,10 +27,10 @@ import type { Context } from './types.js'
  * @returns The same ctx reference, now carrying the new property.
  */
 export function decorateContext<TKey extends string, TValue>(
-  ctx: Context,
+  ctx: CommandContext,
   key: TKey,
   value: TValue
-): Context {
+): CommandContext {
   Object.defineProperty(ctx, key, { configurable: false, enumerable: true, value, writable: false })
   return ctx
 }

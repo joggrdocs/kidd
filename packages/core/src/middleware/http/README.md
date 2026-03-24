@@ -57,7 +57,7 @@ Augment the `Context` interface so TypeScript knows about the namespace property
 import type { HttpClient } from '@kidd-cli/core/http'
 
 declare module '@kidd-cli/core' {
-  interface Context {
+  interface CommandContext {
     readonly github: HttpClient
   }
 }

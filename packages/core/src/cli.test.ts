@@ -1,7 +1,7 @@
 import { setArgv, runTestCli, setupTestLifecycle } from '@test/index.js'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import type { Context } from '@/context/types.js'
+import type { CommandContext } from '@/context/types.js'
 import type { CommandMap } from '@/types/index.js'
 
 import { command } from './command.js'
@@ -67,7 +67,7 @@ describe('meta', () => {
     })
 
     expect(handler).toHaveBeenCalledTimes(1)
-    const ctx = handler.mock.calls[0]![0] as Context
+    const ctx = handler.mock.calls[0]![0] as CommandContext
     expect(ctx.meta.name).toBe('my-tool')
     expect(ctx.meta.version).toBe('2.5.0')
     expect(ctx.meta.command).toEqual(['info'])
@@ -92,7 +92,7 @@ describe('dirs', () => {
     })
 
     expect(handler).toHaveBeenCalledTimes(1)
-    const ctx = handler.mock.calls[0]![0] as Context
+    const ctx = handler.mock.calls[0]![0] as CommandContext
     expect(ctx.meta.dirs).toEqual({ global: '.my-tool', local: '.my-tool' })
   })
 
@@ -114,7 +114,7 @@ describe('dirs', () => {
     })
 
     expect(handler).toHaveBeenCalledTimes(1)
-    const ctx = handler.mock.calls[0]![0] as Context
+    const ctx = handler.mock.calls[0]![0] as CommandContext
     expect(ctx.meta.dirs).toEqual({ global: '.joggr', local: '.joggr' })
   })
 
@@ -136,7 +136,7 @@ describe('dirs', () => {
     })
 
     expect(handler).toHaveBeenCalledTimes(1)
-    const ctx = handler.mock.calls[0]![0] as Context
+    const ctx = handler.mock.calls[0]![0] as CommandContext
     expect(ctx.meta.dirs).toEqual({ global: '.custom-global', local: '.my-tool' })
   })
 
@@ -158,7 +158,7 @@ describe('dirs', () => {
     })
 
     expect(handler).toHaveBeenCalledTimes(1)
-    const ctx = handler.mock.calls[0]![0] as Context
+    const ctx = handler.mock.calls[0]![0] as CommandContext
     expect(ctx.meta.dirs).toEqual({ global: '.my-tool', local: '.custom-local' })
   })
 
@@ -180,7 +180,7 @@ describe('dirs', () => {
     })
 
     expect(handler).toHaveBeenCalledTimes(1)
-    const ctx = handler.mock.calls[0]![0] as Context
+    const ctx = handler.mock.calls[0]![0] as CommandContext
     expect(ctx.meta.dirs).toEqual({ global: '.my-tool', local: '.my-tool' })
   })
 })
@@ -203,7 +203,7 @@ describe('context properties', () => {
     })
 
     expect(handler).toHaveBeenCalledTimes(1)
-    const ctx = handler.mock.calls[0]![0] as Context
+    const ctx = handler.mock.calls[0]![0] as CommandContext
     expect(ctx).toHaveProperty('args')
     expect(ctx).toHaveProperty('config')
     expect(ctx).toHaveProperty('format')
@@ -228,7 +228,7 @@ describe('context properties', () => {
       version: '1.0.0',
     })
 
-    const ctx = handler.mock.calls[0]![0] as Context
+    const ctx = handler.mock.calls[0]![0] as CommandContext
     expect(ctx.config).toEqual({})
   })
 })
@@ -257,7 +257,7 @@ describe('version resolution', () => {
     })
 
     expect(handler).toHaveBeenCalledTimes(1)
-    const ctx = handler.mock.calls[0]![0] as Context
+    const ctx = handler.mock.calls[0]![0] as CommandContext
     expect(ctx.meta.version).toBe('5.0.0')
   })
 
@@ -280,7 +280,7 @@ describe('version resolution', () => {
     })
 
     expect(handler).toHaveBeenCalledTimes(1)
-    const ctx = handler.mock.calls[0]![0] as Context
+    const ctx = handler.mock.calls[0]![0] as CommandContext
     expect(ctx.meta.version).toBe('9.9.9')
   })
 

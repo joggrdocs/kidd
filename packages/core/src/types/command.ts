@@ -1,7 +1,7 @@
 import type { Tagged } from '@kidd-cli/utils/tag'
 import type { z } from 'zod'
 
-import type { Context } from '../context/types.js'
+import type { CommandContext } from '../context/types.js'
 import type { InferVariables, Middleware, MiddlewareEnv } from './middleware.js'
 import type { AnyRecord, Resolvable } from './utility.js'
 
@@ -113,7 +113,7 @@ export type HandlerFn<
   TArgs extends AnyRecord = AnyRecord,
   TConfig extends AnyRecord = AnyRecord,
   TVars = {}, // eslint-disable-line @typescript-eslint/ban-types -- empty intersection identity
-> = (ctx: Context<TArgs, TConfig> & Readonly<TVars>) => Promise<void> | void
+> = (ctx: CommandContext<TArgs, TConfig> & Readonly<TVars>) => Promise<void> | void
 
 /**
  * Internal render function signature used by `screen()` commands.
@@ -123,7 +123,7 @@ export type HandlerFn<
  *
  * @private
  */
-export type ScreenRenderFn = (ctx: Context) => Promise<void> | void
+export type ScreenRenderFn = (ctx: CommandContext) => Promise<void> | void
 
 /**
  * Structured configuration for a command's subcommands.

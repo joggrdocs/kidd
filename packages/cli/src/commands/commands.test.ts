@@ -1,4 +1,4 @@
-import type { Context } from '@kidd-cli/core'
+import type { CommandContext } from '@kidd-cli/core'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock(import('node:fs'), () => ({
@@ -21,7 +21,7 @@ const mockedExistsSync = vi.mocked(existsSync)
 const mockedLoadConfig = vi.mocked(loadConfig)
 const mockedAutoload = vi.mocked(autoload)
 
-function makeContext(): Context {
+function makeContext(): CommandContext {
   return {
     args: {},
     config: {},
@@ -52,7 +52,7 @@ function makeContext(): Context {
     },
     spinner: { message: vi.fn(), start: vi.fn(), stop: vi.fn() },
     store: { clear: vi.fn(), delete: vi.fn(), get: vi.fn(), has: vi.fn(), set: vi.fn() },
-  } as unknown as Context
+  } as unknown as CommandContext
 }
 
 describe('commands command', () => {

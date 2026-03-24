@@ -2,7 +2,7 @@ import { createRequire } from 'node:module'
 import { dirname, join } from 'node:path'
 
 import { command } from '@kidd-cli/core'
-import type { Command, Context } from '@kidd-cli/core'
+import type { Command, CommandContext } from '@kidd-cli/core'
 import { attempt } from '@kidd-cli/utils/fp'
 import { readManifest } from '@kidd-cli/utils/manifest'
 import { z } from 'zod'
@@ -26,7 +26,7 @@ type InitArgs = z.infer<typeof options>
 const initCommand: Command = command({
   options,
   description: 'Scaffold a new kidd CLI project',
-  handler: async (ctx: Context<InitArgs>) => {
+  handler: async (ctx: CommandContext<InitArgs>) => {
     const projectName = await resolveProjectName(ctx)
     const projectDescription = await resolveDescription(ctx)
     const packageManager = await resolvePackageManager(ctx)
@@ -95,7 +95,7 @@ export default initCommand
  * @returns The validated project name.
  * @private
  */
-async function resolveProjectName(ctx: Context<InitArgs>): Promise<string> {
+async function resolveProjectName(ctx: CommandContext<InitArgs>): Promise<string> {
   if (ctx.args.name) {
     if (!isKebabCase(ctx.args.name)) {
       return ctx.fail('Project name must be kebab-case (e.g. my-cli)')
@@ -121,7 +121,7 @@ async function resolveProjectName(ctx: Context<InitArgs>): Promise<string> {
  * @returns The project description string.
  * @private
  */
-async function resolveDescription(ctx: Context<InitArgs>): Promise<string> {
+async function resolveDescription(ctx: CommandContext<InitArgs>): Promise<string> {
   if (ctx.args.description) {
     return ctx.args.description
   }
@@ -139,7 +139,7 @@ async function resolveDescription(ctx: Context<InitArgs>): Promise<string> {
  * @returns The selected package manager.
  * @private
  */
-async function resolvePackageManager(ctx: Context<InitArgs>): Promise<string> {
+async function resolvePackageManager(ctx: CommandContext<InitArgs>): Promise<string> {
   if (ctx.args.pm) {
     return ctx.args.pm
   }
@@ -160,7 +160,7 @@ async function resolvePackageManager(ctx: Context<InitArgs>): Promise<string> {
  * @returns True when the example hello command should be included.
  * @private
  */
-async function resolveIncludeExample(ctx: Context<InitArgs>): Promise<boolean> {
+async function resolveIncludeExample(ctx: CommandContext<InitArgs>): Promise<boolean> {
   if (ctx.args.example !== undefined) {
     return ctx.args.example
   }
@@ -177,7 +177,7 @@ async function resolveIncludeExample(ctx: Context<InitArgs>): Promise<boolean> {
  * @returns True when the config schema file should be included.
  * @private
  */
-async function resolveIncludeConfig(ctx: Context<InitArgs>): Promise<boolean> {
+async function resolveIncludeConfig(ctx: CommandContext<InitArgs>): Promise<boolean> {
   if (ctx.args.config !== undefined) {
     return ctx.args.config
   }

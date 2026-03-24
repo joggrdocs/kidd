@@ -118,13 +118,13 @@ export type IconsFactory = (options?: IconsOptions) => Middleware
 // ---------------------------------------------------------------------------
 
 /**
- * Augments the base {@link Context} with an optional `icons` property.
+ * Augments the base {@link CommandContext} with an optional `icons` property.
  *
  * When a consumer imports `@kidd-cli/core/icons`, this declaration merges
- * `icons` onto `Context` so that `ctx.icons` is typed without manual casting.
+ * `icons` onto `CommandContext` so that `ctx.icons` is typed without manual casting.
  */
 declare module '@kidd-cli/core' {
-  interface Context {
+  interface CommandContext {
     readonly icons: IconsContext
   }
 }

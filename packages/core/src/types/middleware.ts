@@ -1,6 +1,6 @@
 import type { Tagged } from '@kidd-cli/utils/tag'
 
-import type { Context } from '../context/types.js'
+import type { CommandContext } from '../context/types.js'
 import type { AnyRecord, IsAny, UnionToIntersection } from './utility.js'
 
 // ---------------------------------------------------------------------------
@@ -65,7 +65,7 @@ export type NextFunction = () => Promise<void>
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export type MiddlewareFn<_TEnv extends MiddlewareEnv = MiddlewareEnv> = (
-  ctx: Context,
+  ctx: CommandContext,
   next: NextFunction
 ) => Promise<void> | void
 

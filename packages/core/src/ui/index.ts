@@ -64,7 +64,7 @@ export type { TextInputProps } from './text-input.js'
 
 export type { Option } from '@inkjs/ui'
 
-export { useCommandContext } from './provider.js'
+export { useScreenContext } from './provider.js'
 export type { ScreenContext } from '../context/types.js'
 
 export { FullScreen, useFullScreen, useTerminalSize } from './fullscreen.js'

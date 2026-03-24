@@ -1,7 +1,7 @@
 import { watch } from '@kidd-cli/bundler'
 import { loadConfig } from '@kidd-cli/config/loader'
 import { command } from '@kidd-cli/core'
-import type { Command, Context } from '@kidd-cli/core'
+import type { Command, CommandContext } from '@kidd-cli/core'
 
 import { extractConfig } from '../lib/config-helpers.js'
 
@@ -13,7 +13,7 @@ import { extractConfig } from '../lib/config-helpers.js'
  */
 const devCommand: Command = command({
   description: 'Start a kidd CLI project in development mode',
-  handler: async (ctx: Context) => {
+  handler: async (ctx: CommandContext) => {
     const cwd = process.cwd()
 
     const [, configResult] = await loadConfig({ cwd })
@@ -49,7 +49,7 @@ export default devCommand
  * @param ctx - The command context for logging and spinner access.
  * @returns A callback suitable for the watch `onSuccess` parameter.
  */
-function createOnSuccess(ctx: Context): () => void {
+function createOnSuccess(ctx: CommandContext): () => void {
   const state = { buildCount: 0 }
 
   return () => {

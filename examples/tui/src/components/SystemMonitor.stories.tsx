@@ -37,6 +37,13 @@ export default stories({
   component: SystemMonitor,
   schema,
   defaults: {
+    networkIn: '142.3 MB/s',
+    networkOut: '89.7 MB/s',
+    activeConnections: 1247,
+    processes: 312,
+    loadAvg1: 0.87,
+    loadAvg5: 0.64,
+    loadAvg15: 0.52,
     services: [
       { name: 'api-gateway', status: 'healthy', latency: '12ms' },
       { name: 'postgres-primary', status: 'healthy', latency: '3ms' },
@@ -60,13 +67,6 @@ export default stories({
         cpuUsage: 23,
         memoryUsage: 41,
         diskUsage: 58,
-        networkIn: '142.3 MB/s',
-        networkOut: '89.7 MB/s',
-        activeConnections: 1247,
-        processes: 312,
-        loadAvg1: 0.87,
-        loadAvg5: 0.64,
-        loadAvg15: 0.52,
       },
     },
     Degraded: {

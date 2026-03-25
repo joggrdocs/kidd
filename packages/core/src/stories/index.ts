@@ -30,7 +30,11 @@ export type { StoryRegistry } from './registry.js'
 export { createStoryWatcher } from './watcher.js'
 export type { StoryWatcher, WatcherOptions } from './watcher.js'
 
+export { checkStories, MAX_EDITABLE_FIELDS } from './check.js'
+export type { CheckResult, StoryDiagnostic } from './check.js'
+
 export { StoriesApp } from './viewer/stories-app.js'
+export { StoriesCheck } from './viewer/stories-check.js'
 export { StoriesOutput } from './viewer/stories-output.js'
 export { StoriesScreen } from './viewer/stories-screen.js'
 

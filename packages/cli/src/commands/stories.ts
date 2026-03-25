@@ -9,6 +9,7 @@ import { z } from 'zod'
 const options = z.object({
   include: z.string().describe('Glob pattern for story files').optional(),
   out: z.string().describe('Render story to stdout (pass story name, or omit for all)').optional(),
+  check: z.boolean().describe('Validate stories for common issues').default(false),
 })
 
 /**

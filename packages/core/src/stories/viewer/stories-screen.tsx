@@ -12,6 +12,7 @@ import type { StoryEntry } from '../types.js'
 import { createStoryWatcher } from '../watcher.js'
 import { useReloadState } from './hooks/use-reload-state.js'
 import { StoriesApp } from './stories-app.js'
+import { StoriesCheck } from './stories-check.js'
 import { StoriesOutput } from './stories-output.js'
 
 // ---------------------------------------------------------------------------
@@ -24,6 +25,7 @@ import { StoriesOutput } from './stories-output.js'
 interface StoriesScreenProps {
   readonly include?: string
   readonly out?: string
+  readonly check?: boolean
 }
 
 /**
@@ -53,7 +55,11 @@ type DiscoveryState =
  * @param props - The stories screen props.
  * @returns A rendered stories screen element.
  */
-export function StoriesScreen({ include, out }: StoriesScreenProps): ReactElement {
+export function StoriesScreen({ include, out, check }: StoriesScreenProps): ReactElement {
+  if (check === true) {
+    return <StoriesCheck include={include} />
+  }
+
   return match(out)
     .with(P.string, (storyFilter) => <StoriesOutput filter={storyFilter} include={include} />)
     .with(P.nullish, () => <StoriesViewer include={include} />)

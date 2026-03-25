@@ -67,33 +67,31 @@ describe('command()', () => {
     expect(cmd.commands!['sub']).toBe(sub)
   })
 
-  it('normalizes CommandsConfig with commands and order into flat fields', () => {
-    const sub = command({ description: 'child' })
+  it('normalizes CommandsConfig with path into flat commands field', () => {
     const parent = command({
       commands: {
-        commands: { sub },
-        order: ['sub'],
+        path: './sub-commands',
       },
       description: 'parent',
     })
 
     expect(parent[TAG]).toBe('Command')
-    expect(parent.commands).toBeDefined()
-    expect(hasTag(parent.commands!['sub'], 'Command')).toBeTruthy()
-    expect(parent.order).toEqual(['sub'])
+    // Path-based CommandsConfig is normalized — commands resolved at cli() level
+    expect(parent.commands).toBeUndefined()
   })
 
-  it('normalizes CommandsConfig with order only (no inner commands)', () => {
-    const cmd = command({
-      commands: {
-        order: ['production', 'preview'],
-      },
-      description: 'Deploy',
+  it('preserves help options on the resolved command', () => {
+    const sub = command({ description: 'child' })
+    const parent = command({
+      commands: { sub },
+      description: 'parent',
+      help: { order: ['sub'] },
     })
 
-    expect(cmd[TAG]).toBe('Command')
-    expect(cmd.commands).toBeUndefined()
-    expect(cmd.order).toEqual(['production', 'preview'])
+    expect(parent[TAG]).toBe('Command')
+    expect(parent.commands).toBeDefined()
+    expect(hasTag(parent.commands!['sub'], 'Command')).toBeTruthy()
+    expect(parent.help).toEqual({ order: ['sub'] })
   })
 
   it('should preserve a static hidden value', () => {
@@ -127,38 +125,30 @@ describe('command()', () => {
     expect(cmd.deprecated).toBeUndefined()
   })
 
-  it('normalizes CommandsConfig with path and order', () => {
+  it('normalizes CommandsConfig with path (order lives on help)', () => {
     const cmd = command({
       commands: {
-        order: ['a', 'b'],
         path: './src/commands',
       },
       description: 'Root',
+      help: { order: ['a', 'b'] },
     })
 
     expect(cmd[TAG]).toBe('Command')
-    expect(cmd.order).toEqual(['a', 'b'])
+    expect(cmd.help).toEqual({ order: ['a', 'b'] })
     // Path is not stored on the flat Command — it is resolved at the cli() level
     expect(cmd.commands).toBeUndefined()
   })
 })
 
 describe('isCommandsConfig()', () => {
-  it('returns true for an object with order array', () => {
-    expect(isCommandsConfig({ order: ['a', 'b'] })).toBeTruthy()
-  })
-
   it('returns true for an object with path string', () => {
     expect(isCommandsConfig({ path: './commands' })).toBeTruthy()
   })
 
-  it('returns true for an object with both path and order', () => {
-    expect(isCommandsConfig({ order: ['a'], path: './commands' })).toBeTruthy()
-  })
-
-  it('returns true for an object with commands and order', () => {
+  it('returns true for an object with path and commands', () => {
     const sub = command({ description: 'sub' })
-    expect(isCommandsConfig({ commands: { sub }, order: ['sub'] })).toBeTruthy()
+    expect(isCommandsConfig({ commands: { sub }, path: './commands' })).toBeTruthy()
   })
 
   it('returns false for a plain CommandMap (tagged Command values)', () => {
@@ -180,10 +170,6 @@ describe('isCommandsConfig()', () => {
 
   it('returns false for an empty object', () => {
     expect(isCommandsConfig({})).toBeFalsy()
-  })
-
-  it('returns false when order is not an array', () => {
-    expect(isCommandsConfig({ order: 'not-an-array' })).toBeFalsy()
   })
 
   it('returns false when path is not a string', () => {

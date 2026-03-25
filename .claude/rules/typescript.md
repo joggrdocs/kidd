@@ -24,7 +24,6 @@ These rules are enforced by OXLint (`.oxlintrc.json`) and must be followed in al
 
 - **No `any`** — use `unknown`, generics, or proper types.
 - **No non-null assertions** (`!`) — use explicit null checks.
-- **No optional chaining** (`?.`) — use explicit `if`/`else` or pattern matching.
 - **No ternaries** — use `if`/`else` or `match` expressions.
 - **ESM only** with `verbatimModuleSyntax` — use `import type` for type-only imports.
 

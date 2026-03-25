@@ -1,5 +1,15 @@
 # kidd-cli
 
+## 0.5.2
+
+### Patch Changes
+
+- 094e36e: Unify help config: rename `CliHelpOptions` to `HelpOptions`, move `order` from `CommandsConfig` to `HelpOptions`. `HelpOptions` is now used at both `cli()` and `command()` levels with `header`, `footer`, and `order` fields.
+- Updated dependencies [008efc0]
+- Updated dependencies [d5d83fd]
+- Updated dependencies [094e36e]
+  - @kidd-cli/core@0.14.0
+
 ## 0.5.1
 
 ### Patch Changes

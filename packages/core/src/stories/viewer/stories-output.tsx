@@ -116,9 +116,7 @@ export function StoriesOutput({ filter, include }: StoriesOutputProps): ReactEle
   return match(state)
     .with({ phase: 'loading' }, () => <Text dimColor>Discovering stories...</Text>)
     .with({ phase: 'error' }, ({ message }) => <Text color="red">{message}</Text>)
-    .with({ phase: 'ready' }, ({ stories }) => (
-      <StoryRenderer stories={stories} onDone={exit} />
-    ))
+    .with({ phase: 'ready' }, ({ stories }) => <StoryRenderer stories={stories} onDone={exit} />)
     .exhaustive()
 }
 
@@ -177,7 +175,10 @@ function StoryDivider({ name }: { readonly name: string }): ReactElement {
 
   return (
     <Box marginBottom={1}>
-      <Text dimColor>────{label}{padding}</Text>
+      <Text dimColor>
+        ────{label}
+        {padding}
+      </Text>
     </Box>
   )
 }
@@ -236,18 +237,23 @@ function collectAllStories(entries: ReadonlyMap<string, StoryEntry>): readonly R
 }
 
 /**
- * Filter stories by name (case-insensitive partial match).
+ * Filter stories by name. Supports `Group/Variant` format for exact
+ * variant selection, or a plain name for partial matching against
+ * all story names.
  *
  * @private
  * @param stories - All resolved stories.
- * @param name - The name to filter by.
+ * @param name - The filter string (e.g. "SystemMonitor/Critical" or "StatusBadge").
  * @returns Matching stories.
  */
-function filterByName(
-  stories: readonly ResolvedStory[],
-  name: string
-): readonly ResolvedStory[] {
+function filterByName(stories: readonly ResolvedStory[], name: string): readonly ResolvedStory[] {
   const normalized = name.toLowerCase()
+
+  if (normalized.includes('/')) {
+    const compact = normalized.replaceAll(' ', '')
+    return stories.filter((s) => s.name.toLowerCase().replaceAll(' ', '') === compact)
+  }
+
   return stories.filter((s) => s.name.toLowerCase().includes(normalized))
 }
 

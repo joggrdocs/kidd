@@ -55,9 +55,7 @@ type DiscoveryState =
  */
 export function StoriesScreen({ include, out }: StoriesScreenProps): ReactElement {
   return match(out)
-    .with(P.string, (storyFilter) => (
-      <StoriesOutput filter={storyFilter} include={include} />
-    ))
+    .with(P.string, (storyFilter) => <StoriesOutput filter={storyFilter} include={include} />)
     .with(P.nullish, () => <StoriesViewer include={include} />)
     .exhaustive()
 }

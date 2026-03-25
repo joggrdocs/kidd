@@ -60,8 +60,16 @@ export default stories({
           { name: 'cdn-origin', status: 'healthy', latency: '45ms' },
         ],
         recentEvents: [
-          { time: '14:23:01', severity: 'info', message: 'Deployment v2.14.0 completed successfully' },
-          { time: '14:18:45', severity: 'info', message: 'SSL certificate renewed for *.example.com' },
+          {
+            time: '14:23:01',
+            severity: 'info',
+            message: 'Deployment v2.14.0 completed successfully',
+          },
+          {
+            time: '14:18:45',
+            severity: 'info',
+            message: 'SSL certificate renewed for *.example.com',
+          },
           { time: '13:55:12', severity: 'info', message: 'Automated backup completed (2.4 GB)' },
           { time: '12:30:00', severity: 'info', message: 'Scheduled maintenance window closed' },
         ],
@@ -90,10 +98,18 @@ export default stories({
           { name: 'cdn-origin', status: 'healthy', latency: '67ms' },
         ],
         recentEvents: [
-          { time: '14:25:33', severity: 'warn', message: 'API response time exceeding SLA threshold' },
+          {
+            time: '14:25:33',
+            severity: 'warn',
+            message: 'API response time exceeding SLA threshold',
+          },
           { time: '14:22:10', severity: 'warn', message: 'Redis eviction rate elevated (>500/s)' },
           { time: '14:20:01', severity: 'info', message: 'Auto-scaling triggered: +2 instances' },
-          { time: '14:15:44', severity: 'warn', message: 'Memory pressure detected on worker pool' },
+          {
+            time: '14:15:44',
+            severity: 'warn',
+            message: 'Memory pressure detected on worker pool',
+          },
         ],
       },
     },
@@ -120,11 +136,31 @@ export default stories({
           { name: 'cdn-origin', status: 'healthy', latency: '52ms' },
         ],
         recentEvents: [
-          { time: '14:28:02', severity: 'critical', message: 'Primary database connection pool exhausted' },
-          { time: '14:27:15', severity: 'critical', message: 'OOM killer invoked — redis-server terminated' },
-          { time: '14:26:50', severity: 'critical', message: 'Disk usage exceeded 90% on /var/data' },
-          { time: '14:25:01', severity: 'warn', message: 'Failover initiated to secondary replica' },
-          { time: '14:24:30', severity: 'critical', message: 'Connection refused: postgres port 5432' },
+          {
+            time: '14:28:02',
+            severity: 'critical',
+            message: 'Primary database connection pool exhausted',
+          },
+          {
+            time: '14:27:15',
+            severity: 'critical',
+            message: 'OOM killer invoked — redis-server terminated',
+          },
+          {
+            time: '14:26:50',
+            severity: 'critical',
+            message: 'Disk usage exceeded 90% on /var/data',
+          },
+          {
+            time: '14:25:01',
+            severity: 'warn',
+            message: 'Failover initiated to secondary replica',
+          },
+          {
+            time: '14:24:30',
+            severity: 'critical',
+            message: 'Connection refused: postgres port 5432',
+          },
         ],
       },
     },

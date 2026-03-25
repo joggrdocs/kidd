@@ -81,11 +81,7 @@ export function SystemMonitor({
     <Box flexDirection="column">
       <TitleBar hostname={hostname} uptime={uptime} />
       <Box flexDirection="row">
-        <ResourcePanel
-          cpuUsage={cpuUsage}
-          memoryUsage={memoryUsage}
-          diskUsage={diskUsage}
-        />
+        <ResourcePanel cpuUsage={cpuUsage} memoryUsage={memoryUsage} diskUsage={diskUsage} />
         <NetworkPanel
           networkIn={networkIn}
           networkOut={networkOut}
@@ -123,12 +119,7 @@ function TitleBar({
   readonly uptime: string
 }): ReactElement {
   return (
-    <Box
-      borderStyle="double"
-      borderColor="cyan"
-      paddingX={1}
-      justifyContent="space-between"
-    >
+    <Box borderStyle="double" borderColor="cyan" paddingX={1} justifyContent="space-between">
       <Text bold color="cyan">
         ◈ {hostname}
       </Text>
@@ -276,11 +267,7 @@ function ServicesPanel({
  *
  * @private
  */
-function EventsPanel({
-  events,
-}: {
-  readonly events: readonly EventEntry[]
-}): ReactElement {
+function EventsPanel({ events }: { readonly events: readonly EventEntry[] }): ReactElement {
   return (
     <Box flexDirection="column" borderStyle="single" borderColor="gray" paddingX={1}>
       <Text bold>Recent Events</Text>

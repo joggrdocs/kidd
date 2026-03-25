@@ -50,9 +50,10 @@ interface TreeNode {
  * @returns A rendered sidebar element.
  */
 export function Sidebar({ entries, selectedId, onSelect, isFocused }: SidebarProps): ReactElement {
-  const [collapsed, setCollapsed] = useState<ReadonlySet<string>>(new Set())
-
   const allNodes = useMemo(() => buildTreeNodes(entries), [entries])
+  const [collapsed, setCollapsed] = useState<ReadonlySet<string>>(() =>
+    initialCollapsedSet(allNodes)
+  )
   const visibleNodes = useMemo(() => filterVisibleNodes(allNodes, collapsed), [allNodes, collapsed])
   const [highlightIndex, setHighlightIndex] = useState(0)
 
@@ -172,9 +173,9 @@ function TreeRow({ node, isHighlighted, isSelected, isCollapsed }: TreeRowProps)
   const indent = '  '.repeat(node.indent)
 
   if (node.kind === 'group') {
-    const chevron = match(isCollapsed)
-      .with(true, () => '▸')
-      .with(false, () => '▾')
+    const icon = match(isCollapsed)
+      .with(true, () => '▸ 📁')
+      .with(false, () => '▾ 📂')
       .exhaustive()
 
     return (
@@ -188,7 +189,7 @@ function TreeRow({ node, isHighlighted, isSelected, isCollapsed }: TreeRowProps)
             .exhaustive()}
         >
           {indent}
-          {chevron} {node.label}
+          {icon} {node.label}
         </Text>
       </Box>
     )
@@ -333,4 +334,16 @@ function resolveNodeId(node: TreeNode | undefined): string | null {
     return null
   }
   return node.id
+}
+
+/**
+ * Build the initial collapsed set containing all group node IDs,
+ * so groups start collapsed by default.
+ *
+ * @private
+ * @param nodes - The full tree node list.
+ * @returns A set of all group node IDs.
+ */
+function initialCollapsedSet(nodes: readonly TreeNode[]): ReadonlySet<string> {
+  return new Set(nodes.filter((node) => node.kind === 'group').map((node) => node.id))
 }

@@ -11,11 +11,21 @@ import { ErrorBoundary } from './error-boundary.js'
 // ---------------------------------------------------------------------------
 
 /**
+ * Contextual metadata for the preview header display.
+ */
+export interface PreviewContext {
+  readonly filePath: string
+  readonly displayName: string
+  readonly description: string | undefined
+}
+
+/**
  * Props for the {@link Preview} component.
  */
 interface PreviewProps {
   readonly story: Story | null
   readonly currentProps: Record<string, unknown>
+  readonly context: PreviewContext | null
 }
 
 // ---------------------------------------------------------------------------
@@ -24,14 +34,15 @@ interface PreviewProps {
 
 /**
  * Preview panel that renders the selected story component with the current
- * props. Applies decorators in order and wraps the result in an
- * {@link ErrorBoundary} to catch render errors.
+ * props. Shows the file path, qualified story name, and description above
+ * the rendered component. Applies decorators in order and wraps the result
+ * in an {@link ErrorBoundary} to catch render errors.
  *
  * @param props - The preview props.
  * @returns A rendered preview element.
  */
-export function Preview({ story, currentProps }: PreviewProps): ReactElement {
-  if (story === null) {
+export function Preview({ story, currentProps, context }: PreviewProps): ReactElement {
+  if (story === null || context === null) {
     return <EmptyState />
   }
 
@@ -43,11 +54,8 @@ export function Preview({ story, currentProps }: PreviewProps): ReactElement {
 
   return (
     <Box flexDirection="column" flexGrow={1} padding={1}>
-      <Box marginBottom={1}>
-        <Text bold>{story.name}</Text>
-        <StoryDescription description={story.description} />
-      </Box>
-      <ErrorBoundary key={story.name}>
+      <PreviewHeader context={context} />
+      <ErrorBoundary key={context.displayName}>
         <DecoratedComponent {...currentProps} />
       </ErrorBoundary>
     </Box>
@@ -57,6 +65,25 @@ export function Preview({ story, currentProps }: PreviewProps): ReactElement {
 // ---------------------------------------------------------------------------
 // Private
 // ---------------------------------------------------------------------------
+
+/**
+ * Render the preview header showing file path, story name, and description.
+ *
+ * @private
+ * @param props - The header props.
+ * @returns A rendered header element.
+ */
+function PreviewHeader({ context }: { readonly context: PreviewContext }): ReactElement {
+  return (
+    <Box flexDirection="column" marginBottom={1}>
+      <Text dimColor>{context.filePath}</Text>
+      <Box gap={1}>
+        <Text bold>{context.displayName}</Text>
+      </Box>
+      <StoryDescription description={context.description} />
+    </Box>
+  )
+}
 
 /**
  * Render a story description when available, or nothing when absent.
@@ -73,7 +100,7 @@ function StoryDescription({
   if (description === undefined) {
     return null
   }
-  return <Text dimColor> - {description}</Text>
+  return <Text dimColor>{description}</Text>
 }
 
 /**

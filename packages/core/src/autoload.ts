@@ -135,11 +135,15 @@ function findIndexInEntries(entries: Dirent[]): Dirent | undefined {
  * @returns The Command if valid, or undefined.
  */
 async function importCommand(filePath: string): Promise<Command | undefined> {
-  const mod: unknown = await import(filePath)
-  if (isCommandExport(mod)) {
-    return mod.default
+  try {
+    const mod: unknown = await import(filePath)
+    if (isCommandExport(mod)) {
+      return mod.default
+    }
+    return undefined
+  } catch {
+    return undefined
   }
-  return undefined
 }
 
 /**

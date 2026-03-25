@@ -232,9 +232,10 @@ describe('autoload()', () => {
   it('should skip files that throw during import', async () => {
     mockedReaddir.mockResolvedValue([makeDirent('broken.ts', true)] as unknown as Dirent[])
 
-    vi.doMock('/tmp/commands/broken.ts', () => {
-      throw new Error('Module has no valid export')
-    })
+    vi.doMock(
+      '/tmp/commands/broken.ts',
+      () => Promise.reject(new Error('Module has no valid export'))
+    )
 
     const result = await autoload({ dir: '/tmp/commands' })
 

@@ -62,10 +62,6 @@ export function resolveControlKind({
     .otherwise(() => 'json' as const)
 }
 
-// ---------------------------------------------------------------------------
-// Private
-// ---------------------------------------------------------------------------
-
 /**
  * Minimal Zod definition shape used for schema introspection.
  */
@@ -77,6 +73,10 @@ export interface ZodDef {
   readonly values?: readonly unknown[]
   readonly element?: z.ZodTypeAny
 }
+
+// ---------------------------------------------------------------------------
+// Private
+// ---------------------------------------------------------------------------
 
 interface ZodTypeInfo {
   readonly defaultValue: unknown

@@ -1,9 +1,11 @@
 import { watch } from 'node:fs'
 import { resolve } from 'node:path'
 
+import { toError } from '@kidd-cli/utils/fp'
+
 import type { StoryImporter } from './importer.js'
 import type { StoryRegistry } from './registry.js'
-import { STORY_FILE_SUFFIXES } from './types.js'
+import { SOURCE_FILE_EXTENSIONS, STORY_FILE_SUFFIXES } from './types.js'
 
 /**
  * Options for creating a story watcher.
@@ -13,6 +15,8 @@ export interface WatcherOptions {
   readonly importer: StoryImporter
   readonly registry: StoryRegistry
   readonly debounceMs?: number
+  readonly onReloadStart?: () => void
+  readonly onReloadEnd?: () => void
 }
 
 /**
@@ -29,48 +33,127 @@ export interface StoryWatcher {
  * and re-imports changed story files via the importer.
  *
  * @param options - Watcher configuration.
- * @returns A frozen {@link StoryWatcher} that can be closed to stop watching.
+ * @returns A Result tuple containing either an error or a frozen {@link StoryWatcher}.
  */
-export function createStoryWatcher(options: WatcherOptions): StoryWatcher {
+export function createStoryWatcher(
+  options: WatcherOptions
+): readonly [Error, null] | readonly [null, StoryWatcher] {
   const debounceMs = options.debounceMs ?? 150
-  const watchers = options.directories.map((dir) => {
-    const watcher = watch(dir, { recursive: true }, (_event, filename) => {
-      if (filename === null || filename === undefined) {
-        return
-      }
-      if (!isStoryFile(filename)) {
-        return
-      }
-      const absolutePath = resolve(dir, filename)
-      debouncedReload(absolutePath, debounceMs, state, options)
-    })
-    return watcher
-  })
+  const timers = new Map<string, ReturnType<typeof setTimeout>>()
 
-  const state: WatcherState = {
-    timers: new Map<string, ReturnType<typeof setTimeout>>(),
-    watchers,
+  const [watchError, watchers] = tryCreateWatchers(options.directories, debounceMs, timers, options)
+  if (watchError) {
+    return [watchError, null]
   }
 
-  return Object.freeze({
-    close: (): void => {
-      const _closed = state.watchers.map(closeWatcher)
-      const _cleared = [...state.timers.values()].map(clearTimer)
-      state.timers.clear()
-    },
-  })
+  return [
+    null,
+    Object.freeze({
+      close: (): void => {
+        const _closed = watchers.map(closeWatcher)
+        const _cleared = [...timers.values()].map(clearTimer)
+        timers.clear()
+      },
+    }),
+  ]
 }
 
 // ---------------------------------------------------------------------------
 
 /**
- * Internal mutable state for the watcher.
+ * Attempt to create fs watchers for all directories. If any `watch()` call
+ * fails, close already-created watchers and clear timers, then return the error.
+ *
+ * @private
+ * @param directories - Directories to watch.
+ * @param debounceMs - Debounce interval in milliseconds.
+ * @param timers - The shared timer map.
+ * @param options - The watcher options containing importer and registry.
+ * @returns A Result tuple with either an error or the array of watchers.
+ */
+function tryCreateWatchers(
+  directories: readonly string[],
+  debounceMs: number,
+  timers: TimerMap,
+  options: WatcherOptions
+): readonly [Error, null] | readonly [null, ReturnType<typeof watch>[]] {
+  const result = directories.reduce<
+    readonly [Error, null] | readonly [null, ReturnType<typeof watch>[]]
+  >(
+    (acc, dir) => {
+      if (acc[0]) {
+        return acc
+      }
+
+      const [createError, watcher] = tryWatch(dir, debounceMs, timers, options)
+      if (createError) {
+        acc[1].map(closeWatcher)
+        ;[...timers.values()].map(clearTimer)
+        timers.clear()
+        return [createError, null]
+      }
+
+      return [null, [...acc[1], watcher]]
+    },
+    [null, []]
+  )
+
+  return result
+}
+
+/**
+ * Try to create a single fs watcher for a directory.
+ *
+ * @private
+ * @param dir - Directory to watch.
+ * @param debounceMs - Debounce interval in milliseconds.
+ * @param timers - The shared timer map.
+ * @param options - The watcher options containing importer and registry.
+ * @returns A Result tuple with either an error or the watcher.
+ */
+function tryWatch(
+  dir: string,
+  debounceMs: number,
+  timers: TimerMap,
+  options: WatcherOptions
+): readonly [Error, null] | readonly [null, ReturnType<typeof watch>] {
+  try {
+    const watcher = watch(dir, { recursive: true }, (_event, filename) => {
+      if (filename === null || filename === undefined) {
+        return
+      }
+      if (isStoryFile(filename)) {
+        const absolutePath = resolve(dir, filename)
+        debouncedAction(absolutePath, debounceMs, timers, () =>
+          reloadStoryFile(absolutePath, options)
+        )
+        return
+      }
+      if (isSourceFile(filename)) {
+        debouncedAction(RELOAD_ALL_KEY, debounceMs, timers, () => reloadAllStories(options))
+      }
+    })
+    watcher.on('error', noop)
+    return [null, watcher]
+  } catch (error) {
+    return [toError(error), null]
+  }
+}
+
+/**
+ * Timer map used to debounce file-system events.
  *
  * @private
  */
-interface WatcherState {
-  readonly timers: Map<string, ReturnType<typeof setTimeout>>
-  readonly watchers: readonly ReturnType<typeof watch>[]
+type TimerMap = Map<string, ReturnType<typeof setTimeout>>
+
+/**
+ * No-op error handler to prevent unhandled error events from crashing.
+ *
+ * @private
+ */
+function noop(): void {
+  // Intentionally empty — suppress fs.watch error events
 }
 
 /**
@@ -109,29 +192,89 @@ function isStoryFile(filename: string): boolean {
 }
 
 /**
- * Debounce a reload for the given file path.
+ * Check if a filename is a source file that could affect story rendering
+ * (e.g. a component file). Excludes files inside `node_modules`.
  *
  * @private
- * @param filePath - Absolute path to the changed story file.
- * @param debounceMs - Debounce interval in milliseconds.
- * @param state - The mutable watcher state.
- * @param options - The watcher options containing importer and registry.
+ * @param filename - The filename to check.
+ * @returns `true` when the filename ends with a source extension.
  */
-function debouncedReload(
-  filePath: string,
+function isSourceFile(filename: string): boolean {
+  if (filename.includes('node_modules')) {
+    return false
+  }
+  return SOURCE_FILE_EXTENSIONS.some((ext) => filename.endsWith(ext))
+}
+
+/**
+ * Stable key used by {@link debouncedAction} so rapid source-file edits
+ * collapse into a single reload-all pass.
+ *
+ * @private
+ */
+const RELOAD_ALL_KEY = '__reload_all__'
+
+/**
+ * Schedule a debounced action keyed by a string. Rapid calls with the same
+ * key collapse into a single invocation after `debounceMs`.
+ *
+ * @private
+ * @param key - Unique key for the debounce timer.
+ * @param debounceMs - Debounce interval in milliseconds.
+ * @param timers - The shared timer map.
+ * @param action - The async action to invoke after the debounce window.
+ */
+function debouncedAction(
+  key: string,
   debounceMs: number,
-  state: WatcherState,
-  options: WatcherOptions
+  timers: TimerMap,
+  action: () => Promise<void>
 ): void {
-  const existing = state.timers.get(filePath)
-  if (existing !== null && existing !== undefined) {
+  const existing = timers.get(key)
+  if (existing !== undefined) {
     clearTimeout(existing)
   }
   const timer = setTimeout(() => {
-    state.timers.delete(filePath)
-    reloadStoryFile(filePath, options).catch(() => undefined)
+    timers.delete(key)
+    action().catch(() => undefined)
   }, debounceMs)
-  state.timers.set(filePath, timer)
+  timers.set(key, timer)
+}
+
+/**
+ * Invoke the optional reload lifecycle callbacks around an async action.
+ *
+ * @private
+ * @param options - The watcher options containing lifecycle callbacks.
+ * @param action - The async reload action to wrap.
+ */
+async function withReloadCallbacks(
+  options: WatcherOptions,
+  action: () => Promise<void>
+): Promise<void> {
+  if (options.onReloadStart !== undefined) {
+    options.onReloadStart()
+  }
+  await action()
+  if (options.onReloadEnd !== undefined) {
+    options.onReloadEnd()
+  }
+}
+
+/**
+ * Import a single story entry and update the registry accordingly.
+ *
+ * @private
+ * @param filePath - Absolute path to the story file.
+ * @param options - The watcher options containing importer and registry.
+ */
+async function importAndUpdate(filePath: string, options: WatcherOptions): Promise<void> {
+  const [importError, entry] = await options.importer.importStory(filePath)
+  if (importError) {
+    options.registry.remove(filePath)
+  } else {
+    options.registry.set(filePath, entry)
+  }
 }
 
 /**
@@ -142,10 +285,19 @@ function debouncedReload(
  * @param options - The watcher options containing importer and registry.
  */
 async function reloadStoryFile(filePath: string, options: WatcherOptions): Promise<void> {
-  const [importError, entry] = await options.importer.importStory(filePath)
-  if (importError) {
-    options.registry.remove(filePath)
-    return
-  }
-  options.registry.set(filePath, entry)
+  await withReloadCallbacks(options, () => importAndUpdate(filePath, options))
+}
+
+/**
+ * Re-import all currently registered stories. Called when a non-story source
+ * file changes, since any story could depend on the changed component.
+ *
+ * @private
+ * @param options - The watcher options containing importer and registry.
+ */
+async function reloadAllStories(options: WatcherOptions): Promise<void> {
+  await withReloadCallbacks(options, async () => {
+    const storyKeys = [...options.registry.getAll().keys()]
+    await Promise.all(storyKeys.map((filePath) => importAndUpdate(filePath, options)))
+  })
 }

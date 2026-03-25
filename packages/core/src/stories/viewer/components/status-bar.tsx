@@ -14,6 +14,7 @@ import type { ViewerMode } from '../hooks/use-panel-focus.js'
 interface StatusBarProps {
   readonly mode: ViewerMode
   readonly hasSelection: boolean
+  readonly isReloading: boolean
 }
 
 // ---------------------------------------------------------------------------
@@ -27,7 +28,7 @@ interface StatusBarProps {
  * @param props - The status bar props.
  * @returns A rendered status bar element.
  */
-export function StatusBar({ mode, hasSelection }: StatusBarProps): ReactElement {
+export function StatusBar({ mode, hasSelection, isReloading }: StatusBarProps): ReactElement {
   return (
     <Box
       borderStyle="single"
@@ -41,9 +42,16 @@ export function StatusBar({ mode, hasSelection }: StatusBarProps): ReactElement 
       <Text> </Text>
       <Text dimColor>│</Text>
       <Text> </Text>
-      {match(mode)
-        .with('browse', () => <BrowseHints hasSelection={hasSelection} />)
-        .with('edit', () => <EditHints />)
+      {match({ isReloading, mode })
+        .with({ isReloading: true }, () => (
+          <Text bold color="yellow">
+            Reloading...
+          </Text>
+        ))
+        .with({ isReloading: false, mode: 'browse' }, () => (
+          <BrowseHints hasSelection={hasSelection} />
+        ))
+        .with({ isReloading: false, mode: 'edit' }, () => <EditHints />)
         .exhaustive()}
       <Spacer />
       <Text dimColor>q</Text>

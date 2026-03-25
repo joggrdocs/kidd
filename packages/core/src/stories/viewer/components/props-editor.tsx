@@ -181,7 +181,9 @@ function FieldErrorMessage({ error }: { readonly error: FieldError | null }): Re
 }
 
 /**
- * Find the first error matching a given field name.
+ * Find the first error matching a given field name. Matches both exact field
+ * names and nested dot-path errors (e.g. `meta.nested` or `tags.0`) that
+ * belong to the owning field.
  *
  * @private
  * @param errors - The array of field errors.
@@ -189,7 +191,9 @@ function FieldErrorMessage({ error }: { readonly error: FieldError | null }): Re
  * @returns The matching error, or null if none found.
  */
 function findFieldError(errors: readonly FieldError[], fieldName: string): FieldError | null {
-  const found = errors.find((error) => error.field === fieldName)
+  const found = errors.find(
+    (error) => error.field === fieldName || error.field.startsWith(`${fieldName}.`)
+  )
   if (found === undefined) {
     return null
   }

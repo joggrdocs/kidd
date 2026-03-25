@@ -10,6 +10,7 @@ import { createStoryImporter } from '../importer.js'
 import { createStoryRegistry } from '../registry.js'
 import type { StoryEntry } from '../types.js'
 import { createStoryWatcher } from '../watcher.js'
+import { useReloadState } from './hooks/use-reload-state.js'
 import { StoriesApp } from './stories-app.js'
 
 // ---------------------------------------------------------------------------
@@ -50,6 +51,7 @@ type DiscoveryState =
 export function StoriesScreen({ include }: StoriesScreenProps): ReactElement {
   const [state, setState] = useState<DiscoveryState>({ phase: 'loading' })
   const [registry] = useState(createStoryRegistry)
+  const { isReloading, onReloadStart, onReloadEnd } = useReloadState()
 
   useEffect(() => {
     const importer = createStoryImporter()
@@ -83,16 +85,22 @@ export function StoriesScreen({ include }: StoriesScreenProps): ReactElement {
       setState({ phase: 'empty', warningCount: 0 })
     })
 
-    const watcher = createStoryWatcher({
+    const [watchError, watcher] = createStoryWatcher({
       directories: [cwd],
       importer,
       registry,
+      onReloadStart,
+      onReloadEnd,
     })
+
+    if (watchError) {
+      return () => {}
+    }
 
     return () => {
       watcher.close()
     }
-  }, [include, registry])
+  }, [include, registry, onReloadStart, onReloadEnd])
 
   return match(state)
     .with({ phase: 'loading' }, () => <Text>Discovering stories...</Text>)
@@ -102,7 +110,7 @@ export function StoriesScreen({ include }: StoriesScreenProps): ReactElement {
         directory to get started.
       </Text>
     ))
-    .with({ phase: 'ready' }, () => <StoriesApp registry={registry} />)
+    .with({ phase: 'ready' }, () => <StoriesApp registry={registry} isReloading={isReloading} />)
     .exhaustive()
 }
 

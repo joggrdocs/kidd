@@ -113,3 +113,9 @@ export const STORY_FILE_SUFFIXES: readonly string[] = [
   '.stories.jsx',
   '.stories.js',
 ]
+
+/**
+ * File extensions for source files that may affect story rendering.
+ * Used by the watcher to detect component changes.
+ */
+export const SOURCE_FILE_EXTENSIONS: readonly string[] = ['.tsx', '.ts', '.jsx', '.js']

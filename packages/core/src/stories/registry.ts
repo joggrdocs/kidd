@@ -89,7 +89,7 @@ interface RegistryState {
  * @param state - The mutable registry state.
  */
 function notify(state: RegistryState): void {
-  state.snapshot = new Map(state.entries)
+  state.snapshot = Object.freeze(new Map(state.entries)) as ReadonlyMap<string, StoryEntry>
   const _notified = [...state.listeners].map((listener) => {
     listener()
     return true

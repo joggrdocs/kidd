@@ -3,9 +3,9 @@ import { relative } from 'node:path'
 import process from 'node:process'
 
 import { hasTag } from '@kidd-cli/utils/tag'
-import { Box, useApp, useInput } from 'ink'
+import { Box, Text, useApp, useInput } from 'ink'
 import type { ReactElement } from 'react'
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { match } from 'ts-pattern'
 
 import { FullScreen } from '../../ui/fullscreen.js'
@@ -13,12 +13,12 @@ import type { StoryRegistry } from '../registry.js'
 import { schemaToFieldDescriptors } from '../schema.js'
 import type { Story, StoryEntry, StoryGroup } from '../types.js'
 import { validateProps } from '../validate.js'
-import { HelpOverlay } from './_components/help-overlay.js'
-import { Preview } from './_components/preview.js'
-import type { PreviewContext } from './_components/preview.js'
-import { PropsEditor } from './_components/props-editor.js'
-import { Sidebar } from './_components/sidebar.js'
-import { StatusBar } from './_components/status-bar.js'
+import { HelpOverlay } from './components/help-overlay.js'
+import { Preview } from './components/preview.js'
+import type { PreviewContext } from './components/preview.js'
+import { PropsEditor } from './components/props-editor.js'
+import { Sidebar } from './components/sidebar.js'
+import { StatusBar } from './components/status-bar.js'
 import { useViewerMode } from './hooks/use-panel-focus.js'
 import { useStories } from './hooks/use-stories.js'
 
@@ -31,6 +31,7 @@ import { useStories } from './hooks/use-stories.js'
  */
 interface StoriesAppProps {
   readonly registry: StoryRegistry
+  readonly isReloading: boolean
 }
 
 // ---------------------------------------------------------------------------
@@ -49,7 +50,7 @@ interface StoriesAppProps {
  * @param props - The stories app props.
  * @returns A rendered stories app element.
  */
-export function StoriesApp({ registry }: StoriesAppProps): ReactElement {
+export function StoriesApp({ registry, isReloading }: StoriesAppProps): ReactElement {
   const entries = useStories(registry)
   const { mode, enterEditMode, exitEditMode } = useViewerMode()
   const [selectedStoryId, setSelectedStoryId] = useState<string | null>(null)
@@ -61,6 +62,21 @@ export function StoriesApp({ registry }: StoriesAppProps): ReactElement {
     () => resolveStory(entries, selectedStoryId),
     [entries, selectedStoryId]
   )
+
+  useEffect(() => {
+    if (entries.size === 0 || selectedStory !== null) {
+      return
+    }
+    const firstId = findFirstLeafId(entries)
+    if (firstId === null) {
+      return
+    }
+    const resolved = resolveStory(entries, firstId)
+    setSelectedStoryId(firstId)
+    if (resolved !== null) {
+      setCurrentProps({ ...resolved.props })
+    }
+  }, [entries, selectedStory])
 
   const previewContext = useMemo(
     () => buildPreviewContext(entries, selectedStoryId, selectedStory),
@@ -144,17 +160,28 @@ export function StoriesApp({ registry }: StoriesAppProps): ReactElement {
             isFocused={mode === 'browse'}
           />
           <Box flexDirection="column" flexGrow={1}>
-            <Preview story={selectedStory} currentProps={currentProps} context={previewContext} />
-            <PropsEditor
-              fields={fields}
-              values={currentProps}
-              errors={errors}
-              onChange={handlePropsChange}
-              isFocused={mode === 'edit'}
-            />
+            {match(isReloading)
+              .with(true, () => <ReloadOverlay />)
+              .with(false, () => (
+                <Box flexDirection="column" flexGrow={1}>
+                  <Preview
+                    story={selectedStory}
+                    currentProps={currentProps}
+                    context={previewContext}
+                  />
+                  <PropsEditor
+                    fields={fields}
+                    values={currentProps}
+                    errors={errors}
+                    onChange={handlePropsChange}
+                    isFocused={mode === 'edit'}
+                  />
+                </Box>
+              ))
+              .exhaustive()}
           </Box>
         </Box>
-        <StatusBar mode={mode} hasSelection={selectedStoryId !== null} />
+        <StatusBar mode={mode} hasSelection={selectedStoryId !== null} isReloading={isReloading} />
       </Box>
     </FullScreen>
   )
@@ -263,4 +290,48 @@ function resolveGroupTitle(entry: StoryEntry | undefined): string {
     return (entry as StoryGroup).title
   }
   return 'Unknown'
+}
+
+/**
+ * Find the first selectable story ID from the entries map. For single
+ * stories this is the entry key. For groups, it is the first variant
+ * key in `groupKey::variantName` format.
+ *
+ * @private
+ * @param entries - The story registry entries.
+ * @returns The first leaf story ID, or null if the map is empty.
+ */
+function findFirstLeafId(entries: ReadonlyMap<string, StoryEntry>): string | null {
+  const first = entries.entries().next()
+  if (first.done) {
+    return null
+  }
+  const [key, entry] = first.value
+  if (hasTag(entry, 'Story')) {
+    return key
+  }
+  if (hasTag(entry, 'StoryGroup')) {
+    const variantNames = Object.keys((entry as StoryGroup).stories)
+    if (variantNames.length === 0) {
+      return null
+    }
+    return `${key}::${variantNames[0]}`
+  }
+  return null
+}
+
+/**
+ * Full-panel overlay shown while stories are being reloaded from disk.
+ *
+ * @private
+ * @returns A rendered reload overlay element.
+ */
+function ReloadOverlay(): ReactElement {
+  return (
+    <Box flexDirection="column" flexGrow={1} alignItems="center" justifyContent="center">
+      <Text bold color="yellow">
+        Reloading stories...
+      </Text>
+    </Box>
+  )
 }

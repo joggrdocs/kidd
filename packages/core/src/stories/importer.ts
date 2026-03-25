@@ -18,7 +18,8 @@ export interface StoryImporter {
  */
 export function createStoryImporter(): StoryImporter {
   const jiti = createJiti(import.meta.url, {
-    cache: false,
+    fsCache: false,
+    moduleCache: false,
     interopDefault: true,
     jsx: { runtime: 'automatic' },
   })
@@ -33,7 +34,7 @@ export function createStoryImporter(): StoryImporter {
           return [new Error(`File ${filePath} does not export a valid Story or StoryGroup`), null]
         }
 
-        return [null, entry as StoryEntry]
+        return [null, entry]
       } catch (error) {
         return [toError(error), null]
       }
@@ -50,6 +51,6 @@ export function createStoryImporter(): StoryImporter {
  * @param value - The value to check.
  * @returns `true` when `value` carries a `Story` or `StoryGroup` tag.
  */
-function isStoryEntry(value: unknown): boolean {
+function isStoryEntry(value: unknown): value is StoryEntry {
   return hasTag(value, 'Story') || hasTag(value, 'StoryGroup')
 }

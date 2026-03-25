@@ -36,10 +36,12 @@ export function KiddProvider({ children, value }: KiddProviderProps): ReactEleme
  * Access the command context from within a screen component.
  *
  * Returns a {@link ScreenContext} containing data properties (`args`,
- * `config`, `meta`, `store`) and middleware-decorated properties (`auth`,
- * `http`, etc.). Imperative I/O properties (`log`, `spinner`, `prompts`,
- * `fail`, `colors`, `format`) are omitted because they conflict with
- * Ink's declarative rendering model.
+ * `config`, `meta`, `store`), React-backed I/O (`log`, `spinner`),
+ * and middleware-decorated properties (`auth`, `http`, `report`, etc.).
+ *
+ * `log` and `spinner` are automatically swapped with screen-safe
+ * implementations that render through the `<Output />` component.
+ * Middleware properties like `report` are also swapped when present.
  *
  * @returns The current screen context.
  */

@@ -238,21 +238,26 @@ export interface Meta {
 // ---------------------------------------------------------------------------
 
 /**
- * Keys on {@link CommandContext} that are incompatible with React/Ink rendering.
+ * Keys on {@link CommandContext} that are stripped from {@link ScreenContext}.
  *
- * These properties write directly to stdout/stderr or control terminal I/O,
- * which conflicts with Ink's rendering model. They are omitted from
- * {@link ScreenContext} to prevent misuse in screen components.
+ * `log` and `spinner` are **not** stripped — they are swapped with
+ * React-backed implementations by `screen()` so they render through
+ * the `<Output />` component.
+ *
+ * Only properties that have no screen-safe equivalent are omitted:
+ * `colors`, `fail`, `format`, `prompts`.
  */
-export type ImperativeContextKeys = 'colors' | 'fail' | 'format' | 'log' | 'prompts' | 'spinner'
+export type ImperativeContextKeys = 'colors' | 'fail' | 'format' | 'prompts'
 
 /**
  * Context subset available inside `screen()` components via `useScreenContext()`.
  *
- * Omits imperative I/O properties (`log`, `spinner`, `prompts`, `fail`,
- * `colors`, `format`) that conflict with Ink's declarative rendering model.
- * Retains data properties (`args`, `config`, `meta`, `store`) and any
- * middleware-decorated properties (`auth`, `http`, etc.).
+ * Retains `log` and `spinner` (swapped with React-backed implementations),
+ * data properties (`args`, `config`, `meta`, `store`), and any
+ * middleware-decorated properties (`auth`, `http`, `report`, etc.).
+ *
+ * Omits `colors`, `fail`, `format`, and `prompts` which have no
+ * screen-safe equivalent.
  *
  * @typeParam TArgs - Parsed args type.
  * @typeParam TConfig - Config type.

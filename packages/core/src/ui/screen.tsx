@@ -183,6 +183,18 @@ export function screen<
 // ---------------------------------------------------------------------------
 
 /**
+ * Keys stripped from the screen context (no screen-safe equivalent).
+ *
+ * @private
+ */
+const STRIPPED_KEYS: ReadonlySet<ImperativeContextKeys> = new Set([
+  'colors',
+  'fail',
+  'format',
+  'prompts',
+])
+
+/**
  * Convert a full {@link CommandContext} into a {@link ScreenContext} by
  * replacing imperative I/O properties with React-backed implementations.
  *
@@ -195,38 +207,29 @@ export function screen<
  * @param ctx - The full command context.
  * @returns A ScreenContext with React-backed I/O.
  */
-/**
- * Keys stripped from the screen context (no screen-safe equivalent).
- *
- * @private
- */
-const STRIPPED_KEYS: ReadonlySet<ImperativeContextKeys> = new Set([
-  'colors',
-  'fail',
-  'format',
-  'prompts',
-])
-
 function toScreenContext(ctx: CommandContext): ScreenContext {
   const store = createOutputStore()
   const screenLog = createScreenLog(store)
   const screenSpinner = createScreenSpinner(store)
 
   const ctxRecord = ctx as unknown as Record<string, unknown>
-  const screenCtx: Record<string, unknown> = Object.keys(ctx)
+  const baseEntries = Object.keys(ctx)
     .filter((key) => !STRIPPED_KEYS.has(key as ImperativeContextKeys))
-    .reduce<Record<string, unknown>>((acc, key) => {
-      acc[key] = ctxRecord[key]
-      return acc
-    }, {})
+    .map((key) => [key, ctxRecord[key]] as const)
 
-  screenCtx['log'] = screenLog
-  screenCtx['spinner'] = screenSpinner
+  const reportEntries = match('report' in ctx)
+    .with(true, () => [['report', createScreenReport(store)] as const])
+    .with(false, () => [] as readonly (readonly [string, unknown])[])
+    .exhaustive()
+
+  const screenCtx = Object.fromEntries([
+    ...baseEntries,
+    ['log', screenLog],
+    ['spinner', screenSpinner],
+    ...reportEntries,
+  ])
+
   ;(screenCtx as Record<symbol, unknown>)[OUTPUT_STORE_KEY] = store
-
-  if ('report' in ctx) {
-    screenCtx['report'] = createScreenReport(store)
-  }
 
   return Object.freeze(screenCtx) as unknown as ScreenContext
 }

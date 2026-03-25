@@ -17,7 +17,7 @@ import { formatCheck } from '@/lib/format/check.js'
 import { formatFinding } from '@/lib/format/finding.js'
 import { formatSummary } from '@/lib/format/tally.js'
 
-import type { OutputEntry, OutputStore, SpinnerState } from './types.js'
+import type { LogLevel, OutputEntry, OutputStore, SpinnerState } from './types.js'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -111,7 +111,7 @@ function LogRow({
   text,
   symbol,
 }: {
-  readonly level: string
+  readonly level: LogLevel
   readonly text: string
   readonly symbol?: string
 }): ReactElement {
@@ -149,5 +149,5 @@ function LogRow({
         {text}
       </Text>
     ))
-    .otherwise(() => <Text>{text}</Text>)
+    .exhaustive()
 }

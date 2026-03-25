@@ -5,6 +5,8 @@
  * @module
  */
 
+import { match } from 'ts-pattern'
+
 import type { Log } from '@/context/types.js'
 
 import type { OutputStore } from './types.js'
@@ -43,7 +45,10 @@ export function createScreenLog(store: OutputStore): Log {
     },
 
     message(message: string, opts?: { readonly symbol?: string }): void {
-      store.push({ kind: 'log', level: 'message', text: message, symbol: opts?.symbol })
+      const symbol = match(opts)
+        .with(undefined, () => undefined)
+        .otherwise((o) => o.symbol)
+      store.push({ kind: 'log', level: 'message', text: message, symbol })
     },
 
     intro(_title?: string): void {

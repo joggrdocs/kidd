@@ -14,6 +14,7 @@ import { useReloadState } from './hooks/use-reload-state.js'
 import { StoriesApp } from './stories-app.js'
 import { StoriesCheck } from './stories-check.js'
 import { StoriesOutput } from './stories-output.js'
+import { buildIncludePatterns } from './utils.js'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -91,15 +92,10 @@ function StoriesViewer({ include }: { readonly include?: string }): ReactElement
         include: includePatterns,
       })
 
-      const storyCount = [...result.entries].reduce(
-        (count, [name, entry]: [string, StoryEntry]) => {
-          registry.set(name, entry)
-          return count + 1
-        },
-        0
-      )
+      const entries = [...result.entries] as readonly (readonly [string, StoryEntry])[]
+      entries.map(([name, entry]) => registry.set(name, entry))
 
-      if (storyCount === 0) {
+      if (entries.length === 0) {
         setState({ phase: 'empty', warningCount: result.errors.length })
         return
       }
@@ -138,22 +134,4 @@ function StoriesViewer({ include }: { readonly include?: string }): ReactElement
     ))
     .with({ phase: 'ready' }, () => <StoriesApp registry={registry} isReloading={isReloading} />)
     .exhaustive()
-}
-
-// ---------------------------------------------------------------------------
-// Private
-// ---------------------------------------------------------------------------
-
-/**
- * Build include patterns from the optional CLI flag.
- *
- * @private
- * @param include - Optional single glob pattern from CLI.
- * @returns Array of include patterns, or undefined for defaults.
- */
-function buildIncludePatterns(include: string | undefined): readonly string[] | undefined {
-  if (include === undefined) {
-    return undefined
-  }
-  return [include]
 }

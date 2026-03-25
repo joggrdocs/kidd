@@ -103,31 +103,29 @@ function checkSingleStory(story: Story, groupTitle?: string): readonly StoryDiag
     .with(P.string, (title) => `${title} / ${story.name}`)
     .with(P.nullish, () => story.name)
     .exhaustive()
-  const diagnostics: StoryDiagnostic[] = []
 
   const editableFieldCount = countEditableFields(story)
-  if (editableFieldCount > MAX_EDITABLE_FIELDS) {
-    diagnostics.push(
+  const fieldCountDiagnostics = match(editableFieldCount > MAX_EDITABLE_FIELDS)
+    .with(true, () => [
       Object.freeze({
         storyName: name,
         severity: 'error' as const,
         message: `Too many editable fields: ${String(editableFieldCount)} (max ${String(MAX_EDITABLE_FIELDS)}). Move fields to \`defaults\` to reduce.`,
-      })
-    )
-  }
+      }),
+    ])
+    .with(false, () => [] as readonly StoryDiagnostic[])
+    .exhaustive()
 
-  const propErrors = validateProps({ schema: story.schema, props: story.props })
-  propErrors.map((fieldError) =>
-    diagnostics.push(
+  const propDiagnostics = validateProps({ schema: story.schema, props: story.props }).map(
+    (fieldError) =>
       Object.freeze({
         storyName: name,
         severity: 'error' as const,
         message: `Prop "${fieldError.field}": ${fieldError.message}`,
       })
-    )
   )
 
-  return diagnostics
+  return [...fieldCountDiagnostics, ...propDiagnostics]
 }
 
 /**

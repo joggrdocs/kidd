@@ -9,6 +9,7 @@ import { match } from 'ts-pattern'
 import { discoverStories } from '../discover.js'
 import { createStoryImporter } from '../importer.js'
 import type { Decorator, Story, StoryEntry, StoryGroup } from '../types.js'
+import { applyDecorators, buildIncludePatterns } from './utils.js'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -185,24 +186,6 @@ function StoryDivider({ name }: { readonly name: string }): ReactElement {
 }
 
 /**
- * Apply decorators to a component in order.
- *
- * @private
- * @param component - The base component.
- * @param decorators - Decorators to apply.
- * @returns The decorated component.
- */
-function applyDecorators(
-  component: ComponentType<Record<string, unknown>>,
-  decorators: readonly Decorator[]
-): ComponentType<Record<string, unknown>> {
-  return decorators.reduce<ComponentType<Record<string, unknown>>>(
-    (Comp, decorator) => decorator(Comp),
-    component
-  )
-}
-
-/**
  * Collect all stories from entries, flattening groups into individual stories.
  *
  * @private
@@ -256,18 +239,4 @@ function filterByName(stories: readonly ResolvedStory[], name: string): readonly
   }
 
   return stories.filter((s) => s.name.toLowerCase().includes(normalized))
-}
-
-/**
- * Build include patterns from the optional CLI flag.
- *
- * @private
- * @param include - Optional single glob pattern from CLI.
- * @returns Array of include patterns, or undefined for defaults.
- */
-function buildIncludePatterns(include: string | undefined): readonly string[] | undefined {
-  if (include === undefined) {
-    return undefined
-  }
-  return [include]
 }

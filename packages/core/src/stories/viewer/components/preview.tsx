@@ -6,8 +6,9 @@ import { match } from 'ts-pattern'
 
 import { ScrollArea } from '../../../ui/scroll-area.js'
 import { useSize } from '../../../ui/use-size.js'
-import type { Decorator, FieldDescriptor, Story } from '../../types.js'
+import type { FieldDescriptor, Story } from '../../types.js'
 import type { FieldError } from '../../validate.js'
+import { applyDecorators } from '../utils.js'
 import { EmptyState } from './empty-state.js'
 import { ErrorBoundary } from './error-boundary.js'
 import { PropsEditor } from './props-editor.js'
@@ -224,23 +225,4 @@ function splitContentHeight(contentHeight: number): {
   )
   const componentAreaHeight = Math.max(1, contentHeight - propsAreaHeight)
   return Object.freeze({ componentAreaHeight, propsAreaHeight })
-}
-
-/**
- * Apply a list of decorators to a component by reducing from left to right.
- * Each decorator wraps the previous result.
- *
- * @private
- * @param component - The base story component.
- * @param decorators - The decorators to apply.
- * @returns The fully decorated component.
- */
-function applyDecorators(
-  component: ComponentType<Record<string, unknown>>,
-  decorators: readonly Decorator[]
-): ComponentType<Record<string, unknown>> {
-  return decorators.reduce<ComponentType<Record<string, unknown>>>(
-    (Comp, decorator) => decorator(Comp),
-    component
-  )
 }

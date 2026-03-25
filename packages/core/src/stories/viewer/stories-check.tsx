@@ -10,6 +10,7 @@ import { useScreenContext } from '../../ui/provider.js'
 import { checkStories } from '../check.js'
 import { discoverStories } from '../discover.js'
 import { createStoryImporter } from '../importer.js'
+import { buildIncludePatterns } from './utils.js'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -75,34 +76,37 @@ export function StoriesCheck({ include }: StoriesCheckProps): ReactElement {
 
       const checkResult = checkStories(result.entries)
 
-      checkResult.diagnostics.map((d) =>
-        ctx.report.check({
-          status: match(d.severity)
-            .with('error', () => 'fail' as const)
-            .with('warning', () => 'warn' as const)
-            .exhaustive(),
-          name: d.storyName,
-          detail: d.message,
+      if ('report' in ctx) {
+        checkResult.diagnostics.map((d) =>
+          ctx.report.check({
+            status: match(d.severity)
+              .with('error', () => 'fail' as const)
+              .with('warning', () => 'warn' as const)
+              .exhaustive(),
+            name: d.storyName,
+            detail: d.message,
+          })
+        )
+
+        const errors = checkResult.diagnostics.filter((d) => d.severity === 'error')
+        const warnings = checkResult.diagnostics.filter((d) => d.severity === 'warning')
+
+        ctx.report.summary({
+          style: 'tally',
+          stats: [
+            { label: 'Stories', value: String(checkResult.storyCount) },
+            { label: 'Errors', value: String(errors.length) },
+            { label: 'Warnings', value: String(warnings.length) },
+          ],
         })
-      )
-
-      const errors = checkResult.diagnostics.filter((d) => d.severity === 'error')
-      const warnings = checkResult.diagnostics.filter((d) => d.severity === 'warning')
-
-      ctx.report.summary({
-        style: 'tally',
-        stats: [
-          { label: 'Stories', value: String(checkResult.storyCount) },
-          { label: 'Errors', value: String(errors.length) },
-          { label: 'Warnings', value: String(warnings.length) },
-        ],
-      })
+      }
 
       match(checkResult.passed)
         .with(true, () => {
           ctx.log.success('All stories passed validation')
         })
         .with(false, () => {
+          process.exitCode = 1
           ctx.log.error('Story validation failed')
         })
         .exhaustive()
@@ -116,28 +120,11 @@ export function StoriesCheck({ include }: StoriesCheckProps): ReactElement {
         .with(true, () => (error as Error).message)
         .with(false, () => 'Unknown error during discovery')
         .exhaustive()
+      process.exitCode = 1
       ctx.log.error(message)
       exit()
     })
   }, [include, ctx, exit])
 
   return <Output store={store} />
-}
-
-// ---------------------------------------------------------------------------
-// Private
-// ---------------------------------------------------------------------------
-
-/**
- * Build include patterns from the optional CLI flag.
- *
- * @private
- * @param include - Optional single glob pattern from CLI.
- * @returns Array of include patterns, or undefined for defaults.
- */
-function buildIncludePatterns(include: string | undefined): readonly string[] | undefined {
-  if (include === undefined) {
-    return undefined
-  }
-  return [include]
 }

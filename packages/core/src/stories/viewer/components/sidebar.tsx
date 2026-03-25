@@ -100,7 +100,7 @@ export function Sidebar({
           return
         }
         if (node.kind === 'group') {
-          toggleGroup(node.id, collapsed, setCollapsed)
+          toggleGroup(node.id, setCollapsed)
           return
         }
         onSelect(node.id)
@@ -233,16 +233,14 @@ function TreeRow({ node, isHighlighted, isSelected, isCollapsed }: TreeRowProps)
  *
  * @private
  * @param groupId - The group node ID to toggle.
- * @param collapsed - The current set of collapsed group IDs.
  * @param setCollapsed - State setter for the collapsed set.
  */
 function toggleGroup(
   groupId: string,
-  collapsed: ReadonlySet<string>,
   setCollapsed: (updater: (prev: ReadonlySet<string>) => ReadonlySet<string>) => void
 ): void {
-  setCollapsed(() => {
-    const next = new Set(collapsed)
+  setCollapsed((prev) => {
+    const next = new Set(prev)
     if (next.has(groupId)) {
       next.delete(groupId)
     } else {

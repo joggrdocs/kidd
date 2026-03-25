@@ -229,7 +229,7 @@ function entryToGroupItems(key: string, group: StoryGroup): readonly SidebarItem
     indent: 0,
   }
   const variants = Object.keys(group.stories).map((variantName) => ({
-    id: `${key}/${variantName}`,
+    id: `${key}::${variantName}`,
     label: variantName,
     isGroupHeader: false,
     indent: 1,

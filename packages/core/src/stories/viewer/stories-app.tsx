@@ -152,7 +152,7 @@ export function StoriesApp({ registry }: StoriesAppProps): ReactElement {
 
 /**
  * Resolve a story from the entries map by its ID. Supports both direct
- * story keys and group variant keys in the format `groupKey/variantName`.
+ * story keys and group variant keys in the format `groupKey::variantName`.
  *
  * @private
  * @param entries - The story registry entries.
@@ -164,8 +164,8 @@ function resolveStory(entries: ReadonlyMap<string, StoryEntry>, id: string | nul
     return null
   }
 
-  const slashIndex = id.indexOf('/')
-  if (slashIndex === -1) {
+  const separatorIndex = id.indexOf('::')
+  if (separatorIndex === -1) {
     const entry = entries.get(id)
     if (entry === undefined) {
       return null
@@ -176,8 +176,8 @@ function resolveStory(entries: ReadonlyMap<string, StoryEntry>, id: string | nul
       .exhaustive()
   }
 
-  const groupKey = id.slice(0, slashIndex)
-  const variantName = id.slice(slashIndex + 1)
+  const groupKey = id.slice(0, separatorIndex)
+  const variantName = id.slice(separatorIndex + 2)
   const group = entries.get(groupKey)
 
   if (group === undefined || !hasTag(group, 'StoryGroup')) {

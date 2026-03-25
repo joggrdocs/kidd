@@ -50,10 +50,10 @@ cli({
 
 Used at both the CLI level (`cli({ help })`) and per-command level (`command({ help })`).
 
-| Field    | Type               | Description                                                                            |
-| -------- | ------------------ | -------------------------------------------------------------------------------------- |
-| `header` | `string`           | Text displayed above help output when the CLI is invoked without a command             |
-| `footer` | `string`           | Text displayed below help output on all help screens (e.g., docs URL, bug report link) |
+| Field    | Type                | Description                                                                            |
+| -------- | ------------------- | -------------------------------------------------------------------------------------- |
+| `header` | `string`            | Text displayed above help output when the CLI is invoked without a command             |
+| `footer` | `string`            | Text displayed below help output on all help screens (e.g., docs URL, bug report link) |
 | `order`  | `readonly string[]` | Display order for subcommands — listed names appear first, rest sort alphabetically    |
 
 ## DirsConfig
@@ -69,13 +69,13 @@ Overrides directory names for file-backed stores (auth credentials, config). Bot
 
 The `commands` field accepts several forms:
 
-| Form                  | Description                                                        |
-| --------------------- | ------------------------------------------------------------------ |
-| `CommandMap`          | Static object mapping command names to command definitions         |
-| `Promise<CommandMap>` | Async-resolved command map                                         |
-| `string`              | Directory path -- triggers autoloading from that directory         |
-| `CommandsConfig`      | Structured config with `path` for autoloading from a directory     |
-| _(omitted)_           | Loads `kidd.config.ts` and autoloads from its `commands` field     |
+| Form                  | Description                                                    |
+| --------------------- | -------------------------------------------------------------- |
+| `CommandMap`          | Static object mapping command names to command definitions     |
+| `Promise<CommandMap>` | Async-resolved command map                                     |
+| `string`              | Directory path -- triggers autoloading from that directory     |
+| `CommandsConfig`      | Structured config with `path` for autoloading from a directory |
+| _(omitted)_           | Loads `kidd.config.ts` and autoloads from its `commands` field |
 
 ## defineConfig()
 

@@ -1,5 +1,13 @@
 # kidd
 
+## 0.14.0
+
+### Minor Changes
+
+- 008efc0: Rename `Context` to `CommandContext` and `useCommandContext` to `useScreenContext` for clearer delineation between command handlers and screen components.
+- d5d83fd: Add `ctx.dotdir` — a `DotDirectoryClient` for scoped filesystem operations in CLI dot directories with file protection registry.
+- 094e36e: Unify help config: rename `CliHelpOptions` to `HelpOptions`, move `order` from `CommandsConfig` to `HelpOptions`. `HelpOptions` is now used at both `cli()` and `command()` levels with `header`, `footer`, and `order` fields.
+
 ## 0.13.0
 
 ### Minor Changes

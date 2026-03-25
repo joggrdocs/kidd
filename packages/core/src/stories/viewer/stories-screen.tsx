@@ -3,7 +3,7 @@ import process from 'node:process'
 import { Text } from 'ink'
 import type { ReactElement } from 'react'
 import { useEffect, useState } from 'react'
-import { match } from 'ts-pattern'
+import { P, match } from 'ts-pattern'
 
 import { discoverStories } from '../discover.js'
 import { createStoryImporter } from '../importer.js'
@@ -12,6 +12,9 @@ import type { StoryEntry } from '../types.js'
 import { createStoryWatcher } from '../watcher.js'
 import { useReloadState } from './hooks/use-reload-state.js'
 import { StoriesApp } from './stories-app.js'
+import { StoriesCheck } from './stories-check.js'
+import { StoriesOutput } from './stories-output.js'
+import { buildIncludePatterns } from './utils.js'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -22,6 +25,8 @@ import { StoriesApp } from './stories-app.js'
  */
 interface StoriesScreenProps {
   readonly include?: string
+  readonly out?: string
+  readonly check?: boolean
 }
 
 /**
@@ -45,10 +50,32 @@ type DiscoveryState =
  * Designed to be used with `screen()` so the framework manages
  * stdin/raw mode and the Ink rendering lifecycle.
  *
+ * When `--out` is provided, renders the matching story (or all stories)
+ * to stdout and exits immediately — useful for piping to LLMs.
+ *
  * @param props - The stories screen props.
  * @returns A rendered stories screen element.
  */
-export function StoriesScreen({ include }: StoriesScreenProps): ReactElement {
+export function StoriesScreen({ include, out, check }: StoriesScreenProps): ReactElement {
+  if (check === true) {
+    return <StoriesCheck include={include} />
+  }
+
+  return match(out)
+    .with(P.string, (storyFilter) => <StoriesOutput filter={storyFilter} include={include} />)
+    .with(P.nullish, () => <StoriesViewer include={include} />)
+    .exhaustive()
+}
+
+/**
+ * Interactive TUI viewer that discovers stories on mount, sets up
+ * the file watcher, and renders the {@link StoriesApp} when ready.
+ *
+ * @private
+ * @param props - The viewer props.
+ * @returns A rendered stories viewer element.
+ */
+function StoriesViewer({ include }: { readonly include?: string }): ReactElement {
   const [state, setState] = useState<DiscoveryState>({ phase: 'loading' })
   const [registry] = useState(createStoryRegistry)
   const { isReloading, onReloadStart, onReloadEnd } = useReloadState()
@@ -65,15 +92,10 @@ export function StoriesScreen({ include }: StoriesScreenProps): ReactElement {
         include: includePatterns,
       })
 
-      const storyCount = [...result.entries].reduce(
-        (count, [name, entry]: [string, StoryEntry]) => {
-          registry.set(name, entry)
-          return count + 1
-        },
-        0
-      )
+      const entries = [...result.entries] as readonly (readonly [string, StoryEntry])[]
+      entries.map(([name, entry]) => registry.set(name, entry))
 
-      if (storyCount === 0) {
+      if (entries.length === 0) {
         setState({ phase: 'empty', warningCount: result.errors.length })
         return
       }
@@ -112,22 +134,4 @@ export function StoriesScreen({ include }: StoriesScreenProps): ReactElement {
     ))
     .with({ phase: 'ready' }, () => <StoriesApp registry={registry} isReloading={isReloading} />)
     .exhaustive()
-}
-
-// ---------------------------------------------------------------------------
-// Private
-// ---------------------------------------------------------------------------
-
-/**
- * Build include patterns from the optional CLI flag.
- *
- * @private
- * @param include - Optional single glob pattern from CLI.
- * @returns Array of include patterns, or undefined for defaults.
- */
-function buildIncludePatterns(include: string | undefined): readonly string[] | undefined {
-  if (include === undefined) {
-    return undefined
-  }
-  return [include]
 }

@@ -79,5 +79,8 @@ export type { TabItem, TabsProps } from './tabs.js'
 export { useSize } from './use-size.js'
 export type { Size } from './use-size.js'
 
+export { Output, useOutputStore } from './output/index.js'
+export type { OutputProps, OutputStore } from './output/index.js'
+
 export { screen } from './screen.js'
 export type { ScreenDef, ScreenExit } from './screen.js'

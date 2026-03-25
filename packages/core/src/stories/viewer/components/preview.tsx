@@ -6,8 +6,9 @@ import { match } from 'ts-pattern'
 
 import { ScrollArea } from '../../../ui/scroll-area.js'
 import { useSize } from '../../../ui/use-size.js'
-import type { Decorator, FieldDescriptor, Story } from '../../types.js'
+import type { FieldDescriptor, Story } from '../../types.js'
 import type { FieldError } from '../../validate.js'
+import { applyDecorators } from '../utils.js'
 import { EmptyState } from './empty-state.js'
 import { ErrorBoundary } from './error-boundary.js'
 import { PropsEditor } from './props-editor.js'
@@ -46,6 +47,7 @@ interface PreviewProps {
   readonly errors: readonly FieldError[]
   readonly onPropsChange: (name: string, value: unknown) => void
   readonly isFocused: boolean
+  readonly borderless?: boolean
 }
 
 // ---------------------------------------------------------------------------
@@ -72,6 +74,7 @@ export function Preview({
   errors,
   onPropsChange,
   isFocused,
+  borderless = false,
 }: PreviewProps): ReactElement {
   const contentRef = useRef<DOMElement>(null)
   const { height: contentHeight } = useSize(contentRef)
@@ -92,7 +95,16 @@ export function Preview({
 
   if (story === null || context === null || DecoratedComponent === null) {
     return (
-      <Box borderStyle="single" borderDimColor flexDirection="column" flexGrow={1} overflow="hidden">
+      <Box
+        borderStyle={match(borderless)
+          .with(true, () => undefined)
+          .with(false, () => 'single' as const)
+          .exhaustive()}
+        borderDimColor={!borderless}
+        flexDirection="column"
+        flexGrow={1}
+        overflow="hidden"
+      >
         <Box paddingX={1}>
           <Text bold dimColor>
             Preview
@@ -107,12 +119,19 @@ export function Preview({
     <Box
       flexDirection="column"
       flexGrow={1}
-      borderStyle="single"
-      borderDimColor={!isFocused}
-      borderColor={match(isFocused)
-        .with(true, () => 'cyan' as const)
-        .with(false, () => undefined)
+      overflow="hidden"
+      borderStyle={match(borderless)
+        .with(true, () => undefined)
+        .with(false, () => 'single' as const)
         .exhaustive()}
+      borderDimColor={match(borderless)
+        .with(true, () => false)
+        .with(false, () => !isFocused)
+        .exhaustive()}
+      borderColor={match({ isFocused, borderless })
+        .with({ borderless: true }, () => undefined)
+        .with({ isFocused: true }, () => 'cyan' as const)
+        .otherwise(() => undefined)}
       paddingX={1}
     >
       <PreviewHeader context={context} />
@@ -206,23 +225,4 @@ function splitContentHeight(contentHeight: number): {
   )
   const componentAreaHeight = Math.max(1, contentHeight - propsAreaHeight)
   return Object.freeze({ componentAreaHeight, propsAreaHeight })
-}
-
-/**
- * Apply a list of decorators to a component by reducing from left to right.
- * Each decorator wraps the previous result.
- *
- * @private
- * @param component - The base story component.
- * @param decorators - The decorators to apply.
- * @returns The fully decorated component.
- */
-function applyDecorators(
-  component: ComponentType<Record<string, unknown>>,
-  decorators: readonly Decorator[]
-): ComponentType<Record<string, unknown>> {
-  return decorators.reduce<ComponentType<Record<string, unknown>>>(
-    (Comp, decorator) => decorator(Comp),
-    component
-  )
 }

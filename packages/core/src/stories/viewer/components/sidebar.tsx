@@ -21,6 +21,7 @@ interface SidebarProps {
   readonly selectedId: string | null
   readonly onSelect: (id: string) => void
   readonly isFocused: boolean
+  readonly hidden?: boolean
 }
 
 /**
@@ -49,10 +50,17 @@ interface TreeNode {
  * @param props - The sidebar props.
  * @returns A rendered sidebar element.
  */
-export function Sidebar({ entries, selectedId, onSelect, isFocused }: SidebarProps): ReactElement {
-  const [collapsed, setCollapsed] = useState<ReadonlySet<string>>(new Set())
-
+export function Sidebar({
+  entries,
+  selectedId,
+  onSelect,
+  isFocused,
+  hidden,
+}: SidebarProps): ReactElement {
   const allNodes = useMemo(() => buildTreeNodes(entries), [entries])
+  const [collapsed, setCollapsed] = useState<ReadonlySet<string>>(() =>
+    initialCollapsedSet(allNodes)
+  )
   const visibleNodes = useMemo(() => filterVisibleNodes(allNodes, collapsed), [allNodes, collapsed])
   const [highlightIndex, setHighlightIndex] = useState(0)
 
@@ -71,10 +79,20 @@ export function Sidebar({ entries, selectedId, onSelect, isFocused }: SidebarPro
   useInput(
     (_input, key) => {
       if (key.upArrow) {
-        setHighlightIndex((current) => Math.max(0, current - 1))
+        setHighlightIndex((current) =>
+          match({ atStart: current <= 0, empty: visibleNodes.length === 0 })
+            .with({ empty: true }, () => 0)
+            .with({ atStart: true }, () => visibleNodes.length - 1)
+            .otherwise(() => current - 1)
+        )
       }
       if (key.downArrow) {
-        setHighlightIndex((current) => Math.min(visibleNodes.length - 1, current + 1))
+        setHighlightIndex((current) =>
+          match({ atEnd: current >= visibleNodes.length - 1, empty: visibleNodes.length === 0 })
+            .with({ empty: true }, () => 0)
+            .with({ atEnd: true }, () => 0)
+            .otherwise(() => current + 1)
+        )
       }
       if (key.return) {
         const node = visibleNodes[highlightIndex]
@@ -82,7 +100,7 @@ export function Sidebar({ entries, selectedId, onSelect, isFocused }: SidebarPro
           return
         }
         if (node.kind === 'group') {
-          toggleGroup(node.id, collapsed, setCollapsed)
+          toggleGroup(node.id, setCollapsed)
           return
         }
         onSelect(node.id)
@@ -107,6 +125,10 @@ export function Sidebar({ entries, selectedId, onSelect, isFocused }: SidebarPro
         .exhaustive()}
       width="25%"
       paddingX={1}
+      display={match(hidden === true)
+        .with(true, () => 'none' as const)
+        .with(false, () => 'flex' as const)
+        .exhaustive()}
     >
       <Box marginBottom={1}>
         <Text bold dimColor={!isFocused}>
@@ -162,9 +184,9 @@ function TreeRow({ node, isHighlighted, isSelected, isCollapsed }: TreeRowProps)
   const indent = '  '.repeat(node.indent)
 
   if (node.kind === 'group') {
-    const chevron = match(isCollapsed)
-      .with(true, () => '▸')
-      .with(false, () => '▾')
+    const icon = match(isCollapsed)
+      .with(true, () => '▸ 📁')
+      .with(false, () => '▾ 📂')
       .exhaustive()
 
     return (
@@ -178,7 +200,7 @@ function TreeRow({ node, isHighlighted, isSelected, isCollapsed }: TreeRowProps)
             .exhaustive()}
         >
           {indent}
-          {chevron} {node.label}
+          {icon} {node.label}
         </Text>
       </Box>
     )
@@ -211,16 +233,14 @@ function TreeRow({ node, isHighlighted, isSelected, isCollapsed }: TreeRowProps)
  *
  * @private
  * @param groupId - The group node ID to toggle.
- * @param collapsed - The current set of collapsed group IDs.
  * @param setCollapsed - State setter for the collapsed set.
  */
 function toggleGroup(
   groupId: string,
-  collapsed: ReadonlySet<string>,
   setCollapsed: (updater: (prev: ReadonlySet<string>) => ReadonlySet<string>) => void
 ): void {
-  setCollapsed(() => {
-    const next = new Set(collapsed)
+  setCollapsed((prev) => {
+    const next = new Set(prev)
     if (next.has(groupId)) {
       next.delete(groupId)
     } else {
@@ -323,4 +343,16 @@ function resolveNodeId(node: TreeNode | undefined): string | null {
     return null
   }
   return node.id
+}
+
+/**
+ * Build the initial collapsed set containing all group node IDs,
+ * so groups start collapsed by default.
+ *
+ * @private
+ * @param nodes - The full tree node list.
+ * @returns A set of all group node IDs.
+ */
+function initialCollapsedSet(nodes: readonly TreeNode[]): ReadonlySet<string> {
+  return new Set(nodes.filter((node) => node.kind === 'group').map((node) => node.id))
 }

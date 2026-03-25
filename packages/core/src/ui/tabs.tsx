@@ -139,12 +139,7 @@ function TabBar({ tabs, activeIndex, isFocused }: TabBarProps): ReactElement {
         {tabs.map((tab, index) => {
           const isActive = index === activeIndex
           return (
-            <TabLabel
-              key={tab.label}
-              label={tab.label}
-              isActive={isActive}
-              isFocused={isFocused}
-            />
+            <TabLabel key={tab.label} label={tab.label} isActive={isActive} isFocused={isFocused} />
           )
         })}
         {match(isFocused)

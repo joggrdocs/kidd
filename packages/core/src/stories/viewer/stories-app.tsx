@@ -56,6 +56,7 @@ export function StoriesApp({ registry, isReloading }: StoriesAppProps): ReactEle
   const [selectedStoryId, setSelectedStoryId] = useState<string | null>(null)
   const [currentProps, setCurrentProps] = useState<Record<string, unknown>>({})
   const [showHelp, setShowHelp] = useState(false)
+  const [showSidebar, setShowSidebar] = useState(true)
   const { exit } = useApp()
 
   const selectedStory = useMemo(
@@ -87,7 +88,9 @@ export function StoriesApp({ registry, isReloading }: StoriesAppProps): ReactEle
     if (selectedStory === null) {
       return [] as const
     }
-    return schemaToFieldDescriptors(selectedStory.schema)
+    const allFields = schemaToFieldDescriptors(selectedStory.schema)
+    const hiddenKeys = new Set(selectedStory.defaultKeys)
+    return allFields.filter((field) => !hiddenKeys.has(field.name))
   }, [selectedStory])
 
   const errors = useMemo(() => {
@@ -139,6 +142,9 @@ export function StoriesApp({ registry, isReloading }: StoriesAppProps): ReactEle
     if (input === '?') {
       setShowHelp(true)
     }
+    if (input === 'b') {
+      setShowSidebar((prev) => !prev)
+    }
   })
 
   if (showHelp) {
@@ -158,7 +164,8 @@ export function StoriesApp({ registry, isReloading }: StoriesAppProps): ReactEle
             entries={entries}
             selectedId={selectedStoryId}
             onSelect={handleSelect}
-            isFocused={mode === 'browse'}
+            isFocused={mode === 'browse' && showSidebar}
+            hidden={!showSidebar}
           />
           <Box flexDirection="column" flexGrow={1}>
             {match(isReloading)
@@ -172,6 +179,7 @@ export function StoriesApp({ registry, isReloading }: StoriesAppProps): ReactEle
                   errors={errors}
                   onPropsChange={handlePropsChange}
                   isFocused={mode === 'edit'}
+                  borderless={!showSidebar}
                 />
               ))
               .exhaustive()}

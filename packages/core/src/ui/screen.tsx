@@ -1,7 +1,6 @@
 import process from 'node:process'
 
 import { withTag } from '@kidd-cli/utils/tag'
-import { omit } from 'es-toolkit'
 import type { ComponentType } from 'react'
 import React from 'react'
 import { match } from 'ts-pattern'
@@ -9,21 +8,25 @@ import { match } from 'ts-pattern'
 import type { CommandContext, ImperativeContextKeys, ScreenContext } from '../context/types.js'
 import type { ArgsDef, Command, InferArgsMerged, Resolvable } from '../types/index.js'
 import { FullScreen, LEAVE_ALT_SCREEN } from './fullscreen.js'
+import { createScreenLog } from './output/screen-log.js'
+import { createScreenReport } from './output/screen-report.js'
+import { createScreenSpinner } from './output/screen-spinner.js'
+import { createOutputStore } from './output/store.js'
+import type { OutputStore } from './output/types.js'
 import { KiddProvider } from './provider.js'
 
 /**
- * Keys to strip from the full Context when creating the ScreenContext.
- *
- * @private
+ * Symbol key used to attach the {@link OutputStore} to the screen context.
+ * Components retrieve it via `useOutputStore()` to render `<Output />`.
  */
-const IMPERATIVE_KEYS: readonly ImperativeContextKeys[] = [
-  'colors',
-  'fail',
-  'format',
-  'log',
-  'prompts',
-  'spinner',
-]
+export const OUTPUT_STORE_KEY: unique symbol = Symbol('kidd.outputStore')
+
+/**
+ * Type helper for accessing the output store on a screen context.
+ */
+export interface OutputStoreCarrier {
+  readonly [OUTPUT_STORE_KEY]: OutputStore
+}
 
 // ---------------------------------------------------------------------------
 // Types
@@ -109,8 +112,14 @@ export interface ScreenDef<
  * Define a screen command that renders a React/Ink TUI.
  *
  * The `render` property accepts a React component that receives the
- * parsed args as props. The full command context — including any
- * middleware-decorated properties — is available via `useScreenContext()`.
+ * parsed args as props. The full command context — including `log`,
+ * `spinner`, and any middleware-decorated properties like `report` —
+ * is available via `useScreenContext()`.
+ *
+ * Imperative I/O properties (`log`, `spinner`, `report`) are automatically
+ * swapped with React-backed implementations that render through the
+ * `<Output />` component, so the same interface works in both
+ * `command()` and `screen()` contexts.
  *
  * @param def - Screen definition including description, options, exit behavior, and render component.
  * @returns A tagged Command object compatible with the kidd autoloader and command map.
@@ -174,15 +183,55 @@ export function screen<
 // ---------------------------------------------------------------------------
 
 /**
- * Strip imperative I/O properties from a full {@link CommandContext} to produce
- * a {@link ScreenContext} safe for use inside React/Ink components.
+ * Keys stripped from the screen context (no screen-safe equivalent).
+ *
+ * @private
+ */
+const STRIPPED_KEYS: ReadonlySet<ImperativeContextKeys> = new Set([
+  'colors',
+  'fail',
+  'format',
+  'prompts',
+])
+
+/**
+ * Convert a full {@link CommandContext} into a {@link ScreenContext} by
+ * replacing imperative I/O properties with React-backed implementations.
+ *
+ * Creates an {@link OutputStore} and swaps `log`, `spinner`, and any
+ * middleware-decorated `report` with screen-backed versions that push
+ * entries to the store. The store is attached via {@link OUTPUT_STORE_KEY}
+ * (a private symbol) so `<Output />` can subscribe to it.
  *
  * @private
  * @param ctx - The full command context.
- * @returns A ScreenContext with imperative keys removed.
+ * @returns A ScreenContext with React-backed I/O.
  */
 function toScreenContext(ctx: CommandContext): ScreenContext {
-  return omit(ctx, [...IMPERATIVE_KEYS]) as unknown as ScreenContext
+  const store = createOutputStore()
+  const screenLog = createScreenLog(store)
+  const screenSpinner = createScreenSpinner(store)
+
+  const ctxRecord = ctx as unknown as Record<string, unknown>
+  const baseEntries = Object.keys(ctx)
+    .filter((key) => !STRIPPED_KEYS.has(key as ImperativeContextKeys))
+    .map((key) => [key, ctxRecord[key]] as const)
+
+  const reportEntries = match('report' in ctx)
+    .with(true, () => [['report', createScreenReport(store)] as const])
+    .with(false, () => [] as readonly (readonly [string, unknown])[])
+    .exhaustive()
+
+  const screenCtx = Object.fromEntries([
+    ...baseEntries,
+    ['log', screenLog],
+    ['spinner', screenSpinner],
+    ...reportEntries,
+  ])
+
+  ;(screenCtx as Record<symbol, unknown>)[OUTPUT_STORE_KEY] = store
+
+  return Object.freeze(screenCtx) as unknown as ScreenContext
 }
 
 /**

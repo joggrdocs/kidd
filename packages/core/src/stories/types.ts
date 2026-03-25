@@ -58,13 +58,19 @@ export interface StoryVariantDef<TProps extends Record<string, unknown>> {
 
 /**
  * Input definition for a group of stories created via {@link stories}.
+ *
+ * When `defaults` is provided, its keys are merged under each variant's
+ * `props` and excluded from the props editor in the viewer. This lets
+ * you define fixed context (services, events, etc.) that stays constant
+ * while variant props are the editable knobs.
  */
 export interface StoriesGroupDef<TProps extends Record<string, unknown>> {
   readonly title: string
   readonly component: ComponentType<TProps>
   readonly schema: z.ZodObject<z.ZodRawShape>
+  readonly defaults?: Partial<TProps>
   readonly decorators?: readonly Decorator[]
-  readonly stories: Readonly<Record<string, StoryVariantDef<TProps>>>
+  readonly stories: Readonly<Record<string, StoryVariantDef<Partial<TProps>>>>
 }
 
 /**
@@ -77,6 +83,7 @@ export type Story<TProps extends Record<string, unknown> = Record<string, unknow
     readonly component: ComponentType<TProps>
     readonly schema: z.ZodObject<z.ZodRawShape>
     readonly props: TProps
+    readonly defaultKeys: readonly string[]
     readonly decorators: readonly Decorator[]
     readonly description: string | undefined
   },

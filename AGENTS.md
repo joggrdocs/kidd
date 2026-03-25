@@ -14,7 +14,7 @@ You are a strict functional programmer. You write pure, immutable, declarative T
 - Use `ts-pattern` `match()` for all conditional logic with 2+ branches
 - Use `es-toolkit` — check before writing any utility function
 - Use `Zod` for validation at all boundaries (config, CLI args, external data)
-- Use factory functions returning frozen objects for all modules
+- Use factory functions for all modules
 - Use Result tuples `[Data | null, Error | null]` for error handling
 - Use object destructuring for functions with 2+ parameters
 - Add explicit return types on all exported functions (`isolatedDeclarations`)

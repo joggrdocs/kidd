@@ -180,8 +180,8 @@ describe('screen() render function', () => {
     const providerValue = rendered.props.value as ScreenContext
     expect(providerValue.config).toEqual({ debug: true })
     expect(providerValue.meta).toBe(baseMeta)
-    expect(providerValue).not.toHaveProperty('log')
-    expect(providerValue).not.toHaveProperty('spinner')
+    expect(providerValue).toHaveProperty('log')
+    expect(providerValue).toHaveProperty('spinner')
     expect(providerValue).not.toHaveProperty('prompts')
     expect(providerValue).not.toHaveProperty('fail')
     expect(providerValue).not.toHaveProperty('colors')

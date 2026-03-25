@@ -118,6 +118,7 @@ export function Preview({
     <Box
       flexDirection="column"
       flexGrow={1}
+      overflow="hidden"
       borderStyle={match(borderless)
         .with(true, () => undefined)
         .with(false, () => 'single' as const)

@@ -77,28 +77,23 @@ export function Sidebar({ entries, selectedId, onSelect, isFocused }: SidebarPro
   }, [selectableItems.length])
 
   useInput(
-    (input, key) => {
+    (_input, key) => {
       if (key.upArrow) {
         setHighlightIndex((current) => {
-          if (current > 0) {
-            return current - 1
-          }
-          return current
+          const next = Math.max(0, current - 1)
+          selectByIndex(selectableItems, next, onSelect)
+          return next
         })
       }
       if (key.downArrow) {
         setHighlightIndex((current) => {
-          if (current < selectableItems.length - 1) {
-            return current + 1
-          }
-          return current
+          const next = Math.min(selectableItems.length - 1, current + 1)
+          selectByIndex(selectableItems, next, onSelect)
+          return next
         })
       }
       if (key.return) {
-        const item = selectableItems[highlightIndex]
-        if (item !== undefined) {
-          onSelect(item.id)
-        }
+        selectByIndex(selectableItems, highlightIndex, onSelect)
       }
     },
     { isActive: isFocused }
@@ -114,9 +109,25 @@ export function Sidebar({ entries, selectedId, onSelect, isFocused }: SidebarPro
   )
 
   return (
-    <Box flexDirection="column" borderStyle="single" width="25%" paddingX={1}>
+    <Box
+      flexDirection="column"
+      borderStyle={match(isFocused)
+        .with(true, () => 'bold' as const)
+        .with(false, () => 'single' as const)
+        .exhaustive()}
+      width="25%"
+      paddingX={1}
+    >
       <Box marginBottom={1}>
-        <Text bold>Stories</Text>
+        <Text
+          bold
+          color={match(isFocused)
+            .with(true, () => 'cyan' as const)
+            .with(false, () => undefined)
+            .exhaustive()}
+        >
+          Stories
+        </Text>
       </Box>
       <ScrollArea
         height={scrollHeight}
@@ -193,6 +204,25 @@ function SidebarRow({ item, isHighlighted, isSelected }: SidebarRowProps): React
       </Text>
     </Box>
   )
+}
+
+/**
+ * Select a story by its index in the selectable items array.
+ *
+ * @private
+ * @param selectableItems - The array of selectable sidebar items.
+ * @param index - The index to select.
+ * @param onSelect - The selection callback.
+ */
+function selectByIndex(
+  selectableItems: readonly SidebarItem[],
+  index: number,
+  onSelect: (id: string) => void
+): void {
+  const item = selectableItems[index]
+  if (item !== undefined) {
+    onSelect(item.id)
+  }
 }
 
 /**

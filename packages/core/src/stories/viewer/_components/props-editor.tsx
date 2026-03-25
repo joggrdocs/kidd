@@ -88,7 +88,10 @@ export function PropsEditor({
   return (
     <Box
       flexDirection="column"
-      borderStyle="single"
+      borderStyle={match(isFocused)
+        .with(true, () => 'bold' as const)
+        .with(false, () => 'single' as const)
+        .exhaustive()}
       borderTop
       borderBottom={false}
       borderLeft={false}
@@ -96,7 +99,15 @@ export function PropsEditor({
       paddingX={1}
     >
       <Box marginBottom={1}>
-        <Text bold>Props</Text>
+        <Text
+          bold
+          color={match(isFocused)
+            .with(true, () => 'cyan' as const)
+            .with(false, () => undefined)
+            .exhaustive()}
+        >
+          Props
+        </Text>
       </Box>
       {fields.map((field, index) => {
         const fieldError = findFieldError(errors, field.name)

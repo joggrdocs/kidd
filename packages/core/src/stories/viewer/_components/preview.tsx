@@ -49,19 +49,23 @@ export function Preview({ story, currentProps, context }: PreviewProps): ReactEl
   const contentRef = useRef<DOMElement>(null)
   const { height: contentHeight } = useSize(contentRef)
 
-  if (story === null || context === null) {
+  const DecoratedComponent = useMemo(() => {
+    if (story === null) {
+      return null
+    }
+    return applyDecorators(
+      story.component as ComponentType<Record<string, unknown>>,
+      story.decorators
+    )
+  }, [story])
+
+  if (story === null || context === null || DecoratedComponent === null) {
     return (
       <Box borderStyle="single" flexDirection="column" flexGrow={1}>
         <EmptyState />
       </Box>
     )
   }
-
-  const DecoratedComponent = useMemo(
-    () =>
-      applyDecorators(story.component as ComponentType<Record<string, unknown>>, story.decorators),
-    [story.component, story.decorators]
-  )
 
   return (
     <Box flexDirection="column" flexGrow={1} borderStyle="single" paddingX={1}>

@@ -61,6 +61,7 @@ export function FieldControl({
     .with('boolean', () => (
       <Box>
         <ConfirmInput
+          isDisabled={!isFocused}
           defaultChoice={match(value)
             .with(true, () => 'confirm' as const)
             .otherwise(() => 'cancel' as const)}
@@ -72,7 +73,13 @@ export function FieldControl({
     ))
     .with('select', () => {
       const selectOptions = buildSelectOptions(options)
-      return <Select options={selectOptions} onChange={(selected) => onChange(selected)} />
+      return (
+        <Select
+          isDisabled={!isFocused}
+          options={selectOptions}
+          onChange={(selected) => onChange(selected)}
+        />
+      )
     })
     .with('multiselect', () => {
       const selectOptions = buildSelectOptions(options)
@@ -80,6 +87,7 @@ export function FieldControl({
       return (
         <Box flexDirection="column">
           <MultiSelect
+            isDisabled={!isFocused}
             options={selectOptions}
             defaultValue={defaultSelected}
             onSubmit={(selectedValues) => onChange(selectedValues)}

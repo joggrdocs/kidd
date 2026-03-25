@@ -1,7 +1,7 @@
 import { watch } from 'node:fs'
 import { resolve } from 'node:path'
 
-import { toError } from '@kidd-cli/utils/fp'
+import { attempt, noop } from 'es-toolkit'
 
 import type { StoryImporter } from './importer.js'
 import type { StoryRegistry } from './registry.js'
@@ -39,7 +39,7 @@ export function createStoryWatcher(
   options: WatcherOptions
 ): readonly [Error, null] | readonly [null, StoryWatcher] {
   const debounceMs = options.debounceMs ?? 150
-  const timers = new Map<string, ReturnType<typeof setTimeout>>()
+  const timers: TimerMap = new Map()
 
   const [watchError, watchers] = tryCreateWatchers(options.directories, debounceMs, timers, options)
   if (watchError) {
@@ -50,8 +50,8 @@ export function createStoryWatcher(
     null,
     Object.freeze({
       close: (): void => {
-        const _closed = watchers.map(closeWatcher)
-        const _cleared = [...timers.values()].map(clearTimer)
+        watchers.map(closeWatcher)
+        ;[...timers.values()].map(clearTimer)
         timers.clear()
       },
     }),
@@ -88,8 +88,6 @@ function tryCreateWatchers(
       const [createError, watcher] = tryWatch(dir, debounceMs, timers, options)
       if (createError) {
         acc[1].map(closeWatcher)
-        ;[...timers.values()].map(clearTimer)
-        timers.clear()
         return [createError, null]
       }
 
@@ -97,6 +95,11 @@ function tryCreateWatchers(
     },
     [null, []]
   )
+
+  if (result[0]) {
+    ;[...timers.values()].map(clearTimer)
+    timers.clear()
+  }
 
   return result
 }
@@ -117,8 +120,8 @@ function tryWatch(
   timers: TimerMap,
   options: WatcherOptions
 ): readonly [Error, null] | readonly [null, ReturnType<typeof watch>] {
-  try {
-    const watcher = watch(dir, { recursive: true }, (_event, filename) => {
+  const [createError, watcher] = attempt<ReturnType<typeof watch>, Error>(() =>
+    watch(dir, { recursive: true }, (_event, filename) => {
       if (filename === null || filename === undefined) {
         return
       }
@@ -133,11 +136,12 @@ function tryWatch(
         debouncedAction(RELOAD_ALL_KEY, debounceMs, timers, () => reloadAllStories(options))
       }
     })
-    watcher.on('error', noop)
-    return [null, watcher]
-  } catch (error) {
-    return [toError(error), null]
+  )
+  if (createError) {
+    return [createError, null]
   }
+  watcher.on('error', noop)
+  return [null, watcher]
 }
 
 /**
@@ -145,16 +149,7 @@ function tryWatch(
  *
  * @private
  */
-type TimerMap = Map<string, ReturnType<typeof setTimeout>>
-
-/**
- * No-op error handler to prevent unhandled error events from crashing.
- *
- * @private
- */
-function noop(): void {
-  // Intentionally empty — suppress fs.watch error events
-}
+type TimerMap = Map<string | symbol, ReturnType<typeof setTimeout>>
 
 /**
  * Close an fs watcher and return it.
@@ -212,7 +207,7 @@ function isSourceFile(filename: string): boolean {
  *
  * @private
  */
-const RELOAD_ALL_KEY = '__reload_all__'
+const RELOAD_ALL_KEY: unique symbol = Symbol('reload_all')
 
 /**
  * Schedule a debounced action keyed by a string. Rapid calls with the same
@@ -225,7 +220,7 @@ const RELOAD_ALL_KEY = '__reload_all__'
  * @param action - The async action to invoke after the debounce window.
  */
 function debouncedAction(
-  key: string,
+  key: string | symbol,
   debounceMs: number,
   timers: TimerMap,
   action: () => Promise<void>
@@ -255,10 +250,13 @@ async function withReloadCallbacks(
   if (options.onReloadStart !== undefined) {
     options.onReloadStart()
   }
-  await action()
-  if (options.onReloadEnd !== undefined) {
-    options.onReloadEnd()
+  const callEnd = (): true => {
+    if (options.onReloadEnd !== undefined) {
+      options.onReloadEnd()
+    }
+    return true
   }
+  await action().then(callEnd, callEnd)
 }
 
 /**

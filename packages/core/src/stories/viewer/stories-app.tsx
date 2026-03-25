@@ -13,10 +13,10 @@ import type { StoryRegistry } from '../registry.js'
 import { schemaToFieldDescriptors } from '../schema.js'
 import type { Story, StoryEntry, StoryGroup } from '../types.js'
 import { validateProps } from '../validate.js'
+import { Header } from './components/header.js'
 import { HelpOverlay } from './components/help-overlay.js'
 import { Preview } from './components/preview.js'
 import type { PreviewContext } from './components/preview.js'
-import { PropsEditor } from './components/props-editor.js'
 import { Sidebar } from './components/sidebar.js'
 import { StatusBar } from './components/status-bar.js'
 import { useViewerMode } from './hooks/use-panel-focus.js'
@@ -64,7 +64,7 @@ export function StoriesApp({ registry, isReloading }: StoriesAppProps): ReactEle
   )
 
   useEffect(() => {
-    if (entries.size === 0 || selectedStory !== null) {
+    if (entries.size === 0 || selectedStoryId !== null) {
       return
     }
     const firstId = findFirstLeafId(entries)
@@ -76,7 +76,7 @@ export function StoriesApp({ registry, isReloading }: StoriesAppProps): ReactEle
     if (resolved !== null) {
       setCurrentProps({ ...resolved.props })
     }
-  }, [entries, selectedStory])
+  }, [entries, selectedStoryId])
 
   const previewContext = useMemo(
     () => buildPreviewContext(entries, selectedStoryId, selectedStory),
@@ -152,6 +152,7 @@ export function StoriesApp({ registry, isReloading }: StoriesAppProps): ReactEle
   return (
     <FullScreen>
       <Box flexDirection="column" flexGrow={1}>
+        <Header />
         <Box flexDirection="row" flexGrow={1}>
           <Sidebar
             entries={entries}
@@ -163,20 +164,15 @@ export function StoriesApp({ registry, isReloading }: StoriesAppProps): ReactEle
             {match(isReloading)
               .with(true, () => <ReloadOverlay />)
               .with(false, () => (
-                <Box flexDirection="column" flexGrow={1}>
-                  <Preview
-                    story={selectedStory}
-                    currentProps={currentProps}
-                    context={previewContext}
-                  />
-                  <PropsEditor
-                    fields={fields}
-                    values={currentProps}
-                    errors={errors}
-                    onChange={handlePropsChange}
-                    isFocused={mode === 'edit'}
-                  />
-                </Box>
+                <Preview
+                  story={selectedStory}
+                  currentProps={currentProps}
+                  context={previewContext}
+                  fields={fields}
+                  errors={errors}
+                  onPropsChange={handlePropsChange}
+                  isFocused={mode === 'edit'}
+                />
               ))
               .exhaustive()}
           </Box>

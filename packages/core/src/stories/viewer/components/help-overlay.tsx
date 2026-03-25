@@ -14,7 +14,8 @@ const BROWSE_SHORTCUTS = [
 ] as const
 
 const EDIT_SHORTCUTS = [
-  { key: 'Up/Down', description: 'Navigate fields' },
+  { key: 'Tab', description: 'Cycle to next prop' },
+  { key: 'Left/Right', description: 'Switch between prop fields' },
   { key: 'Esc', description: 'Back to story browser' },
   { key: 'r', description: 'Reset props to defaults' },
   { key: '?', description: 'Toggle help' },

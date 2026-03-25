@@ -11,7 +11,7 @@
 import type { DOMElement } from 'ink'
 import { measureElement } from 'ink'
 import type { RefObject } from 'react'
-import { useEffect, useState } from 'react'
+import { useEffect, useReducer, useState } from 'react'
 
 import { useTerminalSize } from './fullscreen.js'
 
@@ -40,6 +40,9 @@ export interface Size {
  * `null`, returns the terminal's column and row count instead — behaving
  * like a "window size" hook.
  *
+ * Uses a render counter to ensure measurement runs after the ref is
+ * populated on the first mount and after layout changes.
+ *
  * @example
  * ```tsx
  * // Measure a specific element
@@ -58,6 +61,12 @@ export interface Size {
 export function useSize(ref?: RefObject<DOMElement | null>): Size {
   const terminal = useTerminalSize()
   const [size, setSize] = useState<Size>(() => resolveInitialSize(ref, terminal))
+  const [tick, bump] = useReducer(incrementTick, 0)
+
+  // Schedule a re-measurement after mount so the ref is populated.
+  useEffect(() => {
+    bump()
+  }, [])
 
   useEffect(() => {
     if (ref === undefined) {
@@ -69,7 +78,7 @@ export function useSize(ref?: RefObject<DOMElement | null>): Size {
     }
     const measured = measureElement(ref.current)
     setSize((prev) => updateIfChanged(prev, measured))
-  })
+  }, [ref, terminal.columns, terminal.rows, tick])
 
   return size
 }
@@ -97,6 +106,18 @@ function resolveInitialSize(
     return Object.freeze({ width: 0, height: 0 })
   }
   return Object.freeze(measureElement(ref.current))
+}
+
+/**
+ * Reducer that increments a tick counter. Used to force re-measurement
+ * after the ref is populated on mount.
+ *
+ * @private
+ * @param n - The current tick count.
+ * @returns The next tick count.
+ */
+function incrementTick(n: number): number {
+  return n + 1
 }
 
 /**

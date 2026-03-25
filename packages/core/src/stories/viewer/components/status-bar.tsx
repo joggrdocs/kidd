@@ -30,14 +30,7 @@ interface StatusBarProps {
  */
 export function StatusBar({ mode, hasSelection, isReloading }: StatusBarProps): ReactElement {
   return (
-    <Box
-      borderStyle="single"
-      borderTop
-      borderBottom={false}
-      borderLeft={false}
-      borderRight={false}
-      paddingX={1}
-    >
+    <Box paddingX={1} paddingTop={1}>
       <ModeIndicator mode={mode} />
       <Text> </Text>
       <Text dimColor>│</Text>
@@ -129,11 +122,11 @@ function BrowseHints({ hasSelection }: { readonly hasSelection: boolean }): Reac
 function EditHints(): ReactElement {
   return (
     <Box>
-      <Text dimColor>↑↓</Text>
-      <Text>: field</Text>
+      <Text dimColor>tab/←→</Text>
+      <Text>: prop</Text>
       <Text> </Text>
       <Text dimColor>esc</Text>
-      <Text>: back to stories</Text>
+      <Text>: back</Text>
       <Text> </Text>
       <Text dimColor>r</Text>
       <Text>: reset</Text>

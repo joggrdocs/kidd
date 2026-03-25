@@ -2,12 +2,15 @@ import type { DOMElement } from 'ink'
 import { Box, Text } from 'ink'
 import type { ComponentType, ReactElement } from 'react'
 import { useMemo, useRef } from 'react'
+import { match } from 'ts-pattern'
 
 import { ScrollArea } from '../../../ui/scroll-area.js'
 import { useSize } from '../../../ui/use-size.js'
-import type { Decorator, Story } from '../../types.js'
+import type { Decorator, FieldDescriptor, Story } from '../../types.js'
+import type { FieldError } from '../../validate.js'
 import { EmptyState } from './empty-state.js'
 import { ErrorBoundary } from './error-boundary.js'
+import { PropsEditor } from './props-editor.js'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -29,6 +32,10 @@ interface PreviewProps {
   readonly story: Story | null
   readonly currentProps: Record<string, unknown>
   readonly context: PreviewContext | null
+  readonly fields: readonly FieldDescriptor[]
+  readonly errors: readonly FieldError[]
+  readonly onPropsChange: (name: string, value: unknown) => void
+  readonly isFocused: boolean
 }
 
 // ---------------------------------------------------------------------------
@@ -37,15 +44,24 @@ interface PreviewProps {
 
 /**
  * Preview panel that renders the selected story component with the current
- * props. Shows the qualified story name, file path, and description above
- * the rendered component inside a bordered box. Applies decorators in order
+ * props and an inline props editor. Shows the qualified story name, file path,
+ * and description above the rendered component. The props editor is inset
+ * below the component with a dotted separator. Applies decorators in order
  * and wraps the result in an {@link ErrorBoundary} to catch render errors.
  * The component area is scrollable when content exceeds the viewport.
  *
  * @param props - The preview props.
  * @returns A rendered preview element.
  */
-export function Preview({ story, currentProps, context }: PreviewProps): ReactElement {
+export function Preview({
+  story,
+  currentProps,
+  context,
+  fields,
+  errors,
+  onPropsChange,
+  isFocused,
+}: PreviewProps): ReactElement {
   const contentRef = useRef<DOMElement>(null)
   const { height: contentHeight } = useSize(contentRef)
 
@@ -61,14 +77,29 @@ export function Preview({ story, currentProps, context }: PreviewProps): ReactEl
 
   if (story === null || context === null || DecoratedComponent === null) {
     return (
-      <Box borderStyle="single" flexDirection="column" flexGrow={1}>
+      <Box borderStyle="single" borderDimColor flexDirection="column" flexGrow={1}>
+        <Box paddingX={1}>
+          <Text bold dimColor>
+            Preview
+          </Text>
+        </Box>
         <EmptyState />
       </Box>
     )
   }
 
   return (
-    <Box flexDirection="column" flexGrow={1} borderStyle="single" paddingX={1}>
+    <Box
+      flexDirection="column"
+      flexGrow={1}
+      borderStyle="single"
+      borderDimColor={!isFocused}
+      borderColor={match(isFocused)
+        .with(true, () => 'cyan' as const)
+        .with(false, () => undefined)
+        .exhaustive()}
+      paddingX={1}
+    >
       <PreviewHeader context={context} />
       <Box ref={contentRef} flexDirection="column" flexGrow={1}>
         <ScrollArea height={Math.max(1, contentHeight)}>
@@ -77,6 +108,13 @@ export function Preview({ story, currentProps, context }: PreviewProps): ReactEl
           </ErrorBoundary>
         </ScrollArea>
       </Box>
+      <PropsEditor
+        fields={fields}
+        values={currentProps}
+        errors={errors}
+        onChange={onPropsChange}
+        isFocused={isFocused}
+      />
     </Box>
   )
 }
@@ -87,8 +125,8 @@ export function Preview({ story, currentProps, context }: PreviewProps): ReactEl
 
 /**
  * Render the preview header showing story name, file path, and description.
- * Name is displayed first and bold, path is styled as code (italic + dim),
- * and description is visually separated below.
+ * "Preview" is displayed as a bold section label, then the story name,
+ * path, and optional description below.
  *
  * @private
  * @param props - The header props.
@@ -96,7 +134,10 @@ export function Preview({ story, currentProps, context }: PreviewProps): ReactEl
  */
 function PreviewHeader({ context }: { readonly context: PreviewContext }): ReactElement {
   return (
-    <Box flexDirection="column" marginY={1}>
+    <Box flexDirection="column" marginBottom={1}>
+      <Box marginBottom={1}>
+        <Text bold>Preview</Text>
+      </Box>
       <Text bold>{context.displayName}</Text>
       <Text italic dimColor>
         {context.filePath}
@@ -122,11 +163,9 @@ function StoryDescription({
     return null
   }
   return (
-    <Box marginTop={1}>
-      <Text dimColor italic>
-        {description}
-      </Text>
-    </Box>
+    <Text dimColor italic>
+      {description}
+    </Text>
   )
 }
 

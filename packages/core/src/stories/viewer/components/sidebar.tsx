@@ -99,21 +99,17 @@ export function Sidebar({ entries, selectedId, onSelect, isFocused }: SidebarPro
   return (
     <Box
       flexDirection="column"
-      borderStyle={match(isFocused)
-        .with(true, () => 'bold' as const)
-        .with(false, () => 'single' as const)
+      borderStyle="single"
+      borderDimColor={!isFocused}
+      borderColor={match(isFocused)
+        .with(true, () => 'cyan' as const)
+        .with(false, () => undefined)
         .exhaustive()}
       width="25%"
       paddingX={1}
     >
       <Box marginBottom={1}>
-        <Text
-          bold
-          color={match(isFocused)
-            .with(true, () => 'cyan' as const)
-            .with(false, () => undefined)
-            .exhaustive()}
-        >
+        <Text bold dimColor={!isFocused}>
           Stories
         </Text>
       </Box>

@@ -11,6 +11,7 @@ import type {
   ResolvedDirs,
   StringKeyOf,
 } from '@/types/index.js'
+import type { OutputStoreCarrier } from '@/ui/output/store-key.js'
 
 /**
  * Typed in-memory key-value store shape carried on `ctx.store`.
@@ -265,7 +266,7 @@ export type ImperativeContextKeys = 'colors' | 'fail' | 'format' | 'prompts'
 export type ScreenContext<
   TArgs extends AnyRecord = AnyRecord,
   TConfig extends AnyRecord = AnyRecord,
-> = Omit<CommandContext<TArgs, TConfig>, ImperativeContextKeys>
+> = Omit<CommandContext<TArgs, TConfig>, ImperativeContextKeys> & OutputStoreCarrier
 
 /**
  * The context object threaded through every handler, middleware, and hook.

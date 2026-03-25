@@ -11,22 +11,9 @@ import { FullScreen, LEAVE_ALT_SCREEN } from './fullscreen.js'
 import { createScreenLog } from './output/screen-log.js'
 import { createScreenReport } from './output/screen-report.js'
 import { createScreenSpinner } from './output/screen-spinner.js'
+import { OUTPUT_STORE_KEY } from './output/store-key.js'
 import { createOutputStore } from './output/store.js'
-import type { OutputStore } from './output/types.js'
 import { KiddProvider } from './provider.js'
-
-/**
- * Symbol key used to attach the {@link OutputStore} to the screen context.
- * Components retrieve it via `useOutputStore()` to render `<Output />`.
- */
-export const OUTPUT_STORE_KEY: unique symbol = Symbol('kidd.outputStore')
-
-/**
- * Type helper for accessing the output store on a screen context.
- */
-export interface OutputStoreCarrier {
-  readonly [OUTPUT_STORE_KEY]: OutputStore
-}
 
 // ---------------------------------------------------------------------------
 // Types
@@ -227,9 +214,9 @@ function toScreenContext(ctx: CommandContext): ScreenContext {
     ['log', screenLog],
     ['spinner', screenSpinner],
     ...reportEntries,
-  ])
+  ]) as Record<string | symbol, unknown>
 
-  ;(screenCtx as Record<symbol, unknown>)[OUTPUT_STORE_KEY] = store
+  screenCtx[OUTPUT_STORE_KEY] = store
 
   return Object.freeze(screenCtx) as unknown as ScreenContext
 }

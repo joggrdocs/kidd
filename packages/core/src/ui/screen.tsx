@@ -214,9 +214,8 @@ function toScreenContext(ctx: CommandContext): ScreenContext {
     ['log', screenLog],
     ['spinner', screenSpinner],
     ...reportEntries,
-  ]) as Record<string | symbol, unknown>
-
-  screenCtx[OUTPUT_STORE_KEY] = store
+    [OUTPUT_STORE_KEY, store],
+  ])
 
   return Object.freeze(screenCtx) as unknown as ScreenContext
 }

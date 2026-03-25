@@ -36,16 +36,13 @@ interface SidebarProps {
 }
 
 /**
- * A flat item in the sidebar list, representing either a group header
- * or an individual story variant.
+ * A flat item in the sidebar list, representing a single selectable story.
  *
  * @private
  */
 interface SidebarItem {
   readonly id: string
   readonly label: string
-  readonly isGroupHeader: boolean
-  readonly indent: number
 }
 
 // ---------------------------------------------------------------------------
@@ -61,52 +58,39 @@ interface SidebarItem {
  */
 export function Sidebar({ entries, selectedId, onSelect, isFocused }: SidebarProps): ReactElement {
   const items = useMemo(() => buildSidebarItems(entries), [entries])
-  const selectableItems = useMemo(() => items.filter((item) => !item.isGroupHeader), [items])
   const [highlightIndex, setHighlightIndex] = useState(0)
 
   useEffect(() => {
     setHighlightIndex((current) => {
-      if (selectableItems.length === 0) {
+      if (items.length === 0) {
         return 0
       }
-      if (current >= selectableItems.length) {
-        return selectableItems.length - 1
+      if (current >= items.length) {
+        return items.length - 1
       }
       return current
     })
-  }, [selectableItems.length])
+  }, [items.length])
 
   useInput(
     (_input, key) => {
       if (key.upArrow) {
-        setHighlightIndex((current) => {
-          const next = Math.max(0, current - 1)
-          selectByIndex(selectableItems, next, onSelect)
-          return next
-        })
+        setHighlightIndex((current) => Math.max(0, current - 1))
       }
       if (key.downArrow) {
-        setHighlightIndex((current) => {
-          const next = Math.min(selectableItems.length - 1, current + 1)
-          selectByIndex(selectableItems, next, onSelect)
-          return next
-        })
+        setHighlightIndex((current) => Math.min(items.length - 1, current + 1))
       }
       if (key.return) {
-        selectByIndex(selectableItems, highlightIndex, onSelect)
+        selectByIndex(items, highlightIndex, onSelect)
       }
     },
     { isActive: isFocused }
   )
 
-  const highlightedItem = selectableItems[highlightIndex]
+  const highlightedItem = items[highlightIndex]
   const highlightedId = resolveHighlightedId(highlightedItem)
   const { rows } = useFullScreen()
   const scrollHeight = Math.max(1, rows - SIDEBAR_CHROME_ROWS)
-  const activeItemIndex = useMemo(
-    () => items.findIndex((item) => item.id === highlightedId),
-    [items, highlightedId]
-  )
 
   return (
     <Box
@@ -131,7 +115,7 @@ export function Sidebar({ entries, selectedId, onSelect, isFocused }: SidebarPro
       </Box>
       <ScrollArea
         height={scrollHeight}
-        activeIndex={Math.max(0, activeItemIndex)}
+        activeIndex={Math.max(0, highlightIndex)}
         itemCount={items.length}
         showIndicator={items.length > scrollHeight}
       >
@@ -171,23 +155,10 @@ interface SidebarRowProps {
  * @returns A rendered sidebar row element.
  */
 function SidebarRow({ item, isHighlighted, isSelected }: SidebarRowProps): ReactElement {
-  const prefix = match({ isGroupHeader: item.isGroupHeader, isHighlighted })
-    .with({ isGroupHeader: true }, () => '')
-    .with({ isHighlighted: true }, () => '> ')
-    .otherwise(() => '  ')
-
-  const padding = '  '.repeat(item.indent)
-
-  if (item.isGroupHeader) {
-    return (
-      <Box>
-        <Text bold dimColor>
-          {padding}
-          {item.label}
-        </Text>
-      </Box>
-    )
-  }
+  const prefix = match(isHighlighted)
+    .with(true, () => '▸ ')
+    .with(false, () => '  ')
+    .exhaustive()
 
   return (
     <Box>
@@ -198,7 +169,6 @@ function SidebarRow({ item, isHighlighted, isSelected }: SidebarRowProps): React
           .otherwise(() => undefined)}
         bold={isHighlighted}
       >
-        {padding}
         {prefix}
         {item.label}
       </Text>
@@ -227,8 +197,8 @@ function selectByIndex(
 
 /**
  * Build a flat list of sidebar items from the registry entries map.
- * Story groups expand into a header followed by indented variant items.
- * Single stories appear as top-level items.
+ * Story groups expand into flat items with "GroupTitle / VariantName" labels.
+ * Single stories appear with their name directly.
  *
  * @private
  * @param entries - The story registry entries.
@@ -237,15 +207,13 @@ function selectByIndex(
 function buildSidebarItems(entries: ReadonlyMap<string, StoryEntry>): readonly SidebarItem[] {
   return [...entries.entries()].flatMap(([key, entry]) =>
     match(hasTag(entry, 'StoryGroup'))
-      .with(true, () => entryToGroupItems(key, entry as StoryGroup))
+      .with(true, () => entryToFlatItems(key, entry as StoryGroup))
       .with(false, () =>
         match(hasTag(entry, 'Story'))
           .with(true, () => [
             {
               id: key,
               label: (entry as Story).name,
-              isGroupHeader: false,
-              indent: 0,
             },
           ])
           .with(false, () => [] as readonly SidebarItem[])
@@ -271,26 +239,17 @@ function resolveHighlightedId(item: SidebarItem | undefined): string | null {
 }
 
 /**
- * Convert a story group entry into sidebar items: a header followed
- * by indented variant items.
+ * Convert a story group entry into flat sidebar items. Each variant
+ * is labelled as "GroupTitle / VariantName".
  *
  * @private
  * @param key - The group registry key.
  * @param group - The story group entry.
- * @returns An array of sidebar items for the group.
+ * @returns A flat array of sidebar items for the group.
  */
-function entryToGroupItems(key: string, group: StoryGroup): readonly SidebarItem[] {
-  const header: SidebarItem = {
-    id: `group:${key}`,
-    label: group.title,
-    isGroupHeader: true,
-    indent: 0,
-  }
-  const variants = Object.keys(group.stories).map((variantName) => ({
+function entryToFlatItems(key: string, group: StoryGroup): readonly SidebarItem[] {
+  return Object.keys(group.stories).map((variantName) => ({
     id: `${key}::${variantName}`,
-    label: variantName,
-    isGroupHeader: false,
-    indent: 1,
+    label: `${group.title} / ${variantName}`,
   }))
-  return [header, ...variants]
 }

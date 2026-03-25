@@ -2,7 +2,7 @@
 import { hasTag } from '@kidd-cli/utils/tag'
 import { Box, useApp, useInput } from 'ink'
 import type { ReactElement } from 'react'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { match } from 'ts-pattern'
 
 import { FullScreen } from '../../ui/fullscreen.js'
@@ -48,20 +48,6 @@ export function StoriesApp({ registry }: StoriesAppProps): ReactElement {
   const [currentProps, setCurrentProps] = useState<Record<string, unknown>>({})
   const [showHelp, setShowHelp] = useState(false)
   const { exit } = useApp()
-
-  useEffect(() => {
-    if (selectedStoryId !== null) {
-      return
-    }
-    const firstId = resolveFirstSelectableId(entries)
-    if (firstId !== null) {
-      setSelectedStoryId(firstId)
-      const resolved = resolveStory(entries, firstId)
-      if (resolved !== null) {
-        setCurrentProps({ ...resolved.props })
-      }
-    }
-  }, [entries, selectedStoryId])
 
   const selectedStory = useMemo(
     () => resolveStory(entries, selectedStoryId),
@@ -203,31 +189,4 @@ function resolveStory(entries: ReadonlyMap<string, StoryEntry>, id: string | nul
     return null
   }
   return variant
-}
-
-/**
- * Find the first selectable story ID from the entries map.
- * For single stories, returns the key. For groups, returns the
- * first variant ID in `key::variantName` format.
- *
- * @private
- * @param entries - The story registry entries.
- * @returns The first selectable ID, or null if none exist.
- */
-function resolveFirstSelectableId(entries: ReadonlyMap<string, StoryEntry>): string | null {
-  const firstEntry = [...entries.entries()][0]
-  if (firstEntry === undefined) {
-    return null
-  }
-  const [key, entry] = firstEntry
-  if (hasTag(entry, 'Story')) {
-    return key
-  }
-  if (hasTag(entry, 'StoryGroup')) {
-    const firstVariant = Object.keys(entry.stories)[0]
-    if (firstVariant !== undefined) {
-      return `${key}::${firstVariant}`
-    }
-  }
-  return null
 }

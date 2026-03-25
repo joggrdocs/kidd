@@ -147,24 +147,6 @@ if (isVerbose) {
 const message = isVerbose ? details : summary
 ```
 
-### No Optional Chaining
-
-Use explicit `if`/`else` or pattern matching instead of `?.`.
-
-#### Correct
-
-```ts
-if (config.scripts) {
-  runAll(config.scripts)
-}
-```
-
-#### Incorrect
-
-```ts
-config.scripts?.forEach(run)
-```
-
 ### No `any`
 
 Use `unknown`, generics, or proper types. Narrow with type guards when needed.

@@ -127,11 +127,13 @@ function registerSingleCommand(options: RegisterSingleCommandOptions): void {
         .filter((pair): pair is [string, Command] => isCommand(pair[1]))
         .map(([key, entry]): readonly [string, Command] => [entry.name ?? key, entry])
 
-      if (cmd.order && cmd.order.length > 0) {
+      const subOrder = cmd.help?.order
+
+      if (subOrder && subOrder.length > 0) {
         const subNames = subCommands.map(([n]) => n)
         const [validationError] = validateCommandOrder({
           commandNames: subNames,
-          order: cmd.order,
+          order: subOrder,
         })
         if (validationError && errorRef) {
           // Intentional mutation: errorRef is a mutable holder for deferred error reporting.
@@ -140,7 +142,7 @@ function registerSingleCommand(options: RegisterSingleCommandOptions): void {
         }
       }
 
-      const sortedSubs = sortCommandEntries({ entries: subCommands, order: cmd.order })
+      const sortedSubs = sortCommandEntries({ entries: subCommands, order: subOrder })
 
       sortedSubs.map(([subName, subEntry]) =>
         registerSingleCommand({

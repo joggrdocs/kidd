@@ -76,9 +76,12 @@ export interface CliConfigOptions<TSchema extends z.ZodType = z.ZodType> {
 }
 
 /**
- * Help output customization options for the CLI.
+ * Help output customization options.
+ *
+ * Used at both the CLI level and per-command level to control how help
+ * text is displayed.
  */
-export interface CliHelpOptions {
+export interface HelpOptions {
   /**
    * Header text displayed above help output when the CLI is invoked
    * without a command. Not shown on `--help`.
@@ -89,6 +92,12 @@ export interface CliHelpOptions {
    * Shown on all help output.
    */
   readonly footer?: string
+  /**
+   * Display order for subcommands.
+   * Subcommands listed appear first in the specified order; omitted subcommands
+   * fall back to alphabetical sort.
+   */
+  readonly order?: readonly string[]
 }
 
 /**
@@ -129,9 +138,9 @@ export interface CliOptions<TSchema extends z.ZodType = z.ZodType> {
    */
   readonly commands?: string | CommandMap | Promise<CommandMap> | CommandsConfig
   /**
-   * Help output customization (header, footer).
+   * Help output customization (header, footer, command order).
    */
-  readonly help?: CliHelpOptions
+  readonly help?: HelpOptions
   /**
    * Directory name overrides for file-backed stores (auth, config).
    *

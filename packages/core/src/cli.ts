@@ -10,11 +10,11 @@ import { z } from 'zod'
 
 import { DEFAULT_EXIT_CODE, isContextError } from '@/context/index.js'
 import type {
-  CliHelpOptions,
   CliOptions,
   CommandMap,
   CommandsConfig,
   DirsConfig,
+  HelpOptions,
   ResolvedDirs,
 } from '@/types/index.js'
 
@@ -73,7 +73,7 @@ export async function cli<TSchema extends z.ZodType = z.ZodType>(
         commands: resolvedCmds.commands,
         errorRef,
         instance: program,
-        order: resolvedCmds.order,
+        order: options.help?.order,
         parentPath: [],
         resolved,
       })
@@ -177,13 +177,12 @@ function resolveVersion(explicit: string | undefined): Result<string> {
 }
 
 /**
- * Resolved commands with optional display ordering.
+ * Resolved commands ready for registration.
  *
  * @private
  */
 interface ResolvedCommands {
   readonly commands: CommandMap
-  readonly order?: readonly string[]
 }
 
 /**
@@ -210,17 +209,17 @@ async function resolveCommands(
 }
 
 /**
- * Resolve a structured {@link CommandsConfig} into flat commands and order.
+ * Resolve a structured {@link CommandsConfig} into a flat command map.
  *
  * When `path` is provided, autoloads from that directory. Otherwise uses the
  * inline `commands` map (resolved if it is a promise).
  *
  * @private
  * @param config - The structured commands configuration.
- * @returns Resolved commands with optional order.
+ * @returns Resolved commands.
  */
 async function resolveCommandsConfig(config: CommandsConfig): Promise<ResolvedCommands> {
-  const { order, path, commands: innerCommands } = config
+  const { path, commands: innerCommands } = config
 
   const commands = await match(innerCommands)
     .when(
@@ -231,7 +230,7 @@ async function resolveCommandsConfig(config: CommandsConfig): Promise<ResolvedCo
     .when(isPlainObject, (cmds) => cmds)
     .otherwise(() => ({}) as CommandMap)
 
-  return { commands, order }
+  return { commands }
 }
 
 /**
@@ -287,7 +286,7 @@ function showNoCommandHelp({
 }: {
   readonly argv: Record<string, unknown>
   readonly commands: ResolvedCommands | undefined
-  readonly help: CliHelpOptions | undefined
+  readonly help: HelpOptions | undefined
   readonly program: Argv
 }): void {
   if (!commands) {
@@ -312,7 +311,7 @@ function showNoCommandHelp({
  * @param help - The help options, possibly undefined.
  * @returns The header string or undefined.
  */
-function extractHeader(help: CliHelpOptions | undefined): string | undefined {
+function extractHeader(help: HelpOptions | undefined): string | undefined {
   if (!help) {
     return undefined
   }
@@ -326,7 +325,7 @@ function extractHeader(help: CliHelpOptions | undefined): string | undefined {
  * @param help - The help options, possibly undefined.
  * @returns The footer string or undefined.
  */
-function extractFooter(help: CliHelpOptions | undefined): string | undefined {
+function extractFooter(help: HelpOptions | undefined): string | undefined {
   if (!help) {
     return undefined
   }

@@ -7,10 +7,10 @@ export { middleware } from './middleware.js'
 export { defineConfig } from '@kidd-cli/config'
 export type {
   CliConfig,
-  CliHelpOptions,
   Command,
   CommandsConfig,
   ConfigType,
+  HelpOptions,
   MiddlewareEnv,
   Resolvable,
 } from './types/index.js'

@@ -17,6 +17,7 @@ cli({
   help: {
     header: 'my-app - deploy and migrate with ease',
     footer: 'Docs: https://my-app.dev',
+    order: ['deploy', 'migrate'],
   },
   dirs: { local: '.my-app', global: '.my-app' },
 })
@@ -32,7 +33,7 @@ cli({
 | `commands`    | `string \| CommandMap \| Promise<CommandMap> \| CommandsConfig` | --      | Commands source                               |
 | `middleware`  | `Middleware[]`                                                  | --      | Root middleware stack                         |
 | `config`      | `CliConfigOptions`                                              | --      | Config schema and file name override          |
-| `help`        | `CliHelpOptions`                                                | --      | Custom help header/footer                     |
+| `help`        | `HelpOptions`                                                   | --      | Custom help output (header, footer, order)    |
 | `dirs`        | `DirsConfig`                                                    | --      | Directory name overrides                      |
 | `log`         | `Log`                                                           | --      | Custom log implementation                     |
 | `prompts`     | `Prompts`                                                       | --      | Custom prompts implementation                 |
@@ -45,12 +46,15 @@ cli({
 | `schema` | `ZodType` | --                  | Zod schema to validate the loaded config         |
 | `name`   | `string`  | Derived from `name` | Override the config file name for file discovery |
 
-## CliHelpOptions
+## HelpOptions
 
-| Field    | Type     | Description                                                                            |
-| -------- | -------- | -------------------------------------------------------------------------------------- |
-| `header` | `string` | Text displayed above help output when the CLI is invoked without a command             |
-| `footer` | `string` | Text displayed below help output on all help screens (e.g., docs URL, bug report link) |
+Used at both the CLI level (`cli({ help })`) and per-command level (`command({ help })`).
+
+| Field    | Type                | Description                                                                            |
+| -------- | ------------------- | -------------------------------------------------------------------------------------- |
+| `header` | `string`            | Text displayed above help output when the CLI is invoked without a command             |
+| `footer` | `string`            | Text displayed below help output on all help screens (e.g., docs URL, bug report link) |
+| `order`  | `readonly string[]` | Display order for subcommands — listed names appear first, rest sort alphabetically    |
 
 ## DirsConfig
 
@@ -65,13 +69,13 @@ Overrides directory names for file-backed stores (auth credentials, config). Bot
 
 The `commands` field accepts several forms:
 
-| Form                  | Description                                                        |
-| --------------------- | ------------------------------------------------------------------ |
-| `CommandMap`          | Static object mapping command names to command definitions         |
-| `Promise<CommandMap>` | Async-resolved command map                                         |
-| `string`              | Directory path -- triggers autoloading from that directory         |
-| `CommandsConfig`      | Structured config with optional `order` array for display ordering |
-| _(omitted)_           | Loads `kidd.config.ts` and autoloads from its `commands` field     |
+| Form                  | Description                                                    |
+| --------------------- | -------------------------------------------------------------- |
+| `CommandMap`          | Static object mapping command names to command definitions     |
+| `Promise<CommandMap>` | Async-resolved command map                                     |
+| `string`              | Directory path -- triggers autoloading from that directory     |
+| `CommandsConfig`      | Structured config with `path` for autoloading from a directory |
+| _(omitted)_           | Loads `kidd.config.ts` and autoloads from its `commands` field |
 
 ## defineConfig()
 

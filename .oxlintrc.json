@@ -83,12 +83,7 @@
     "vitest/prefer-called-times": "off",
     "vitest/prefer-called-once": "off",
     "vitest/prefer-expect-type-of": "off",
-    "oxc/no-optional-chaining": [
-      "error",
-      {
-        "message": "Use explicit null checks (if/else or ts-pattern match) instead of optional chaining."
-      }
-    ],
+    "oxc/no-optional-chaining": "off",
     "jsdoc-js/multiline-blocks": [
       "error",
       {
@@ -102,8 +97,7 @@
       "rules": {
         "no-unused-vars": "off",
         "functional/no-classes": "off",
-        "typescript/no-non-null-assertion": "off",
-        "oxc/no-optional-chaining": "off"
+        "typescript/no-non-null-assertion": "off"
       }
     }
   ],

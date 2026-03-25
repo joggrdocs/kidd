@@ -175,18 +175,16 @@ describe('command ordering', () => {
     expect(errorRef.error?.message).toContain('"missing"')
   })
 
-  it('should handle subcommand ordering via cmd.order', () => {
+  it('should handle subcommand ordering via cmd.help.order', () => {
     const commands: CommandMap = {
       deploy: command({
         commands: {
-          commands: {
-            preview: command({ description: 'Preview' }),
-            production: command({ description: 'Production' }),
-            staging: command({ description: 'Staging' }),
-          },
-          order: ['production', 'staging'],
+          preview: command({ description: 'Preview' }),
+          production: command({ description: 'Production' }),
+          staging: command({ description: 'Staging' }),
         },
         description: 'Deploy',
+        help: { order: ['production', 'staging'] },
       }),
     }
 

@@ -1,5 +1,16 @@
 # kidd-cli
 
+## 0.6.0
+
+### Minor Changes
+
+- d270f4b: Add Storybook-like TUI component browser for kidd screens. Define stories alongside components using `story()` and `stories()` factories with Zod schema introspection, then run `kidd stories` to get a fullscreen viewer with sidebar navigation, live preview, interactive props editor, and hot reload via file watcher.
+
+### Patch Changes
+
+- Updated dependencies [d270f4b]
+  - @kidd-cli/core@0.15.0
+
 ## 0.5.2
 
 ### Patch Changes

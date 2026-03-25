@@ -36,6 +36,21 @@ export default stories({
   title: 'SystemMonitor',
   component: SystemMonitor,
   schema,
+  defaults: {
+    services: [
+      { name: 'api-gateway', status: 'healthy', latency: '12ms' },
+      { name: 'postgres-primary', status: 'healthy', latency: '3ms' },
+      { name: 'redis-cache', status: 'healthy', latency: '1ms' },
+      { name: 'worker-queue', status: 'healthy', latency: '8ms' },
+      { name: 'cdn-origin', status: 'healthy', latency: '45ms' },
+    ],
+    recentEvents: [
+      { time: '14:23:01', severity: 'info', message: 'Deployment v2.14.0 completed successfully' },
+      { time: '14:18:45', severity: 'info', message: 'SSL certificate renewed for *.example.com' },
+      { time: '13:55:12', severity: 'info', message: 'Automated backup completed (2.4 GB)' },
+      { time: '12:30:00', severity: 'info', message: 'Scheduled maintenance window closed' },
+    ],
+  },
   stories: {
     Healthy: {
       description: 'All systems nominal with low resource usage',
@@ -52,27 +67,6 @@ export default stories({
         loadAvg1: 0.87,
         loadAvg5: 0.64,
         loadAvg15: 0.52,
-        services: [
-          { name: 'api-gateway', status: 'healthy', latency: '12ms' },
-          { name: 'postgres-primary', status: 'healthy', latency: '3ms' },
-          { name: 'redis-cache', status: 'healthy', latency: '1ms' },
-          { name: 'worker-queue', status: 'healthy', latency: '8ms' },
-          { name: 'cdn-origin', status: 'healthy', latency: '45ms' },
-        ],
-        recentEvents: [
-          {
-            time: '14:23:01',
-            severity: 'info',
-            message: 'Deployment v2.14.0 completed successfully',
-          },
-          {
-            time: '14:18:45',
-            severity: 'info',
-            message: 'SSL certificate renewed for *.example.com',
-          },
-          { time: '13:55:12', severity: 'info', message: 'Automated backup completed (2.4 GB)' },
-          { time: '12:30:00', severity: 'info', message: 'Scheduled maintenance window closed' },
-        ],
       },
     },
     Degraded: {

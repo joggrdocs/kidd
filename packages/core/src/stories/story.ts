@@ -21,6 +21,7 @@ export function story<TProps extends Record<string, unknown>>(
       component: def.component,
       schema: def.schema,
       props: def.props,
+      defaultKeys: Object.freeze([]) as readonly string[],
       decorators: Object.freeze(def.decorators ?? []),
       description: def.description,
     },
@@ -42,6 +43,8 @@ export function stories<TProps extends Record<string, unknown>>(
   def: StoriesGroupDef<TProps>
 ): StoryGroup {
   const groupDecorators = Object.freeze(def.decorators ?? [])
+  const defaults = def.defaults ?? ({} as Partial<Record<string, unknown>>)
+  const defaultKeys = Object.freeze(Object.keys(defaults))
 
   const resolvedStories = Object.freeze(
     Object.fromEntries(
@@ -53,7 +56,8 @@ export function stories<TProps extends Record<string, unknown>>(
               name: variantName,
               component: def.component as ComponentType<Record<string, unknown>>,
               schema: def.schema,
-              props: variant.props as Record<string, unknown>,
+              props: { ...defaults, ...variant.props } as Record<string, unknown>,
+              defaultKeys,
               decorators: Object.freeze(variant.decorators ?? []),
               description: variant.description,
             },

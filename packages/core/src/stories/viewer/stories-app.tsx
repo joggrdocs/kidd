@@ -88,7 +88,9 @@ export function StoriesApp({ registry, isReloading }: StoriesAppProps): ReactEle
     if (selectedStory === null) {
       return [] as const
     }
-    return schemaToFieldDescriptors(selectedStory.schema)
+    const allFields = schemaToFieldDescriptors(selectedStory.schema)
+    const hiddenKeys = new Set(selectedStory.defaultKeys)
+    return allFields.filter((field) => !hiddenKeys.has(field.name))
   }, [selectedStory])
 
   const errors = useMemo(() => {

@@ -53,6 +53,15 @@ Run diagnostics to verify your project setup, dependencies, and configuration.
 kidd doctor
 ```
 
+### `kidd stories`
+
+Launch the stories viewer TUI for browsing and previewing component stories in the terminal. Discovers `.stories.tsx` files in the project and renders them with an interactive props editor.
+
+```bash
+kidd stories
+kidd stories --include "src/components/**/*.stories.tsx"
+```
+
 ## Configuration
 
 The CLI reads from `kidd.config.ts` in your project root:

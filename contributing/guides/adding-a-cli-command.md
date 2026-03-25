@@ -133,6 +133,8 @@ export default command({
 
 The `render` function receives `RenderProps` (with `args`, `config`, `meta`, `store`, `colors`) and owns the full Ink lifecycle. Place command-private components in a `_components/` directory next to the command file. See the [Components standard](../standards/typescript/components.md) for full conventions.
 
+> **Tip:** Screen commands benefit from having stories defined alongside their components. Create `.stories.tsx` files and run `kidd stories` to preview and iterate on components in isolation. See the [Component Stories guide](../../docs/guides/component-stories.md).
+
 ### 2. Register the command
 
 Commands are auto-registered via the autoloader when placed in the commands directory. The autoloader discovers files that:

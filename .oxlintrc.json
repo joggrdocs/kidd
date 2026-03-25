@@ -1,6 +1,6 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["typescript", "unicorn", "import", "vitest", "promise", "node", "oxc"],
+  "plugins": ["typescript", "unicorn", "import", "vitest", "promise", "node", "oxc", "react"],
   "jsPlugins": [
     "eslint-plugin-security",
     "eslint-plugin-functional",
@@ -84,6 +84,16 @@
     "vitest/prefer-called-once": "off",
     "vitest/prefer-expect-type-of": "off",
     "oxc/no-optional-chaining": "off",
+    "react/rules-of-hooks": "error",
+    "react/exhaustive-deps": "warn",
+    "react/jsx-no-duplicate-props": "error",
+    "react/jsx-key": "warn",
+    "react/no-children-prop": "error",
+    "react/no-direct-mutation-state": "error",
+    "react/react-in-jsx-scope": "off",
+    "react/jsx-max-depth": "off",
+    "react/jsx-props-no-spreading": "off",
+    "react/state-in-constructor": "off",
     "jsdoc-js/multiline-blocks": [
       "error",
       {

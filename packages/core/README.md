@@ -76,6 +76,7 @@ export default defineConfig({
 | `@kidd-cli/core/auth`    | Authentication middleware          |
 | `@kidd-cli/core/http`    | HTTP client middleware             |
 | `@kidd-cli/core/icons`   | Icon set middleware                |
+| `@kidd-cli/core/stories` | Stories viewer for component dev   |
 | `@kidd-cli/core/test`    | Test utilities for commands        |
 
 ## License

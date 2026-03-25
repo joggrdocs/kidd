@@ -147,6 +147,21 @@ Display the command tree for a kidd CLI project. Scans the configured commands d
 kidd commands
 ```
 
+### `kidd stories`
+
+Launch the stories viewer TUI. Discovers `.stories.tsx` / `.stories.ts` files in the project and renders a browsable tree with live preview and an interactive props editor.
+
+```bash
+kidd stories
+kidd stories --include "src/components/**/*.stories.tsx"
+```
+
+| Flag        | Type     | Description                        |
+| ----------- | -------- | ---------------------------------- |
+| `--include` | `string` | Glob pattern to filter story files |
+
+The viewer watches for file changes and hot-reloads stories automatically. Press `?` inside the viewer to see keyboard shortcuts.
+
 ## Workflows
 
 ### New project from scratch
@@ -181,8 +196,16 @@ kidd doctor --fix
 kidd commands
 ```
 
+### Develop components
+
+```bash
+kidd stories
+kidd stories --include "src/ui/**/*.stories.tsx"
+```
+
 ## References
 
 - [Core](./kidd.md)
 - [Build a CLI](../guides/build-a-cli.md)
 - [Configuration](../concepts/configuration.md)
+- [Component Stories](../guides/component-stories.md)

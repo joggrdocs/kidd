@@ -40,13 +40,16 @@
     "@kidd-cli/core": "workspace:*",
     "@kidd-cli/utils": "workspace:*",
     "fs-extra": "^11.3.4",
+    "ink": "^6.8.0",
     "liquidjs": "catalog:",
     "picocolors": "^1.1.1",
+    "react": "^19.2.4",
     "yaml": "^2.8.3",
     "zod": "catalog:"
   },
   "devDependencies": {
     "@types/fs-extra": "^11.0.4",
+    "@types/react": "^19.2.14",
     "tsdown": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"

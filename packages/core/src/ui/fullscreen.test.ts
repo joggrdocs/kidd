@@ -59,13 +59,13 @@ describe('FullScreen export', () => {
 
 describe('ANSI sequences', () => {
   it('should use correct alternate screen buffer sequences', () => {
-    expect('\u001b[?1049h').toBe('\u001b[?1049h')
-    expect('\u001b[?1049l').toBe('\u001b[?1049l')
+    expect('\u001B[?1049h').toBe('\u001B[?1049h')
+    expect('\u001B[?1049l').toBe('\u001B[?1049l')
   })
 
   it('should use correct cursor visibility sequences', () => {
-    expect('\u001b[?25l').toBe('\u001b[?25l')
-    expect('\u001b[?25h').toBe('\u001b[?25h')
+    expect('\u001B[?25l').toBe('\u001B[?25l')
+    expect('\u001B[?25h').toBe('\u001B[?25h')
   })
 })
 

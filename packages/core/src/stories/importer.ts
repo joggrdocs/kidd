@@ -20,7 +20,7 @@ export function createStoryImporter(): StoryImporter {
   const jiti = createJiti(import.meta.url, {
     cache: false,
     interopDefault: true,
-    jsx: true,
+    jsx: { runtime: 'automatic' },
   })
 
   return Object.freeze({

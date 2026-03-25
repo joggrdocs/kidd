@@ -1,15 +1,14 @@
 import process from 'node:process'
 
 import { hasTag } from '@kidd-cli/utils/tag'
-import { Text, useApp } from 'ink'
-import type { ReactElement } from 'react'
-import { useEffect, useState } from 'react'
+import { Box, Text, useApp } from 'ink'
+import type { ComponentType, ReactElement } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { match } from 'ts-pattern'
 
 import { discoverStories } from '../discover.js'
 import { createStoryImporter } from '../importer.js'
-import { schemaToFieldDescriptors } from '../schema.js'
-import type { Story, StoryEntry, StoryGroup } from '../types.js'
+import type { Decorator, Story, StoryEntry, StoryGroup } from '../types.js'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -19,7 +18,7 @@ import type { Story, StoryEntry, StoryGroup } from '../types.js'
  * Props for the {@link StoriesOutput} component.
  */
 interface StoriesOutputProps {
-  readonly story: string
+  readonly filter: string
   readonly include?: string
 }
 
@@ -31,33 +30,18 @@ interface StoriesOutputProps {
 type OutputState =
   | { readonly phase: 'loading' }
   | { readonly phase: 'error'; readonly message: string }
-  | { readonly phase: 'done' }
+  | { readonly phase: 'ready'; readonly stories: readonly ResolvedStory[] }
 
 /**
- * Serializable representation of a single story for LLM consumption.
+ * A resolved story ready for rendering.
  *
  * @private
  */
-interface SerializedStory {
+interface ResolvedStory {
   readonly name: string
-  readonly description: string | undefined
+  readonly component: ComponentType<Record<string, unknown>>
   readonly props: Record<string, unknown>
-  readonly fields: readonly SerializedField[]
-}
-
-/**
- * Serializable field descriptor for LLM consumption.
- *
- * @private
- */
-interface SerializedField {
-  readonly name: string
-  readonly control: string
-  readonly isOptional: boolean
-  readonly defaultValue: unknown
-  readonly description: string | undefined
-  readonly options?: readonly string[]
-  readonly zodTypeName: string
+  readonly decorators: readonly Decorator[]
 }
 
 // ---------------------------------------------------------------------------
@@ -65,15 +49,16 @@ interface SerializedField {
 // ---------------------------------------------------------------------------
 
 /**
- * Non-interactive component that discovers stories, finds the matching
- * story by name, serializes it to JSON, writes to stdout, and exits.
+ * Non-interactive component that discovers stories, renders the matching
+ * story (or all stories) to stdout with divider headers, and exits.
  *
- * Designed for piping story metadata to LLMs or other tooling.
+ * When `filter` is empty, all stories are rendered. When `filter` is a
+ * story name, only that story is rendered.
  *
  * @param props - The stories output props.
  * @returns A rendered stories output element.
  */
-export function StoriesOutput({ story, include }: StoriesOutputProps): ReactElement {
+export function StoriesOutput({ filter, include }: StoriesOutputProps): ReactElement {
   const [state, setState] = useState<OutputState>({ phase: 'loading' })
   const { exit } = useApp()
 
@@ -89,21 +74,27 @@ export function StoriesOutput({ story, include }: StoriesOutputProps): ReactElem
         include: includePatterns,
       })
 
-      const resolved = findStoryByName(result.entries, story)
+      const allStories = collectAllStories(result.entries)
 
-      if (resolved === null) {
-        const available = collectStoryNames(result.entries)
-        const suffix = match(available.length > 0)
-          .with(true, () => `\nAvailable stories: ${available.join(', ')}`)
-          .with(false, () => '')
-          .exhaustive()
-        setState({ phase: 'error', message: `Story "${story}" not found.${suffix}` })
+      if (allStories.length === 0) {
+        setState({ phase: 'error', message: 'No stories found.' })
         return
       }
 
-      const serialized = serializeStory(resolved)
-      process.stdout.write(`${JSON.stringify(serialized, null, 2)}\n`)
-      setState({ phase: 'done' })
+      const filtered = match(filter)
+        .with('', () => allStories)
+        .otherwise((name) => filterByName(allStories, name))
+
+      if (filtered.length === 0) {
+        const available = allStories.map((s) => s.name)
+        setState({
+          phase: 'error',
+          message: `Story "${filter}" not found.\nAvailable: ${available.join(', ')}`,
+        })
+        return
+      }
+
+      setState({ phase: 'ready', stories: filtered })
     }
 
     run().catch((error: unknown) => {
@@ -113,18 +104,21 @@ export function StoriesOutput({ story, include }: StoriesOutputProps): ReactElem
         .exhaustive()
       setState({ phase: 'error', message })
     })
-  }, [story, include])
+  }, [filter, include])
 
+  const shouldExit = state.phase === 'error'
   useEffect(() => {
-    if (state.phase === 'done' || state.phase === 'error') {
+    if (shouldExit) {
       exit()
     }
-  }, [state, exit])
+  }, [shouldExit, exit])
 
   return match(state)
-    .with({ phase: 'loading' }, () => <Text>Discovering stories...</Text>)
+    .with({ phase: 'loading' }, () => <Text dimColor>Discovering stories...</Text>)
     .with({ phase: 'error' }, ({ message }) => <Text color="red">{message}</Text>)
-    .with({ phase: 'done' }, () => <Text />)
+    .with({ phase: 'ready' }, ({ stories }) => (
+      <StoryRenderer stories={stories} onDone={exit} />
+    ))
     .exhaustive()
 }
 
@@ -133,136 +127,128 @@ export function StoriesOutput({ story, include }: StoriesOutputProps): ReactElem
 // ---------------------------------------------------------------------------
 
 /**
- * Find a story by name across all entries, searching both top-level stories
- * and group variants. Matching is case-insensitive.
+ * Render all resolved stories with divider headers, then exit.
+ *
+ * @private
+ */
+function StoryRenderer({
+  stories,
+  onDone,
+}: {
+  readonly stories: readonly ResolvedStory[]
+  readonly onDone: () => void
+}): ReactElement {
+  const rendered = useMemo(
+    () =>
+      stories.map((s) => {
+        const Decorated = applyDecorators(s.component, s.decorators)
+        return { name: s.name, Component: Decorated, props: s.props }
+      }),
+    [stories]
+  )
+
+  useEffect(() => {
+    const timer = setTimeout(onDone, 0)
+    return () => {
+      clearTimeout(timer)
+    }
+  }, [onDone])
+
+  return (
+    <Box flexDirection="column">
+      {rendered.map((entry) => (
+        <Box key={entry.name} flexDirection="column">
+          <StoryDivider name={entry.name} />
+          <entry.Component {...entry.props} />
+        </Box>
+      ))}
+    </Box>
+  )
+}
+
+/**
+ * Render a divider line with the story name.
+ *
+ * @private
+ */
+function StoryDivider({ name }: { readonly name: string }): ReactElement {
+  const label = ` ${name} `
+  const padding = '─'.repeat(Math.max(0, 40 - label.length))
+
+  return (
+    <Box marginBottom={1}>
+      <Text dimColor>────{label}{padding}</Text>
+    </Box>
+  )
+}
+
+/**
+ * Apply decorators to a component in order.
+ *
+ * @private
+ * @param component - The base component.
+ * @param decorators - Decorators to apply.
+ * @returns The decorated component.
+ */
+function applyDecorators(
+  component: ComponentType<Record<string, unknown>>,
+  decorators: readonly Decorator[]
+): ComponentType<Record<string, unknown>> {
+  return decorators.reduce<ComponentType<Record<string, unknown>>>(
+    (Comp, decorator) => decorator(Comp),
+    component
+  )
+}
+
+/**
+ * Collect all stories from entries, flattening groups into individual stories.
  *
  * @private
  * @param entries - The discovered story entries.
- * @param name - The story name to search for.
- * @returns The matching story, or null if not found.
+ * @returns A flat array of resolved stories.
  */
-function findStoryByName(entries: ReadonlyMap<string, StoryEntry>, name: string): Story | null {
-  const normalized = name.toLowerCase()
-
-  const found = [...entries.values()].reduce<Story | null>((result, entry) => {
-    if (result !== null) {
-      return result
-    }
-
+function collectAllStories(entries: ReadonlyMap<string, StoryEntry>): readonly ResolvedStory[] {
+  return [...entries.values()].flatMap((entry) => {
     if (hasTag(entry, 'Story')) {
-      const storyEntry = entry as Story
-      if (storyEntry.name.toLowerCase() === normalized) {
-        return storyEntry
-      }
-      return null
+      const s = entry as Story
+      return [
+        {
+          name: s.name,
+          component: s.component as ComponentType<Record<string, unknown>>,
+          props: s.props as Record<string, unknown>,
+          decorators: s.decorators,
+        },
+      ]
     }
 
     if (hasTag(entry, 'StoryGroup')) {
       const group = entry as StoryGroup
-
-      if (group.title.toLowerCase() === normalized) {
-        const [firstVariant] = Object.values(group.stories)
-        if (firstVariant !== undefined) {
-          return firstVariant
-        }
-        return null
-      }
-
-      const variant = Object.entries(group.stories).reduce<Story | null>(
-        (variantResult, [variantName, variantStory]) => {
-          if (variantResult !== null) {
-            return variantResult
-          }
-          if (variantName.toLowerCase() === normalized) {
-            return variantStory
-          }
-          return null
-        },
-        null
-      )
-
-      return variant
+      return Object.entries(group.stories).map(([variantName, variant]) => ({
+        name: `${group.title} / ${variantName}`,
+        component: variant.component as ComponentType<Record<string, unknown>>,
+        props: variant.props as Record<string, unknown>,
+        decorators: [...group.decorators, ...variant.decorators],
+      }))
     }
 
-    return null
-  }, null)
-
-  return found
+    return []
+  })
 }
 
 /**
- * Collect all story names from entries for error messaging.
+ * Filter stories by name (case-insensitive partial match).
  *
  * @private
- * @param entries - The discovered story entries.
- * @returns An array of available story names.
+ * @param stories - All resolved stories.
+ * @param name - The name to filter by.
+ * @returns Matching stories.
  */
-function collectStoryNames(entries: ReadonlyMap<string, StoryEntry>): readonly string[] {
-  const singleNames = [...entries.values()]
-    .filter((entry) => hasTag(entry, 'Story'))
-    .map((entry) => (entry as Story).name)
-
-  const groupNames = [...entries.values()]
-    .filter((entry) => hasTag(entry, 'StoryGroup'))
-    .flatMap((entry) => extractGroupNames(entry as StoryGroup))
-
-  return [...singleNames, ...groupNames]
-}
-
-/**
- * Serialize a story into a plain JSON-safe object for stdout output.
- *
- * @private
- * @param story - The story to serialize.
- * @returns A serializable story representation.
- */
-function serializeStory(story: Story): SerializedStory {
-  const fields = schemaToFieldDescriptors(story.schema)
-
-  return {
-    name: story.name,
-    description: story.description,
-    props: story.props,
-    fields: fields.map(serializeField),
-  }
-}
-
-/**
- * Serialize a field descriptor into a plain JSON-safe object.
- *
- * @private
- * @param field - The field descriptor to serialize.
- * @returns A serializable field representation.
- */
-function serializeField(field: {
-  readonly name: string
-  readonly control: string
-  readonly isOptional: boolean
-  readonly defaultValue: unknown
-  readonly description: string | undefined
-  readonly options?: readonly string[]
-  readonly zodTypeName: string
-}): SerializedField {
-  return {
-    name: field.name,
-    control: field.control,
-    isOptional: field.isOptional,
-    defaultValue: field.defaultValue,
-    description: field.description,
-    options: field.options,
-    zodTypeName: field.zodTypeName,
-  }
-}
-
-/**
- * Extract the title and variant names from a story group.
- *
- * @private
- * @param group - The story group to extract names from.
- * @returns An array containing the group title followed by variant names.
- */
-function extractGroupNames(group: StoryGroup): readonly string[] {
-  return [group.title, ...Object.keys(group.stories)]
+function filterByName(
+  stories: readonly ResolvedStory[],
+  name: string
+): readonly ResolvedStory[] {
+  const normalized = name.toLowerCase()
+  return stories.filter((s) => s.name.toLowerCase().includes(normalized))
 }
 
 /**

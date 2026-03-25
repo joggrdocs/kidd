@@ -23,8 +23,7 @@ import { StoriesOutput } from './stories-output.js'
  */
 interface StoriesScreenProps {
   readonly include?: string
-  readonly out?: boolean
-  readonly story?: string
+  readonly out?: string
 }
 
 /**
@@ -48,18 +47,19 @@ type DiscoveryState =
  * Designed to be used with `screen()` so the framework manages
  * stdin/raw mode and the Ink rendering lifecycle.
  *
- * When `--out` and `--story` are provided, outputs the matching story
- * as JSON to stdout and exits immediately — useful for piping to LLMs.
+ * When `--out` is provided, renders the matching story (or all stories)
+ * to stdout and exits immediately — useful for piping to LLMs.
  *
  * @param props - The stories screen props.
  * @returns A rendered stories screen element.
  */
-export function StoriesScreen({ include, out, story }: StoriesScreenProps): ReactElement {
-  return match({ out: out === true, story })
-    .with({ out: true, story: P.string }, ({ story: storyName }) => (
-      <StoriesOutput story={storyName} include={include} />
+export function StoriesScreen({ include, out }: StoriesScreenProps): ReactElement {
+  return match(out)
+    .with(P.string, (storyFilter) => (
+      <StoriesOutput filter={storyFilter} include={include} />
     ))
-    .otherwise(() => <StoriesViewer include={include} />)
+    .with(P.nullish, () => <StoriesViewer include={include} />)
+    .exhaustive()
 }
 
 /**

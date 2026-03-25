@@ -14,12 +14,12 @@ This means the same `ctx.log.info()`, `ctx.spinner.start()`, and `ctx.report.che
 
 #### New Exports from `@kidd-cli/core/ui`
 
-| Export | Description |
-|---|---|
-| `<Output />` | Component that renders accumulated log, spinner, and report entries from an `OutputStore` |
-| `useOutputStore()` | Hook to access the `OutputStore` from the current screen context |
-| `OutputStore` | Type for the external store interface |
-| `OutputProps` | Props type for the `Output` component |
+| Export             | Description                                                                               |
+| ------------------ | ----------------------------------------------------------------------------------------- |
+| `<Output />`       | Component that renders accumulated log, spinner, and report entries from an `OutputStore` |
+| `useOutputStore()` | Hook to access the `OutputStore` from the current screen context                          |
+| `OutputStore`      | Type for the external store interface                                                     |
+| `OutputProps`      | Props type for the `Output` component                                                     |
 
 #### Usage
 

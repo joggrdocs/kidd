@@ -109,6 +109,7 @@ export function StoriesOutput({ filter, include }: StoriesOutputProps): ReactEle
   const shouldExit = state.phase === 'error'
   useEffect(() => {
     if (shouldExit) {
+      process.exitCode = 1
       exit()
     }
   }, [shouldExit, exit])

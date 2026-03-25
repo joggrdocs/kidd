@@ -7,6 +7,7 @@
  */
 
 import { Spinner } from '@inkjs/ui'
+import figures from 'figures'
 import { Box, Text } from 'ink'
 import type { ReactElement } from 'react'
 import { useSyncExternalStore } from 'react'
@@ -75,7 +76,7 @@ function SpinnerRow({ state }: { readonly state: SpinnerState }): ReactElement |
       match(message.length > 0)
         .with(true, () => (
           <Text>
-            <Text color="green">{'\u2713'}</Text> {message}
+            <Text color="green">{figures.tick}</Text> {message}
           </Text>
         ))
         .with(false, () => null)
@@ -117,27 +118,27 @@ function LogRow({
   return match(level)
     .with('info', () => (
       <Text>
-        <Text color="blue">{'\u25CB'}</Text> {text}
+        <Text color="blue">{figures.circle}</Text> {text}
       </Text>
     ))
     .with('success', () => (
       <Text>
-        <Text color="green">{'\u2713'}</Text> {text}
+        <Text color="green">{figures.tick}</Text> {text}
       </Text>
     ))
     .with('error', () => (
       <Text>
-        <Text color="red">{'\u2717'}</Text> {text}
+        <Text color="red">{figures.cross}</Text> {text}
       </Text>
     ))
     .with('warn', () => (
       <Text>
-        <Text color="yellow">{'\u26A0'}</Text> {text}
+        <Text color="yellow">{figures.warning}</Text> {text}
       </Text>
     ))
     .with('step', () => (
       <Text>
-        <Text color="cyan">{'\u25CB'}</Text> {text}
+        <Text color="cyan">{figures.circle}</Text> {text}
       </Text>
     ))
     .with('message', () => (

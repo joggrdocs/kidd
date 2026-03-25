@@ -272,8 +272,8 @@ function EventsPanel({ events }: { readonly events: readonly EventEntry[] }): Re
     <Box flexDirection="column" borderStyle="single" borderColor="gray" paddingX={1}>
       <Text bold>Recent Events</Text>
       <Text> </Text>
-      {events.map((evt) => (
-        <Box key={`${evt.time}-${evt.message}`} gap={1}>
+      {events.map((evt, idx) => (
+        <Box key={`${evt.time}-${evt.message}-${idx}`} gap={1}>
           <Text dimColor>{evt.time}</Text>
           <Text bold color={severityColor(evt.severity)}>
             {severityLabel(evt.severity)}

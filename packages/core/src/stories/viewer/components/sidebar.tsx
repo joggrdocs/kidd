@@ -21,6 +21,7 @@ interface SidebarProps {
   readonly selectedId: string | null
   readonly onSelect: (id: string) => void
   readonly isFocused: boolean
+  readonly hidden?: boolean
 }
 
 /**
@@ -49,7 +50,13 @@ interface TreeNode {
  * @param props - The sidebar props.
  * @returns A rendered sidebar element.
  */
-export function Sidebar({ entries, selectedId, onSelect, isFocused }: SidebarProps): ReactElement {
+export function Sidebar({
+  entries,
+  selectedId,
+  onSelect,
+  isFocused,
+  hidden,
+}: SidebarProps): ReactElement {
   const allNodes = useMemo(() => buildTreeNodes(entries), [entries])
   const [collapsed, setCollapsed] = useState<ReadonlySet<string>>(() =>
     initialCollapsedSet(allNodes)
@@ -73,18 +80,18 @@ export function Sidebar({ entries, selectedId, onSelect, isFocused }: SidebarPro
     (_input, key) => {
       if (key.upArrow) {
         setHighlightIndex((current) =>
-          match(current <= 0)
-            .with(true, () => visibleNodes.length - 1)
-            .with(false, () => current - 1)
-            .exhaustive()
+          match({ atStart: current <= 0, empty: visibleNodes.length === 0 })
+            .with({ empty: true }, () => 0)
+            .with({ atStart: true }, () => visibleNodes.length - 1)
+            .otherwise(() => current - 1)
         )
       }
       if (key.downArrow) {
         setHighlightIndex((current) =>
-          match(current >= visibleNodes.length - 1)
-            .with(true, () => 0)
-            .with(false, () => current + 1)
-            .exhaustive()
+          match({ atEnd: current >= visibleNodes.length - 1, empty: visibleNodes.length === 0 })
+            .with({ empty: true }, () => 0)
+            .with({ atEnd: true }, () => 0)
+            .otherwise(() => current + 1)
         )
       }
       if (key.return) {
@@ -118,6 +125,10 @@ export function Sidebar({ entries, selectedId, onSelect, isFocused }: SidebarPro
         .exhaustive()}
       width="25%"
       paddingX={1}
+      display={match(hidden === true)
+        .with(true, () => 'none' as const)
+        .with(false, () => 'flex' as const)
+        .exhaustive()}
     >
       <Box marginBottom={1}>
         <Text bold dimColor={!isFocused}>

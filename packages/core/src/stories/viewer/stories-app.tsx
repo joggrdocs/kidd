@@ -160,17 +160,13 @@ export function StoriesApp({ registry, isReloading }: StoriesAppProps): ReactEle
       <Box flexDirection="column" flexGrow={1}>
         <Header />
         <Box flexDirection="row" flexGrow={1} overflow="hidden">
-          {match(showSidebar)
-            .with(true, () => (
-              <Sidebar
-                entries={entries}
-                selectedId={selectedStoryId}
-                onSelect={handleSelect}
-                isFocused={mode === 'browse'}
-              />
-            ))
-            .with(false, () => null)
-            .exhaustive()}
+          <Sidebar
+            entries={entries}
+            selectedId={selectedStoryId}
+            onSelect={handleSelect}
+            isFocused={mode === 'browse' && showSidebar}
+            hidden={!showSidebar}
+          />
           <Box flexDirection="column" flexGrow={1}>
             {match(isReloading)
               .with(true, () => <ReloadOverlay />)

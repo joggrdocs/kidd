@@ -16,7 +16,7 @@ export function createMockStory(name: string): StoryEntry {
         component: () => null,
         schema: {} as Story['schema'],
         props: {},
-        defaultKeys: Object.freeze([]) as readonly string[],
+        defaultKeys: [] as readonly string[],
         decorators: Object.freeze([]),
         description: undefined,
       },

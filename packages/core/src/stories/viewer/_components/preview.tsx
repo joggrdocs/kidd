@@ -2,9 +2,24 @@ import { Box, Text } from 'ink'
 import type { ComponentType, ReactElement } from 'react'
 import { useMemo } from 'react'
 
+import { useFullScreen } from '../../../ui/fullscreen.js'
+import { ScrollArea } from '../../../ui/scroll-area.js'
 import type { Decorator, Story } from '../../types.js'
 import { EmptyState } from './empty-state.js'
 import { ErrorBoundary } from './error-boundary.js'
+
+// ---------------------------------------------------------------------------
+// Constants
+// ---------------------------------------------------------------------------
+
+/**
+ * Number of terminal rows consumed by preview chrome (border, header,
+ * padding, status bar) that must be subtracted from terminal height
+ * to compute the scrollable content area height.
+ *
+ * @private
+ */
+const PREVIEW_CHROME_ROWS = 10
 
 // ---------------------------------------------------------------------------
 // Types
@@ -34,16 +49,24 @@ interface PreviewProps {
 
 /**
  * Preview panel that renders the selected story component with the current
- * props. Shows the file path, qualified story name, and description above
- * the rendered component. Applies decorators in order and wraps the result
- * in an {@link ErrorBoundary} to catch render errors.
+ * props. Shows the qualified story name, file path, and description above
+ * the rendered component inside a bordered box. Applies decorators in order
+ * and wraps the result in an {@link ErrorBoundary} to catch render errors.
+ * The component area is scrollable when content exceeds the viewport.
  *
  * @param props - The preview props.
  * @returns A rendered preview element.
  */
 export function Preview({ story, currentProps, context }: PreviewProps): ReactElement {
+  const { rows } = useFullScreen()
+  const scrollHeight = Math.max(1, rows - PREVIEW_CHROME_ROWS)
+
   if (story === null || context === null) {
-    return <EmptyState />
+    return (
+      <Box borderStyle="single" flexDirection="column" flexGrow={1}>
+        <EmptyState />
+      </Box>
+    )
   }
 
   const DecoratedComponent = useMemo(
@@ -53,11 +76,13 @@ export function Preview({ story, currentProps, context }: PreviewProps): ReactEl
   )
 
   return (
-    <Box flexDirection="column" flexGrow={1} padding={1}>
+    <Box flexDirection="column" flexGrow={1} borderStyle="single" paddingX={1}>
       <PreviewHeader context={context} />
-      <ErrorBoundary key={context.displayName}>
-        <DecoratedComponent {...currentProps} />
-      </ErrorBoundary>
+      <ScrollArea height={scrollHeight}>
+        <ErrorBoundary key={context.displayName}>
+          <DecoratedComponent {...currentProps} />
+        </ErrorBoundary>
+      </ScrollArea>
     </Box>
   )
 }
@@ -67,7 +92,9 @@ export function Preview({ story, currentProps, context }: PreviewProps): ReactEl
 // ---------------------------------------------------------------------------
 
 /**
- * Render the preview header showing file path, story name, and description.
+ * Render the preview header showing story name, file path, and description.
+ * Name is displayed first and bold, path is styled as code (italic + dim),
+ * and description is visually separated below.
  *
  * @private
  * @param props - The header props.
@@ -75,11 +102,11 @@ export function Preview({ story, currentProps, context }: PreviewProps): ReactEl
  */
 function PreviewHeader({ context }: { readonly context: PreviewContext }): ReactElement {
   return (
-    <Box flexDirection="column" marginBottom={1}>
-      <Text dimColor>{context.filePath}</Text>
-      <Box gap={1}>
-        <Text bold>{context.displayName}</Text>
-      </Box>
+    <Box flexDirection="column" marginY={1}>
+      <Text bold>{context.displayName}</Text>
+      <Text italic dimColor>
+        {context.filePath}
+      </Text>
       <StoryDescription description={context.description} />
     </Box>
   )
@@ -100,7 +127,13 @@ function StoryDescription({
   if (description === undefined) {
     return null
   }
-  return <Text dimColor>{description}</Text>
+  return (
+    <Box marginTop={1}>
+      <Text dimColor italic>
+        {description}
+      </Text>
+    </Box>
+  )
 }
 
 /**

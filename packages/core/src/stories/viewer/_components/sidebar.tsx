@@ -4,7 +4,22 @@ import type { ReactElement } from 'react'
 import { useEffect, useMemo, useState } from 'react'
 import { match } from 'ts-pattern'
 
+import { useFullScreen } from '../../../ui/fullscreen.js'
+import { ScrollArea } from '../../../ui/scroll-area.js'
 import type { Story, StoryEntry, StoryGroup } from '../../types.js'
+
+// ---------------------------------------------------------------------------
+// Constants
+// ---------------------------------------------------------------------------
+
+/**
+ * Number of terminal rows consumed by sidebar chrome (borders, header,
+ * margin, status bar) that must be subtracted from terminal height
+ * to compute the scrollable area height.
+ *
+ * @private
+ */
+const SIDEBAR_CHROME_ROWS = 6
 
 // ---------------------------------------------------------------------------
 // Types
@@ -91,20 +106,33 @@ export function Sidebar({ entries, selectedId, onSelect, isFocused }: SidebarPro
 
   const highlightedItem = selectableItems[highlightIndex]
   const highlightedId = resolveHighlightedId(highlightedItem)
+  const { rows } = useFullScreen()
+  const scrollHeight = Math.max(1, rows - SIDEBAR_CHROME_ROWS)
+  const activeItemIndex = useMemo(
+    () => items.findIndex((item) => item.id === highlightedId),
+    [items, highlightedId]
+  )
 
   return (
     <Box flexDirection="column" borderStyle="single" width="25%" paddingX={1}>
       <Box marginBottom={1}>
         <Text bold>Stories</Text>
       </Box>
-      {items.map((item) => (
-        <SidebarRow
-          key={item.id}
-          item={item}
-          isHighlighted={item.id === highlightedId}
-          isSelected={item.id === selectedId}
-        />
-      ))}
+      <ScrollArea
+        height={scrollHeight}
+        activeIndex={Math.max(0, activeItemIndex)}
+        itemCount={items.length}
+        showIndicator={items.length > scrollHeight}
+      >
+        {items.map((item) => (
+          <SidebarRow
+            key={item.id}
+            item={item}
+            isHighlighted={item.id === highlightedId}
+            isSelected={item.id === selectedId}
+          />
+        ))}
+      </ScrollArea>
     </Box>
   )
 }

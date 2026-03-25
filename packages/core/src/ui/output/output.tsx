@@ -17,36 +17,25 @@ import { formatCheck } from '@/lib/format/check.js'
 import { formatFinding } from '@/lib/format/finding.js'
 import { formatSummary } from '@/lib/format/tally.js'
 
-import type { LogLevel, OutputEntry, OutputStore, SpinnerState } from './types.js'
-
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
-
-/**
- * Props for the {@link Output} component.
- */
-export interface OutputProps {
-  /**
-   * The output store to render entries from.
-   */
-  readonly store: OutputStore
-}
+import type { LogLevel, OutputEntry, SpinnerState } from './types.js'
+import { useOutputStore } from './use-output-store.js'
 
 // ---------------------------------------------------------------------------
 // Exports
 // ---------------------------------------------------------------------------
 
 /**
- * Render accumulated output entries and spinner state from an {@link OutputStore}.
+ * Render accumulated output entries and spinner state from the screen's
+ * {@link OutputStore}.
  *
- * Subscribes to the store via `useSyncExternalStore` and re-renders
- * whenever new entries are pushed or spinner state changes.
+ * Automatically retrieves the store from the screen context provider.
+ * Subscribes via `useSyncExternalStore` and re-renders whenever new
+ * entries are pushed or spinner state changes.
  *
- * @param props - The output component props.
  * @returns A rendered output element.
  */
-export function Output({ store }: OutputProps): ReactElement {
+export function Output(): ReactElement {
+  const store = useOutputStore()
   const snapshot = useSyncExternalStore(store.subscribe, store.getSnapshot)
 
   return (

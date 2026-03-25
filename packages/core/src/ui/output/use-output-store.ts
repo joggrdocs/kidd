@@ -16,7 +16,8 @@ import type { OutputStore } from './types.js'
  * Access the {@link OutputStore} attached to the current screen context.
  *
  * The store is attached by `screen()` using a private symbol key.
- * Use this to pass the store to `<Output />` for rendering.
+ * Used internally by `<Output />` and available for advanced use cases
+ * that need direct store access.
  *
  * @returns The output store for the current screen.
  */

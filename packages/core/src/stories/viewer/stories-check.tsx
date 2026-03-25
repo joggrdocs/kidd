@@ -5,7 +5,7 @@ import type { ReactElement } from 'react'
 import { useEffect, useRef } from 'react'
 import { match } from 'ts-pattern'
 
-import { Output, useOutputStore } from '../../ui/output/index.js'
+import { Output } from '../../ui/output/index.js'
 import { useScreenContext } from '../../ui/provider.js'
 import { checkStories } from '../check.js'
 import { discoverStories } from '../discover.js'
@@ -37,7 +37,6 @@ interface StoriesCheckProps {
  */
 export function StoriesCheck({ include }: StoriesCheckProps): ReactElement {
   const ctx = useScreenContext()
-  const store = useOutputStore()
   const { exit } = useApp()
   const started = useRef(false)
 
@@ -126,5 +125,5 @@ export function StoriesCheck({ include }: StoriesCheckProps): ReactElement {
     })
   }, [include, ctx, exit])
 
-  return <Output store={store} />
+  return <Output />
 }

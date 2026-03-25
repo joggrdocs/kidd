@@ -6,7 +6,6 @@
  */
 
 export { Output } from './output.js'
-export type { OutputProps } from './output.js'
 
 export { useOutputStore } from './use-output-store.js'
 

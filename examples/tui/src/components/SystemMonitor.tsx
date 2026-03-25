@@ -80,7 +80,7 @@ export function SystemMonitor({
   return (
     <Box flexDirection="column">
       <TitleBar hostname={hostname} uptime={uptime} />
-      <Box flexDirection="row" gap={1}>
+      <Box flexDirection="row">
         <ResourcePanel
           cpuUsage={cpuUsage}
           memoryUsage={memoryUsage}
@@ -92,7 +92,7 @@ export function SystemMonitor({
           activeConnections={activeConnections}
         />
       </Box>
-      <Box flexDirection="row" gap={1}>
+      <Box flexDirection="row">
         <LoadPanel
           processes={processes}
           loadAvg1={loadAvg1}
@@ -152,7 +152,7 @@ function ResourcePanel({
   readonly diskUsage: number
 }): ReactElement {
   return (
-    <Box flexDirection="column" borderStyle="single" borderColor="gray" paddingX={1} width="50%">
+    <Box flexDirection="column" borderStyle="single" borderColor="gray" paddingX={1} flexGrow={1}>
       <Text bold>Resources</Text>
       <Text> </Text>
       <ProgressRow label="CPU " value={cpuUsage} />
@@ -177,7 +177,7 @@ function NetworkPanel({
   readonly activeConnections: number
 }): ReactElement {
   return (
-    <Box flexDirection="column" borderStyle="single" borderColor="gray" paddingX={1} width="50%">
+    <Box flexDirection="column" borderStyle="single" borderColor="gray" paddingX={1} flexGrow={1}>
       <Text bold>Network</Text>
       <Text> </Text>
       <Box justifyContent="space-between">
@@ -213,7 +213,7 @@ function LoadPanel({
   readonly loadAvg15: number
 }): ReactElement {
   return (
-    <Box flexDirection="column" borderStyle="single" borderColor="gray" paddingX={1} width="50%">
+    <Box flexDirection="column" borderStyle="single" borderColor="gray" paddingX={1} flexGrow={1}>
       <Text bold>System Load</Text>
       <Text> </Text>
       <Box justifyContent="space-between">
@@ -255,7 +255,7 @@ function ServicesPanel({
   readonly services: readonly ServiceStatus[]
 }): ReactElement {
   return (
-    <Box flexDirection="column" borderStyle="single" borderColor="gray" paddingX={1} width="50%">
+    <Box flexDirection="column" borderStyle="single" borderColor="gray" paddingX={1} flexGrow={1}>
       <Text bold>Services</Text>
       <Text> </Text>
       {services.map((svc) => (

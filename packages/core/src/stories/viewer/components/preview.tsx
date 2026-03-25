@@ -131,10 +131,7 @@ export function Preview({
         .with({ borderless: true }, () => undefined)
         .with({ isFocused: true }, () => 'cyan' as const)
         .otherwise(() => undefined)}
-      paddingX={match(borderless)
-        .with(true, () => 0)
-        .with(false, () => 1)
-        .exhaustive()}
+      paddingX={1}
     >
       <PreviewHeader context={context} />
       <Box ref={contentRef} flexDirection="column" flexGrow={1}>

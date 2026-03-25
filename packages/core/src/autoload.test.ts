@@ -229,6 +229,19 @@ describe('autoload()', () => {
     expect(hasTag(result['init'], 'Command')).toBeTruthy()
   })
 
+  it('should skip files that throw during import', async () => {
+    mockedReaddir.mockResolvedValue([makeDirent('broken.ts', true)] as unknown as Dirent[])
+
+    vi.doMock(
+      '/tmp/commands/broken.ts',
+      () => Promise.reject(new Error('Module has no valid export'))
+    )
+
+    const result = await autoload({ dir: '/tmp/commands' })
+
+    expect(result).toEqual({})
+  })
+
   it('should ignore non-ts/js files', async () => {
     mockedReaddir.mockResolvedValue([
       makeDirent('readme.md', true),

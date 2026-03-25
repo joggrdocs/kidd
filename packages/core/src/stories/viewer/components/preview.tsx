@@ -13,6 +13,16 @@ import { ErrorBoundary } from './error-boundary.js'
 import { PropsEditor } from './props-editor.js'
 
 // ---------------------------------------------------------------------------
+// Constants
+// ---------------------------------------------------------------------------
+
+/** Minimum rows allocated to the props editor area. */
+const MIN_PROPS_ROWS = 6
+
+/** Maximum rows allocated to the props editor area. */
+const MAX_PROPS_ROWS = 14
+
+// ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
@@ -46,9 +56,10 @@ interface PreviewProps {
  * Preview panel that renders the selected story component with the current
  * props and an inline props editor. Shows the qualified story name, file path,
  * and description above the rendered component. The props editor is inset
- * below the component with a dotted separator. Applies decorators in order
- * and wraps the result in an {@link ErrorBoundary} to catch render errors.
- * The component area is scrollable when content exceeds the viewport.
+ * below the component with a dotted separator. Both the component area and
+ * the props editor are independently scrollable to prevent overflow.
+ * Applies decorators in order and wraps the result in an
+ * {@link ErrorBoundary} to catch render errors.
  *
  * @param props - The preview props.
  * @returns A rendered preview element.
@@ -64,6 +75,10 @@ export function Preview({
 }: PreviewProps): ReactElement {
   const contentRef = useRef<DOMElement>(null)
   const { height: contentHeight } = useSize(contentRef)
+  const { componentAreaHeight, propsAreaHeight } = useMemo(
+    () => splitContentHeight(contentHeight),
+    [contentHeight]
+  )
 
   const DecoratedComponent = useMemo(() => {
     if (story === null) {
@@ -77,7 +92,7 @@ export function Preview({
 
   if (story === null || context === null || DecoratedComponent === null) {
     return (
-      <Box borderStyle="single" borderDimColor flexDirection="column" flexGrow={1}>
+      <Box borderStyle="single" borderDimColor flexDirection="column" flexGrow={1} overflow="hidden">
         <Box paddingX={1}>
           <Text bold dimColor>
             Preview
@@ -102,19 +117,21 @@ export function Preview({
     >
       <PreviewHeader context={context} />
       <Box ref={contentRef} flexDirection="column" flexGrow={1}>
-        <ScrollArea height={Math.max(1, contentHeight)}>
+        <ScrollArea height={Math.max(1, componentAreaHeight)}>
           <ErrorBoundary key={context.displayName}>
             <DecoratedComponent {...currentProps} />
           </ErrorBoundary>
         </ScrollArea>
+        <Box height={propsAreaHeight} overflow="hidden" flexDirection="column">
+          <PropsEditor
+            fields={fields}
+            values={currentProps}
+            errors={errors}
+            onChange={onPropsChange}
+            isFocused={isFocused}
+          />
+        </Box>
       </Box>
-      <PropsEditor
-        fields={fields}
-        values={currentProps}
-        errors={errors}
-        onChange={onPropsChange}
-        isFocused={isFocused}
-      />
     </Box>
   )
 }
@@ -167,6 +184,28 @@ function StoryDescription({
       {description}
     </Text>
   )
+}
+
+/**
+ * Split the measured content area height between the component preview
+ * and the props editor. The props editor receives up to 45% of the
+ * available space (clamped between {@link MIN_PROPS_ROWS} and
+ * {@link MAX_PROPS_ROWS}). The component preview gets the remainder.
+ *
+ * @private
+ * @param contentHeight - Total measured height of the content area.
+ * @returns Frozen object with computed area heights.
+ */
+function splitContentHeight(contentHeight: number): {
+  readonly componentAreaHeight: number
+  readonly propsAreaHeight: number
+} {
+  const propsAreaHeight = Math.min(
+    Math.max(MIN_PROPS_ROWS, Math.floor(contentHeight * 0.45)),
+    MAX_PROPS_ROWS
+  )
+  const componentAreaHeight = Math.max(1, contentHeight - propsAreaHeight)
+  return Object.freeze({ componentAreaHeight, propsAreaHeight })
 }
 
 /**

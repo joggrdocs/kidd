@@ -153,7 +153,7 @@ export function StoriesApp({ registry, isReloading }: StoriesAppProps): ReactEle
     <FullScreen>
       <Box flexDirection="column" flexGrow={1}>
         <Header />
-        <Box flexDirection="row" flexGrow={1}>
+        <Box flexDirection="row" flexGrow={1} overflow="hidden">
           <Sidebar
             entries={entries}
             selectedId={selectedStoryId}

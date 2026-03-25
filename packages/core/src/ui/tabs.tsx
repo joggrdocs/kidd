@@ -148,7 +148,7 @@ function TabBar({ tabs, activeIndex, isFocused }: TabBarProps): ReactElement {
           )
         })}
         {match(isFocused)
-          .with(true, () => <Text dimColor>tab/←→</Text>)
+          .with(true, () => <Text dimColor>| tab/←→</Text>)
           .with(false, () => null)
           .exhaustive()}
       </Box>

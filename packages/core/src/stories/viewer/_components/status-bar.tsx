@@ -2,7 +2,7 @@ import { Box, Spacer, Text } from 'ink'
 import type { ReactElement } from 'react'
 import { match } from 'ts-pattern'
 
-import type { PanelId } from '../hooks/use-panel-focus.js'
+import type { ViewerMode } from '../hooks/use-panel-focus.js'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -12,7 +12,8 @@ import type { PanelId } from '../hooks/use-panel-focus.js'
  * Props for the {@link StatusBar} component.
  */
 interface StatusBarProps {
-  readonly activePanel: PanelId
+  readonly mode: ViewerMode
+  readonly hasSelection: boolean
 }
 
 // ---------------------------------------------------------------------------
@@ -20,13 +21,13 @@ interface StatusBarProps {
 // ---------------------------------------------------------------------------
 
 /**
- * Bottom status bar displaying keyboard shortcut hints and a tab indicator
- * showing the currently active panel.
+ * Bottom status bar displaying mode indicator and context-sensitive
+ * keyboard shortcut hints.
  *
  * @param props - The status bar props.
  * @returns A rendered status bar element.
  */
-export function StatusBar({ activePanel }: StatusBarProps): ReactElement {
+export function StatusBar({ mode, hasSelection }: StatusBarProps): ReactElement {
   return (
     <Box
       borderStyle="single"
@@ -36,21 +37,14 @@ export function StatusBar({ activePanel }: StatusBarProps): ReactElement {
       borderRight={false}
       paddingX={1}
     >
-      <TabIndicator activePanel={activePanel} />
+      <ModeIndicator mode={mode} />
       <Text> </Text>
       <Text dimColor>│</Text>
       <Text> </Text>
-      <Text dimColor>enter</Text>
-      <Text>: select</Text>
-      <Text> </Text>
-      <Text dimColor>tab</Text>
-      <Text>: switch</Text>
-      <Text> </Text>
-      <Text dimColor>r</Text>
-      <Text>: reset</Text>
-      <Text> </Text>
-      <Text dimColor>?</Text>
-      <Text>: help</Text>
+      {match(mode)
+        .with('browse', () => <BrowseHints hasSelection={hasSelection} />)
+        .with('edit', () => <EditHints />)
+        .exhaustive()}
       <Spacer />
       <Text dimColor>q</Text>
       <Text>: quit</Text>
@@ -63,39 +57,81 @@ export function StatusBar({ activePanel }: StatusBarProps): ReactElement {
 // ---------------------------------------------------------------------------
 
 /**
- * Render the tab indicator showing which panel is currently active.
+ * Render the mode indicator badge.
  *
  * @private
- * @param props - The tab indicator props.
- * @returns A rendered tab indicator element.
+ * @param props - The mode indicator props.
+ * @returns A rendered mode indicator element.
  */
-function TabIndicator({ activePanel }: { readonly activePanel: PanelId }): ReactElement {
+function ModeIndicator({ mode }: { readonly mode: ViewerMode }): ReactElement {
   return (
-    <Box gap={1}>
-      <Text
-        bold={activePanel === 'sidebar'}
-        color={match(activePanel)
-          .with('sidebar', () => 'cyan' as const)
-          .with('editor', () => undefined)
-          .exhaustive()}
-      >
-        {match(activePanel)
-          .with('sidebar', () => '▸ Stories')
-          .with('editor', () => '  Stories')
-          .exhaustive()}
-      </Text>
-      <Text
-        bold={activePanel === 'editor'}
-        color={match(activePanel)
-          .with('editor', () => 'cyan' as const)
-          .with('sidebar', () => undefined)
-          .exhaustive()}
-      >
-        {match(activePanel)
-          .with('editor', () => '▸ Props')
-          .with('sidebar', () => '  Props')
-          .exhaustive()}
-      </Text>
+    <Text
+      bold
+      color={match(mode)
+        .with('browse', () => 'cyan' as const)
+        .with('edit', () => 'yellow' as const)
+        .exhaustive()}
+    >
+      {match(mode)
+        .with('browse', () => '● Browse')
+        .with('edit', () => '● Edit')
+        .exhaustive()}
+    </Text>
+  )
+}
+
+/**
+ * Render keyboard hints for browse mode.
+ *
+ * @private
+ * @param props - The browse hints props.
+ * @returns A rendered hints element.
+ */
+function BrowseHints({ hasSelection }: { readonly hasSelection: boolean }): ReactElement {
+  return (
+    <Box>
+      <Text dimColor>↑↓</Text>
+      <Text>: navigate</Text>
+      <Text> </Text>
+      <Text dimColor>enter</Text>
+      <Text>: select/expand</Text>
+      <Text> </Text>
+      <Text dimColor>?</Text>
+      <Text>: help</Text>
+      {match(hasSelection)
+        .with(true, () => (
+          <Box>
+            <Text> </Text>
+            <Text dimColor>r</Text>
+            <Text>: reset</Text>
+          </Box>
+        ))
+        .with(false, () => null)
+        .exhaustive()}
+    </Box>
+  )
+}
+
+/**
+ * Render keyboard hints for edit mode.
+ *
+ * @private
+ * @returns A rendered hints element.
+ */
+function EditHints(): ReactElement {
+  return (
+    <Box>
+      <Text dimColor>↑↓</Text>
+      <Text>: field</Text>
+      <Text> </Text>
+      <Text dimColor>esc</Text>
+      <Text>: back to stories</Text>
+      <Text> </Text>
+      <Text dimColor>r</Text>
+      <Text>: reset</Text>
+      <Text> </Text>
+      <Text dimColor>?</Text>
+      <Text>: help</Text>
     </Box>
   )
 }

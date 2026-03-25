@@ -36,13 +36,17 @@ interface SidebarProps {
 }
 
 /**
- * A flat item in the sidebar list, representing a single selectable story.
+ * A node in the sidebar tree. Can be a collapsible group header
+ * or a selectable story leaf.
  *
  * @private
  */
-interface SidebarItem {
+interface TreeNode {
   readonly id: string
   readonly label: string
+  readonly kind: 'group' | 'leaf'
+  readonly indent: number
+  readonly groupKey?: string
 }
 
 // ---------------------------------------------------------------------------
@@ -50,27 +54,31 @@ interface SidebarItem {
 // ---------------------------------------------------------------------------
 
 /**
- * Story browser sidebar. Displays story groups and single stories in a
- * navigable list. Arrow keys move the highlight, Enter selects a story.
+ * Story browser sidebar with a collapsible directory tree. Groups can
+ * be expanded/collapsed with Enter. Story leaves are selected with Enter.
+ * Arrow keys navigate the visible tree.
  *
  * @param props - The sidebar props.
  * @returns A rendered sidebar element.
  */
 export function Sidebar({ entries, selectedId, onSelect, isFocused }: SidebarProps): ReactElement {
-  const items = useMemo(() => buildSidebarItems(entries), [entries])
+  const [collapsed, setCollapsed] = useState<ReadonlySet<string>>(new Set())
+
+  const allNodes = useMemo(() => buildTreeNodes(entries), [entries])
+  const visibleNodes = useMemo(() => filterVisibleNodes(allNodes, collapsed), [allNodes, collapsed])
   const [highlightIndex, setHighlightIndex] = useState(0)
 
   useEffect(() => {
     setHighlightIndex((current) => {
-      if (items.length === 0) {
+      if (visibleNodes.length === 0) {
         return 0
       }
-      if (current >= items.length) {
-        return items.length - 1
+      if (current >= visibleNodes.length) {
+        return visibleNodes.length - 1
       }
       return current
     })
-  }, [items.length])
+  }, [visibleNodes.length])
 
   useInput(
     (_input, key) => {
@@ -78,17 +86,25 @@ export function Sidebar({ entries, selectedId, onSelect, isFocused }: SidebarPro
         setHighlightIndex((current) => Math.max(0, current - 1))
       }
       if (key.downArrow) {
-        setHighlightIndex((current) => Math.min(items.length - 1, current + 1))
+        setHighlightIndex((current) => Math.min(visibleNodes.length - 1, current + 1))
       }
       if (key.return) {
-        selectByIndex(items, highlightIndex, onSelect)
+        const node = visibleNodes[highlightIndex]
+        if (node === undefined) {
+          return
+        }
+        if (node.kind === 'group') {
+          toggleGroup(node.id, collapsed, setCollapsed)
+          return
+        }
+        onSelect(node.id)
       }
     },
     { isActive: isFocused }
   )
 
-  const highlightedItem = items[highlightIndex]
-  const highlightedId = resolveHighlightedId(highlightedItem)
+  const highlightedNode = visibleNodes[highlightIndex]
+  const highlightedId = resolveNodeId(highlightedNode)
   const { rows } = useFullScreen()
   const scrollHeight = Math.max(1, rows - SIDEBAR_CHROME_ROWS)
 
@@ -116,15 +132,16 @@ export function Sidebar({ entries, selectedId, onSelect, isFocused }: SidebarPro
       <ScrollArea
         height={scrollHeight}
         activeIndex={Math.max(0, highlightIndex)}
-        itemCount={items.length}
-        showIndicator={items.length > scrollHeight}
+        itemCount={visibleNodes.length}
+        showIndicator={visibleNodes.length > scrollHeight}
       >
-        {items.map((item) => (
-          <SidebarRow
-            key={item.id}
-            item={item}
-            isHighlighted={item.id === highlightedId}
-            isSelected={item.id === selectedId}
+        {visibleNodes.map((node) => (
+          <TreeRow
+            key={node.id}
+            node={node}
+            isHighlighted={node.id === highlightedId}
+            isSelected={node.id === selectedId}
+            isCollapsed={collapsed.has(node.id)}
           />
         ))}
       </ScrollArea>
@@ -137,25 +154,51 @@ export function Sidebar({ entries, selectedId, onSelect, isFocused }: SidebarPro
 // ---------------------------------------------------------------------------
 
 /**
- * Props for the {@link SidebarRow} component.
+ * Props for the {@link TreeRow} component.
  *
  * @private
  */
-interface SidebarRowProps {
-  readonly item: SidebarItem
+interface TreeRowProps {
+  readonly node: TreeNode
   readonly isHighlighted: boolean
   readonly isSelected: boolean
+  readonly isCollapsed: boolean
 }
 
 /**
- * Render a single row in the sidebar list.
+ * Render a single row in the sidebar tree.
  *
  * @private
- * @param props - The sidebar row props.
- * @returns A rendered sidebar row element.
+ * @param props - The tree row props.
+ * @returns A rendered tree row element.
  */
-function SidebarRow({ item, isHighlighted, isSelected }: SidebarRowProps): ReactElement {
-  const prefix = match(isHighlighted)
+function TreeRow({ node, isHighlighted, isSelected, isCollapsed }: TreeRowProps): ReactElement {
+  const indent = '  '.repeat(node.indent)
+
+  if (node.kind === 'group') {
+    const chevron = match(isCollapsed)
+      .with(true, () => '▸')
+      .with(false, () => '▾')
+      .exhaustive()
+
+    return (
+      <Box>
+        <Text
+          bold
+          dimColor={!isHighlighted}
+          color={match(isHighlighted)
+            .with(true, () => 'cyan' as const)
+            .with(false, () => undefined)
+            .exhaustive()}
+        >
+          {indent}
+          {chevron} {node.label}
+        </Text>
+      </Box>
+    )
+  }
+
+  const cursor = match(isHighlighted)
     .with(true, () => '▸ ')
     .with(false, () => '  ')
     .exhaustive()
@@ -169,54 +212,62 @@ function SidebarRow({ item, isHighlighted, isSelected }: SidebarRowProps): React
           .otherwise(() => undefined)}
         bold={isHighlighted}
       >
-        {prefix}
-        {item.label}
+        {indent}
+        {cursor}
+        {node.label}
       </Text>
     </Box>
   )
 }
 
 /**
- * Select a story by its index in the selectable items array.
+ * Toggle a group's collapsed state.
  *
  * @private
- * @param selectableItems - The array of selectable sidebar items.
- * @param index - The index to select.
- * @param onSelect - The selection callback.
+ * @param groupId - The group node ID to toggle.
+ * @param collapsed - The current set of collapsed group IDs.
+ * @param setCollapsed - State setter for the collapsed set.
  */
-function selectByIndex(
-  selectableItems: readonly SidebarItem[],
-  index: number,
-  onSelect: (id: string) => void
+function toggleGroup(
+  groupId: string,
+  collapsed: ReadonlySet<string>,
+  setCollapsed: (updater: (prev: ReadonlySet<string>) => ReadonlySet<string>) => void
 ): void {
-  const item = selectableItems[index]
-  if (item !== undefined) {
-    onSelect(item.id)
-  }
+  setCollapsed(() => {
+    const next = new Set(collapsed)
+    if (next.has(groupId)) {
+      next.delete(groupId)
+    } else {
+      next.add(groupId)
+    }
+    return next
+  })
 }
 
 /**
- * Build a flat list of sidebar items from the registry entries map.
- * Story groups expand into flat items with "GroupTitle / VariantName" labels.
- * Single stories appear with their name directly.
+ * Build the full tree node list from registry entries. Groups produce
+ * a header node followed by indented leaf nodes for each variant.
+ * Single stories produce a single leaf node at indent 0.
  *
  * @private
  * @param entries - The story registry entries.
- * @returns A flat array of sidebar items.
+ * @returns The full (unfiltered) tree node list.
  */
-function buildSidebarItems(entries: ReadonlyMap<string, StoryEntry>): readonly SidebarItem[] {
+function buildTreeNodes(entries: ReadonlyMap<string, StoryEntry>): readonly TreeNode[] {
   return [...entries.entries()].flatMap(([key, entry]) =>
     match(hasTag(entry, 'StoryGroup'))
-      .with(true, () => entryToFlatItems(key, entry as StoryGroup))
+      .with(true, () => groupToNodes(key, entry as StoryGroup))
       .with(false, () =>
         match(hasTag(entry, 'Story'))
           .with(true, () => [
             {
               id: key,
               label: (entry as Story).name,
+              kind: 'leaf' as const,
+              indent: 0,
             },
           ])
-          .with(false, () => [] as readonly SidebarItem[])
+          .with(false, () => [] as readonly TreeNode[])
           .exhaustive()
       )
       .exhaustive()
@@ -224,32 +275,66 @@ function buildSidebarItems(entries: ReadonlyMap<string, StoryEntry>): readonly S
 }
 
 /**
- * Extract the ID from a sidebar item, returning null when the item is
- * undefined.
- *
- * @private
- * @param item - The sidebar item to resolve.
- * @returns The item ID or null.
- */
-function resolveHighlightedId(item: SidebarItem | undefined): string | null {
-  if (item === undefined) {
-    return null
-  }
-  return item.id
-}
-
-/**
- * Convert a story group entry into flat sidebar items. Each variant
- * is labelled as "GroupTitle / VariantName".
+ * Convert a story group into tree nodes: one group header followed by
+ * indented leaf nodes for each variant.
  *
  * @private
  * @param key - The group registry key.
  * @param group - The story group entry.
- * @returns A flat array of sidebar items for the group.
+ * @returns Tree nodes for the group.
  */
-function entryToFlatItems(key: string, group: StoryGroup): readonly SidebarItem[] {
-  return Object.keys(group.stories).map((variantName) => ({
+function groupToNodes(key: string, group: StoryGroup): readonly TreeNode[] {
+  const header: TreeNode = {
+    id: `group:${key}`,
+    label: group.title,
+    kind: 'group',
+    indent: 0,
+    groupKey: key,
+  }
+  const leaves: readonly TreeNode[] = Object.keys(group.stories).map((variantName) => ({
     id: `${key}::${variantName}`,
-    label: `${group.title} / ${variantName}`,
+    label: variantName,
+    kind: 'leaf' as const,
+    indent: 1,
+    groupKey: key,
   }))
+  return [header, ...leaves]
+}
+
+/**
+ * Filter the full tree to only visible nodes based on collapsed groups.
+ * When a group is collapsed, its child leaves are hidden.
+ *
+ * @private
+ * @param nodes - The full tree node list.
+ * @param collapsed - The set of collapsed group node IDs.
+ * @returns Only the nodes that should be visible.
+ */
+function filterVisibleNodes(
+  nodes: readonly TreeNode[],
+  collapsed: ReadonlySet<string>
+): readonly TreeNode[] {
+  return nodes.filter((node) => {
+    if (node.kind === 'group') {
+      return true
+    }
+    if (node.groupKey === undefined) {
+      return true
+    }
+    return !collapsed.has(`group:${node.groupKey}`)
+  })
+}
+
+/**
+ * Extract the ID from a tree node, returning null when undefined.
+ *
+ * @private
+ * @param node - The tree node to resolve.
+ * @returns The node ID or null.
+ */
+function resolveNodeId(node: TreeNode | undefined): string | null {
+  if (node === undefined) {
+    return null
+  }
+  return node.id
 }

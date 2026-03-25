@@ -1,22 +1,24 @@
 import { useCallback, useState } from 'react'
-import { match } from 'ts-pattern'
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
 /**
- * Identifier for a focusable panel in the stories viewer.
+ * The current interaction mode in the stories viewer.
+ *
+ * - `browse` — Sidebar is active, user navigates the story tree.
+ * - `edit` — Props editor is active, user edits field values.
  */
-export type PanelId = 'sidebar' | 'editor'
+export type ViewerMode = 'browse' | 'edit'
 
 /**
- * State and controls for managing panel focus in the stories viewer.
+ * State and controls for managing the viewer interaction mode.
  */
-export interface PanelFocusState {
-  readonly activePanel: PanelId
-  readonly cyclePanel: () => void
-  readonly setPanel: (panel: PanelId) => void
+export interface ViewerModeState {
+  readonly mode: ViewerMode
+  readonly enterEditMode: () => void
+  readonly exitEditMode: () => void
 }
 
 // ---------------------------------------------------------------------------
@@ -24,23 +26,22 @@ export interface PanelFocusState {
 // ---------------------------------------------------------------------------
 
 /**
- * Manage focus state between the sidebar and editor panels.
- * Provides a cycle function for tab-based navigation and a direct
- * setter for programmatic focus changes.
+ * Manage the interaction mode between browsing stories and editing props.
+ * The viewer starts in browse mode. Entering edit mode is only possible
+ * when a story has been selected. Exiting edit mode returns to browse.
  *
- * @returns The current panel focus state and control functions.
+ * @returns The current viewer mode state and control functions.
  */
-export function usePanelFocus(): PanelFocusState {
-  const [activePanel, setActivePanel] = useState<PanelId>('sidebar')
+export function useViewerMode(): ViewerModeState {
+  const [mode, setMode] = useState<ViewerMode>('browse')
 
-  const cyclePanel = useCallback(() => {
-    setActivePanel((current) =>
-      match(current)
-        .with('sidebar', () => 'editor' as const)
-        .with('editor', () => 'sidebar' as const)
-        .exhaustive()
-    )
+  const enterEditMode = useCallback(() => {
+    setMode('edit')
   }, [])
 
-  return { activePanel, cyclePanel, setPanel: setActivePanel }
+  const exitEditMode = useCallback(() => {
+    setMode('browse')
+  }, [])
+
+  return { mode, enterEditMode, exitEditMode }
 }

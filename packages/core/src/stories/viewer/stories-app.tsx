@@ -15,7 +15,7 @@ import { Preview } from './_components/preview.js'
 import { PropsEditor } from './_components/props-editor.js'
 import { Sidebar } from './_components/sidebar.js'
 import { StatusBar } from './_components/status-bar.js'
-import { usePanelFocus } from './hooks/use-panel-focus.js'
+import { useViewerMode } from './hooks/use-panel-focus.js'
 import { useStories } from './hooks/use-stories.js'
 
 // ---------------------------------------------------------------------------
@@ -38,12 +38,16 @@ interface StoriesAppProps {
  * preview, props editor, and status bar into a fullscreen interactive
  * terminal application.
  *
+ * Operates in two modes:
+ * - **browse** — Sidebar is active, user navigates the story tree.
+ * - **edit** — Props editor is active, user edits field values.
+ *
  * @param props - The stories app props.
  * @returns A rendered stories app element.
  */
 export function StoriesApp({ registry }: StoriesAppProps): ReactElement {
   const entries = useStories(registry)
-  const { activePanel, cyclePanel } = usePanelFocus()
+  const { mode, enterEditMode, exitEditMode } = useViewerMode()
   const [selectedStoryId, setSelectedStoryId] = useState<string | null>(null)
   const [currentProps, setCurrentProps] = useState<Record<string, unknown>>({})
   const [showHelp, setShowHelp] = useState(false)
@@ -75,8 +79,9 @@ export function StoriesApp({ registry }: StoriesAppProps): ReactElement {
       if (resolved !== null) {
         setCurrentProps({ ...resolved.props })
       }
+      enterEditMode()
     },
-    [entries]
+    [entries, enterEditMode]
   )
 
   const handlePropsChange = useCallback((name: string, value: unknown) => {
@@ -100,8 +105,8 @@ export function StoriesApp({ registry }: StoriesAppProps): ReactElement {
     if (input === 'q') {
       exit()
     }
-    if (key.tab) {
-      cyclePanel()
+    if (key.escape && mode === 'edit') {
+      exitEditMode()
     }
     if (input === 'r') {
       handleResetProps()
@@ -127,7 +132,7 @@ export function StoriesApp({ registry }: StoriesAppProps): ReactElement {
             entries={entries}
             selectedId={selectedStoryId}
             onSelect={handleSelect}
-            isFocused={activePanel === 'sidebar'}
+            isFocused={mode === 'browse'}
           />
           <Box flexDirection="column" flexGrow={1}>
             <Preview story={selectedStory} currentProps={currentProps} />
@@ -136,11 +141,11 @@ export function StoriesApp({ registry }: StoriesAppProps): ReactElement {
               values={currentProps}
               errors={errors}
               onChange={handlePropsChange}
-              isFocused={activePanel === 'editor'}
+              isFocused={mode === 'edit'}
             />
           </Box>
         </Box>
-        <StatusBar activePanel={activePanel} />
+        <StatusBar mode={mode} hasSelection={selectedStoryId !== null} />
       </Box>
     </FullScreen>
   )

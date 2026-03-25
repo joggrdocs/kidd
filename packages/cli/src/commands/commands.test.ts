@@ -282,7 +282,7 @@ describe('commands command', () => {
           staging: { description: 'Staging deploy' },
         },
         description: 'Deploy the app',
-        order: ['production', 'preview'],
+        help: { order: ['production', 'preview'] },
       },
     } as never)
 
@@ -310,7 +310,7 @@ describe('commands command', () => {
           beta: { description: 'Beta' },
         },
         description: 'Parent',
-        order: ['missing', 'alpha'],
+        help: { order: ['missing', 'alpha'] },
       },
     } as never)
 
@@ -338,7 +338,7 @@ describe('commands command', () => {
           beta: { description: 'Beta' },
         },
         description: 'Parent',
-        order: ['beta', 'alpha', 'beta'],
+        help: { order: ['beta', 'alpha', 'beta'] },
       },
     } as never)
 

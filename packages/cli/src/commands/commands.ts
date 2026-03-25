@@ -98,7 +98,7 @@ async function buildTree(
   return Promise.all(
     entries.map(async ([name, cmd]): Promise<TreeEntry> => {
       const subMap = await resolveSubcommands(cmd.commands)
-      const children = await buildTree(subMap, cmd.order)
+      const children = await buildTree(subMap, cmd.help?.order)
 
       return {
         children,

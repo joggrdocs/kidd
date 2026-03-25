@@ -30,6 +30,7 @@ const deploy = command({
 | `handler`     | `(ctx: CommandContext) => Promise<void>` | --      | Command handler function                                       |
 | `middleware`  | `Middleware[]`                           | --      | Command-scoped middleware                                      |
 | `commands`    | `CommandMap`                             | --      | Nested subcommands                                             |
+| `help`        | `HelpOptions`                            | --      | Help output customization (header, footer, subcommand order)   |
 | `hidden`      | `Resolvable<boolean>`                    | --      | When true, hidden from help output                             |
 | `deprecated`  | `Resolvable<string \| boolean>`          | --      | Marks the command as deprecated                                |
 | `name`        | `string`                                 | --      | Explicit command name (overrides autoload filename)            |

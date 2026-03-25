@@ -14,9 +14,9 @@ import type {
 /**
  * Check whether a value is a structured {@link CommandsConfig} object.
  *
- * Discriminates from a plain `CommandMap` by checking for the `order` (array)
- * or `path` (string) keys — neither can appear on a valid `CommandMap` whose
- * values are tagged `Command` objects.
+ * Discriminates from a plain `CommandMap` by checking for the `path` (string)
+ * key — which cannot appear on a valid `CommandMap` whose values are tagged
+ * `Command` objects.
  *
  * @param value - The value to test.
  * @returns `true` when `value` is a `CommandsConfig`.
@@ -25,10 +25,7 @@ export function isCommandsConfig(value: unknown): value is CommandsConfig {
   if (typeof value !== 'object' || value === null || value instanceof Promise) {
     return false
   }
-  return (
-    (Object.hasOwn(value, 'order') && Array.isArray((value as CommandsConfig).order)) ||
-    (Object.hasOwn(value, 'path') && typeof (value as CommandsConfig).path === 'string')
-  )
+  return Object.hasOwn(value, 'path') && typeof (value as CommandsConfig).path === 'string'
 }
 
 /**
@@ -39,8 +36,8 @@ export function isCommandsConfig(value: unknown): value is CommandsConfig {
  * element onto the handler's `ctx` type.
  *
  * When `def.commands` is a structured {@link CommandsConfig}, the factory
- * normalizes it into flat `commands` and `order` fields on the output
- * `Command` object so downstream consumers never need to handle the grouped form.
+ * normalizes it into a flat `commands` field on the output `Command` object
+ * so downstream consumers never need to handle the grouped form.
  *
  * @param def - Command definition including description, options, positionals, middleware, and handler.
  * @returns A resolved Command object for registration in the command map.
@@ -61,8 +58,8 @@ export function command<
 
   return match(resolved.commands)
     .when(isCommandsConfig, (cfg) => {
-      const { order, commands: innerCommands } = cfg
-      return withTag({ ...resolved, commands: innerCommands, order }, 'Command') as CommandType
+      const { commands: innerCommands } = cfg
+      return withTag({ ...resolved, commands: innerCommands }, 'Command') as CommandType
     })
     .otherwise(() => withTag({ ...resolved }, 'Command') as CommandType)
 }

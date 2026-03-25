@@ -2,6 +2,7 @@ import type { Tagged } from '@kidd-cli/utils/tag'
 import type { z } from 'zod'
 
 import type { CommandContext } from '../context/types.js'
+import type { HelpOptions } from './cli.js'
 import type { InferVariables, Middleware, MiddlewareEnv } from './middleware.js'
 import type { AnyRecord, Resolvable } from './utility.js'
 
@@ -128,17 +129,10 @@ export type ScreenRenderFn = (ctx: CommandContext) => Promise<void> | void
 /**
  * Structured configuration for a command's subcommands.
  *
- * Groups the command source (inline map or directory path) alongside display
- * ordering into a single cohesive object.
+ * Groups the command source (inline map or directory path) into a single
+ * cohesive object.
  */
 export interface CommandsConfig {
-  /**
-   * Display order for subcommands.
-   * Subcommands listed appear first in the specified order; omitted subcommands
-   * fall back to alphabetical sort.
-   */
-  readonly order?: readonly string[]
-
   /**
    * Directory path to autoload subcommand files from.
    * Mutually exclusive with `commands` within this config object.
@@ -223,9 +217,14 @@ export interface CommandDef<
 
   /**
    * Nested subcommands — a static map, a promise from `autoload()`, or a
-   * structured {@link CommandsConfig} grouping the source with display order.
+   * structured {@link CommandsConfig} grouping the source.
    */
   readonly commands?: CommandMap | Promise<CommandMap> | CommandsConfig
+
+  /**
+   * Help output customization (header, footer, subcommand order).
+   */
+  readonly help?: HelpOptions
 
   /**
    * The command handler.
@@ -257,7 +256,7 @@ export type Command<
     readonly middleware?: TMiddleware
     readonly commands?: CommandMap | Promise<CommandMap>
     readonly render?: ScreenRenderFn
-    readonly order?: readonly string[]
+    readonly help?: HelpOptions
     readonly handler?: HandlerFn<
       InferArgsMerged<TOptionsDef, TPositionalsDef>,
       TConfig,

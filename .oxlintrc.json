@@ -83,12 +83,7 @@
     "vitest/prefer-called-times": "off",
     "vitest/prefer-called-once": "off",
     "vitest/prefer-expect-type-of": "off",
-    "oxc/no-optional-chaining": [
-      "error",
-      {
-        "message": "Use explicit null checks (if/else or ts-pattern match) instead of optional chaining."
-      }
-    ],
+    "oxc/no-optional-chaining": "off",
     "react/rules-of-hooks": "error",
     "react/exhaustive-deps": "warn",
     "react/jsx-no-duplicate-props": "error",

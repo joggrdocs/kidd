@@ -2,24 +2,9 @@ import { Box, Text } from 'ink'
 import type { ComponentType, ReactElement } from 'react'
 import { useMemo } from 'react'
 
-import { useFullScreen } from '../../../ui/fullscreen.js'
-import { ScrollArea } from '../../../ui/scroll-area.js'
 import type { Decorator, Story } from '../../types.js'
 import { EmptyState } from './empty-state.js'
 import { ErrorBoundary } from './error-boundary.js'
-
-// ---------------------------------------------------------------------------
-// Constants
-// ---------------------------------------------------------------------------
-
-/**
- * Number of terminal rows consumed by preview chrome (border, header,
- * padding, status bar) that must be subtracted from terminal height
- * to compute the scrollable content area height.
- *
- * @private
- */
-const PREVIEW_CHROME_ROWS = 10
 
 // ---------------------------------------------------------------------------
 // Types
@@ -58,9 +43,6 @@ interface PreviewProps {
  * @returns A rendered preview element.
  */
 export function Preview({ story, currentProps, context }: PreviewProps): ReactElement {
-  const { rows } = useFullScreen()
-  const scrollHeight = Math.max(1, rows - PREVIEW_CHROME_ROWS)
-
   if (story === null || context === null) {
     return (
       <Box borderStyle="single" flexDirection="column" flexGrow={1}>
@@ -78,11 +60,11 @@ export function Preview({ story, currentProps, context }: PreviewProps): ReactEl
   return (
     <Box flexDirection="column" flexGrow={1} borderStyle="single" paddingX={1}>
       <PreviewHeader context={context} />
-      <ScrollArea height={scrollHeight}>
+      <Box flexDirection="column" flexGrow={1} overflow="hidden">
         <ErrorBoundary key={context.displayName}>
           <DecoratedComponent {...currentProps} />
         </ErrorBoundary>
-      </ScrollArea>
+      </Box>
     </Box>
   )
 }

@@ -8,6 +8,8 @@ import { z } from 'zod'
  */
 const options = z.object({
   include: z.string().describe('Glob pattern for story files').optional(),
+  out: z.boolean().describe('Output story metadata as JSON to stdout').default(false),
+  story: z.string().describe('Story name to output (used with --out)').optional(),
 })
 
 /**

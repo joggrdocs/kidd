@@ -56,6 +56,7 @@ export function StoriesApp({ registry, isReloading }: StoriesAppProps): ReactEle
   const [selectedStoryId, setSelectedStoryId] = useState<string | null>(null)
   const [currentProps, setCurrentProps] = useState<Record<string, unknown>>({})
   const [showHelp, setShowHelp] = useState(false)
+  const [showSidebar, setShowSidebar] = useState(true)
   const { exit } = useApp()
 
   const selectedStory = useMemo(
@@ -139,6 +140,9 @@ export function StoriesApp({ registry, isReloading }: StoriesAppProps): ReactEle
     if (input === '?') {
       setShowHelp(true)
     }
+    if (input === 'b') {
+      setShowSidebar((prev) => !prev)
+    }
   })
 
   if (showHelp) {
@@ -154,12 +158,17 @@ export function StoriesApp({ registry, isReloading }: StoriesAppProps): ReactEle
       <Box flexDirection="column" flexGrow={1}>
         <Header />
         <Box flexDirection="row" flexGrow={1} overflow="hidden">
-          <Sidebar
-            entries={entries}
-            selectedId={selectedStoryId}
-            onSelect={handleSelect}
-            isFocused={mode === 'browse'}
-          />
+          {match(showSidebar)
+            .with(true, () => (
+              <Sidebar
+                entries={entries}
+                selectedId={selectedStoryId}
+                onSelect={handleSelect}
+                isFocused={mode === 'browse'}
+              />
+            ))
+            .with(false, () => null)
+            .exhaustive()}
           <Box flexDirection="column" flexGrow={1}>
             {match(isReloading)
               .with(true, () => <ReloadOverlay />)
@@ -172,6 +181,7 @@ export function StoriesApp({ registry, isReloading }: StoriesAppProps): ReactEle
                   errors={errors}
                   onPropsChange={handlePropsChange}
                   isFocused={mode === 'edit'}
+                  borderless={!showSidebar}
                 />
               ))
               .exhaustive()}

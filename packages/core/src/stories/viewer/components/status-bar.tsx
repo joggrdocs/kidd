@@ -97,6 +97,9 @@ function BrowseHints({ hasSelection }: { readonly hasSelection: boolean }): Reac
       <Text dimColor>enter</Text>
       <Text>: select/expand</Text>
       <Text> </Text>
+      <Text dimColor>b</Text>
+      <Text>: sidebar</Text>
+      <Text> </Text>
       <Text dimColor>?</Text>
       <Text>: help</Text>
       {match(hasSelection)

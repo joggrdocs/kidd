@@ -3,7 +3,7 @@ import process from 'node:process'
 import { Text } from 'ink'
 import type { ReactElement } from 'react'
 import { useEffect, useState } from 'react'
-import { match } from 'ts-pattern'
+import { P, match } from 'ts-pattern'
 
 import { discoverStories } from '../discover.js'
 import { createStoryImporter } from '../importer.js'
@@ -12,6 +12,7 @@ import type { StoryEntry } from '../types.js'
 import { createStoryWatcher } from '../watcher.js'
 import { useReloadState } from './hooks/use-reload-state.js'
 import { StoriesApp } from './stories-app.js'
+import { StoriesOutput } from './stories-output.js'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -22,6 +23,8 @@ import { StoriesApp } from './stories-app.js'
  */
 interface StoriesScreenProps {
   readonly include?: string
+  readonly out?: boolean
+  readonly story?: string
 }
 
 /**
@@ -45,10 +48,29 @@ type DiscoveryState =
  * Designed to be used with `screen()` so the framework manages
  * stdin/raw mode and the Ink rendering lifecycle.
  *
+ * When `--out` and `--story` are provided, outputs the matching story
+ * as JSON to stdout and exits immediately — useful for piping to LLMs.
+ *
  * @param props - The stories screen props.
  * @returns A rendered stories screen element.
  */
-export function StoriesScreen({ include }: StoriesScreenProps): ReactElement {
+export function StoriesScreen({ include, out, story }: StoriesScreenProps): ReactElement {
+  return match({ out: out === true, story })
+    .with({ out: true, story: P.string }, ({ story: storyName }) => (
+      <StoriesOutput story={storyName} include={include} />
+    ))
+    .otherwise(() => <StoriesViewer include={include} />)
+}
+
+/**
+ * Interactive TUI viewer that discovers stories on mount, sets up
+ * the file watcher, and renders the {@link StoriesApp} when ready.
+ *
+ * @private
+ * @param props - The viewer props.
+ * @returns A rendered stories viewer element.
+ */
+function StoriesViewer({ include }: { readonly include?: string }): ReactElement {
   const [state, setState] = useState<DiscoveryState>({ phase: 'loading' })
   const [registry] = useState(createStoryRegistry)
   const { isReloading, onReloadStart, onReloadEnd } = useReloadState()

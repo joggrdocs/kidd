@@ -71,10 +71,20 @@ export function Sidebar({ entries, selectedId, onSelect, isFocused }: SidebarPro
   useInput(
     (_input, key) => {
       if (key.upArrow) {
-        setHighlightIndex((current) => Math.max(0, current - 1))
+        setHighlightIndex((current) =>
+          match(current <= 0)
+            .with(true, () => visibleNodes.length - 1)
+            .with(false, () => current - 1)
+            .exhaustive()
+        )
       }
       if (key.downArrow) {
-        setHighlightIndex((current) => Math.min(visibleNodes.length - 1, current + 1))
+        setHighlightIndex((current) =>
+          match(current >= visibleNodes.length - 1)
+            .with(true, () => 0)
+            .with(false, () => current + 1)
+            .exhaustive()
+        )
       }
       if (key.return) {
         const node = visibleNodes[highlightIndex]

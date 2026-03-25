@@ -8,6 +8,7 @@ import type { ReactElement } from 'react'
 const BROWSE_SHORTCUTS = [
   { key: 'Up/Down', description: 'Navigate story tree' },
   { key: 'Enter', description: 'Select story / expand-collapse group' },
+  { key: 'b', description: 'Toggle sidebar' },
   { key: 'r', description: 'Reset props to defaults' },
   { key: '?', description: 'Toggle help' },
   { key: 'q', description: 'Quit' },
@@ -17,6 +18,7 @@ const EDIT_SHORTCUTS = [
   { key: 'Tab', description: 'Cycle to next prop' },
   { key: 'Left/Right', description: 'Switch between prop fields' },
   { key: 'Esc', description: 'Back to story browser' },
+  { key: 'b', description: 'Toggle sidebar' },
   { key: 'r', description: 'Reset props to defaults' },
   { key: '?', description: 'Toggle help' },
   { key: 'q', description: 'Quit' },

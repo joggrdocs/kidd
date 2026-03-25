@@ -46,6 +46,7 @@ interface PreviewProps {
   readonly errors: readonly FieldError[]
   readonly onPropsChange: (name: string, value: unknown) => void
   readonly isFocused: boolean
+  readonly borderless?: boolean
 }
 
 // ---------------------------------------------------------------------------
@@ -72,6 +73,7 @@ export function Preview({
   errors,
   onPropsChange,
   isFocused,
+  borderless = false,
 }: PreviewProps): ReactElement {
   const contentRef = useRef<DOMElement>(null)
   const { height: contentHeight } = useSize(contentRef)
@@ -92,7 +94,16 @@ export function Preview({
 
   if (story === null || context === null || DecoratedComponent === null) {
     return (
-      <Box borderStyle="single" borderDimColor flexDirection="column" flexGrow={1} overflow="hidden">
+      <Box
+        borderStyle={match(borderless)
+          .with(true, () => undefined)
+          .with(false, () => 'single' as const)
+          .exhaustive()}
+        borderDimColor={!borderless}
+        flexDirection="column"
+        flexGrow={1}
+        overflow="hidden"
+      >
         <Box paddingX={1}>
           <Text bold dimColor>
             Preview
@@ -107,13 +118,22 @@ export function Preview({
     <Box
       flexDirection="column"
       flexGrow={1}
-      borderStyle="single"
-      borderDimColor={!isFocused}
-      borderColor={match(isFocused)
-        .with(true, () => 'cyan' as const)
-        .with(false, () => undefined)
+      borderStyle={match(borderless)
+        .with(true, () => undefined)
+        .with(false, () => 'single' as const)
         .exhaustive()}
-      paddingX={1}
+      borderDimColor={match(borderless)
+        .with(true, () => false)
+        .with(false, () => !isFocused)
+        .exhaustive()}
+      borderColor={match({ isFocused, borderless })
+        .with({ borderless: true }, () => undefined)
+        .with({ isFocused: true }, () => 'cyan' as const)
+        .otherwise(() => undefined)}
+      paddingX={match(borderless)
+        .with(true, () => 0)
+        .with(false, () => 1)
+        .exhaustive()}
     >
       <PreviewHeader context={context} />
       <Box ref={contentRef} flexDirection="column" flexGrow={1}>

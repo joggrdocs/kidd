@@ -73,5 +73,8 @@ export type { FullScreenProps, FullScreenState, TerminalSize } from './fullscree
 export { ScrollArea } from './scroll-area.js'
 export type { ScrollAreaProps } from './scroll-area.js'
 
+export { useSize } from './use-size.js'
+export type { Size } from './use-size.js'
+
 export { screen } from './screen.js'
 export type { ScreenDef, ScreenExit } from './screen.js'

@@ -1,25 +1,13 @@
 import { hasTag } from '@kidd-cli/utils/tag'
+import type { DOMElement } from 'ink'
 import { Box, Text, useInput } from 'ink'
 import type { ReactElement } from 'react'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { match } from 'ts-pattern'
 
-import { useFullScreen } from '../../../ui/fullscreen.js'
 import { ScrollArea } from '../../../ui/scroll-area.js'
+import { useSize } from '../../../ui/use-size.js'
 import type { Story, StoryEntry, StoryGroup } from '../../types.js'
-
-// ---------------------------------------------------------------------------
-// Constants
-// ---------------------------------------------------------------------------
-
-/**
- * Number of terminal rows consumed by sidebar chrome (borders, header,
- * margin, status bar) that must be subtracted from terminal height
- * to compute the scrollable area height.
- *
- * @private
- */
-const SIDEBAR_CHROME_ROWS = 6
 
 // ---------------------------------------------------------------------------
 // Types
@@ -105,8 +93,8 @@ export function Sidebar({ entries, selectedId, onSelect, isFocused }: SidebarPro
 
   const highlightedNode = visibleNodes[highlightIndex]
   const highlightedId = resolveNodeId(highlightedNode)
-  const { rows } = useFullScreen()
-  const scrollHeight = Math.max(1, rows - SIDEBAR_CHROME_ROWS)
+  const scrollRef = useRef<DOMElement>(null)
+  const { height: scrollHeight } = useSize(scrollRef)
 
   return (
     <Box
@@ -129,22 +117,24 @@ export function Sidebar({ entries, selectedId, onSelect, isFocused }: SidebarPro
           Stories
         </Text>
       </Box>
-      <ScrollArea
-        height={scrollHeight}
-        activeIndex={Math.max(0, highlightIndex)}
-        itemCount={visibleNodes.length}
-        showIndicator={visibleNodes.length > scrollHeight}
-      >
-        {visibleNodes.map((node) => (
-          <TreeRow
-            key={node.id}
-            node={node}
-            isHighlighted={node.id === highlightedId}
-            isSelected={node.id === selectedId}
-            isCollapsed={collapsed.has(node.id)}
-          />
-        ))}
-      </ScrollArea>
+      <Box ref={scrollRef} flexDirection="column" flexGrow={1}>
+        <ScrollArea
+          height={Math.max(1, scrollHeight)}
+          activeIndex={Math.max(0, highlightIndex)}
+          itemCount={visibleNodes.length}
+          showIndicator={visibleNodes.length > scrollHeight}
+        >
+          {visibleNodes.map((node) => (
+            <TreeRow
+              key={node.id}
+              node={node}
+              isHighlighted={node.id === highlightedId}
+              isSelected={node.id === selectedId}
+              isCollapsed={collapsed.has(node.id)}
+            />
+          ))}
+        </ScrollArea>
+      </Box>
     </Box>
   )
 }

@@ -1,7 +1,10 @@
+import type { DOMElement } from 'ink'
 import { Box, Text } from 'ink'
 import type { ComponentType, ReactElement } from 'react'
-import { useMemo } from 'react'
+import { useMemo, useRef } from 'react'
 
+import { ScrollArea } from '../../../ui/scroll-area.js'
+import { useSize } from '../../../ui/use-size.js'
 import type { Decorator, Story } from '../../types.js'
 import { EmptyState } from './empty-state.js'
 import { ErrorBoundary } from './error-boundary.js'
@@ -43,6 +46,9 @@ interface PreviewProps {
  * @returns A rendered preview element.
  */
 export function Preview({ story, currentProps, context }: PreviewProps): ReactElement {
+  const contentRef = useRef<DOMElement>(null)
+  const { height: contentHeight } = useSize(contentRef)
+
   if (story === null || context === null) {
     return (
       <Box borderStyle="single" flexDirection="column" flexGrow={1}>
@@ -60,10 +66,12 @@ export function Preview({ story, currentProps, context }: PreviewProps): ReactEl
   return (
     <Box flexDirection="column" flexGrow={1} borderStyle="single" paddingX={1}>
       <PreviewHeader context={context} />
-      <Box flexDirection="column" flexGrow={1} overflow="hidden">
-        <ErrorBoundary key={context.displayName}>
-          <DecoratedComponent {...currentProps} />
-        </ErrorBoundary>
+      <Box ref={contentRef} flexDirection="column" flexGrow={1}>
+        <ScrollArea height={Math.max(1, contentHeight)}>
+          <ErrorBoundary key={context.displayName}>
+            <DecoratedComponent {...currentProps} />
+          </ErrorBoundary>
+        </ScrollArea>
       </Box>
     </Box>
   )

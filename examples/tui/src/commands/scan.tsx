@@ -1,4 +1,4 @@
-import { Output, screen, useApp, useOutputStore, useScreenContext } from '@kidd-cli/core/ui'
+import { Output, screen, useApp, useScreenContext } from '@kidd-cli/core/ui'
 import type { ReactElement } from 'react'
 import React, { useEffect, useRef } from 'react'
 import { z } from 'zod'
@@ -69,7 +69,6 @@ const delay = (ms: number): Promise<void> =>
  */
 function ScanScreen({ verbose }: { readonly verbose: boolean }): ReactElement {
   const ctx = useScreenContext()
-  const store = useOutputStore()
   const { exit } = useApp()
   const started = useRef(false)
 
@@ -125,7 +124,7 @@ function ScanScreen({ verbose }: { readonly verbose: boolean }): ReactElement {
     void run()
   }, [ctx, exit, verbose])
 
-  return <Output store={store} />
+  return <Output />
 }
 
 // ---------------------------------------------------------------------------

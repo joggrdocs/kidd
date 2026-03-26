@@ -5,7 +5,7 @@
  */
 
 import { useScreenContext } from '../provider.js'
-import { OUTPUT_STORE_KEY } from '../screen.js'
+import { getOutputStore } from './store-key.js'
 import type { OutputStore } from './types.js'
 
 // ---------------------------------------------------------------------------
@@ -15,12 +15,14 @@ import type { OutputStore } from './types.js'
 /**
  * Access the {@link OutputStore} attached to the current screen context.
  *
- * The store is attached by `screen()` using a private symbol key.
- * Use this to pass the store to `<Output />` for rendering.
+ * The store is attached by `screen()` via {@link injectOutputStore} and
+ * retrieved here via {@link getOutputStore}.
+ * Used internally by `<Output />` and available for advanced use cases
+ * that need direct store access.
  *
  * @returns The output store for the current screen.
  */
 export function useOutputStore(): OutputStore {
   const ctx = useScreenContext()
-  return (ctx as unknown as Record<symbol, unknown>)[OUTPUT_STORE_KEY] as OutputStore
+  return getOutputStore(ctx)
 }

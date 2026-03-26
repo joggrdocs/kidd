@@ -39,7 +39,7 @@ interface C12Result {
 export function createConfigClient<TSchema extends ZodTypeAny>(
   options: ConfigLoadOptions<TSchema>
 ): ConfigClient<output<TSchema>> {
-  const { name, schema, searchPaths } = options
+  const { name, resolve, schema, searchPaths } = options
 
   /**
    * Resolve a config file via c12 for a single directory.
@@ -59,6 +59,7 @@ export function createConfigClient<TSchema extends ZodTypeAny>(
         cwd,
         dotenv: false,
         globalRc: false,
+        import: resolve,
         name,
         packageJson: false,
         rcFile: false,

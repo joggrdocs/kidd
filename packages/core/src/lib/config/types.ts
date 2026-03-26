@@ -17,6 +17,11 @@ export type ConfigWriteFormat = 'json' | 'jsonc' | 'yaml'
 export interface ConfigLoadOptions<TSchema extends ZodTypeAny> {
   readonly name: string
   readonly schema: TSchema
+  /**
+   * Custom import function for loading configuration files.
+   * Passed as c12's `import` option to override internal jiti-based resolution.
+   */
+  readonly resolve?: (id: string) => Promise<unknown>
   readonly searchPaths?: readonly string[]
 }
 

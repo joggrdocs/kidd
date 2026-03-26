@@ -106,10 +106,11 @@ describe('createRuntime()', () => {
     expect(mockedCreateContext).toHaveBeenCalledWith(expect.objectContaining({ config: {} }))
   })
 
-  it('should use empty config when config client load returns error', async () => {
+  it('should log warning and use empty config when config client load returns error', async () => {
     setupDefaults()
     const mockLoad = vi.fn().mockResolvedValue([new Error('config not found'), null])
     mockedCreateConfigClient.mockReturnValue({ load: mockLoad } as never)
+    const mockLog = { warn: vi.fn() }
 
     const { z } = await import('zod')
     const schema = z.object({ debug: z.boolean() })
@@ -118,6 +119,7 @@ describe('createRuntime()', () => {
     const [, runtime] = await createRuntime({
       config: { schema },
       dirs: { global: '.my-cli', local: '.my-cli' },
+      log: mockLog as never,
       name: 'my-cli',
       version: '1.0.0',
     })
@@ -125,8 +127,59 @@ describe('createRuntime()', () => {
     const execution = makeExecution()
     await runtime!.execute(execution)
 
+    expect(mockLog.warn).toHaveBeenCalledWith(expect.stringContaining('Failed to load config'))
     expect(mockedCreateConfigClient).toHaveBeenCalled()
     expect(mockedCreateContext).toHaveBeenCalledWith(expect.objectContaining({ config: {} }))
+  })
+
+  it('should not log warning when no config file is found', async () => {
+    setupDefaults()
+    const mockLoad = vi.fn().mockResolvedValue([null, null])
+    mockedCreateConfigClient.mockReturnValue({ load: mockLoad } as never)
+    const mockLog = { warn: vi.fn() }
+
+    const { z } = await import('zod')
+    const schema = z.object({ debug: z.boolean() })
+
+    const { createRuntime } = await import('./runtime.js')
+    const [, runtime] = await createRuntime({
+      config: { schema },
+      dirs: { global: '.my-cli', local: '.my-cli' },
+      log: mockLog as never,
+      name: 'my-cli',
+      version: '1.0.0',
+    })
+
+    const execution = makeExecution()
+    await runtime!.execute(execution)
+
+    expect(mockLog.warn).not.toHaveBeenCalled()
+    expect(mockedCreateContext).toHaveBeenCalledWith(expect.objectContaining({ config: {} }))
+  })
+
+  it('should pass searchPaths and resolve to config client', async () => {
+    setupDefaults()
+    const mockLoad = vi.fn().mockResolvedValue([null, null])
+    mockedCreateConfigClient.mockReturnValue({ load: mockLoad } as never)
+    const resolveFn = vi.fn()
+
+    const { z } = await import('zod')
+    const schema = z.object({ debug: z.boolean() })
+
+    const { createRuntime } = await import('./runtime.js')
+    await createRuntime({
+      config: { resolve: resolveFn, schema, searchPaths: ['/custom/path'] },
+      dirs: { global: '.my-cli', local: '.my-cli' },
+      name: 'my-cli',
+      version: '1.0.0',
+    })
+
+    expect(mockedCreateConfigClient).toHaveBeenCalledWith(
+      expect.objectContaining({
+        resolve: resolveFn,
+        searchPaths: ['/custom/path'],
+      })
+    )
   })
 
   it('should use loaded config when config client load succeeds', async () => {

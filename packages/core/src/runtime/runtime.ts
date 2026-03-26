@@ -3,7 +3,7 @@ import type { AsyncResult } from '@kidd-cli/utils/fp'
 import type { z } from 'zod'
 
 import { createContext } from '@/context/index.js'
-import type { CommandContext } from '@/context/types.js'
+import type { CommandContext, Log } from '@/context/types.js'
 import { createConfigClient } from '@/lib/config/index.js'
 import type { CliConfigOptions, Middleware } from '@/types/index.js'
 
@@ -24,7 +24,11 @@ import type { ResolvedExecution, Runtime, RuntimeOptions } from './types.js'
 export async function createRuntime<TSchema extends z.ZodType>(
   options: RuntimeOptions<TSchema>
 ): AsyncResult<Runtime, Error> {
-  const config = await resolveConfig(options.config, options.name)
+  const config = await resolveConfig({
+    configOptions: options.config,
+    defaultName: options.name,
+    log: options.log,
+  })
 
   const middleware: Middleware[] = options.middleware ?? []
   const runner = createMiddlewareExecutor(middleware)
@@ -84,26 +88,37 @@ export async function createRuntime<TSchema extends z.ZodType>(
  * Load and validate a config file via the config client.
  *
  * Returns the validated config record or an empty object when no config
- * options are provided or when loading fails.
+ * options are provided or when no config file is found. Logs a warning
+ * when a config file is found but fails to load.
  *
  * @private
- * @param configOptions - Config loading options with schema and optional name override.
- * @param defaultName - Fallback config file name derived from the CLI name.
+ * @param options - Object containing configOptions, defaultName, and optional log.
  * @returns The loaded config record or an empty object.
  */
-async function resolveConfig<TSchema extends z.ZodType>(
-  configOptions: CliConfigOptions<TSchema> | undefined,
-  defaultName: string
-): Promise<Record<string, unknown>> {
+async function resolveConfig<TSchema extends z.ZodType>({
+  configOptions,
+  defaultName,
+  log,
+}: {
+  readonly configOptions: CliConfigOptions<TSchema> | undefined
+  readonly defaultName: string
+  readonly log: Log | undefined
+}): Promise<Record<string, unknown>> {
   if (!configOptions || !configOptions.schema) {
     return {}
   }
   const client = createConfigClient({
     name: configOptions.name ?? defaultName,
+    resolve: configOptions.resolve,
     schema: configOptions.schema,
+    searchPaths: configOptions.searchPaths,
   })
   const [configError, configResult] = await client.load()
-  if (configError || !configResult) {
+  if (configError) {
+    log?.warn(`Failed to load config: ${String(configError)}`)
+    return {}
+  }
+  if (!configResult) {
     return {}
   }
   // Accepted exception: configResult.config is generic TOutput from zod schema.

@@ -73,6 +73,16 @@ export interface CliConfigOptions<TSchema extends z.ZodType = z.ZodType> {
    * Override the config file name. Default: derived from `name` in CliOptions.
    */
   readonly name?: string
+  /**
+   * Custom import function for loading configuration files.
+   * Overrides c12's internal jiti-based module resolution.
+   * Useful for pnpm monorepos where jiti can't resolve workspace packages.
+   */
+  readonly resolve?: (id: string) => Promise<unknown>
+  /**
+   * Directories to search for config files before falling back to cwd.
+   */
+  readonly searchPaths?: readonly string[]
 }
 
 /**

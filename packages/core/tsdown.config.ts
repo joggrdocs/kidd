@@ -13,6 +13,7 @@ export default defineConfig({
     'lib/store': 'src/lib/store/index.ts',
     'middleware/auth': 'src/middleware/auth/index.ts',
     'middleware/http': 'src/middleware/http/index.ts',
+    'middleware/figures': 'src/middleware/figures/index.ts',
     'middleware/icons': 'src/middleware/icons/index.ts',
     'middleware/report': 'src/middleware/report/index.ts',
     'test/index': 'src/test/index.ts',

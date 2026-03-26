@@ -54,6 +54,10 @@
       "types": "./dist/middleware/http.d.ts",
       "default": "./dist/middleware/http.js"
     },
+    "./figures": {
+      "types": "./dist/middleware/figures.d.ts",
+      "default": "./dist/middleware/figures.js"
+    },
     "./icons": {
       "types": "./dist/middleware/icons.d.ts",
       "default": "./dist/middleware/icons.js"

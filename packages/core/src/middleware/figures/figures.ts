@@ -1,12 +1,3 @@
-/**
- * Figures middleware factory.
- *
- * Decorates `ctx.figures` with platform-appropriate terminal symbols
- * from the `figures` package by sindresorhus.
- *
- * @module
- */
-
 import defaultFigures from 'figures'
 
 import { decorateContext } from '@/context/decorate.js'

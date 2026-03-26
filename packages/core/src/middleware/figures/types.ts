@@ -1,9 +1,3 @@
-/**
- * Types for the figures middleware.
- *
- * @module
- */
-
 import type { Middleware } from '@/types/index.js'
 
 // ---------------------------------------------------------------------------

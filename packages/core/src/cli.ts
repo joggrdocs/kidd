@@ -10,6 +10,7 @@ import { z } from 'zod'
 
 import { DEFAULT_EXIT_CODE, isContextError } from '@/context/index.js'
 import type {
+  BuiltinOptions,
   CliOptions,
   CommandMap,
   CommandsConfig,
@@ -43,16 +44,26 @@ export async function cli<TSchema extends z.ZodType = z.ZodType>(
       return versionError
     }
 
-    const program = yargs(process.argv.slice(ARGV_SLICE_START))
-      .scriptName(options.name)
-      .version(version)
-      .strict()
-      .help()
-      .option('cwd', {
+    const builtins = resolveBuiltins(options.builtins)
+
+    const program = yargs(process.argv.slice(ARGV_SLICE_START)).scriptName(options.name).strict()
+
+    if (builtins.version) {
+      program.version(version).alias('version', 'V')
+    } else {
+      program.version(false)
+    }
+
+    program.help().alias('help', 'h')
+
+    if (builtins.workingDirectory) {
+      program.option('working-directory', {
+        alias: 'cwd',
         describe: 'Set the working directory',
         global: true,
         type: 'string',
       })
+    }
 
     if (options.description) {
       program.usage(options.description)
@@ -255,7 +266,7 @@ async function resolveCommandsFromConfig(): Promise<ResolvedCommands> {
 }
 
 /**
- * Change the process working directory when `--cwd` is provided.
+ * Change the process working directory when `--working-directory` is provided.
  *
  * Resolves the value to an absolute path and calls `process.chdir()` so
  * that all downstream `process.cwd()` calls reflect the override.
@@ -264,8 +275,22 @@ async function resolveCommandsFromConfig(): Promise<ResolvedCommands> {
  * @param argv - The parsed argv record from yargs.
  */
 function applyCwd(argv: Record<string, unknown>): void {
-  if (isString(argv.cwd)) {
-    process.chdir(resolve(argv.cwd))
+  if (isString(argv.workingDirectory)) {
+    process.chdir(resolve(argv.workingDirectory))
+  }
+}
+
+/**
+ * Resolve builtin option toggles, defaulting each to `true`.
+ *
+ * @private
+ * @param builtins - The optional user-provided builtin overrides.
+ * @returns A fully resolved builtins object with no undefined fields.
+ */
+function resolveBuiltins(builtins: BuiltinOptions | undefined): Required<BuiltinOptions> {
+  return {
+    version: builtins?.version !== false,
+    workingDirectory: builtins?.workingDirectory !== false,
   }
 }
 

@@ -547,3 +547,63 @@ describe('help', () => {
     expect(handler).not.toHaveBeenCalled()
   })
 })
+
+describe('builtins', () => {
+  it('should register --working-directory with --cwd alias by default', async () => {
+    const handler = vi.fn()
+    const commands: CommandMap = {
+      run: command({ description: 'Run', handler }),
+    }
+
+    setArgv('run')
+    await runTestCli({ commands, name: 'test-cli', version: '1.0.0' })
+
+    expect(handler).toHaveBeenCalledOnce()
+  })
+
+  it('should disable --version when builtins.version is false', async () => {
+    const handler = vi.fn()
+    const commands: CommandMap = {
+      run: command({ description: 'Run', handler }),
+    }
+
+    setArgv('run')
+    await runTestCli({
+      builtins: { version: false },
+      commands,
+      name: 'test-cli',
+      version: '1.0.0',
+    })
+
+    expect(handler).toHaveBeenCalledOnce()
+  })
+
+  it('should disable --working-directory when builtins.workingDirectory is false', async () => {
+    const handler = vi.fn()
+    const commands: CommandMap = {
+      run: command({ description: 'Run', handler }),
+    }
+
+    setArgv('run', '--working-directory', '/tmp')
+    await runTestCli({
+      builtins: { workingDirectory: false },
+      commands,
+      name: 'test-cli',
+      version: '1.0.0',
+    })
+
+    expect(lifecycle.getExitSpy()).toHaveBeenCalled()
+  })
+
+  it('should default all builtins to true when omitted', async () => {
+    const handler = vi.fn()
+    const commands: CommandMap = {
+      run: command({ description: 'Run', handler }),
+    }
+
+    setArgv('run')
+    await runTestCli({ commands, name: 'test-cli', version: '1.0.0' })
+
+    expect(handler).toHaveBeenCalledOnce()
+  })
+})

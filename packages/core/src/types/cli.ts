@@ -101,6 +101,26 @@ export interface HelpOptions {
 }
 
 /**
+ * Toggle individual built-in global options (`--version`,
+ * `--working-directory`).
+ *
+ * Every field defaults to `true` when omitted. Set a field to `false`
+ * to prevent that option from being registered on the yargs program.
+ *
+ * `--help` / `-h` is always registered and cannot be disabled.
+ */
+export interface BuiltinOptions {
+  /**
+   * Register `--version` / `-V`. Defaults to `true`.
+   */
+  readonly version?: boolean
+  /**
+   * Register `--working-directory` / `--cwd`. Defaults to `true`.
+   */
+  readonly workingDirectory?: boolean
+}
+
+/**
  * Options passed to `cli()`.
  */
 export interface CliOptions<TSchema extends z.ZodType = z.ZodType> {
@@ -162,6 +182,11 @@ export interface CliOptions<TSchema extends z.ZodType = z.ZodType> {
    * spinner is created automatically.
    */
   readonly spinner?: Spinner
+  /**
+   * Toggle built-in global options (`--help`, `--version`,
+   * `--working-directory`). All default to `true` when omitted.
+   */
+  readonly builtins?: BuiltinOptions
 }
 
 /**

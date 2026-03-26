@@ -37,6 +37,7 @@ export type {
 } from './command.js'
 
 export type {
+  BuiltinOptions,
   CliConfig,
   CliConfigOptions,
   CliFn,

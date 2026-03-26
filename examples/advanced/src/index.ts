@@ -14,7 +14,7 @@ const configSchema = z.object({
 })
 
 declare module '@kidd-cli/core' {
-  interface Context {
+  interface CommandContext {
     readonly api: HttpClient
   }
 
@@ -22,15 +22,15 @@ declare module '@kidd-cli/core' {
 }
 
 cli({
-  commands: {
-    order: ['deploy', 'status', 'ping', 'whoami'],
-    path: `${import.meta.dirname}/commands`,
-  },
+  commands: `${import.meta.dirname}/commands`,
   config: {
     schema: configSchema,
   },
   description: 'Acme platform CLI',
-  help: { header: 'acme - the Acme platform CLI' },
+  help: {
+    header: 'acme - the Acme platform CLI',
+    order: ['deploy', 'status', 'ping', 'whoami'],
+  },
   middleware: [
     http({
       baseUrl: 'https://api.acme.dev',

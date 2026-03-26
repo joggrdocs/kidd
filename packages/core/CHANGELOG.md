@@ -1,5 +1,107 @@
 # kidd
 
+## 0.16.0
+
+### Minor Changes
+
+- d261106: Output component now reads the OutputStore from screen context automatically. The `store` prop and `OutputProps` type have been removed — use `<Output />` with no props inside `screen()` components.
+- 7774af4: ### React-Backed Screen Context I/O
+
+  Screen commands created with `screen()` now provide React-backed implementations of `ctx.log`, `ctx.spinner`, and `ctx.report` that render declaratively through the new `<Output />` component.
+
+  #### What Changed
+
+  Previously, `screen()` stripped imperative I/O properties (`log`, `spinner`, `report`) from the context because they wrote directly to stdout and would conflict with Ink's rendering. Now, `screen()` **swaps** them with React-backed implementations that push entries to an `OutputStore`, which `<Output />` subscribes to via `useSyncExternalStore`.
+
+  This means the same `ctx.log.info()`, `ctx.spinner.start()`, and `ctx.report.check()` API works identically in both `command()` and `screen()` contexts — no separate rendering logic needed.
+
+  #### New Exports from `@kidd-cli/core/ui`
+
+  | Export             | Description                                                                               |
+  | ------------------ | ----------------------------------------------------------------------------------------- |
+  | `<Output />`       | Component that renders accumulated log, spinner, and report entries from an `OutputStore` |
+  | `useOutputStore()` | Hook to access the `OutputStore` from the current screen context                          |
+  | `OutputStore`      | Type for the external store interface                                                     |
+  | `OutputProps`      | Props type for the `Output` component                                                     |
+
+  #### Usage
+
+  ```tsx
+  import {
+    Output,
+    screen,
+    useApp,
+    useOutputStore,
+    useScreenContext,
+  } from "@kidd-cli/core/ui";
+  import { useEffect, useRef } from "react";
+
+  function MyScreen(): ReactElement {
+    const ctx = useScreenContext();
+    const store = useOutputStore();
+    const { exit } = useApp();
+    const started = useRef(false);
+
+    useEffect(() => {
+      if (started.current) return;
+      started.current = true;
+
+      const run = async (): Promise<void> => {
+        ctx.spinner.start("Working...");
+        await doWork();
+        ctx.spinner.stop("Done");
+
+        ctx.log.success("All tasks complete");
+        exit();
+      };
+
+      void run();
+    }, [ctx, exit]);
+
+    return <Output store={store} />;
+  }
+
+  export default screen({
+    description: "Example screen with output",
+    render: MyScreen,
+  });
+  ```
+
+  #### Middleware Support
+
+  If middleware decorates the context with additional I/O (e.g. `report` from the report middleware), `screen()` automatically detects and swaps those with screen-backed versions too.
+
+  #### Context Changes
+
+  `ScreenContext` now retains `log` and `spinner` (React-backed). Only `colors`, `fail`, `format`, and `prompts` are stripped from the screen context, as they have no React equivalent.
+
+- 7774af4: ### Stories Viewer Enhancements
+
+  #### `--out` Option
+
+  Render stories to stdout with `kidd stories --out`. Supports `Group/Variant` filter format to target a specific story (e.g. `kidd stories --out "StatusBadge/Error"`). Useful for CI snapshots and scripted output.
+
+  #### `--check` Flag
+
+  Validate stories for common issues with `kidd stories --check`. Enforces a maximum of 6 editable fields per story and runs prop validation against the Zod schema. Reports diagnostics using the new screen-backed `ctx.report` interface.
+
+  #### Sidebar Improvements
+
+  - **Toggle visibility**: press `b` to hide/show the sidebar for a borderless full-width preview
+  - **Collapsed by default**: sidebar groups start collapsed with folder icons for cleaner navigation
+
+  #### `defaults` Field
+
+  `stories()` now accepts a `defaults` record for non-editable fixed context props. Values in `defaults` are merged into the rendered component but do not appear in the props editor, keeping the editor focused on the fields that matter.
+
+  #### Editable Field Limit
+
+  Stories are limited to 6 editable fields. Excess fields should be moved to `defaults`. The `--check` flag validates this constraint.
+
+### Patch Changes
+
+- 4de44d3: Handle non-command/screen files in autoload gracefully instead of throwing
+
 ## 0.15.0
 
 ### Minor Changes

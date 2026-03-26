@@ -209,15 +209,15 @@ function toScreenContext(ctx: CommandContext): ScreenContext {
     .with(false, () => [] as readonly (readonly [string, unknown])[])
     .exhaustive()
 
-  const screenCtx = injectOutputStore(
-    Object.fromEntries([
+  const screenCtx = injectOutputStore({
+    ctx: Object.fromEntries([
       ...baseEntries,
       ['log', screenLog],
       ['spinner', screenSpinner],
       ...reportEntries,
     ]),
-    store
-  )
+    store,
+  })
 
   return Object.freeze(screenCtx) as unknown as ScreenContext
 }

@@ -11,7 +11,7 @@ import { FullScreen, LEAVE_ALT_SCREEN } from './fullscreen.js'
 import { createScreenLog } from './output/screen-log.js'
 import { createScreenReport } from './output/screen-report.js'
 import { createScreenSpinner } from './output/screen-spinner.js'
-import { OUTPUT_STORE_KEY } from './output/store-key.js'
+import { injectOutputStore } from './output/store-key.js'
 import { createOutputStore } from './output/store.js'
 import { KiddProvider } from './provider.js'
 
@@ -209,13 +209,15 @@ function toScreenContext(ctx: CommandContext): ScreenContext {
     .with(false, () => [] as readonly (readonly [string, unknown])[])
     .exhaustive()
 
-  const screenCtx = Object.fromEntries([
-    ...baseEntries,
-    ['log', screenLog],
-    ['spinner', screenSpinner],
-    ...reportEntries,
-    [OUTPUT_STORE_KEY, store],
-  ])
+  const screenCtx = injectOutputStore(
+    Object.fromEntries([
+      ...baseEntries,
+      ['log', screenLog],
+      ['spinner', screenSpinner],
+      ...reportEntries,
+    ]),
+    store
+  )
 
   return Object.freeze(screenCtx) as unknown as ScreenContext
 }

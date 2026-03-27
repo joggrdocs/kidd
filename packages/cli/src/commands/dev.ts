@@ -19,14 +19,14 @@ const devCommand: Command = command({
     const [, configResult] = await loadConfig({ cwd })
     const config = extractConfig(configResult)
 
-    ctx.spinner.start('Starting dev server...')
+    ctx.status.spinner.start('Starting dev server...')
 
     const onSuccess = createOnSuccess(ctx)
 
     const [watchError] = await watch({ config, cwd, onSuccess })
 
     if (watchError) {
-      ctx.spinner.stop('Watch failed')
+      ctx.status.spinner.stop('Watch failed')
       return ctx.fail(watchError.message)
     }
   },
@@ -55,7 +55,7 @@ function createOnSuccess(ctx: CommandContext): () => void {
   return () => {
     if (state.buildCount === 0) {
       state.buildCount = 1
-      ctx.spinner.stop('Watching for changes...')
+      ctx.status.spinner.stop('Watching for changes...')
       return
     }
 

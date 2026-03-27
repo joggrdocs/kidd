@@ -116,6 +116,10 @@ function registerSingleCommand(options: RegisterSingleCommandOptions): void {
   const commandSpec = formatCommandSpec(commandString, cmd.aliases)
 
   const builder = (yargsBuilder: Argv): Argv => {
+    if (cmd.strict !== undefined) {
+      yargsBuilder.strict(cmd.strict)
+    }
+
     registerCommandArgs({
       builder: yargsBuilder,
       options: cmd.options,

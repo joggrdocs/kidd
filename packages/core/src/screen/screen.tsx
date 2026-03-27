@@ -87,6 +87,13 @@ export interface ScreenDef<
   readonly fullscreen?: boolean
 
   /**
+   * When `true` (inherited default), yargs rejects unknown flags for this screen.
+   * Set to `false` to allow unknown flags to pass through unchecked,
+   * overriding the CLI-level `strict` setting.
+   */
+  readonly strict?: boolean
+
+  /**
    * A React component that receives the parsed args as props.
    *
    * Can be a component reference (`render: MyComponent`) or an inline
@@ -100,10 +107,10 @@ export interface ScreenDef<
  *
  * The `render` property accepts a React component that receives the
  * parsed args as props. The full command context — including `log`,
- * `spinner`, and any middleware-decorated properties like `report` —
+ * `status`, and any middleware-decorated properties like `report` —
  * is available via `useScreenContext()`.
  *
- * Imperative I/O properties (`log`, `spinner`, `report`) are automatically
+ * Imperative I/O properties (`log`, `status`, `report`) are automatically
  * swapped with React-backed implementations that render through the
  * `<Output />` component, so the same interface works in both
  * `command()` and `screen()` contexts.
@@ -160,6 +167,7 @@ export function screen<
       options: def.options,
       positionals: def.positionals,
       render: renderFn,
+      strict: def.strict,
     },
     'Command'
   ) as Command
@@ -185,7 +193,7 @@ const STRIPPED_KEYS: ReadonlySet<ImperativeContextKeys> = new Set([
  * Convert a full {@link CommandContext} into a {@link ScreenContext} by
  * replacing imperative I/O properties with React-backed implementations.
  *
- * Creates an {@link OutputStore} and swaps `log`, `spinner`, and any
+ * Creates an {@link OutputStore} and swaps `log`, `status.spinner`, and any
  * middleware-decorated `report` with screen-backed versions that push
  * entries to the store. The store is attached via {@link OUTPUT_STORE_KEY}
  * (a private symbol) so `<Output />` can subscribe to it.
@@ -213,7 +221,7 @@ function toScreenContext(ctx: CommandContext): ScreenContext {
     ctx: Object.fromEntries([
       ...baseEntries,
       ['log', screenLog],
-      ['spinner', screenSpinner],
+      ['status', { ...ctx.status, spinner: screenSpinner }],
       ...reportEntries,
     ]),
     store,

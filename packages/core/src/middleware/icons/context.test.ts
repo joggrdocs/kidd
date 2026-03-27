@@ -31,7 +31,7 @@ function createMockCtx(): IconsCtx {
       select: vi.fn(),
       text: vi.fn(),
     },
-    spinner: { message: vi.fn(), start: vi.fn(), stop: vi.fn() },
+    status: { spinner: { message: vi.fn(), start: vi.fn(), stop: vi.fn() } },
   }
 }
 

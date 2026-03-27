@@ -227,6 +227,13 @@ export interface CommandDef<
   readonly help?: HelpOptions
 
   /**
+   * When `true` (inherited default), yargs rejects unknown flags for this command.
+   * Set to `false` to allow unknown flags to pass through unchecked,
+   * overriding the CLI-level `strict` setting.
+   */
+  readonly strict?: boolean
+
+  /**
    * The command handler.
    */
   readonly handler?: HandlerFn<
@@ -256,6 +263,7 @@ export type Command<
     readonly middleware?: TMiddleware
     readonly commands?: CommandMap | Promise<CommandMap>
     readonly render?: ScreenRenderFn
+    readonly strict?: boolean
     readonly help?: HelpOptions
     readonly handler?: HandlerFn<
       InferArgsMerged<TOptionsDef, TPositionalsDef>,

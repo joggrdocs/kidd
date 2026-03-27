@@ -1,6 +1,6 @@
 import type { vi } from 'vitest'
 
-import type { CommandContext, Log, Prompts, Spinner } from '@/context/types.js'
+import type { CommandContext, Log, Prompts, Spinner, Status } from '@/context/types.js'
 import type {
   AnyRecord,
   CliConfigOptions,
@@ -32,6 +32,11 @@ export interface TestContextOptions<
   }
   readonly log?: Log
   readonly prompts?: Prompts
+  readonly status?: Status
+  /**
+   * @deprecated Use `status` instead. When provided, creates a Status
+   * wrapper around this spinner for backwards compatibility.
+   */
   readonly spinner?: Spinner
 }
 
@@ -89,6 +94,11 @@ export interface PromptResponses {
   readonly select?: readonly unknown[]
   readonly multiselect?: readonly unknown[][]
   readonly password?: readonly string[]
+  readonly autocomplete?: readonly unknown[]
+  readonly autocompleteMultiselect?: readonly unknown[][]
+  readonly groupMultiselect?: readonly unknown[][]
+  readonly selectKey?: readonly string[]
+  readonly path?: readonly string[]
 }
 
 /**

@@ -26,13 +26,13 @@ export default command({
   description: '[auth] Create a new repository',
   middleware: [requireAuth],
   handler: async (ctx) => {
-    ctx.spinner.start(`Creating repo "${ctx.args.name}"...`)
+    ctx.status.spinner.start(`Creating repo "${ctx.args.name}"...`)
 
     const res = await ctx.api.post<Repo, CreateRepoInput>('/repos', {
       body: { name: ctx.args.name, private: ctx.args.private },
     })
 
-    ctx.spinner.stop('Repo created')
+    ctx.status.spinner.stop('Repo created')
 
     ctx.log.success(`Created ${res.data.full_name} (id: ${String(res.data.id)})`)
   },

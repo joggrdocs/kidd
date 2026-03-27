@@ -17,7 +17,32 @@ export type {
   Resolvable,
 } from './types/index.js'
 export type { Colors } from 'picocolors/types'
-export type { CommandContext, Log, Prompts, ScreenContext, Spinner } from './context/types.js'
+export type {
+  BoxOptions,
+  CommandContext,
+  ConfirmOptions,
+  DisplayConfig,
+  Log,
+  LogMessageOptions,
+  MultiSelectOptions,
+  NoteOptions,
+  PasswordOptions,
+  PathOptions,
+  ProgressBar,
+  ProgressOptions,
+  Prompts,
+  ScreenContext,
+  SelectOptions,
+  Spinner,
+  Status,
+  TaskDef,
+  TaskLogCompletionOptions,
+  TaskLogGroupHandle,
+  TaskLogHandle,
+  TaskLogMessageOptions,
+  TaskLogOptions,
+  TextOptions,
+} from './context/types.js'
 export type {
   DotDirectory,
   DotDirectoryClient,

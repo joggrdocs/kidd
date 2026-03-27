@@ -17,7 +17,6 @@ import type {
   Log,
   Meta,
   Prompts,
-  Spinner,
   Status,
   Store,
   StoreMap,
@@ -45,11 +44,6 @@ export interface CreateContextOptions<TArgs extends AnyRecord, TConfig extends A
   readonly log?: Log
   readonly prompts?: Prompts
   readonly status?: Status
-  /**
-   * @deprecated Use `status` instead. When provided, creates a Status
-   * wrapper around this spinner for backwards compatibility.
-   */
-  readonly spinner?: Spinner
 }
 
 /**
@@ -141,8 +135,7 @@ function resolveCommonDefaults(dc: DisplayConfig): {
 }
 
 /**
- * Resolve the Status instance from options, supporting the deprecated
- * `spinner` override for backwards compatibility.
+ * Resolve the Status instance from options or create a default one.
  *
  * @private
  * @param options - The create context options.
@@ -162,7 +155,6 @@ function resolveStatus<TArgs extends AnyRecord, TConfig extends AnyRecord>(
   return createContextStatus({
     defaults: commonDefaults,
     progressConfig: dc.progress,
-    spinner: options.spinner,
     spinnerConfig: dc.spinner,
   })
 }

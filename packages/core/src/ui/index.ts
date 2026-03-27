@@ -125,7 +125,7 @@ export { useOutputStore } from '../screen/output/index.js'
 export type { OutputStore } from '../screen/output/index.js'
 
 // ---------------------------------------------------------------------------
-// Screen (re-exported for backward compatibility)
+// Screen
 // ---------------------------------------------------------------------------
 
 export { screen, useScreenContext } from '../screen/index.js'

@@ -43,7 +43,7 @@ export function createOutputStore(): OutputStore {
       entries: Object.freeze([...entries]),
       spinner: spinnerState,
     })
-    ;[...subscribers].reduce<void>((_, cb) => cb(), undefined)
+    ;[...subscribers].map((cb) => cb())
   }
 
   return Object.freeze({

@@ -16,6 +16,16 @@ const DEFAULT_ENTRY = './src/index.ts'
 
 const EngineSchema = z.enum(['node', 'tsx', 'binary'])
 
+const TargetSchema = z.enum([
+  'darwin-arm64',
+  'darwin-x64',
+  'linux-arm64',
+  'linux-x64',
+  'linux-x64-musl',
+  'windows-arm64',
+  'windows-x64',
+])
+
 const options = z.object({
   engine: EngineSchema.default('node').describe(
     'Runtime engine: node (built), tsx (source), or binary (compiled)'
@@ -54,7 +64,12 @@ const runCommand: Command = command({
   handler: async (ctx: CommandContext<RunArgs>) => {
     const cwd = process.cwd()
 
-    const [, configResult] = await loadConfig({ cwd })
+    const [configError, configResult] = await loadConfig({ cwd })
+
+    if (configError) {
+      return ctx.fail(configError.message)
+    }
+
     const config = extractConfig(configResult)
 
     if (ctx.args.engine === 'binary' && hasInspectFlag(ctx.args)) {
@@ -129,13 +144,17 @@ async function runWithTsx(params: EngineParams): Promise<number> {
  * @returns The exit code of the spawned process.
  */
 async function runWithBinary(params: EngineParams): Promise<number> {
+  const validatedTarget = validateTarget({ ctx: params.ctx, target: params.args.target })
+
   const configWithTarget = applyTargetOverride({
     config: params.config,
-    target: params.args.target,
+    target: validatedTarget,
   })
 
   if (!hasCompileTargets(configWithTarget)) {
-    params.ctx.fail('No compile targets configured. Set targets in kidd.config.ts or use --target.')
+    return params.ctx.fail(
+      'No compile targets configured. Set targets in kidd.config.ts or use --target.'
+    )
   }
 
   await buildProject({ ...params, config: configWithTarget })
@@ -309,15 +328,45 @@ function hasCompileTargets(config: KiddConfig): boolean {
 }
 
 /**
+ * Validate a `--target` string against known compile targets.
+ *
+ * Returns the validated target when provided, or `undefined` when no target
+ * was specified. Fails the command with a descriptive error for invalid values.
+ *
+ * @private
+ * @param params - The target string and command context.
+ * @returns The validated compile target, or `undefined`.
+ */
+function validateTarget(params: {
+  readonly ctx: CommandContext<RunArgs>
+  readonly target: string | undefined
+}): CompileTarget | undefined {
+  if (!params.target) {
+    return undefined
+  }
+
+  const parsed = TargetSchema.safeParse(params.target)
+
+  if (!parsed.success) {
+    const validTargets = TargetSchema.options.join(', ')
+    return params.ctx.fail(
+      `Invalid compile target "${params.target}". Must be one of: ${validTargets}`
+    )
+  }
+
+  return parsed.data
+}
+
+/**
  * Apply a `--target` CLI override to the config's compile targets.
  *
  * @private
- * @param params - The config and optional target override.
+ * @param params - The config and optional validated target override.
  * @returns A config with the target override applied.
  */
 function applyTargetOverride(params: {
   readonly config: KiddConfig
-  readonly target: string | undefined
+  readonly target: CompileTarget | undefined
 }): KiddConfig {
   if (!params.target) {
     return params.config
@@ -329,7 +378,7 @@ function applyTargetOverride(params: {
     ...params.config,
     compile: {
       ...existingCompile,
-      targets: [params.target as CompileTarget],
+      targets: [params.target],
     },
   }
 }
@@ -551,6 +600,10 @@ function spawnProcess(params: {
     const child = spawn(params.cmd, [...params.args], {
       cwd: params.cwd,
       stdio: 'inherit',
+    })
+
+    child.on('error', () => {
+      _resolve(1)
     })
 
     child.on('close', (code) => {

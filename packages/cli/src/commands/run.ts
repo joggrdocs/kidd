@@ -263,14 +263,62 @@ function resolveBinary(params: {
   readonly ctx: CommandContext<RunArgs>
   readonly target: string | undefined
 }): CompiledBinary {
-  const targetToFind = params.target ?? resolveHostTarget()
-  const binary = params.compileOutput.binaries.find((b) => b.target === targetToFind)
+  if (params.target) {
+    const binary = params.compileOutput.binaries.find((b) => b.target === params.target)
+
+    if (!binary) {
+      return params.ctx.fail(`No binary found for target "${params.target}"`)
+    }
+
+    return binary
+  }
+
+  const hostTarget = resolveHostTarget()
+  const candidates = resolveHostTargetCandidates(hostTarget)
+  const binary = findFirstMatchingBinary(params.compileOutput.binaries, candidates)
 
   if (!binary) {
-    return params.ctx.fail(`No binary found for target "${targetToFind}"`)
+    return params.ctx.fail(`No binary found for target "${hostTarget}"`)
   }
 
   return binary
+}
+
+/**
+ * Build an ordered list of candidate targets for the current host.
+ *
+ * On Linux x64, includes both the musl variant (`linux-x64-musl`) and the
+ * glibc variant (`linux-x64`) so the correct binary is found on Alpine-like
+ * hosts. The musl variant is preferred when available.
+ *
+ * @private
+ * @param hostTarget - The base host target string (e.g. `linux-x64`).
+ * @returns An ordered list of candidate target strings to try.
+ */
+function resolveHostTargetCandidates(hostTarget: string): readonly string[] {
+  if (hostTarget === 'linux-x64') {
+    return [`${hostTarget}-musl`, hostTarget]
+  }
+
+  return [hostTarget]
+}
+
+/**
+ * Find the first binary matching any of the candidate targets.
+ *
+ * @private
+ * @param binaries - The compiled binaries to search.
+ * @param candidates - Ordered candidate target strings.
+ * @returns The first matching binary, or `undefined`.
+ */
+function findFirstMatchingBinary(
+  binaries: readonly CompiledBinary[],
+  candidates: readonly string[]
+): CompiledBinary | undefined {
+  return candidates.reduce<CompiledBinary | undefined>(
+    (found, candidate) => found ?? binaries.find((b) => b.target === candidate),
+    undefined
+  )
 }
 
 /**

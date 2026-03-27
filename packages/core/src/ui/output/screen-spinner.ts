@@ -21,8 +21,6 @@ import type { OutputStore } from './types.js'
  * @returns A frozen Spinner instance compatible with `ctx.status.spinner`.
  */
 export function createScreenSpinner(store: OutputStore): Spinner {
-  let cancelled = false
-
   return Object.freeze({
     start(message?: string): void {
       store.setSpinner({
@@ -46,7 +44,6 @@ export function createScreenSpinner(store: OutputStore): Spinner {
     },
 
     cancel(message?: string): void {
-      cancelled = true
       store.setSpinner({
         status: 'cancelled',
         message: message ?? '',
@@ -65,7 +62,7 @@ export function createScreenSpinner(store: OutputStore): Spinner {
     },
 
     get isCancelled(): boolean {
-      return cancelled
+      return store.getSnapshot().spinner.status === 'cancelled'
     },
   }) satisfies Spinner
 }

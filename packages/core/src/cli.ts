@@ -381,8 +381,9 @@ function isEmptyString(value: string): boolean {
 /**
  * Apply display config settings that can only be set globally via clack's `updateSettings()`.
  *
- * Only `aliases`, `messages`, and `guide` require global application. All other
- * display config values are injected per-call by the context factories.
+ * Only `aliases` and `messages` require global application. All other
+ * display config values (including `guide`) are injected per-call by the
+ * context factories.
  *
  * @private
  * @param display - The display config from CliOptions, if any.
@@ -394,16 +395,14 @@ function applyDisplayGlobals(display: DisplayConfig | undefined): void {
 
   const hasAliases = display.aliases !== undefined
   const hasMessages = display.messages !== undefined
-  const hasGuide = display.guide !== undefined
 
-  if (!hasAliases && !hasMessages && !hasGuide) {
+  if (!hasAliases && !hasMessages) {
     return
   }
 
   updateSettings({
     aliases: display.aliases,
     messages: display.messages,
-    withGuide: display.guide,
   })
 }
 

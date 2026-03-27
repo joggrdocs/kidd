@@ -650,7 +650,8 @@ function spawnProcess(params: {
       stdio: 'inherit',
     })
 
-    child.on('error', () => {
+    child.on('error', (spawnError) => {
+      console.error(`Failed to spawn "${params.cmd}": ${spawnError.message}`)
       _resolve(1)
     })
 

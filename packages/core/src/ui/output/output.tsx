@@ -61,37 +61,34 @@ function SpinnerRow({ state }: { readonly state: SpinnerState }): ReactElement |
   return match(state)
     .with({ status: 'idle' }, () => null)
     .with({ status: 'spinning' }, ({ message }) => <Spinner label={message} />)
-    .with({ status: 'stopped' }, ({ message }) =>
-      match(message.length > 0)
-        .with(true, () => (
-          <Text>
-            <Text color="green">{figures.tick}</Text> {message}
-          </Text>
-        ))
-        .with(false, () => null)
-        .exhaustive()
-    )
+    .with({ status: 'stopped' }, ({ message }) => resolveTerminalIcon(message, 'green', figures.tick))
     .with({ status: 'cancelled' }, ({ message }) =>
-      match(message.length > 0)
-        .with(true, () => (
-          <Text>
-            <Text color="yellow">{figures.warning}</Text> {message}
-          </Text>
-        ))
-        .with(false, () => null)
-        .exhaustive()
+      resolveTerminalIcon(message, 'yellow', figures.warning)
     )
     .with({ status: 'error' }, ({ message }) =>
-      match(message.length > 0)
-        .with(true, () => (
-          <Text>
-            <Text color="red">{figures.cross}</Text> {message}
-          </Text>
-        ))
-        .with(false, () => null)
-        .exhaustive()
+      resolveTerminalIcon(message, 'red', figures.cross)
     )
     .exhaustive()
+}
+
+/**
+ * Render a terminal-state spinner icon with a message, or null if the message is empty.
+ *
+ * @private
+ */
+function resolveTerminalIcon(
+  message: string,
+  color: string,
+  icon: string
+): ReactElement | null {
+  if (message.length === 0) {
+    return null
+  }
+  return (
+    <Text>
+      <Text color={color}>{icon}</Text> {message}
+    </Text>
+  )
 }
 
 /**

@@ -132,6 +132,13 @@ function resolveOutput(options: CreateLogOptions | undefined): NodeJS.WritableSt
 }
 
 /**
+ * Shared empty base object to avoid allocating a new `{}` on every call.
+ *
+ * @private
+ */
+const EMPTY_BASE: Readonly<Record<string, never>> = Object.freeze({})
+
+/**
  * Resolve the base options object from log defaults.
  *
  * Maps `guide` to clack's `withGuide` property.
@@ -145,7 +152,7 @@ function resolveBase(defaults: LogDefaults | undefined): {
   readonly output?: Writable
 } {
   if (defaults === undefined) {
-    return {}
+    return EMPTY_BASE
   }
   return {
     withGuide: defaults.guide,

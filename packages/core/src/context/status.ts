@@ -59,9 +59,8 @@ export interface CreateContextStatusOptions {
  */
 export function createContextStatus(options?: CreateContextStatusOptions): Status {
   const base = resolveBase(options?.defaults)
-  const spinnerConfig = options?.spinnerConfig ?? {}
+  const spinner: Spinner = options?.spinner ?? createDefaultSpinner(base, options?.spinnerConfig ?? {})
   const progressConfig = options?.progressConfig ?? {}
-  const spinner: Spinner = options?.spinner ?? createDefaultSpinner(base, spinnerConfig)
 
   return Object.freeze({
     spinner,
@@ -145,6 +144,13 @@ export function createContextStatus(options?: CreateContextStatusOptions): Statu
 // ---------------------------------------------------------------------------
 
 /**
+ * Shared empty base object to avoid allocating a new `{}` on every call.
+ *
+ * @private
+ */
+const EMPTY_BASE: Readonly<Record<string, never>> = Object.freeze({})
+
+/**
  * Resolve the base options object from common defaults.
  *
  * Maps `guide` to clack's `withGuide` property.
@@ -158,7 +164,7 @@ function resolveBase(defaults: CreateContextStatusOptions['defaults'] | undefine
   readonly output?: Writable
 } {
   if (defaults === undefined) {
-    return {}
+    return EMPTY_BASE
   }
   return {
     withGuide: defaults.guide,

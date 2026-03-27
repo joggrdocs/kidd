@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@kidd-cli/core": "workspace:*",
+    "ts-pattern": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {

@@ -46,8 +46,10 @@ export async function cli<TSchema extends z.ZodType = z.ZodType>(
     const program = yargs(process.argv.slice(ARGV_SLICE_START))
       .scriptName(options.name)
       .version(version)
+      .alias('version', 'v')
       .strict(options.strict !== false)
       .help()
+      .alias('help', 'h')
       .option('cwd', {
         describe: 'Set the working directory',
         global: true,

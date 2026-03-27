@@ -3,7 +3,15 @@ import type { Writable } from 'node:stream'
 import { vi } from 'vitest'
 
 import { createContext } from '@/context/create-context.js'
-import type { Log, Prompts, Spinner } from '@/context/types.js'
+import type {
+  Log,
+  Prompts,
+  Spinner,
+  Status,
+  StreamLog,
+  TaskLogGroupHandle,
+  TaskLogHandle,
+} from '@/context/types.js'
 import { createLog } from '@/lib/log.js'
 import type { AnyRecord } from '@/types/index.js'
 
@@ -14,9 +22,9 @@ import type { PromptResponses, TestContextOptions, TestContextResult } from './t
  * Create a fully-mocked {@link CommandContext} for unit testing.
  *
  * The log instance writes to an in-memory buffer by default.
- * Override via `overrides.log`, `overrides.prompts`, or `overrides.spinner`.
+ * Override via `overrides.log`, `overrides.prompts`, or `overrides.status`.
  *
- * @param overrides - Optional overrides for args, config, meta, log, prompts, or spinner.
+ * @param overrides - Optional overrides for args, config, meta, log, prompts, or status.
  * @returns A TestContextResult with the context and a stdout accessor.
  */
 export function createTestContext<
@@ -27,7 +35,7 @@ export function createTestContext<
   const { output, stream } = createWritableCapture()
   const log = resolveLog(opts, stream)
   const prompts = resolvePrompts(opts)
-  const spinner = resolveSpinner(opts)
+  const status = resolveStatus(opts)
   const meta = resolveMeta(opts)
 
   const ctx = createContext<TArgs, TConfig>({
@@ -36,7 +44,7 @@ export function createTestContext<
     log,
     meta,
     prompts,
-    spinner,
+    status,
   })
 
   return { ctx, stdout: output }
@@ -49,6 +57,7 @@ export function createTestContext<
  */
 export function mockLog(): Log {
   return {
+    box: vi.fn(),
     error: vi.fn(),
     info: vi.fn(),
     intro: vi.fn(),
@@ -58,9 +67,26 @@ export function mockLog(): Log {
     outro: vi.fn(),
     raw: vi.fn(),
     step: vi.fn(),
+    stream: mockStreamLog(),
     success: vi.fn(),
     warn: vi.fn(),
   } as Log
+}
+
+/**
+ * Create a {@link StreamLog} implementation with mocked methods.
+ *
+ * @returns A StreamLog implementation with vi.fn() stubs.
+ */
+export function mockStreamLog(): StreamLog {
+  return {
+    error: vi.fn(async () => {}),
+    info: vi.fn(async () => {}),
+    message: vi.fn(async () => {}),
+    step: vi.fn(async () => {}),
+    success: vi.fn(async () => {}),
+    warn: vi.fn(async () => {}),
+  } as StreamLog
 }
 
 /**
@@ -77,18 +103,31 @@ export function mockLog(): Log {
 export function mockPrompts(responses?: PromptResponses): Prompts {
   const r = responses ?? {}
   const queues = {
+    autocomplete: [...(r.autocomplete ?? [])],
+    autocompleteMultiselect: [...(r.autocompleteMultiselect ?? [])],
     confirm: [...(r.confirm ?? [])],
+    groupMultiselect: [...(r.groupMultiselect ?? [])],
     multiselect: [...(r.multiselect ?? [])],
     password: [...(r.password ?? [])],
+    path: [...(r.path ?? [])],
     select: [...(r.select ?? [])],
+    selectKey: [...(r.selectKey ?? [])],
     text: [...(r.text ?? [])],
   }
 
   return {
+    autocomplete: vi.fn(async () => dequeue(queues.autocomplete, 'autocomplete')),
+    autocompleteMultiselect: vi.fn(async () =>
+      dequeue(queues.autocompleteMultiselect, 'autocompleteMultiselect')
+    ),
     confirm: vi.fn(async () => dequeue(queues.confirm, 'confirm')),
+    group: vi.fn(async () => ({})),
+    groupMultiselect: vi.fn(async () => dequeue(queues.groupMultiselect, 'groupMultiselect')),
     multiselect: vi.fn(async () => dequeue(queues.multiselect, 'multiselect')),
     password: vi.fn(async () => dequeue(queues.password, 'password')),
+    path: vi.fn(async () => dequeue(queues.path, 'path')),
     select: vi.fn(async () => dequeue(queues.select, 'select')),
+    selectKey: vi.fn(async () => dequeue(queues.selectKey, 'selectKey')),
     text: vi.fn(async () => dequeue(queues.text, 'text')),
   } as Prompts
 }
@@ -100,10 +139,47 @@ export function mockPrompts(responses?: PromptResponses): Prompts {
  */
 export function mockSpinner(): Spinner {
   return {
-    message: vi.fn(),
     start: vi.fn(),
     stop: vi.fn(),
+    message: vi.fn(),
+    cancel: vi.fn(),
+    error: vi.fn(),
+    clear: vi.fn(),
+    isCancelled: false,
   } as Spinner
+}
+
+/**
+ * Create a {@link Status} implementation with mocked methods.
+ *
+ * @param spinnerOverride - Optional spinner override.
+ * @returns A Status implementation with vi.fn() stubs.
+ */
+export function mockStatus(spinnerOverride?: Spinner): Status {
+  return {
+    spinner: spinnerOverride ?? mockSpinner(),
+    progress: vi.fn(() => ({
+      start: vi.fn(),
+      advance: vi.fn(),
+      stop: vi.fn(),
+      message: vi.fn(),
+      cancel: vi.fn(),
+      error: vi.fn(),
+      clear: vi.fn(),
+      isCancelled: false,
+    })),
+    tasks: vi.fn(async () => {}),
+    taskLog: vi.fn((): TaskLogHandle => ({
+      message: vi.fn(),
+      success: vi.fn(),
+      error: vi.fn(),
+      group: vi.fn((): TaskLogGroupHandle => ({
+        message: vi.fn(),
+        success: vi.fn(),
+        error: vi.fn(),
+      })),
+    })),
+  } as Status
 }
 
 // ---------------------------------------------------------------------------
@@ -140,17 +216,21 @@ function resolvePrompts(opts: TestContextOptions): Prompts {
 }
 
 /**
- * Resolve the spinner instance from overrides or create a mock.
+ * Resolve the status instance from overrides, supporting the deprecated
+ * `spinner` override for backwards compatibility.
  *
  * @private
  * @param opts - Test context options.
- * @returns A Spinner instance.
+ * @returns A Status instance.
  */
-function resolveSpinner(opts: TestContextOptions): Spinner {
-  if (opts.spinner !== undefined) {
-    return opts.spinner
+function resolveStatus(opts: TestContextOptions): Status {
+  if (opts.status !== undefined) {
+    return opts.status
   }
-  return mockSpinner()
+  if (opts.spinner !== undefined) {
+    return mockStatus(opts.spinner)
+  }
+  return mockStatus()
 }
 
 /**

@@ -1,6 +1,7 @@
 import { resolve } from 'node:path'
 
 import * as clack from '@clack/prompts'
+import { updateSettings } from '@clack/prompts'
 import { loadConfig } from '@kidd-cli/config/loader'
 import { P, attemptAsync, err, isNil, isPlainObject, isString, match, ok } from '@kidd-cli/utils/fp'
 import type { Result } from '@kidd-cli/utils/fp'
@@ -9,6 +10,7 @@ import type { Argv } from 'yargs'
 import { z } from 'zod'
 
 import { DEFAULT_EXIT_CODE, isContextError } from '@/context/index.js'
+import type { DisplayConfig } from '@/context/types.js'
 import type {
   CliOptions,
   CommandMap,
@@ -94,14 +96,18 @@ export async function cli<TSchema extends z.ZodType = z.ZodType>(
 
     const dirs = resolveDirs(options.name, options.dirs)
 
+    applyDisplayGlobals(options.display)
+
     const [runtimeError, runtime] = await createRuntime({
       config: options.config,
       dirs,
+      display: options.display,
       log: options.log,
       middleware: options.middleware,
       name: options.name,
       prompts: options.prompts,
       spinner: options.spinner,
+      status: options.status,
       version,
     })
 
@@ -368,6 +374,35 @@ function resolveDirs(name: string, dirs: DirsConfig | undefined): ResolvedDirs {
  */
 function isEmptyString(value: string): boolean {
   return value.trim().length === 0
+}
+
+/**
+ * Apply display config settings that can only be set globally via clack's `updateSettings()`.
+ *
+ * Only `aliases`, `messages`, and `guide` require global application. All other
+ * display config values are injected per-call by the context factories.
+ *
+ * @private
+ * @param display - The display config from CliOptions, if any.
+ */
+function applyDisplayGlobals(display: DisplayConfig | undefined): void {
+  if (display === undefined) {
+    return
+  }
+
+  const hasAliases = display.aliases !== undefined
+  const hasMessages = display.messages !== undefined
+  const hasGuide = display.guide !== undefined
+
+  if (!hasAliases && !hasMessages && !hasGuide) {
+    return
+  }
+
+  updateSettings({
+    aliases: display.aliases,
+    messages: display.messages,
+    withGuide: display.guide,
+  })
 }
 
 /**

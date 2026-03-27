@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { createTestContext, mockLog, mockPrompts, mockSpinner } from './context.js'
+import { createTestContext, mockLog, mockPrompts, mockSpinner, mockStatus } from './context.js'
 
 describe('test context factory', () => {
   it('should return a context with default args', () => {
@@ -48,16 +48,22 @@ describe('test context factory', () => {
     expect(ctx.prompts).toBe(prompts)
   })
 
-  it('should accept custom spinner', () => {
-    const spinner = mockSpinner()
-    const { ctx } = createTestContext({ spinner })
-    expect(ctx.spinner).toBe(spinner)
+  it('should accept custom status', () => {
+    const status = mockStatus()
+    const { ctx } = createTestContext({ status })
+    expect(ctx.status).toBe(status)
   })
 
-  it('should provide spinner with stub methods by default', () => {
+  it('should accept custom spinner via deprecated option', () => {
+    const spinner = mockSpinner()
+    const { ctx } = createTestContext({ spinner })
+    expect(ctx.status.spinner).toBe(spinner)
+  })
+
+  it('should provide status with stub methods by default', () => {
     const { ctx } = createTestContext()
-    expect(() => ctx.spinner.start('loading...')).not.toThrow()
-    expect(() => ctx.spinner.stop('done')).not.toThrow()
+    expect(() => ctx.status.spinner.start('loading...')).not.toThrow()
+    expect(() => ctx.status.spinner.stop('done')).not.toThrow()
   })
 })
 

@@ -44,7 +44,7 @@ function createMockCtx(options?: { readonly envToken?: string }) {
       select: vi.fn(),
       text: vi.fn(),
     },
-    spinner: { message: vi.fn(), start: vi.fn(), stop: vi.fn() },
+    status: { spinner: { message: vi.fn(), start: vi.fn(), stop: vi.fn() } },
     dotdir: {
       global: vi.fn(),
       local: vi.fn(),

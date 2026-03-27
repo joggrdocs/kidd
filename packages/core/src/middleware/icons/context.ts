@@ -15,7 +15,7 @@ import type { IconCategory, IconDefinition, IconsContext, IconsError } from './t
 /**
  * Minimal context subset needed by the icons context factory.
  */
-export type IconsCtx = Pick<CommandContext, 'log' | 'prompts' | 'spinner'>
+export type IconsCtx = Pick<CommandContext, 'log' | 'prompts' | 'status'>
 
 /**
  * Options for {@link createIconsContext}.

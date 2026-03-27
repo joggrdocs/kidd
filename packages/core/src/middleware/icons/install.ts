@@ -190,9 +190,9 @@ interface SlugSpinnerParams {
  * @returns A Result with true on success or an IconsError on failure.
  */
 async function installWithSelection(ctx: IconsCtx): AsyncResult<boolean, IconsError> {
-  ctx.spinner.start('Detecting installed fonts...')
+  ctx.status.spinner.start('Detecting installed fonts...')
   const matches = await detectMatchingFonts()
-  ctx.spinner.stop('Font detection complete')
+  ctx.status.spinner.stop('Font detection complete')
 
   const choices = buildFontChoices(matches)
 
@@ -382,17 +382,17 @@ async function installFontWithSpinner({
   ctx,
   fontName,
 }: CtxFontParams): AsyncResult<boolean, IconsError> {
-  ctx.spinner.start(`Installing ${fontName} Nerd Font...`)
+  ctx.status.spinner.start(`Installing ${fontName} Nerd Font...`)
 
-  const result = await installFont({ fontName, spinner: ctx.spinner })
+  const result = await installFont({ fontName, spinner: ctx.status.spinner })
   const [error] = result
 
   if (error) {
-    ctx.spinner.stop(`Failed to install ${fontName} Nerd Font`)
+    ctx.status.spinner.stop(`Failed to install ${fontName} Nerd Font`)
     return result
   }
 
-  ctx.spinner.stop(`${fontName} Nerd Font installed successfully`)
+  ctx.status.spinner.stop(`${fontName} Nerd Font installed successfully`)
   return result
 }
 

@@ -8,12 +8,14 @@ const CATALOG_KEYS = ['zod', 'typescript', 'vitest', 'tsdown'] as const
 
 const OUTPUT_PATH = join('packages', 'cli', 'src', 'generated', 'template-versions.ts')
 
-const BANNER = `// ============================================================================
+const BANNER = `
+// ============================================================================
 // AUTO-GENERATED FILE — DO NOT EDIT
 //
 // Synced from pnpm-workspace.yaml catalog.
 // To regenerate: pnpm lauf sync-template-versions
-// ============================================================================`
+// ============================================================================
+`.trim()
 
 const CONSTANT_NAMES: Record<(typeof CATALOG_KEYS)[number], string> = {
   tsdown: 'TSDOWN_VERSION',
@@ -34,7 +36,8 @@ export default lauf({
     check: z.boolean().default(false).describe('Check if the generated file is up to date'),
     verbose: z.boolean().default(false).describe('Enable verbose logging'),
   },
-  description: 'Sync template dependency versions from pnpm-workspace.yaml catalog',
+  description:
+    'Updates the templates to match the versions specified in pnpm-workspace.yaml catalog',
   async run(ctx) {
     const workspaceContent = readFileSync('pnpm-workspace.yaml', 'utf8')
     const { catalog } = parse(workspaceContent) as { catalog: Record<string, string> }

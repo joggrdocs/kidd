@@ -74,7 +74,7 @@ function makeContext(argOverrides: Record<string, unknown> = {}): CommandContext
       select: vi.fn(),
       text: vi.fn(),
     },
-    spinner: { message: vi.fn(), start: vi.fn(), stop: vi.fn() },
+    status: { spinner: { message: vi.fn(), start: vi.fn(), stop: vi.fn() } },
     store: { clear: vi.fn(), delete: vi.fn(), get: vi.fn(), has: vi.fn(), set: vi.fn() },
   } as unknown as CommandContext
 }
@@ -133,8 +133,8 @@ describe('doctor command', () => {
     const mod = await import('./doctor.js')
     await mod.default.handler!(ctx)
 
-    expect(ctx.spinner.start).toHaveBeenCalledWith('Running diagnostics...')
-    expect(ctx.spinner.stop).toHaveBeenCalledWith('Diagnostics complete')
+    expect(ctx.status.spinner.start).toHaveBeenCalledWith('Running diagnostics...')
+    expect(ctx.status.spinner.stop).toHaveBeenCalledWith('Diagnostics complete')
     expect(ctx.log.raw).toHaveBeenCalledWith(expect.stringContaining('config'))
     expect(ctx.log.raw).toHaveBeenCalledWith(expect.stringContaining('version'))
     expect(ctx.fail).not.toHaveBeenCalled()

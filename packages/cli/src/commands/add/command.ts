@@ -39,7 +39,7 @@ const addCommandCommand: Command = command({
     const commandDescription = await resolveDescription(ctx)
     const includeArgs = await resolveIncludeArgs(ctx)
 
-    ctx.spinner.start('Generating command...')
+    ctx.status.spinner.start('Generating command...')
 
     const templateDir = join(import.meta.dirname, '..', '..', 'lib', 'templates', 'command')
     const [renderError, rendered] = await renderTemplate({
@@ -48,7 +48,7 @@ const addCommandCommand: Command = command({
     })
 
     if (renderError) {
-      ctx.spinner.stop('Failed')
+      ctx.status.spinner.stop('Failed')
       return ctx.fail(renderError.message)
     }
 
@@ -61,11 +61,11 @@ const addCommandCommand: Command = command({
     const [writeError, result] = await writeFiles({ files, outputDir, overwrite: false })
 
     if (writeError) {
-      ctx.spinner.stop('Failed')
+      ctx.status.spinner.stop('Failed')
       return ctx.fail(writeError.message)
     }
 
-    ctx.spinner.stop('Command created!')
+    ctx.status.spinner.stop('Command created!')
 
     const lines = [
       ...result.written.map((file) => `  created ${file}`),

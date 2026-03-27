@@ -31,7 +31,7 @@ const addMiddlewareCommand: Command = command({
     const middlewareName = await resolveMiddlewareName(ctx)
     const middlewareDescription = await resolveDescription(ctx)
 
-    ctx.spinner.start('Generating middleware...')
+    ctx.status.spinner.start('Generating middleware...')
 
     const templateDir = join(import.meta.dirname, '..', '..', 'lib', 'templates', 'middleware')
     const [renderError, rendered] = await renderTemplate({
@@ -40,7 +40,7 @@ const addMiddlewareCommand: Command = command({
     })
 
     if (renderError) {
-      ctx.spinner.stop('Failed')
+      ctx.status.spinner.stop('Failed')
       return ctx.fail(renderError.message)
     }
 
@@ -53,11 +53,11 @@ const addMiddlewareCommand: Command = command({
     const [writeError, result] = await writeFiles({ files, outputDir, overwrite: false })
 
     if (writeError) {
-      ctx.spinner.stop('Failed')
+      ctx.status.spinner.stop('Failed')
       return ctx.fail(writeError.message)
     }
 
-    ctx.spinner.stop('Middleware created!')
+    ctx.status.spinner.stop('Middleware created!')
 
     const lines = [
       ...result.written.map((file) => `  created ${file}`),

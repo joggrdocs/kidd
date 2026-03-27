@@ -64,7 +64,7 @@ const delay = (ms: number): Promise<void> =>
 // ---------------------------------------------------------------------------
 
 /**
- * Scan component that demonstrates ctx.log, ctx.spinner, and ctx.report
+ * Scan component that demonstrates ctx.log, ctx.status.spinner, and ctx.report
  * rendered through the Output component.
  */
 function ScanScreen({ verbose }: { readonly verbose: boolean }): ReactElement {
@@ -80,9 +80,9 @@ function ScanScreen({ verbose }: { readonly verbose: boolean }): ReactElement {
       ctx.log.info('Starting scan...')
 
       // Phase 1: Lint
-      ctx.spinner.start('Running linter...')
+      ctx.status.spinner.start('Running linter...')
       await delay(SCAN_DELAY_MS)
-      ctx.spinner.stop('Linter complete')
+      ctx.status.spinner.stop('Linter complete')
 
       FINDINGS.reduce((_acc, finding) => {
         ctx.report.finding(finding)
@@ -93,9 +93,9 @@ function ScanScreen({ verbose }: { readonly verbose: boolean }): ReactElement {
       ctx.log.newline()
 
       // Phase 2: Tests
-      ctx.spinner.start('Running tests...')
+      ctx.status.spinner.start('Running tests...')
       await delay(SCAN_DELAY_MS)
-      ctx.spinner.stop('Tests complete')
+      ctx.status.spinner.stop('Tests complete')
 
       CHECK_RESULTS.reduce((_acc, result) => {
         ctx.report.check(result)
@@ -132,7 +132,7 @@ function ScanScreen({ verbose }: { readonly verbose: boolean }): ReactElement {
 // ---------------------------------------------------------------------------
 
 /**
- * Scan screen - demonstrates ctx.log, ctx.spinner, and ctx.report
+ * Scan screen - demonstrates ctx.log, ctx.status.spinner, and ctx.report
  * rendered through the Output component in a screen context.
  */
 export default screen({

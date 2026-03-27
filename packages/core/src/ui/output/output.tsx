@@ -1,7 +1,7 @@
 /**
  * React component that renders accumulated output entries from an
  * {@link OutputStore}. Used inside `screen()` components to display
- * `ctx.log`, `ctx.spinner`, and `ctx.report` output declaratively.
+ * `ctx.log`, `ctx.status.spinner`, and `ctx.report` output declaratively.
  *
  * @module
  */
@@ -66,6 +66,26 @@ function SpinnerRow({ state }: { readonly state: SpinnerState }): ReactElement |
         .with(true, () => (
           <Text>
             <Text color="green">{figures.tick}</Text> {message}
+          </Text>
+        ))
+        .with(false, () => null)
+        .exhaustive()
+    )
+    .with({ status: 'cancelled' }, ({ message }) =>
+      match(message.length > 0)
+        .with(true, () => (
+          <Text>
+            <Text color="yellow">{figures.warning}</Text> {message}
+          </Text>
+        ))
+        .with(false, () => null)
+        .exhaustive()
+    )
+    .with({ status: 'error' }, ({ message }) =>
+      match(message.length > 0)
+        .with(true, () => (
+          <Text>
+            <Text color="red">{figures.cross}</Text> {message}
           </Text>
         ))
         .with(false, () => null)

@@ -40,7 +40,7 @@ const doctorCommand: Command = command({
       rawPackageJson: rawPackageJson,
     })
 
-    ctx.spinner.start('Running diagnostics...')
+    ctx.status.spinner.start('Running diagnostics...')
 
     const initialResults = await Promise.all(CHECKS.map((check) => check.run(context)))
 
@@ -48,7 +48,7 @@ const doctorCommand: Command = command({
     const fixed = fixResults.filter((r) => r.fixed).length
     const results = await resolveResults({ cwd, fixed, initialResults, shouldFix })
 
-    ctx.spinner.stop('Diagnostics complete')
+    ctx.status.spinner.stop('Diagnostics complete')
 
     displayResults(ctx, results, fixResults)
 

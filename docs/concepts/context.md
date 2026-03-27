@@ -128,7 +128,7 @@ const env = await ctx.prompts.select({
 })
 ```
 
-## `ctx.spinner`
+## `ctx.status.spinner`
 
 Manage a spinner for long-running operations.
 
@@ -139,9 +139,9 @@ Manage a spinner for long-running operations.
 | `message(message)` | Update the spinner message            |
 
 ```ts
-ctx.spinner.start('Bundling...')
-ctx.spinner.message('Compiling binaries...')
-ctx.spinner.stop('Build complete')
+ctx.status.spinner.start('Bundling...')
+ctx.status.spinner.message('Compiling binaries...')
+ctx.status.spinner.stop('Build complete')
 ```
 
 ## `ctx.colors`

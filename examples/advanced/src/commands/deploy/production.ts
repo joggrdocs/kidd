@@ -20,11 +20,11 @@ export default command({
       }
     }
 
-    ctx.spinner.start(`Deploying ${ctx.args.tag} to production`)
-    ctx.spinner.message('Running pre-deploy checks')
-    ctx.spinner.message('Building release artifacts')
-    ctx.spinner.message('Rolling out to production')
-    ctx.spinner.stop(`Deployed ${ctx.args.tag} to production`)
+    ctx.status.spinner.start(`Deploying ${ctx.args.tag} to production`)
+    ctx.status.spinner.message('Running pre-deploy checks')
+    ctx.status.spinner.message('Building release artifacts')
+    ctx.status.spinner.message('Rolling out to production')
+    ctx.status.spinner.stop(`Deployed ${ctx.args.tag} to production`)
 
     process.stdout.write(
       ctx.format.json({

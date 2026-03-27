@@ -1,6 +1,6 @@
 import type { z } from 'zod'
 
-import type { Log, Prompts, Spinner } from '@/context/types.js'
+import type { DisplayConfig, Log, Prompts, Spinner, Status } from '@/context/types.js'
 
 import type { CommandMap, CommandsConfig } from './command.js'
 import type { Middleware } from './middleware.js'
@@ -148,6 +148,11 @@ export interface CliOptions<TSchema extends z.ZodType = z.ZodType> {
    */
   readonly dirs?: DirsConfig
   /**
+   * Default configuration for clack-backed prompts, logs, and status indicators.
+   * Values are injected as per-call defaults; method-level options always win.
+   */
+  readonly display?: DisplayConfig
+  /**
    * Custom log implementation. When omitted, a default `@clack/prompts`-backed
    * logger is created automatically.
    */
@@ -158,8 +163,13 @@ export interface CliOptions<TSchema extends z.ZodType = z.ZodType> {
    */
   readonly prompts?: Prompts
   /**
-   * Custom spinner implementation. When omitted, a default `@clack/prompts`
-   * spinner is created automatically.
+   * Custom status indicator implementation. When omitted, default
+   * `@clack/prompts`-backed status indicators are created automatically.
+   */
+  readonly status?: Status
+  /**
+   * @deprecated Use `status` instead. When provided, creates a Status
+   * wrapper around this spinner for backwards compatibility.
    */
   readonly spinner?: Spinner
 }

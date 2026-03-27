@@ -23,7 +23,7 @@ const addConfigCommand: Command = command({
 
     const projectName = await resolveProjectName(project.rootDir)
 
-    ctx.spinner.start('Generating config...')
+    ctx.status.spinner.start('Generating config...')
 
     const templateDir = join(import.meta.dirname, '..', '..', 'lib', 'templates', 'config')
     const [renderError, rendered] = await renderTemplate({
@@ -32,7 +32,7 @@ const addConfigCommand: Command = command({
     })
 
     if (renderError) {
-      ctx.spinner.stop('Failed')
+      ctx.status.spinner.stop('Failed')
       return ctx.fail(renderError.message)
     }
 
@@ -40,11 +40,11 @@ const addConfigCommand: Command = command({
     const [writeError, result] = await writeFiles({ files: rendered, outputDir, overwrite: false })
 
     if (writeError) {
-      ctx.spinner.stop('Failed')
+      ctx.status.spinner.stop('Failed')
       return ctx.fail(writeError.message)
     }
 
-    ctx.spinner.stop('Config created!')
+    ctx.status.spinner.stop('Config created!')
 
     const lines = [
       ...result.written.map((file) => `  created ${file}`),

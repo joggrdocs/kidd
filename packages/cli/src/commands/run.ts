@@ -233,7 +233,7 @@ async function compileProject(params: {
  * Resolve the binary to execute from compile output.
  *
  * When `--target` is provided, finds the matching binary. Otherwise
- * uses the first (and typically only) binary from the output.
+ * detects the host platform and architecture to find the correct binary.
  *
  * @private
  * @param params - The compile output, optional target, and command context.
@@ -244,23 +244,49 @@ function resolveBinary(params: {
   readonly ctx: CommandContext<RunArgs>
   readonly target: string | undefined
 }): CompiledBinary {
-  if (params.target) {
-    const binary = params.compileOutput.binaries.find((b) => b.target === params.target)
+  const targetToFind = params.target ?? resolveHostTarget()
+  const binary = params.compileOutput.binaries.find((b) => b.target === targetToFind)
 
-    if (!binary) {
-      return params.ctx.fail(`No binary found for target "${params.target}"`)
-    }
-
-    return binary
+  if (!binary) {
+    return params.ctx.fail(`No binary found for target "${targetToFind}"`)
   }
 
-  const [firstBinary] = params.compileOutput.binaries
+  return binary
+}
 
-  if (!firstBinary) {
-    return params.ctx.fail('Compile produced no binaries')
-  }
+/**
+ * Map from Node.js `process.platform` to compile target OS prefix.
+ *
+ * @private
+ */
+const PLATFORM_MAP: Readonly<Record<string, string>> = {
+  darwin: 'darwin',
+  linux: 'linux',
+  win32: 'windows',
+}
 
-  return firstBinary
+/**
+ * Map from Node.js `process.arch` to compile target architecture suffix.
+ *
+ * @private
+ */
+const ARCH_MAP: Readonly<Record<string, string>> = {
+  arm64: 'arm64',
+  x64: 'x64',
+}
+
+/**
+ * Detect the host platform and architecture, returning a compile target string.
+ *
+ * Combines `process.platform` and `process.arch` into a target like `darwin-arm64`.
+ *
+ * @private
+ * @returns The compile target string for the current host.
+ */
+function resolveHostTarget(): string {
+  const os = PLATFORM_MAP[process.platform] ?? process.platform
+  const arch = ARCH_MAP[process.arch] ?? process.arch
+  return `${os}-${arch}`
 }
 
 /**
@@ -329,17 +355,20 @@ function resolveExistingCompile(
 }
 
 /**
- * Extract passthrough arguments by filtering out known kidd run flags.
+ * Extract passthrough arguments by sequentially walking argv tokens
+ * and skipping known `kidd run` flags and their values.
  *
- * Since `strict: false` allows unknown flags through, `ctx.args` contains
- * both known and unknown entries. This function collects everything from
- * `process.argv` that isn't a recognized `kidd run` flag.
+ * Uses positional parsing: when a known flag that takes a value is
+ * encountered (e.g. `--engine`), the next token is also skipped.
+ * This avoids the fragile value-based matching that could accidentally
+ * consume user CLI arguments that happen to match a known flag's value.
  *
  * @private
- * @param params - The known parsed args.
+ * @param params - The known parsed args (unused but kept for API stability).
  * @returns An array of arguments to forward to the user's CLI.
  */
 function extractPassthroughArgs(params: { readonly knownArgs: RunArgs }): readonly string[] {
+  void params.knownArgs
   const argv = process.argv.slice(2)
   const runIndex = argv.indexOf('run')
 
@@ -349,91 +378,93 @@ function extractPassthroughArgs(params: { readonly knownArgs: RunArgs }): readon
 
   const afterRun = argv.slice(runIndex + 1)
 
-  return afterRun.filter((arg) => !isKnownFlag(arg, params.knownArgs))
+  return collectPassthroughTokens(afterRun)
 }
 
 /**
- * Known flag names for the `kidd run` command.
+ * Known boolean flags for the `kidd run` command (no value follows).
  *
  * @private
  */
-const KNOWN_FLAGS = new Set([
-  '--engine',
+const KNOWN_BOOLEAN_FLAGS: ReadonlySet<string> = new Set([
   '--inspect',
   '--inspect-brk',
-  '--inspect-port',
   '--inspect-wait',
-  '--target',
 ])
 
 /**
- * Check whether a CLI argument is a known `kidd run` flag or its value.
- *
- * Handles both `--flag value` and `--flag=value` forms.
+ * Known value flags for the `kidd run` command (next token is consumed as value).
  *
  * @private
- * @param arg - The CLI argument to check.
- * @param knownArgs - The parsed known args for value matching.
- * @returns `true` when the argument is a known flag or a known flag's value.
  */
-function isKnownFlag(arg: string, knownArgs: RunArgs): boolean {
-  if (KNOWN_FLAGS.has(arg)) {
-    return true
-  }
+const KNOWN_VALUE_FLAGS: ReadonlySet<string> = new Set(['--engine', '--inspect-port', '--target'])
 
-  const eqIndex = arg.indexOf('=')
-  if (eqIndex > 0) {
-    const flagPart = arg.slice(0, eqIndex)
-    return KNOWN_FLAGS.has(flagPart)
-  }
+/**
+ * Walk an array of CLI tokens sequentially and collect only passthrough args.
+ *
+ * Skips known boolean flags, known value flags (and their following value token),
+ * and `--flag=value` forms. All other tokens are collected as passthrough.
+ *
+ * @private
+ * @param tokens - The CLI tokens after the `run` subcommand.
+ * @returns The filtered passthrough arguments.
+ */
+function collectPassthroughTokens(tokens: readonly string[]): readonly string[] {
+  return tokens.reduce<{ readonly result: readonly string[]; readonly skip: boolean }>(
+    (acc, token) => {
+      if (acc.skip) {
+        return { result: acc.result, skip: false }
+      }
 
-  if (isValueOfPrecedingFlag(arg, knownArgs)) {
-    return true
-  }
+      if (KNOWN_BOOLEAN_FLAGS.has(token)) {
+        return { result: acc.result, skip: false }
+      }
 
-  return false
+      if (KNOWN_VALUE_FLAGS.has(token)) {
+        return { result: acc.result, skip: true }
+      }
+
+      if (isKnownEqualsSyntax(token)) {
+        return { result: acc.result, skip: false }
+      }
+
+      return { result: [...acc.result, token], skip: false }
+    },
+    { result: [], skip: false }
+  ).result
 }
 
 /**
- * Check whether an argument is the value of a preceding flag.
- *
- * Matches values for `--engine`, `--inspect-port`, and `--target` by
- * comparing against the parsed known args.
+ * Check whether a token uses `--flag=value` syntax for a known flag.
  *
  * @private
- * @param arg - The CLI argument to check.
- * @param knownArgs - The parsed known args.
- * @returns `true` when the argument matches a known flag's value.
+ * @param token - The CLI token to check.
+ * @returns `true` when the token is a known flag in `--flag=value` form.
  */
-function isValueOfPrecedingFlag(arg: string, knownArgs: RunArgs): boolean {
-  if (arg.startsWith('-')) {
+function isKnownEqualsSyntax(token: string): boolean {
+  const eqIndex = token.indexOf('=')
+  if (eqIndex <= 0) {
     return false
   }
 
-  if (arg === knownArgs.engine) {
-    return true
-  }
-
-  if (knownArgs['inspect-port'] !== undefined && arg === String(knownArgs['inspect-port'])) {
-    return true
-  }
-
-  if (knownArgs.target !== undefined && arg === knownArgs.target) {
-    return true
-  }
-
-  return false
+  const flagPart = token.slice(0, eqIndex)
+  return KNOWN_BOOLEAN_FLAGS.has(flagPart) || KNOWN_VALUE_FLAGS.has(flagPart)
 }
 
 /**
- * Check whether any inspector flag is set.
+ * Check whether any inspector flag is set, including `--inspect-port`.
  *
  * @private
  * @param args - The parsed CLI args.
  * @returns `true` when any inspector flag is enabled.
  */
 function hasInspectFlag(args: RunArgs): boolean {
-  return args.inspect === true || args['inspect-brk'] === true || args['inspect-wait'] === true
+  return (
+    args.inspect === true ||
+    args['inspect-brk'] === true ||
+    args['inspect-wait'] === true ||
+    args['inspect-port'] !== undefined
+  )
 }
 
 /**
@@ -459,6 +490,9 @@ function buildInspectFlags(args: RunArgs): readonly string[] {
 /**
  * Determine which inspector mode to use based on parsed CLI args.
  *
+ * When only `--inspect-port` is provided without an explicit mode,
+ * defaults to `'inspect'` so the port is not silently ignored.
+ *
  * @private
  * @param args - The parsed CLI args.
  * @returns The inspector flag name, or `undefined` if none is active.
@@ -473,6 +507,10 @@ function resolveInspectMode(args: RunArgs): string | undefined {
   }
 
   if (args.inspect) {
+    return 'inspect'
+  }
+
+  if (args['inspect-port'] !== undefined) {
     return 'inspect'
   }
 

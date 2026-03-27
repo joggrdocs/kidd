@@ -19,6 +19,7 @@ import { Preview } from './components/preview.js'
 import type { PreviewContext } from './components/preview.js'
 import { Sidebar } from './components/sidebar.js'
 import { StatusBar } from './components/status-bar.js'
+import { useDoubleEscape } from './hooks/use-double-escape.js'
 import { useViewerMode } from './hooks/use-panel-focus.js'
 import { useStories } from './hooks/use-stories.js'
 
@@ -52,7 +53,8 @@ interface StoriesAppProps {
  */
 export function StoriesApp({ registry, isReloading }: StoriesAppProps): ReactElement {
   const entries = useStories(registry)
-  const { mode, enterEditMode, exitEditMode } = useViewerMode()
+  const { mode, enterEditMode, exitEditMode, enterInteractiveMode, exitInteractiveMode } =
+    useViewerMode()
   const [selectedStoryId, setSelectedStoryId] = useState<string | null>(null)
   const [currentProps, setCurrentProps] = useState<Record<string, unknown>>({})
   const [showHelp, setShowHelp] = useState(false)
@@ -126,26 +128,34 @@ export function StoriesApp({ registry, isReloading }: StoriesAppProps): ReactEle
     setShowHelp(false)
   }, [])
 
-  useInput((input, key) => {
-    if (showHelp) {
-      return
-    }
-    if (input === 'q') {
-      exit()
-    }
-    if (key.escape && mode === 'edit') {
-      exitEditMode()
-    }
-    if (input === 'r') {
-      handleResetProps()
-    }
-    if (input === '?') {
-      setShowHelp(true)
-    }
-    if (input === 'b') {
-      setShowSidebar((prev) => !prev)
-    }
-  })
+  useDoubleEscape({ onExit: exitInteractiveMode, isActive: mode === 'interactive' })
+
+  useInput(
+    (input, key) => {
+      if (showHelp) {
+        return
+      }
+      if (input === 'q') {
+        exit()
+      }
+      if (key.escape && mode === 'edit') {
+        exitEditMode()
+      }
+      if (input === 'i' && selectedStoryId !== null) {
+        enterInteractiveMode()
+      }
+      if (input === 'r') {
+        handleResetProps()
+      }
+      if (input === '?') {
+        setShowHelp(true)
+      }
+      if (input === 'b') {
+        setShowSidebar((prev) => !prev)
+      }
+    },
+    { isActive: mode !== 'interactive' }
+  )
 
   if (showHelp) {
     return (
@@ -155,18 +165,28 @@ export function StoriesApp({ registry, isReloading }: StoriesAppProps): ReactEle
     )
   }
 
+  const isInteractive = mode === 'interactive'
+
   return (
     <FullScreen>
       <Box flexDirection="column" flexGrow={1}>
-        <Header />
+        {match(isInteractive)
+          .with(false, () => <Header />)
+          .with(true, () => null)
+          .exhaustive()}
         <Box flexDirection="row" flexGrow={1} overflow="hidden">
-          <Sidebar
-            entries={entries}
-            selectedId={selectedStoryId}
-            onSelect={handleSelect}
-            isFocused={mode === 'browse' && showSidebar}
-            hidden={!showSidebar}
-          />
+          {match(isInteractive)
+            .with(false, () => (
+              <Sidebar
+                entries={entries}
+                selectedId={selectedStoryId}
+                onSelect={handleSelect}
+                isFocused={mode === 'browse' && showSidebar}
+                hidden={!showSidebar}
+              />
+            ))
+            .with(true, () => null)
+            .exhaustive()}
           <Box flexDirection="column" flexGrow={1}>
             {match(isReloading)
               .with(true, () => <ReloadOverlay />)
@@ -179,7 +199,8 @@ export function StoriesApp({ registry, isReloading }: StoriesAppProps): ReactEle
                   errors={errors}
                   onPropsChange={handlePropsChange}
                   isFocused={mode === 'edit'}
-                  borderless={!showSidebar}
+                  borderless={isInteractive || !showSidebar}
+                  interactive={isInteractive}
                 />
               ))
               .exhaustive()}

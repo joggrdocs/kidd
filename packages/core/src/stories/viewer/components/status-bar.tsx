@@ -45,6 +45,7 @@ export function StatusBar({ mode, hasSelection, isReloading }: StatusBarProps): 
           <BrowseHints hasSelection={hasSelection} />
         ))
         .with({ isReloading: false, mode: 'edit' }, () => <EditHints />)
+        .with({ isReloading: false, mode: 'interactive' }, () => <InteractiveHints />)
         .exhaustive()}
       <Spacer />
       <Text dimColor>q</Text>
@@ -71,11 +72,13 @@ function ModeIndicator({ mode }: { readonly mode: ViewerMode }): ReactElement {
       color={match(mode)
         .with('browse', () => 'cyan' as const)
         .with('edit', () => 'yellow' as const)
+        .with('interactive', () => 'green' as const)
         .exhaustive()}
     >
       {match(mode)
         .with('browse', () => '● Browse')
         .with('edit', () => '● Edit')
+        .with('interactive', () => '● Interactive')
         .exhaustive()}
     </Text>
   )
@@ -136,6 +139,21 @@ function EditHints(): ReactElement {
       <Text> </Text>
       <Text dimColor>?</Text>
       <Text>: help</Text>
+    </Box>
+  )
+}
+
+/**
+ * Render keyboard hints for interactive mode.
+ *
+ * @private
+ * @returns A rendered hints element.
+ */
+function InteractiveHints(): ReactElement {
+  return (
+    <Box>
+      <Text dimColor>esc esc</Text>
+      <Text>: exit interactive</Text>
     </Box>
   )
 }

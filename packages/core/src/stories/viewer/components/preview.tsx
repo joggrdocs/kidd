@@ -48,6 +48,7 @@ interface PreviewProps {
   readonly onPropsChange: (name: string, value: unknown) => void
   readonly isFocused: boolean
   readonly borderless?: boolean
+  readonly interactive?: boolean
 }
 
 // ---------------------------------------------------------------------------
@@ -75,6 +76,7 @@ export function Preview({
   onPropsChange,
   isFocused,
   borderless = false,
+  interactive = false,
 }: PreviewProps): ReactElement {
   const contentRef = useRef<DOMElement>(null)
   const { height: contentHeight } = useSize(contentRef)
@@ -111,6 +113,16 @@ export function Preview({
           </Text>
         </Box>
         <EmptyState />
+      </Box>
+    )
+  }
+
+  if (interactive) {
+    return (
+      <Box flexDirection="column" flexGrow={1} overflow="hidden">
+        <ErrorBoundary key={context.displayName}>
+          <DecoratedComponent {...currentProps} />
+        </ErrorBoundary>
       </Box>
     )
   }

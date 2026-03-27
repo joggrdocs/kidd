@@ -169,16 +169,20 @@ export function mockStatus(spinnerOverride?: Spinner): Status {
       isCancelled: false,
     })),
     tasks: vi.fn(async () => {}),
-    taskLog: vi.fn((): TaskLogHandle => ({
-      message: vi.fn(),
-      success: vi.fn(),
-      error: vi.fn(),
-      group: vi.fn((): TaskLogGroupHandle => ({
+    taskLog: vi.fn(
+      (): TaskLogHandle => ({
         message: vi.fn(),
         success: vi.fn(),
         error: vi.fn(),
-      })),
-    })),
+        group: vi.fn(
+          (): TaskLogGroupHandle => ({
+            message: vi.fn(),
+            success: vi.fn(),
+            error: vi.fn(),
+          })
+        ),
+      })
+    ),
   } as Status
 }
 

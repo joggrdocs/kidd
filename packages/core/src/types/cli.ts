@@ -1,6 +1,6 @@
 import type { z } from 'zod'
 
-import type { DisplayConfig, Log, Prompts, Spinner, Status } from '@/context/types.js'
+import type { DisplayConfig, Log, Prompts, Status } from '@/context/types.js'
 
 import type { CommandMap, CommandsConfig } from './command.js'
 import type { Middleware } from './middleware.js'
@@ -167,11 +167,6 @@ export interface CliOptions<TSchema extends z.ZodType = z.ZodType> {
    * `@clack/prompts`-backed status indicators are created automatically.
    */
   readonly status?: Status
-  /**
-   * @deprecated Use `status` instead. When provided, creates a Status
-   * wrapper around this spinner for backwards compatibility.
-   */
-  readonly spinner?: Spinner
   /**
    * When `true` (the default), yargs rejects unknown flags with an error.
    * Set to `false` to allow unknown flags to pass through unchecked.

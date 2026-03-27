@@ -17,7 +17,6 @@ import type {
   Log,
   Meta,
   Prompts,
-  Spinner,
   Status,
   Store,
   StoreMap,
@@ -28,9 +27,8 @@ import type {
  *
  * Carries the parsed args, validated config, and CLI metadata needed to
  * assemble a fully-wired context. Optional overrides allow callers to inject
- * custom {@link Log}, {@link Prompts}, {@link Status}, and {@link Spinner}
- * implementations; when omitted, default `@clack/prompts`-backed instances
- * are used.
+ * custom {@link Log}, {@link Prompts}, and {@link Status} implementations;
+ * when omitted, default `@clack/prompts`-backed instances are used.
  */
 export interface CreateContextOptions<TArgs extends AnyRecord, TConfig extends AnyRecord> {
   readonly args: TArgs
@@ -45,11 +43,6 @@ export interface CreateContextOptions<TArgs extends AnyRecord, TConfig extends A
   readonly log?: Log
   readonly prompts?: Prompts
   readonly status?: Status
-  /**
-   * @deprecated Use `status` instead. When provided, creates a Status
-   * wrapper around this spinner for backwards compatibility.
-   */
-  readonly spinner?: Spinner
 }
 
 /**
@@ -141,8 +134,7 @@ function resolveCommonDefaults(dc: DisplayConfig): {
 }
 
 /**
- * Resolve the Status instance from options, supporting the deprecated
- * `spinner` override for backwards compatibility.
+ * Resolve the Status instance from options or create a default one.
  *
  * @private
  * @param options - The create context options.
@@ -162,7 +154,6 @@ function resolveStatus<TArgs extends AnyRecord, TConfig extends AnyRecord>(
   return createContextStatus({
     defaults: commonDefaults,
     progressConfig: dc.progress,
-    spinner: options.spinner,
     spinnerConfig: dc.spinner,
   })
 }

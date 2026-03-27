@@ -108,7 +108,6 @@ export async function cli<TSchema extends z.ZodType = z.ZodType>(
       middleware: options.middleware,
       name: options.name,
       prompts: options.prompts,
-      spinner: options.spinner,
       status: options.status,
       version,
     })

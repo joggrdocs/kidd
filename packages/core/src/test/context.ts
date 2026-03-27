@@ -220,8 +220,7 @@ function resolvePrompts(opts: TestContextOptions): Prompts {
 }
 
 /**
- * Resolve the status instance from overrides, supporting the deprecated
- * `spinner` override for backwards compatibility.
+ * Resolve the status instance from overrides or create a mock.
  *
  * @private
  * @param opts - Test context options.
@@ -230,9 +229,6 @@ function resolvePrompts(opts: TestContextOptions): Prompts {
 function resolveStatus(opts: TestContextOptions): Status {
   if (opts.status !== undefined) {
     return opts.status
-  }
-  if (opts.spinner !== undefined) {
-    return mockStatus(opts.spinner)
   }
   return mockStatus()
 }

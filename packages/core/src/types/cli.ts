@@ -162,6 +162,13 @@ export interface CliOptions<TSchema extends z.ZodType = z.ZodType> {
    * spinner is created automatically.
    */
   readonly spinner?: Spinner
+  /**
+   * When `true` (the default), yargs rejects unknown flags with an error.
+   * Set to `false` to allow unknown flags to pass through unchecked.
+   *
+   * Individual commands can override this value via their own `strict` field.
+   */
+  readonly strict?: boolean
 }
 
 /**

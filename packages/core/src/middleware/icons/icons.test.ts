@@ -52,7 +52,7 @@ function createMockCtx() {
       select: vi.fn(),
       text: vi.fn(),
     },
-    spinner: { message: vi.fn(), start: vi.fn(), stop: vi.fn() },
+    status: { spinner: { message: vi.fn(), start: vi.fn(), stop: vi.fn() } },
     store: {
       clear: () => store.clear(),
       delete: (key: string) => store.delete(key),

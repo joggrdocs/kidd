@@ -48,7 +48,7 @@ function makeContext(overrides?: Partial<CommandContext>): CommandContext {
     log: {} as CommandContext['log'],
     meta: baseMeta,
     prompts: {} as CommandContext['prompts'],
-    spinner: {} as CommandContext['spinner'],
+    status: {} as CommandContext['status'],
     store: makeStore(),
     ...overrides,
   } as CommandContext
@@ -181,7 +181,7 @@ describe('screen() render function', () => {
     expect(providerValue.config).toEqual({ debug: true })
     expect(providerValue.meta).toBe(baseMeta)
     expect(providerValue).toHaveProperty('log')
-    expect(providerValue).toHaveProperty('spinner')
+    expect(providerValue).toHaveProperty('status')
     expect(providerValue).not.toHaveProperty('prompts')
     expect(providerValue).not.toHaveProperty('fail')
     expect(providerValue).not.toHaveProperty('colors')

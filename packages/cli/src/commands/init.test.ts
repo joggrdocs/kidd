@@ -72,7 +72,7 @@ function makeContext(argOverrides: Record<string, unknown> = {}): CommandContext
       select: vi.fn(),
       text: vi.fn(),
     },
-    spinner: { message: vi.fn(), start: vi.fn(), stop: vi.fn() },
+    status: { spinner: { message: vi.fn(), start: vi.fn(), stop: vi.fn() } },
     meta: { command: ['init'], name: 'kidd', version: '0.0.0' },
     store: { clear: vi.fn(), delete: vi.fn(), get: vi.fn(), has: vi.fn(), set: vi.fn() },
   } as unknown as CommandContext

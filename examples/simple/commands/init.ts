@@ -34,11 +34,11 @@ export default command({
       ctx.fail('Project creation cancelled')
     }
 
-    ctx.spinner.start(`Scaffolding ${name}`)
+    ctx.status.spinner.start(`Scaffolding ${name}`)
 
     ctx.log.info(`Template: ${template}`)
     ctx.log.info(`Features: ${features.join(', ')}`)
 
-    ctx.spinner.stop(`Created ${name}`)
+    ctx.status.spinner.stop(`Created ${name}`)
   },
 })

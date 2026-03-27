@@ -37,12 +37,12 @@ const commandsCommand: KiddCommand = command({
       return ctx.fail(`Commands directory not found: ${commandsDir}`)
     }
 
-    ctx.spinner.start('Scanning commands...')
+    ctx.status.spinner.start('Scanning commands...')
 
     const commandMap = await autoload({ dir: commandsDir })
     const tree = await buildTree(commandMap)
 
-    ctx.spinner.stop('Commands')
+    ctx.status.spinner.stop('Commands')
 
     if (tree.length === 0) {
       ctx.log.raw('No commands found')

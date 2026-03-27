@@ -1,7 +1,14 @@
 import type { AsyncResult, Result } from '@kidd-cli/utils/fp'
 import type { z } from 'zod'
 
-import type { CommandContext, Log, Prompts, Spinner } from '@/context/types.js'
+import type {
+  CommandContext,
+  DisplayConfig,
+  Log,
+  Prompts,
+  Spinner,
+  Status,
+} from '@/context/types.js'
 import type {
   ArgsDef,
   CliConfigOptions,
@@ -19,8 +26,10 @@ export interface RuntimeOptions<TSchema extends z.ZodType = z.ZodType> {
   readonly dirs: ResolvedDirs
   readonly config?: CliConfigOptions<TSchema>
   readonly middleware?: Middleware[]
+  readonly display?: DisplayConfig
   readonly log?: Log
   readonly prompts?: Prompts
+  readonly status?: Status
   readonly spinner?: Spinner
 }
 

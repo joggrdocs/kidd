@@ -79,7 +79,7 @@ export function createContext<TArgs extends AnyRecord, TConfig extends AnyRecord
       defaults: commonDefaults,
       output: dc.output,
     })
-  const ctxStatus: Status = resolveStatus(options, commonDefaults)
+  const ctxStatus: Status = resolveStatus(options, dc, commonDefaults)
   const ctxFormat: Format = createContextFormat()
   const ctxStore: Store<Merge<KiddStore, StoreMap>> = createMemoryStore()
   const ctxPrompts: Prompts =
@@ -146,31 +146,23 @@ function resolveCommonDefaults(dc: DisplayConfig): {
  *
  * @private
  * @param options - The create context options.
+ * @param dc - The resolved display config.
  * @param commonDefaults - Common per-call defaults from display config.
  * @returns A Status instance.
  */
 function resolveStatus<TArgs extends AnyRecord, TConfig extends AnyRecord>(
   options: CreateContextOptions<TArgs, TConfig>,
+  dc: DisplayConfig,
   commonDefaults: { readonly guide?: boolean; readonly output?: DisplayConfig['output'] }
 ): Status {
   if (options.status !== undefined) {
     return options.status
   }
 
-  const dc = options.display ?? {}
-
-  if (options.spinner !== undefined) {
-    return createContextStatus({
-      defaults: commonDefaults,
-      progressConfig: dc.progress,
-      spinner: options.spinner,
-      spinnerConfig: dc.spinner,
-    })
-  }
-
   return createContextStatus({
     defaults: commonDefaults,
     progressConfig: dc.progress,
+    spinner: options.spinner,
     spinnerConfig: dc.spinner,
   })
 }

@@ -159,7 +159,7 @@ async function runWithBinary(params: EngineParams): Promise<number> {
 
   await buildProject({ ...params, config: configWithTarget })
 
-  params.ctx.spinner.message('Compiling binary...')
+  params.ctx.status.spinner.message('Compiling binary...')
 
   const compileOutput = await compileProject({
     config: configWithTarget,
@@ -173,7 +173,7 @@ async function runWithBinary(params: EngineParams): Promise<number> {
     target: params.args.target,
   })
 
-  params.ctx.spinner.stop('Build complete')
+  params.ctx.status.spinner.stop('Build complete')
 
   return spawnProcess({
     args: params.passthroughArgs,
@@ -209,16 +209,16 @@ async function buildProject(params: {
   readonly ctx: CommandContext<RunArgs>
   readonly cwd: string
 }): Promise<BuildOutput> {
-  params.ctx.spinner.start('Building...')
+  params.ctx.status.spinner.start('Building...')
 
   const [buildError, buildOutput] = await build({ config: params.config, cwd: params.cwd })
 
   if (buildError) {
-    params.ctx.spinner.stop('Build failed')
+    params.ctx.status.spinner.stop('Build failed')
     return params.ctx.fail(buildError.message)
   }
 
-  params.ctx.spinner.stop('Built')
+  params.ctx.status.spinner.stop('Built')
 
   return buildOutput
 }
@@ -241,7 +241,7 @@ async function compileProject(params: {
   })
 
   if (compileError) {
-    params.ctx.spinner.stop('Compile failed')
+    params.ctx.status.spinner.stop('Compile failed')
     return params.ctx.fail(compileError.message)
   }
 

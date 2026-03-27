@@ -9,6 +9,7 @@ import type { Readable, Writable } from 'node:stream'
 import * as clack from '@clack/prompts'
 
 import { DEFAULT_EXIT_CODE, createContextError } from './error.js'
+import { resolveClackBase } from './resolve-defaults.js'
 import type { Prompts } from './types.js'
 
 // ---------------------------------------------------------------------------
@@ -48,7 +49,7 @@ export interface CreateContextPromptsOptions {
  * @returns A Prompts instance backed by clack.
  */
 export function createContextPrompts(options?: CreateContextPromptsOptions): Prompts {
-  const base = resolveBase(options?.defaults)
+  const base = resolveClackBase(options?.defaults)
 
   return {
     async confirm(opts): Promise<boolean> {
@@ -133,37 +134,6 @@ export function createContextPrompts(options?: CreateContextPromptsOptions): Pro
 // ---------------------------------------------------------------------------
 // Private helpers
 // ---------------------------------------------------------------------------
-
-/**
- * Shared empty base object to avoid allocating a new `{}` on every call.
- *
- * @private
- */
-const EMPTY_BASE: Readonly<Record<string, never>> = Object.freeze({})
-
-/**
- * Resolve the base options object from prompt defaults.
- *
- * Maps `guide` to clack's `withGuide` property.
- *
- * @private
- * @param defaults - The prompt defaults, if any.
- * @returns A plain object suitable for spreading into clack calls.
- */
-function resolveBase(defaults: PromptDefaults | undefined): {
-  readonly withGuide?: boolean
-  readonly input?: Readable
-  readonly output?: Writable
-} {
-  if (defaults === undefined) {
-    return EMPTY_BASE
-  }
-  return {
-    withGuide: defaults.guide,
-    input: defaults.input,
-    output: defaults.output,
-  }
-}
 
 /**
  * Unwrap a prompt result that may be a cancel symbol.

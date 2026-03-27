@@ -8,6 +8,8 @@ import type { Writable } from 'node:stream'
 
 import * as clack from '@clack/prompts'
 
+import type { ClackBase } from '@/context/resolve-defaults.js'
+import { mergeClackOpts, resolveClackBase } from '@/context/resolve-defaults.js'
 import type {
   BoxOptions,
   DisplayConfig,
@@ -57,16 +59,16 @@ export interface CreateLogOptions {
  */
 export function createLog(options?: CreateLogOptions): Log {
   const output = resolveOutput(options)
-  const base = resolveBase(options?.defaults)
+  const base = resolveClackBase(options?.defaults)
   const boxBase = resolveBoxBase(base, options?.boxDefaults)
 
   return Object.freeze({
     error(message: string, opts?: LogMessageOptions): void {
-      clack.log.error(message, { ...base, ...opts })
+      clack.log.error(message, mergeClackOpts(base, opts))
     },
 
     info(message: string, opts?: LogMessageOptions): void {
-      clack.log.info(message, { ...base, ...opts })
+      clack.log.info(message, mergeClackOpts(base, opts))
     },
 
     intro(title?: string): void {
@@ -74,7 +76,7 @@ export function createLog(options?: CreateLogOptions): Log {
     },
 
     message(message: string, opts?: LogMessageOptions): void {
-      clack.log.message(message, { ...base, ...opts })
+      clack.log.message(message, mergeClackOpts(base, opts))
     },
 
     newline(): void {
@@ -82,11 +84,11 @@ export function createLog(options?: CreateLogOptions): Log {
     },
 
     note(message?: string, title?: string, opts?: NoteOptions): void {
-      clack.note(message, title, { ...base, ...opts })
+      clack.note(message, title, mergeClackOpts(base, opts))
     },
 
     box(message: string, title?: string, opts?: BoxOptions): void {
-      clack.box(message, title, { ...boxBase, ...opts })
+      clack.box(message, title, mergeClackOpts(boxBase as ClackBase, opts))
     },
 
     outro(message?: string): void {
@@ -98,15 +100,15 @@ export function createLog(options?: CreateLogOptions): Log {
     },
 
     step(message: string, opts?: LogMessageOptions): void {
-      clack.log.step(message, { ...base, ...opts })
+      clack.log.step(message, mergeClackOpts(base, opts))
     },
 
     success(message: string, opts?: LogMessageOptions): void {
-      clack.log.success(message, { ...base, ...opts })
+      clack.log.success(message, mergeClackOpts(base, opts))
     },
 
     warn(message: string, opts?: LogMessageOptions): void {
-      clack.log.warn(message, { ...base, ...opts })
+      clack.log.warn(message, mergeClackOpts(base, opts))
     },
 
     stream: createStreamLog(),
@@ -132,35 +134,6 @@ function resolveOutput(options: CreateLogOptions | undefined): NodeJS.WritableSt
 }
 
 /**
- * Shared empty base object to avoid allocating a new `{}` on every call.
- *
- * @private
- */
-const EMPTY_BASE: Readonly<Record<string, never>> = Object.freeze({})
-
-/**
- * Resolve the base options object from log defaults.
- *
- * Maps `guide` to clack's `withGuide` property.
- *
- * @private
- * @param defaults - The log defaults, if any.
- * @returns A plain object suitable for spreading into clack calls.
- */
-function resolveBase(defaults: LogDefaults | undefined): {
-  readonly withGuide?: boolean
-  readonly output?: Writable
-} {
-  if (defaults === undefined) {
-    return EMPTY_BASE
-  }
-  return {
-    withGuide: defaults.guide,
-    output: defaults.output,
-  }
-}
-
-/**
  * Resolve the base options for box calls by merging common defaults with box-specific defaults.
  *
  * @private
@@ -169,9 +142,9 @@ function resolveBase(defaults: LogDefaults | undefined): {
  * @returns A merged object suitable for spreading into `clack.box()` calls.
  */
 function resolveBoxBase(
-  base: { readonly withGuide?: boolean; readonly output?: Writable },
+  base: ClackBase,
   boxDefaults: DisplayConfig['box'] | undefined
-): Record<string, unknown> {
+): ClackBase | Record<string, unknown> {
   if (boxDefaults === undefined) {
     return base
   }

@@ -8,6 +8,8 @@ import type { Writable } from 'node:stream'
 
 import * as clack from '@clack/prompts'
 
+import type { ClackBase } from './resolve-defaults.js'
+import { resolveClackBase } from './resolve-defaults.js'
 import type {
   DisplayConfig,
   ProgressBar,
@@ -58,8 +60,9 @@ export interface CreateContextStatusOptions {
  * @returns A frozen Status instance backed by clack.
  */
 export function createContextStatus(options?: CreateContextStatusOptions): Status {
-  const base = resolveBase(options?.defaults)
-  const spinner: Spinner = options?.spinner ?? createDefaultSpinner(base, options?.spinnerConfig ?? {})
+  const base = resolveClackBase(options?.defaults)
+  const spinner: Spinner =
+    options?.spinner ?? createDefaultSpinner(base, options?.spinnerConfig ?? {})
   const progressConfig = options?.progressConfig ?? {}
 
   return Object.freeze({
@@ -144,35 +147,6 @@ export function createContextStatus(options?: CreateContextStatusOptions): Statu
 // ---------------------------------------------------------------------------
 
 /**
- * Shared empty base object to avoid allocating a new `{}` on every call.
- *
- * @private
- */
-const EMPTY_BASE: Readonly<Record<string, never>> = Object.freeze({})
-
-/**
- * Resolve the base options object from common defaults.
- *
- * Maps `guide` to clack's `withGuide` property.
- *
- * @private
- * @param defaults - The common defaults, if any.
- * @returns A plain object suitable for spreading into clack calls.
- */
-function resolveBase(defaults: CreateContextStatusOptions['defaults'] | undefined): {
-  readonly withGuide?: boolean
-  readonly output?: Writable
-} {
-  if (defaults === undefined) {
-    return EMPTY_BASE
-  }
-  return {
-    withGuide: defaults.guide,
-    output: defaults.output,
-  }
-}
-
-/**
  * Create the default clack spinner with merged config.
  *
  * @private
@@ -181,7 +155,7 @@ function resolveBase(defaults: CreateContextStatusOptions['defaults'] | undefine
  * @returns A Spinner instance.
  */
 function createDefaultSpinner(
-  base: { readonly withGuide?: boolean; readonly output?: Writable },
+  base: ClackBase,
   config: NonNullable<DisplayConfig['spinner']>
 ): Spinner {
   return clack.spinner({

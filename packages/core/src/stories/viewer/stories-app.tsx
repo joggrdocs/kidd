@@ -217,6 +217,37 @@ export function StoriesApp({ registry, isReloading }: StoriesAppProps): ReactEle
 // ---------------------------------------------------------------------------
 
 /**
+ * A parsed story ID — either a direct story key or a group variant reference.
+ *
+ * @private
+ */
+type ParsedStoryId =
+  | { readonly type: 'single'; readonly key: string }
+  | { readonly type: 'group'; readonly groupKey: string; readonly variantName: string }
+
+/**
+ * Parse a story ID into its constituent parts.
+ *
+ * Direct story IDs contain no separator. Group variant IDs use the
+ * `groupKey::variantName` format.
+ *
+ * @private
+ * @param id - The raw story ID string.
+ * @returns The parsed story ID.
+ */
+function parseStoryId(id: string): ParsedStoryId {
+  const separatorIndex = id.indexOf('::')
+  if (separatorIndex === -1) {
+    return { type: 'single', key: id }
+  }
+  return {
+    type: 'group',
+    groupKey: id.slice(0, separatorIndex),
+    variantName: id.slice(separatorIndex + 2),
+  }
+}
+
+/**
  * Resolve a story from the entries map by its ID. Supports both direct
  * story keys and group variant keys in the format `groupKey::variantName`.
  *
@@ -230,31 +261,24 @@ function resolveStory(entries: ReadonlyMap<string, StoryEntry>, id: string | nul
     return null
   }
 
-  const separatorIndex = id.indexOf('::')
-  if (separatorIndex === -1) {
-    const entry = entries.get(id)
-    if (entry === undefined) {
-      return null
-    }
-    return match(hasTag(entry, 'Story'))
-      .with(true, () => entry as Story)
-      .with(false, () => null)
-      .exhaustive()
-  }
+  const parsed = parseStoryId(id)
 
-  const groupKey = id.slice(0, separatorIndex)
-  const variantName = id.slice(separatorIndex + 2)
-  const group = entries.get(groupKey)
-
-  if (group === undefined || !hasTag(group, 'StoryGroup')) {
-    return null
-  }
-
-  const variant = group.stories[variantName]
-  if (variant === undefined) {
-    return null
-  }
-  return variant
+  return match(parsed)
+    .with({ type: 'single' }, ({ key }) => {
+      const entry = entries.get(key)
+      if (entry === undefined || !hasTag(entry, 'Story')) {
+        return null
+      }
+      return entry as Story
+    })
+    .with({ type: 'group' }, ({ groupKey, variantName }) => {
+      const group = entries.get(groupKey)
+      if (group === undefined || !hasTag(group, 'StoryGroup')) {
+        return null
+      }
+      return group.stories[variantName] ?? null
+    })
+    .exhaustive()
 }
 
 /**
@@ -277,27 +301,25 @@ function buildPreviewContext(
     return null
   }
 
-  const separatorIndex = id.indexOf('::')
+  const parsed = parseStoryId(id)
   const cwd = process.cwd()
 
-  if (separatorIndex === -1) {
-    return {
-      filePath: relative(cwd, id),
+  return match(parsed)
+    .with({ type: 'single' }, ({ key }) => ({
+      filePath: relative(cwd, key),
       displayName: story.name,
       description: story.description,
-    }
-  }
-
-  const groupKey = id.slice(0, separatorIndex)
-  const variantName = id.slice(separatorIndex + 2)
-  const group = entries.get(groupKey)
-  const groupTitle = resolveGroupTitle(group)
-
-  return {
-    filePath: relative(cwd, groupKey),
-    displayName: `${groupTitle} > ${variantName}`,
-    description: story.description,
-  }
+    }))
+    .with({ type: 'group' }, ({ groupKey, variantName }) => {
+      const group = entries.get(groupKey)
+      const groupTitle = resolveGroupTitle(group)
+      return {
+        filePath: relative(cwd, groupKey),
+        displayName: `${groupTitle} > ${variantName}`,
+        description: story.description,
+      }
+    })
+    .exhaustive()
 }
 
 /**

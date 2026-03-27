@@ -87,6 +87,13 @@ export interface ScreenDef<
   readonly fullscreen?: boolean
 
   /**
+   * When `true` (inherited default), yargs rejects unknown flags for this screen.
+   * Set to `false` to allow unknown flags to pass through unchecked,
+   * overriding the CLI-level `strict` setting.
+   */
+  readonly strict?: boolean
+
+  /**
    * A React component that receives the parsed args as props.
    *
    * Can be a component reference (`render: MyComponent`) or an inline
@@ -160,6 +167,7 @@ export function screen<
       options: def.options,
       positionals: def.positionals,
       render: renderFn,
+      strict: def.strict,
     },
     'Command'
   ) as Command

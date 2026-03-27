@@ -47,7 +47,7 @@ export async function cli<TSchema extends z.ZodType = z.ZodType>(
       .scriptName(options.name)
       .version(version)
       .alias('version', 'v')
-      .strict()
+      .strict(options.strict !== false)
       .help()
       .alias('help', 'h')
       .option('cwd', {

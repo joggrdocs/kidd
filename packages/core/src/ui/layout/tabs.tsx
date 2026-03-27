@@ -14,6 +14,8 @@ import type { ReactElement, ReactNode } from 'react'
 import { useState } from 'react'
 import { match } from 'ts-pattern'
 
+import { colors } from '../theme.js'
+
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
@@ -189,7 +191,7 @@ function TabLabel({ label, isActive, isFocused }: TabLabelProps): ReactElement {
  */
 function resolveTabColor(isActive: boolean, isFocused: boolean): string | undefined {
   return match({ isActive, isFocused })
-    .with({ isActive: true, isFocused: true }, () => 'cyan' as const)
+    .with({ isActive: true, isFocused: true }, () => colors.primary)
     .with({ isActive: true, isFocused: false }, () => 'white' as const)
     .otherwise(() => undefined)
 }

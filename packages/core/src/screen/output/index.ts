@@ -5,8 +5,6 @@
  * @module
  */
 
-export { Output } from './output.js'
-
 export { useOutputStore } from './use-output-store.js'
 
 export { createOutputStore } from './store.js'

@@ -27,9 +27,13 @@ const OUTPUT_STORE_KEY: unique symbol = Symbol('kidd.outputStore')
  * Options for {@link injectOutputStore}.
  */
 interface InjectOutputStoreOptions {
-  /** The screen context record to extend. */
+  /**
+   * The screen context record to extend.
+   */
   readonly ctx: Record<string | symbol, unknown>
-  /** The output store to attach. */
+  /**
+   * The output store to attach.
+   */
   readonly store: OutputStore
 }
 

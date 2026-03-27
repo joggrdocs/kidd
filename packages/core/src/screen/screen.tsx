@@ -7,7 +7,7 @@ import { match } from 'ts-pattern'
 
 import type { CommandContext, ImperativeContextKeys, ScreenContext } from '../context/types.js'
 import type { ArgsDef, Command, InferArgsMerged, Resolvable } from '../types/index.js'
-import { FullScreen, LEAVE_ALT_SCREEN } from './fullscreen.js'
+import { FullScreen, LEAVE_ALT_SCREEN } from '../ui/layout/fullscreen.js'
 import { createScreenLog } from './output/screen-log.js'
 import { createScreenReport } from './output/screen-report.js'
 import { createScreenSpinner } from './output/screen-spinner.js'

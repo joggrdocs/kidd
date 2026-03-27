@@ -1,12 +1,9 @@
 import type { Option } from '@inkjs/ui'
+import { ConfirmInput, MultiSelect, Select, TextInput } from '@inkjs/ui'
 import { Box, Text } from 'ink'
 import type { ReactElement } from 'react'
 import { match } from 'ts-pattern'
 
-import { ConfirmInput } from '../../../ui/confirm.js'
-import { MultiSelect } from '../../../ui/multi-select.js'
-import { Select } from '../../../ui/select.js'
-import { TextInput } from '../../../ui/text-input.js'
 import type { FieldControlKind } from '../../types.js'
 
 // ---------------------------------------------------------------------------

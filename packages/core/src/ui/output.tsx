@@ -6,8 +6,6 @@
  * @module
  */
 
-import { Spinner } from '@inkjs/ui'
-import figures from 'figures'
 import { Box, Text } from 'ink'
 import type { ReactElement } from 'react'
 import { useSyncExternalStore } from 'react'
@@ -16,9 +14,11 @@ import { match } from 'ts-pattern'
 import { formatCheck } from '@/lib/format/check.js'
 import { formatFinding } from '@/lib/format/finding.js'
 import { formatSummary } from '@/lib/format/tally.js'
+import type { LogLevel, OutputEntry, SpinnerState } from '@/screen/output/types.js'
+import { useOutputStore } from '@/screen/output/use-output-store.js'
 
-import type { LogLevel, OutputEntry, SpinnerState } from './types.js'
-import { useOutputStore } from './use-output-store.js'
+import { Spinner } from './display/spinner.js'
+import { colors, symbols } from './theme.js'
 
 // ---------------------------------------------------------------------------
 // Exports
@@ -65,7 +65,7 @@ function SpinnerRow({ state }: { readonly state: SpinnerState }): ReactElement |
       match(message.length > 0)
         .with(true, () => (
           <Text>
-            <Text color="green">{figures.tick}</Text> {message}
+            <Text color={colors.success}>{symbols.tick}</Text> {message}
           </Text>
         ))
         .with(false, () => null)
@@ -107,27 +107,27 @@ function LogRow({
   return match(level)
     .with('info', () => (
       <Text>
-        <Text color="blue">{figures.circle}</Text> {text}
+        <Text color={colors.info}>{symbols.circle}</Text> {text}
       </Text>
     ))
     .with('success', () => (
       <Text>
-        <Text color="green">{figures.tick}</Text> {text}
+        <Text color={colors.success}>{symbols.tick}</Text> {text}
       </Text>
     ))
     .with('error', () => (
       <Text>
-        <Text color="red">{figures.cross}</Text> {text}
+        <Text color={colors.error}>{symbols.cross}</Text> {text}
       </Text>
     ))
     .with('warn', () => (
       <Text>
-        <Text color="yellow">{figures.warning}</Text> {text}
+        <Text color={colors.warning}>{symbols.warning}</Text> {text}
       </Text>
     ))
     .with('step', () => (
       <Text>
-        <Text color="cyan">{figures.circle}</Text> {text}
+        <Text color={colors.primary}>{symbols.circle}</Text> {text}
       </Text>
     ))
     .with('message', () => (

@@ -3,8 +3,8 @@ import type { ComponentType, ReactElement } from 'react'
 import React from 'react'
 
 import type { ScreenContext } from '../context/types.js'
-import { FullScreen } from '../ui/fullscreen.js'
-import { KiddProvider } from '../ui/provider.js'
+import { KiddProvider } from '../screen/provider.js'
+import { FullScreen } from '../ui/layout/fullscreen.js'
 import type { Decorator } from './types.js'
 
 // ---------------------------------------------------------------------------

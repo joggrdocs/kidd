@@ -22,13 +22,19 @@ import { createContext, useContext, useEffect, useState } from 'react'
 /** ANSI: switch to the alternate screen buffer. */
 const ENTER_ALT_SCREEN = '\u001B[?1049h'
 
-/** ANSI: return to the normal screen buffer. */
+/**
+ * ANSI: return to the normal screen buffer.
+ */
 export const LEAVE_ALT_SCREEN = '\u001B[?1049l'
 
-/** ANSI: clear the entire screen. */
+/**
+ * ANSI: clear the entire screen.
+ */
 const CLEAR_SCREEN = '\u001B[2J'
 
-/** ANSI: move the cursor to the top-left corner. */
+/**
+ * ANSI: move the cursor to the top-left corner.
+ */
 const CURSOR_HOME = '\u001B[H'
 
 /** ANSI: hide the cursor. */
@@ -54,7 +60,9 @@ export interface TerminalSize {
  */
 export interface FullScreenProps {
   readonly children: ReactNode
-  /** When `true`, hides the cursor while in fullscreen mode. */
+  /**
+   * When `true`, hides the cursor while in fullscreen mode.
+   */
   readonly hideCursor?: boolean
 }
 

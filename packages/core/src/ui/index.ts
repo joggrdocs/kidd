@@ -1,11 +1,16 @@
 /**
  * UI components for building interactive terminal interfaces.
  *
- * Re-exports primitives from `ink` and higher-level components from
- * `@inkjs/ui` as the public UI surface for `@kidd-cli/core`.
+ * Re-exports kidd components (prompts, display, layout), the Output
+ * component, base Ink primitives, and shared types. Users import
+ * everything from `@kidd-cli/core/ui` — one path, one barrel.
  *
  * @module
  */
+
+// ---------------------------------------------------------------------------
+// Base — raw Ink + @inkjs/ui primitives
+// ---------------------------------------------------------------------------
 
 export {
   Box,
@@ -44,43 +49,92 @@ export type {
   TransformProps,
 } from 'ink'
 
-export { ConfirmInput } from './confirm.js'
-export type { ConfirmInputProps } from './confirm.js'
+// ---------------------------------------------------------------------------
+// Prompts
+// ---------------------------------------------------------------------------
 
-export { MultiSelect } from './multi-select.js'
-export type { MultiSelectProps } from './multi-select.js'
+export {
+  Autocomplete,
+  Confirm,
+  GroupMultiSelect,
+  MultiSelect,
+  PasswordInput,
+  PathInput,
+  Select,
+  SelectKey,
+  TextInput,
+} from './prompts/index.js'
+export type {
+  AutocompleteProps,
+  ConfirmProps,
+  GroupMultiSelectProps,
+  MultiSelectProps,
+  PasswordInputProps,
+  PathInputProps,
+  PromptOption,
+  SelectKeyProps,
+  SelectProps,
+  TextInputProps,
+} from './prompts/index.js'
 
-export { PasswordInput } from './password-input.js'
-export type { PasswordInputProps } from './password-input.js'
+// ---------------------------------------------------------------------------
+// Display
+// ---------------------------------------------------------------------------
 
-export { Select } from './select.js'
-export type { SelectProps } from './select.js'
+export { Alert, ErrorMessage, ProgressBar, Spinner, StatusMessage } from './display/index.js'
+export type {
+  AlertProps,
+  AlertVariant,
+  ErrorMessageProps,
+  ProgressBarProps,
+  ProgressBarStyle,
+  SpinnerProps,
+  StatusMessageProps,
+  StatusMessageVariant,
+} from './display/index.js'
 
-export { Spinner } from './spinner.js'
-export type { SpinnerProps } from './spinner.js'
+// ---------------------------------------------------------------------------
+// Layout
+// ---------------------------------------------------------------------------
 
-export { TextInput } from './text-input.js'
-export type { TextInputProps } from './text-input.js'
+export {
+  FullScreen,
+  ScrollArea,
+  Tabs,
+  useFullScreen,
+  useSize,
+  useTerminalSize,
+} from './layout/index.js'
+export type {
+  FullScreenProps,
+  FullScreenState,
+  ScrollAreaProps,
+  Size,
+  TabItem,
+  TabsProps,
+  TerminalSize,
+} from './layout/index.js'
 
-export type { Option } from '@inkjs/ui'
+// ---------------------------------------------------------------------------
+// Output
+// ---------------------------------------------------------------------------
 
-export { useScreenContext } from './provider.js'
+export { Output } from './output.js'
+
+export { useOutputStore } from '../screen/output/index.js'
+export type { OutputStore } from '../screen/output/index.js'
+
+// ---------------------------------------------------------------------------
+// Screen (re-exported for backward compatibility)
+// ---------------------------------------------------------------------------
+
+export { screen, useScreenContext } from '../screen/index.js'
+export type { ScreenDef, ScreenExit } from '../screen/index.js'
 export type { ScreenContext } from '../context/types.js'
 
-export { FullScreen, useFullScreen, useTerminalSize } from './fullscreen.js'
-export type { FullScreenProps, FullScreenState, TerminalSize } from './fullscreen.js'
+// ---------------------------------------------------------------------------
+// Theme
+// ---------------------------------------------------------------------------
 
-export { ScrollArea } from './scroll-area.js'
-export type { ScrollAreaProps } from './scroll-area.js'
-
-export { Tabs } from './tabs.js'
-export type { TabItem, TabsProps } from './tabs.js'
-
-export { useSize } from './use-size.js'
-export type { Size } from './use-size.js'
-
-export { Output, useOutputStore } from './output/index.js'
-export type { OutputStore } from './output/index.js'
-
-export { screen } from './screen.js'
-export type { ScreenDef, ScreenExit } from './screen.js'
+export { colors, resolveVariantColor, symbols } from './theme.js'
+export type { ThemeColor, Variant } from './theme.js'

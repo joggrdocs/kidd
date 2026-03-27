@@ -5,6 +5,8 @@ export { autoload } from './autoload.js'
 export { decorateContext } from './context/decorate.js'
 export { middleware } from './middleware.js'
 export { defineConfig } from '@kidd-cli/config'
+export { screen, useScreenContext } from './screen/index.js'
+export type { ScreenDef, ScreenExit } from './screen/index.js'
 export type {
   CliConfig,
   Command,
@@ -15,7 +17,7 @@ export type {
   Resolvable,
 } from './types/index.js'
 export type { Colors } from 'picocolors/types'
-export type { CommandContext, Log, Prompts, Spinner } from './context/types.js'
+export type { CommandContext, Log, Prompts, ScreenContext, Spinner } from './context/types.js'
 export type {
   DotDirectory,
   DotDirectoryClient,

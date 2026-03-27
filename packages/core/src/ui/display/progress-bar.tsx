@@ -64,7 +64,10 @@ export function ProgressBar({
   style = 'block',
   size = 20,
 }: ProgressBarProps): ReactElement {
-  const ratio = Math.min(1, Math.max(0, value / max))
+  const ratio = match(max > 0)
+    .with(true, () => Math.min(1, Math.max(0, value / max)))
+    .with(false, () => 0)
+    .exhaustive()
   const percentage = Math.round(ratio * 100)
   const filledCount = Math.round(ratio * size)
   const emptyCount = size - filledCount

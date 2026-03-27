@@ -249,7 +249,11 @@ function moveFocus(current: number, direction: number, items: readonly FlatItem[
   }
   const item = items[next]
   if (item !== undefined && item.kind === 'option' && item.option.disabled) {
-    return moveFocus(next, direction, items)
+    const result = moveFocus(next, direction, items)
+    return match(result === next)
+      .with(true, () => current)
+      .with(false, () => result)
+      .exhaustive()
   }
   return next
 }

@@ -9,7 +9,7 @@
  */
 
 import { Text } from 'ink'
-import type { ReactElement, ReactNode } from 'react'
+import type { ReactElement } from 'react'
 import { match } from 'ts-pattern'
 
 import type { Variant } from '../theme.js'
@@ -28,8 +28,8 @@ export type StatusMessageVariant = Variant
  * Props for the {@link StatusMessage} component.
  */
 export interface StatusMessageProps {
-  /** The message content to display beside the icon. */
-  readonly children: ReactNode
+  /** The text content to display beside the icon. */
+  readonly children: string
 
   /** The variant determines the icon and color. */
   readonly variant: StatusMessageVariant
@@ -56,7 +56,7 @@ export function StatusMessage({ children, variant }: StatusMessageProps): ReactE
   return (
     <Text>
       <Text color={color}>{icon}</Text>
-      <Text>{` ${String(children)}`}</Text>
+      <Text>{` ${children}`}</Text>
     </Text>
   )
 }

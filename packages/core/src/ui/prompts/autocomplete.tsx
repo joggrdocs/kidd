@@ -80,7 +80,7 @@ export function Autocomplete<TValue>({
   isDisabled = false,
 }: AutocompleteProps<TValue>): ReactElement {
   const [search, setSearch] = useState('')
-  const [focusIndex, setFocusIndex] = useState(resolveInitialIndex(options, defaultValue))
+  const [focusIndex, setFocusIndex] = useState(resolveInitialIndex({ options, defaultValue }))
   const [cursorOffset, setCursorOffset] = useState(0)
 
   const filtered = useMemo(
@@ -128,11 +128,20 @@ export function Autocomplete<TValue>({
         return
       }
 
-      if (key.backspace || key.delete) {
+      if (key.backspace) {
         if (cursorOffset > 0) {
           const nextSearch = removeCharAt(search, cursorOffset - 1)
           setSearch(nextSearch)
           setCursorOffset(cursorOffset - 1)
+          setFocusIndex(0)
+        }
+        return
+      }
+
+      if (key.delete) {
+        if (cursorOffset < search.length) {
+          const nextSearch = removeCharAt(search, cursorOffset)
+          setSearch(nextSearch)
           setFocusIndex(0)
         }
         return

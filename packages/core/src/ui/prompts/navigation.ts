@@ -88,17 +88,24 @@ export function resolveFirstEnabledIndex<TValue>(options: readonly PromptOption<
 }
 
 /**
+ * Options for resolving the initial focus index.
+ */
+export interface ResolveInitialIndexOptions<TValue> {
+  readonly options: readonly PromptOption<TValue>[]
+  readonly defaultValue: TValue | undefined
+}
+
+/**
  * Resolve the initial focus index from a default value. Falls back to
  * the first non-disabled option if no match is found.
  *
- * @param options - The option list.
- * @param defaultValue - The default value to match.
+ * @param opts - The resolution options.
  * @returns The initial focus index.
  */
-export function resolveInitialIndex<TValue>(
-  options: readonly PromptOption<TValue>[],
-  defaultValue: TValue | undefined
-): number {
+export function resolveInitialIndex<TValue>({
+  options,
+  defaultValue,
+}: ResolveInitialIndexOptions<TValue>): number {
   if (defaultValue !== undefined) {
     const matchIndex = options.findIndex((o) => o.value === defaultValue)
     if (matchIndex !== -1) {

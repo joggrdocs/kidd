@@ -74,7 +74,7 @@ Every component in the kidd library is built custom on raw Ink primitives. This 
 
 The codebase splits into two concerns: the **screen runtime** (framework plumbing that mounts Ink, wires context, manages the output store) and the **component library** (what users compose inside their screens).
 
-```
+```text
 packages/core/src/
 ├── screen/
 │   ├── screen.tsx                # screen() factory — mounts Ink, creates store, wires context
@@ -398,7 +398,7 @@ All components use a consistent clack-inspired visual language:
 
 **Select (focused):**
 
-```
+```text
   ● Option A        hint text
   ○ Option B
   ○ Option C        hint text
@@ -407,7 +407,7 @@ All components use a consistent clack-inspired visual language:
 
 **MultiSelect (focused):**
 
-```
+```text
   ◼ TypeScript
   ◻ ESLint
   ◼ Prettier
@@ -416,38 +416,38 @@ All components use a consistent clack-inspired visual language:
 
 **Confirm:**
 
-```
+```text
   Yes / No
 ```
 
 **TextInput:**
 
-```
+```text
   my-project█
 ```
 
 **TextInput (validation error):**
 
-```
+```text
   █
   Project name is required.
 ```
 
 **Spinner:**
 
-```
+```text
   ◒ Loading...
 ```
 
 **ProgressBar:**
 
-```
+```text
   ████████░░░░░░░░ 50% Installing dependencies
 ```
 
 **Alert:**
 
-```
+```text
   ╭─ Warning ──────────────────╮
   │  ⚠ Config file not found.  │
   ╰────────────────────────────╯

@@ -140,7 +140,7 @@ export function MultiSelect<TValue>({
 
           return (
             <OptionRow
-              key={option.label}
+              key={String(option.value)}
               option={option}
               indicator={indicator}
               isFocused={index === focusedIndex}

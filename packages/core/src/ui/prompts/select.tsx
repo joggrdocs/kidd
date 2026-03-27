@@ -76,7 +76,7 @@ export function Select<TValue>({
   onSubmit,
   isDisabled = false,
 }: SelectProps<TValue>): ReactElement {
-  const initialIndex = resolveInitialIndex(options, defaultValue)
+  const initialIndex = resolveInitialIndex({ options, defaultValue })
   const [focusedIndex, setFocusedIndex] = useState(initialIndex)
   const [selectedIndex, setSelectedIndex] = useState(initialIndex)
 

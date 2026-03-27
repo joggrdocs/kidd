@@ -9,7 +9,7 @@
  */
 
 import { Text } from 'ink'
-import type { ReactElement, ReactNode } from 'react'
+import type { ReactElement } from 'react'
 import { match } from 'ts-pattern'
 
 import type { Variant } from '../theme.js'
@@ -28,8 +28,8 @@ export type AlertVariant = Variant
  * Props for the {@link Alert} component.
  */
 export interface AlertProps {
-  /** The content to display inside the alert box. */
-  readonly children: ReactNode
+  /** The text content to display inside the alert box. */
+  readonly children: string
 
   /** The variant determines the border color and icon. */
   readonly variant: AlertVariant
@@ -76,7 +76,7 @@ export function Alert({
   const variantColor = resolveVariantColor(variant)
   const icon = resolveVariantIcon(variant)
   const border = resolveBorderChars(rounded)
-  const contentStr = `${icon} ${String(children)}`
+  const contentStr = `${icon} ${children}`
   const innerWidth = resolveInnerWidth({ width, title, contentStr })
   const topLine = buildTopBorder({ border, title, innerWidth, titleAlign })
   const bottomLine = `${border.bottomLeft}${border.horizontal.repeat(innerWidth + 2)}${border.bottomRight}`

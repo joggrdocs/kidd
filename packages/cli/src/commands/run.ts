@@ -357,19 +357,28 @@ function resolveHostTarget(): string {
 }
 
 /**
- * Check whether a config has compile targets set.
+ * Check whether a config has compilation enabled.
+ *
+ * Returns `true` for `compile: true` (boolean shorthand), for object configs
+ * that omit `targets` (the bundler fills in defaults), and for object configs
+ * with a non-empty `targets` array. Only returns `false` when compile is
+ * `false`, `undefined`, or an object with an explicitly empty `targets` array.
  *
  * @private
  * @param config - The kidd config to check.
- * @returns `true` when at least one compile target is configured.
+ * @returns `true` when compilation is enabled.
  */
 function hasCompileTargets(config: KiddConfig): boolean {
+  if (config.compile === true) {
+    return true
+  }
+
   if (typeof config.compile !== 'object') {
     return false
   }
 
-  if (!config.compile.targets) {
-    return false
+  if (config.compile.targets === undefined) {
+    return true
   }
 
   return config.compile.targets.length > 0

@@ -101,6 +101,9 @@ importers:
       '@kidd-cli/core':
         specifier: workspace:*
         version: link:../../packages/core
+      ts-pattern:
+        specifier: 'catalog:'
+        version: 5.9.0
       zod:
         specifier: 'catalog:'
         version: 4.3.6
@@ -170,6 +173,9 @@ importers:
       '@kidd-cli/core':
         specifier: workspace:*
         version: link:../../packages/core
+      ts-pattern:
+        specifier: 'catalog:'
+        version: 5.9.0
       zod:
         specifier: 'catalog:'
         version: 4.3.6
@@ -192,6 +198,9 @@ importers:
       '@kidd-cli/core':
         specifier: workspace:*
         version: link:../../packages/core
+      ts-pattern:
+        specifier: 'catalog:'
+        version: 5.9.0
       zod:
         specifier: 'catalog:'
         version: 4.3.6

@@ -4,18 +4,18 @@ import type { HttpClient } from '@kidd-cli/core/http'
 import { http } from '@kidd-cli/core/http'
 
 declare module '@kidd-cli/core' {
-  interface Context {
+  interface CommandContext {
     readonly api: HttpClient
   }
 }
 
 cli({
-  commands: {
-    order: ['login', 'logout', 'me', 'repos', 'create-repo'],
-    path: `${import.meta.dirname}/commands`,
-  },
+  commands: `${import.meta.dirname}/commands`,
   description: 'Demo CLI for the faux authenticated service',
-  help: { header: 'demo - authenticated service CLI' },
+  help: {
+    header: 'demo - authenticated service CLI',
+    order: ['login', 'logout', 'me', 'repos', 'create-repo'],
+  },
   middleware: [
     auth({
       strategies: [

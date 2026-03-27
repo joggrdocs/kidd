@@ -75,6 +75,12 @@ export function useKeyBinding(
   const historyRef = useRef<KeyHistoryEntry[]>([])
   const bindingsRef = useRef(bindings)
   bindingsRef.current = bindings
+  const prevActiveRef = useRef(isActive)
+
+  if (isActive && !prevActiveRef.current) {
+    historyRef.current = []
+  }
+  prevActiveRef.current = isActive
 
   const parsedPatterns = useMemo<readonly ParsedKeyPattern[]>(
     () => bindings.map((b) => parseKeyPattern(b.keys)),

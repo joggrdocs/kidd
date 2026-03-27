@@ -33,6 +33,7 @@ interface DoubleEscapeOptions {
  * to enable it only in interactive mode.
  *
  * @param options - The hook options with exit callback and active state.
+ * @returns Nothing. Registers the key binding side effect.
  */
 export function useDoubleEscape({ onExit, isActive }: DoubleEscapeOptions): void {
   const bindings = useMemo<readonly KeyBinding[]>(

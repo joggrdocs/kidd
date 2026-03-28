@@ -22,8 +22,8 @@ import { matchesSequence, matchesSingleKey, normalizeKey, parseKeyPattern } from
 /** Default timeout in ms for multi-key sequences. */
 const DEFAULT_SEQUENCE_TIMEOUT = 300
 
-/** Maximum key history entries retained for sequence matching. */
-const MAX_HISTORY_LENGTH = 10
+/** Minimum key history entries retained for sequence matching. */
+const MIN_HISTORY_LENGTH = 10
 
 // ---------------------------------------------------------------------------
 // Types
@@ -87,12 +87,14 @@ export function useKeyBinding(
     [bindings]
   )
 
+  const maxHistory = useMemo(() => resolveMaxHistory(parsedPatterns), [parsedPatterns])
+
   const inputHandler = useCallback(
     (input: string, key: Key) => {
       const normalized = normalizeKey(input, key)
       const entry: KeyHistoryEntry = { ...normalized, timestamp: Date.now() }
 
-      historyRef.current = [...historyRef.current.slice(-(MAX_HISTORY_LENGTH - 1)), entry]
+      historyRef.current = [...historyRef.current.slice(-(maxHistory - 1)), entry]
 
       const matchedIndex = parsedPatterns.findIndex((pattern) =>
         checkBinding(pattern, normalized, historyRef.current, sequenceTimeout)
@@ -102,7 +104,7 @@ export function useKeyBinding(
         bindingsRef.current[matchedIndex]?.action()
       }
     },
-    [parsedPatterns, sequenceTimeout]
+    [parsedPatterns, sequenceTimeout, maxHistory]
   )
 
   useInput(inputHandler, { isActive })
@@ -111,6 +113,36 @@ export function useKeyBinding(
 // ---------------------------------------------------------------------------
 // Private
 // ---------------------------------------------------------------------------
+
+/**
+ * Derive the history buffer size from the longest sequence binding.
+ *
+ * Returns at least {@link MIN_HISTORY_LENGTH} so the buffer is never
+ * smaller than a reasonable default, even when no sequence bindings
+ * are registered.
+ *
+ * @private
+ * @param patterns - The parsed key patterns from all bindings.
+ * @returns The required history length.
+ */
+function resolveMaxHistory(patterns: readonly ParsedKeyPattern[]): number {
+  const longest = patterns.reduce((max, p) => Math.max(max, resolvePatternLength(p)), 0)
+  return Math.max(longest, MIN_HISTORY_LENGTH)
+}
+
+/**
+ * Get the effective length of a parsed key pattern.
+ *
+ * @private
+ * @param pattern - The parsed key pattern.
+ * @returns The number of key events the pattern requires.
+ */
+function resolvePatternLength(pattern: ParsedKeyPattern): number {
+  return match(pattern)
+    .with({ type: 'single' }, () => 1)
+    .with({ type: 'sequence' }, (p) => p.steps.length)
+    .exhaustive()
+}
 
 /**
  * Check whether a normalized key event (and recent history) matches a

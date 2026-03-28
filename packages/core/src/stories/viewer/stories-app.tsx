@@ -141,7 +141,7 @@ export function StoriesApp({ registry, isReloading }: StoriesAppProps): ReactEle
       if (key.escape && mode === 'edit') {
         exitEditMode()
       }
-      if (input === 'i' && selectedStoryId !== null) {
+      if (input === 'i' && selectedStory !== null) {
         enterInteractiveMode()
       }
       if (input === 'r') {

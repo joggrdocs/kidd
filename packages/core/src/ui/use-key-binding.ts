@@ -9,7 +9,7 @@
 
 import type { Key } from 'ink'
 import { useInput } from 'ink'
-import { useCallback, useMemo, useRef } from 'react'
+import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { match } from 'ts-pattern'
 
 import type { NormalizedKeyEvent, ParsedKeyPattern } from './keys.js'
@@ -46,6 +46,13 @@ export interface KeyBindingOptions {
 }
 
 /**
+ * Arguments for the {@link useKeyBinding} hook.
+ */
+export interface UseKeyBindingArgs extends KeyBindingOptions {
+  readonly bindings: readonly KeyBinding[]
+}
+
+/**
  * A key history entry with timestamp for sequence matching.
  *
  * @private
@@ -64,23 +71,28 @@ interface KeyHistoryEntry extends NormalizedKeyEvent {
  * combinations (`'ctrl+c'`), and space-separated sequences
  * (`'escape escape'`).
  *
- * @param bindings - Array of key bindings in priority order.
- * @param options - Optional configuration for active state and sequence timeout.
+ * @param args - Key bindings and optional runtime configuration.
+ * @returns Nothing.
  */
-export function useKeyBinding(
-  bindings: readonly KeyBinding[],
-  options: KeyBindingOptions = {}
-): void {
-  const { isActive = true, sequenceTimeout = DEFAULT_SEQUENCE_TIMEOUT } = options
+export function useKeyBinding({
+  bindings,
+  isActive = true,
+  sequenceTimeout = DEFAULT_SEQUENCE_TIMEOUT,
+}: UseKeyBindingArgs): void {
   const historyRef = useRef<KeyHistoryEntry[]>([])
   const bindingsRef = useRef(bindings)
-  bindingsRef.current = bindings
   const prevActiveRef = useRef(isActive)
 
-  if (isActive && !prevActiveRef.current) {
-    historyRef.current = []
-  }
-  prevActiveRef.current = isActive
+  useEffect(() => {
+    bindingsRef.current = bindings
+  }, [bindings])
+
+  useEffect(() => {
+    if (isActive && !prevActiveRef.current) {
+      historyRef.current = []
+    }
+    prevActiveRef.current = isActive
+  }, [isActive])
 
   const parsedPatterns = useMemo<readonly ParsedKeyPattern[]>(
     () => bindings.map((b) => parseKeyPattern(b.keys)),

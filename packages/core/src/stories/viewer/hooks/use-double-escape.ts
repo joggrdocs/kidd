@@ -40,5 +40,5 @@ export function useDoubleEscape({ onExit, isActive }: DoubleEscapeOptions): void
     () => [{ keys: 'escape escape', action: onExit }],
     [onExit]
   )
-  useKeyBinding(bindings, { isActive })
+  useKeyBinding({ bindings, isActive })
 }

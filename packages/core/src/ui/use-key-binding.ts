@@ -30,26 +30,20 @@ const MIN_HISTORY_LENGTH = 10
 // ---------------------------------------------------------------------------
 
 /**
- * A single key binding mapping a key pattern to an action callback.
- */
-export interface KeyBinding {
-  readonly keys: string
-  readonly action: () => void
-}
-
-/**
- * Options for the {@link useKeyBinding} hook.
- */
-export interface KeyBindingOptions {
-  readonly isActive?: boolean
-  readonly sequenceTimeout?: number
-}
-
-/**
  * Arguments for the {@link useKeyBinding} hook.
+ *
+ * Each call binds one action to one or more key patterns. Use multiple
+ * `useKeyBinding` calls for independent actions.
  */
-export interface UseKeyBindingArgs extends KeyBindingOptions {
-  readonly bindings: readonly KeyBinding[]
+export interface UseKeyBindingArgs {
+  /** Key patterns that trigger the action (e.g. `['q']`, `['escape escape']`). */
+  readonly keys: readonly string[]
+  /** Callback invoked when any pattern matches. */
+  readonly action: () => void
+  /** Whether the binding is active. Defaults to `true`. */
+  readonly active?: boolean
+  /** Timeout in ms for multi-key sequences. Defaults to `300`. */
+  readonly sequenceTimeout?: number
 }
 
 /**
@@ -66,37 +60,39 @@ interface KeyHistoryEntry extends NormalizedKeyEvent {
 // ---------------------------------------------------------------------------
 
 /**
- * Bind key patterns to action callbacks. First matching binding wins
- * (array order = priority). Supports single keys (`'q'`), modifier
- * combinations (`'ctrl+c'`), and space-separated sequences
- * (`'escape escape'`).
+ * Bind one or more key patterns to a single action. Supports single keys
+ * (`'q'`), modifier combinations (`'ctrl+c'`), and space-separated
+ * sequences (`'escape escape'`). Use multiple `useKeyBinding` calls for
+ * independent actions.
  *
- * @param args - Key bindings and optional runtime configuration.
+ * @param args - Key patterns, action callback, and optional configuration.
  * @returns Nothing.
  */
 export function useKeyBinding({
-  bindings,
-  isActive = true,
+  keys,
+  action,
+  active = true,
   sequenceTimeout = DEFAULT_SEQUENCE_TIMEOUT,
 }: UseKeyBindingArgs): void {
   const historyRef = useRef<KeyHistoryEntry[]>([])
-  const bindingsRef = useRef(bindings)
-  const prevActiveRef = useRef(isActive)
+  const actionRef = useRef(action)
+  const prevActiveRef = useRef(active)
+  const keysKey = keys.join('\0')
 
   useEffect(() => {
-    bindingsRef.current = bindings
-  }, [bindings])
+    actionRef.current = action
+  })
 
   useEffect(() => {
-    if (isActive && !prevActiveRef.current) {
+    if (active && !prevActiveRef.current) {
       historyRef.current = []
     }
-    prevActiveRef.current = isActive
-  }, [isActive])
+    prevActiveRef.current = active
+  }, [active])
 
   const parsedPatterns = useMemo<readonly ParsedKeyPattern[]>(
-    () => bindings.map((b) => parseKeyPattern(b.keys)),
-    [bindings]
+    () => keys.map(parseKeyPattern),
+    [keysKey] // eslint-disable-line react-hooks/exhaustive-deps
   )
 
   const maxHistory = useMemo(() => resolveMaxHistory(parsedPatterns), [parsedPatterns])
@@ -108,18 +104,18 @@ export function useKeyBinding({
 
       historyRef.current = [...historyRef.current.slice(-(maxHistory - 1)), entry]
 
-      const matchedIndex = parsedPatterns.findIndex((pattern) =>
+      const matched = parsedPatterns.some((pattern) =>
         checkBinding(pattern, normalized, historyRef.current, sequenceTimeout)
       )
 
-      if (matchedIndex !== -1) {
-        bindingsRef.current[matchedIndex]?.action()
+      if (matched) {
+        actionRef.current()
       }
     },
     [parsedPatterns, sequenceTimeout, maxHistory]
   )
 
-  useInput(inputHandler, { isActive })
+  useInput(inputHandler, { isActive: active })
 }
 
 // ---------------------------------------------------------------------------

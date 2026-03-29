@@ -128,7 +128,7 @@ export function StoriesApp({ registry, isReloading }: StoriesAppProps): ReactEle
     setShowHelp(false)
   }, [])
 
-  useDoubleEscape({ onExit: exitInteractiveMode, isActive: mode === 'interactive' })
+  useDoubleEscape({ onExit: exitInteractiveMode, active: mode === 'interactive' })
 
   useInput(
     (input, key) => {

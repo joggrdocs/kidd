@@ -6,9 +6,6 @@
  * @module
  */
 
-import { useMemo } from 'react'
-
-import type { KeyBinding } from '../../../ui/use-key-binding.js'
 import { useKeyBinding } from '../../../ui/use-key-binding.js'
 
 // ---------------------------------------------------------------------------
@@ -20,7 +17,7 @@ import { useKeyBinding } from '../../../ui/use-key-binding.js'
  */
 interface DoubleEscapeOptions {
   readonly onExit: () => void
-  readonly isActive: boolean
+  readonly active: boolean
 }
 
 // ---------------------------------------------------------------------------
@@ -29,16 +26,12 @@ interface DoubleEscapeOptions {
 
 /**
  * Listen for a double-press Escape sequence and call `onExit` when detected.
- * The binding is only active when `isActive` is `true`, allowing the caller
+ * The binding is only active when `active` is `true`, allowing the caller
  * to enable it only in interactive mode.
  *
  * @param options - The hook options with exit callback and active state.
  * @returns Nothing. Registers the key binding side effect.
  */
-export function useDoubleEscape({ onExit, isActive }: DoubleEscapeOptions): void {
-  const bindings = useMemo<readonly KeyBinding[]>(
-    () => [{ keys: 'escape escape', action: onExit }],
-    [onExit]
-  )
-  useKeyBinding({ bindings, isActive })
+export function useDoubleEscape({ onExit, active }: DoubleEscapeOptions): void {
+  useKeyBinding({ keys: ['escape escape'], action: onExit, active })
 }

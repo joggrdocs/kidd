@@ -1,8 +1,6 @@
 benchmarks:
   - name: "icons --help"
-    run: "node examples/icons/dist/index.mjs --help"
-    mode: walltime
+    exec: node examples/icons/dist/index.mjs --help
 
   - name: "icons status"
-    run: "node examples/icons/dist/index.mjs status"
-    mode: walltime
+    exec: node examples/icons/dist/index.mjs status

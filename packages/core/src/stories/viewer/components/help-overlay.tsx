@@ -8,6 +8,7 @@ import type { ReactElement } from 'react'
 const BROWSE_SHORTCUTS = [
   { key: 'Up/Down', description: 'Navigate story tree' },
   { key: 'Enter', description: 'Select story / expand-collapse group' },
+  { key: 'i', description: 'Enter interactive mode' },
   { key: 'b', description: 'Toggle sidebar' },
   { key: 'r', description: 'Reset props to defaults' },
   { key: '?', description: 'Toggle help' },
@@ -23,6 +24,8 @@ const EDIT_SHORTCUTS = [
   { key: '?', description: 'Toggle help' },
   { key: 'q', description: 'Quit' },
 ] as const
+
+const INTERACTIVE_SHORTCUTS = [{ key: 'Esc Esc', description: 'Exit interactive mode' }] as const
 
 // ---------------------------------------------------------------------------
 // Types
@@ -73,6 +76,18 @@ export function HelpOverlay({ onClose }: HelpOverlayProps): ReactElement {
         Edit Mode
       </Text>
       {EDIT_SHORTCUTS.map((shortcut) => (
+        <Box key={shortcut.key} gap={2}>
+          <Box width={12}>
+            <Text color="cyan">{shortcut.key}</Text>
+          </Box>
+          <Text>{shortcut.description}</Text>
+        </Box>
+      ))}
+      <Text> </Text>
+      <Text bold color="green">
+        Interactive Mode
+      </Text>
+      {INTERACTIVE_SHORTCUTS.map((shortcut) => (
         <Box key={shortcut.key} gap={2}>
           <Box width={12}>
             <Text color="cyan">{shortcut.key}</Text>

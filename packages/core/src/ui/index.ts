@@ -138,3 +138,15 @@ export type { ScreenContext } from '../context/types.js'
 
 export { colors, resolveVariantColor, symbols } from './theme.js'
 export type { ThemeColor, Variant } from './theme.js'
+
+// ---------------------------------------------------------------------------
+// Input
+// ---------------------------------------------------------------------------
+
+export { InputBarrier } from './input-barrier.js'
+
+export { useKeyBinding } from './use-key-binding.js'
+export type { UseKeyBindingArgs } from './use-key-binding.js'
+
+export { useKeyInput } from './use-key-input.js'
+export type { KeyInputEvent, KeyInputOptions } from './use-key-input.js'

@@ -9,8 +9,9 @@ import { useCallback, useState } from 'react'
  *
  * - `browse` — Sidebar is active, user navigates the story tree.
  * - `edit` — Props editor is active, user edits field values.
+ * - `interactive` — Story component has full terminal control.
  */
-export type ViewerMode = 'browse' | 'edit'
+export type ViewerMode = 'browse' | 'edit' | 'interactive'
 
 /**
  * State and controls for managing the viewer interaction mode.
@@ -19,6 +20,8 @@ export interface ViewerModeState {
   readonly mode: ViewerMode
   readonly enterEditMode: () => void
   readonly exitEditMode: () => void
+  readonly enterInteractiveMode: () => void
+  readonly exitInteractiveMode: () => void
 }
 
 // ---------------------------------------------------------------------------
@@ -43,5 +46,13 @@ export function useViewerMode(): ViewerModeState {
     setMode('browse')
   }, [])
 
-  return { mode, enterEditMode, exitEditMode }
+  const enterInteractiveMode = useCallback(() => {
+    setMode('interactive')
+  }, [])
+
+  const exitInteractiveMode = useCallback(() => {
+    setMode('browse')
+  }, [])
+
+  return { mode, enterEditMode, exitEditMode, enterInteractiveMode, exitInteractiveMode }
 }

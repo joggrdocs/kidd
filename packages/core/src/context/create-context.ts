@@ -27,9 +27,8 @@ import type {
  *
  * Carries the parsed args, validated config, and CLI metadata needed to
  * assemble a fully-wired context. Optional overrides allow callers to inject
- * custom {@link Log}, {@link Prompts}, {@link Status}, and {@link Spinner}
- * implementations; when omitted, default `@clack/prompts`-backed instances
- * are used.
+ * custom {@link Log}, {@link Prompts}, and {@link Status} implementations;
+ * when omitted, default `@clack/prompts`-backed instances are used.
  */
 export interface CreateContextOptions<TArgs extends AnyRecord, TConfig extends AnyRecord> {
   readonly args: TArgs

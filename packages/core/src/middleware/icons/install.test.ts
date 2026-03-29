@@ -45,10 +45,12 @@ function createMockCtx() {
       select: vi.fn(),
       text: vi.fn(),
     },
-    spinner: {
-      message: vi.fn(),
-      start: vi.fn(),
-      stop: vi.fn(),
+    status: {
+      spinner: {
+        message: vi.fn(),
+        start: vi.fn(),
+        stop: vi.fn(),
+      },
     },
   }
 }
@@ -140,7 +142,7 @@ describe('installNerdFont()', () => {
 
       await installNerdFont({ ctx, font: 'Hack' })
 
-      expect(ctx.spinner.start).toHaveBeenCalledWith(
+      expect(ctx.status.spinner.start).toHaveBeenCalledWith(
         expect.stringContaining('Installing Hack Nerd Font')
       )
     })
@@ -154,7 +156,7 @@ describe('installNerdFont()', () => {
 
       await installNerdFont({ ctx })
 
-      expect(ctx.spinner.start).toHaveBeenCalledWith('Detecting installed fonts...')
+      expect(ctx.status.spinner.start).toHaveBeenCalledWith('Detecting installed fonts...')
       expect(ctx.prompts.select).toHaveBeenCalledOnce()
     })
 
@@ -193,7 +195,7 @@ describe('installNerdFont()', () => {
 
       await installNerdFont({ ctx })
 
-      expect(ctx.spinner.start).toHaveBeenCalledWith(
+      expect(ctx.status.spinner.start).toHaveBeenCalledWith(
         expect.stringContaining('Installing JetBrainsMono Nerd Font')
       )
     })
@@ -234,7 +236,7 @@ describe('installNerdFont()', () => {
 
       expect(error).toBeNull()
       expect(value).toBeTruthy()
-      expect(ctx.spinner.stop).toHaveBeenCalledWith(
+      expect(ctx.status.spinner.stop).toHaveBeenCalledWith(
         expect.stringContaining('installed successfully')
       )
     })
@@ -260,7 +262,7 @@ describe('installNerdFont()', () => {
 
       expect(error).toBeNull()
       expect(value).toBeTruthy()
-      expect(ctx.spinner.message).toHaveBeenCalledWith(
+      expect(ctx.status.spinner.message).toHaveBeenCalledWith(
         expect.stringContaining('Downloading Hack Nerd Font')
       )
     })
@@ -308,7 +310,7 @@ describe('installNerdFont()', () => {
 
       expect(error).toBeNull()
       expect(value).toBeTruthy()
-      expect(ctx.spinner.message).toHaveBeenCalledWith(
+      expect(ctx.status.spinner.message).toHaveBeenCalledWith(
         expect.stringContaining('Downloading Hack Nerd Font')
       )
     })

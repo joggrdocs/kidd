@@ -29,7 +29,7 @@ interface StoriesCheckProps {
 
 /**
  * Non-interactive component that discovers stories, validates them,
- * and prints diagnostics using `ctx.spinner`, `ctx.log`, and `ctx.report`
+ * and prints diagnostics using `ctx.status.spinner`, `ctx.log`, and `ctx.report`
  * rendered through `<Output />` before exiting.
  *
  * @param props - The check props.
@@ -50,7 +50,7 @@ export function StoriesCheck({ include }: StoriesCheckProps): ReactElement {
     const cwd = process.cwd()
     const includePatterns = buildIncludePatterns(include)
 
-    ctx.spinner.start('Discovering stories...')
+    ctx.status.spinner.start('Discovering stories...')
 
     const run = async (): Promise<void> => {
       const result = await discoverStories({
@@ -60,13 +60,13 @@ export function StoriesCheck({ include }: StoriesCheckProps): ReactElement {
       })
 
       if (result.entries.size === 0) {
-        ctx.spinner.stop('Discovery complete')
+        ctx.status.spinner.stop('Discovery complete')
         ctx.log.warn('No stories found.')
         exit()
         return
       }
 
-      ctx.spinner.stop(
+      ctx.status.spinner.stop(
         `Discovered ${String(result.entries.size)} story file${match(result.entries.size !== 1)
           .with(true, () => 's')
           .with(false, () => '')
@@ -114,7 +114,7 @@ export function StoriesCheck({ include }: StoriesCheckProps): ReactElement {
     }
 
     run().catch((error: unknown) => {
-      ctx.spinner.stop('Discovery failed')
+      ctx.status.spinner.stop('Discovery failed')
       const message = match(error instanceof Error)
         .with(true, () => (error as Error).message)
         .with(false, () => 'Unknown error during discovery')

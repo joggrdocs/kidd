@@ -55,7 +55,7 @@ function makeContext(argOverrides: Record<string, unknown> = {}): CommandContext
       select: vi.fn(),
       text: vi.fn(),
     },
-    spinner: { message: vi.fn(), start: vi.fn(), stop: vi.fn() },
+    status: { spinner: { message: vi.fn(), start: vi.fn(), stop: vi.fn() } },
     store: { clear: vi.fn(), delete: vi.fn(), get: vi.fn(), has: vi.fn(), set: vi.fn() },
   } as unknown as CommandContext
 }
@@ -101,7 +101,7 @@ describe('build command', () => {
       await mod.default.handler!(ctx)
 
       expect(mockedCompile).not.toHaveBeenCalled()
-      expect(ctx.spinner.stop).toHaveBeenCalledWith('Build complete')
+      expect(ctx.status.spinner.stop).toHaveBeenCalledWith('Build complete')
     })
 
     it('should compile when --targets is provided', async () => {
@@ -310,7 +310,7 @@ describe('build command', () => {
       const mod = await import('./build.js')
       await expect(mod.default.handler!(ctx)).rejects.toThrow('tsdown build failed')
 
-      expect(ctx.spinner.stop).toHaveBeenCalledWith('Bundle failed')
+      expect(ctx.status.spinner.stop).toHaveBeenCalledWith('Bundle failed')
     })
 
     it('should call fail when compile returns an error', async () => {
@@ -321,7 +321,7 @@ describe('build command', () => {
       const mod = await import('./build.js')
       await expect(mod.default.handler!(ctx)).rejects.toThrow('bun compile failed')
 
-      expect(ctx.spinner.stop).toHaveBeenCalledWith('Compile failed')
+      expect(ctx.status.spinner.stop).toHaveBeenCalledWith('Compile failed')
     })
   })
 })

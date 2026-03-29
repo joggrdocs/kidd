@@ -108,7 +108,7 @@ Inside screen components, runtime context is accessed via hooks instead of the `
 
 These hooks are only available inside components rendered by `screen()`. They throw if used outside the KiddProvider.
 
-`ctx.log`, `ctx.prompts`, `ctx.spinner`, `ctx.colors`, and `ctx.format` are not available in screen components. Screen commands use React components and Ink primitives for all output.
+`ctx.log`, `ctx.prompts`, `ctx.status`, `ctx.colors`, and `ctx.format` are not available in screen components. Screen commands use React components and Ink primitives for all output.
 
 See the [screen() reference](../reference/screen.md) for the full hooks and components API.
 

@@ -1,5 +1,5 @@
 /**
- * Screen output system for rendering `ctx.log`, `ctx.spinner`, and
+ * Screen output system for rendering `ctx.log`, `ctx.status.spinner`, and
  * `ctx.report` inside React/Ink screen components.
  *
  * @module

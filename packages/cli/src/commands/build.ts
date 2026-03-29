@@ -35,12 +35,12 @@ const buildCommand: Command = command({
     const [, configResult] = await loadConfig({ cwd })
     const config = extractConfig(configResult)
 
-    ctx.spinner.start('Bundling with tsdown...')
+    ctx.status.spinner.start('Bundling with tsdown...')
 
     const [buildError, buildOutput] = await build({ config, cwd })
 
     if (buildError) {
-      ctx.spinner.stop('Bundle failed')
+      ctx.status.spinner.stop('Bundle failed')
       return ctx.fail(buildError.message)
     }
 
@@ -51,7 +51,7 @@ const buildCommand: Command = command({
     })
 
     if (!shouldCompile) {
-      ctx.spinner.stop('Build complete')
+      ctx.status.spinner.stop('Build complete')
       ctx.log.note(
         formatBuildNote({
           cwd,
@@ -64,23 +64,25 @@ const buildCommand: Command = command({
       return
     }
 
-    ctx.spinner.message('Bundled, compiling binaries...')
+    ctx.status.spinner.message('Bundled, compiling binaries...')
 
     const mergedConfig = mergeCompileTargets({ config, targets: ctx.args.targets })
     const [compileError, compileOutput] = await compile({
       config: mergedConfig,
       cwd,
-      onTargetComplete: (target) => ctx.spinner.message(`Compiled ${resolveTargetLabel(target)}`),
-      onTargetStart: (target) => ctx.spinner.message(`Compiling ${resolveTargetLabel(target)}...`),
+      onTargetComplete: (target) =>
+        ctx.status.spinner.message(`Compiled ${resolveTargetLabel(target)}`),
+      onTargetStart: (target) =>
+        ctx.status.spinner.message(`Compiling ${resolveTargetLabel(target)}...`),
       verbose: ctx.args.verbose,
     })
 
     if (compileError) {
-      ctx.spinner.stop('Compile failed')
+      ctx.status.spinner.stop('Compile failed')
       return ctx.fail(compileError.message)
     }
 
-    ctx.spinner.stop('Build complete')
+    ctx.status.spinner.stop('Build complete')
     ctx.log.note(
       formatBuildNote({
         cwd,

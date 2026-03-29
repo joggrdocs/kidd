@@ -33,11 +33,11 @@ const initCommand: Command = command({
     const includeExample = await resolveIncludeExample(ctx)
     const includeConfig = await resolveIncludeConfig(ctx)
 
-    ctx.spinner.start('Scaffolding project...')
+    ctx.status.spinner.start('Scaffolding project...')
 
     const [versionsError, templateVersions] = readTemplateVersions()
     if (versionsError) {
-      ctx.spinner.stop('Failed')
+      ctx.status.spinner.stop('Failed')
       return ctx.fail(versionsError.message)
     }
 
@@ -59,7 +59,7 @@ const initCommand: Command = command({
     })
 
     if (renderError) {
-      ctx.spinner.stop('Failed')
+      ctx.status.spinner.stop('Failed')
       return ctx.fail(renderError.message)
     }
 
@@ -69,11 +69,11 @@ const initCommand: Command = command({
     const [writeError] = await writeFiles({ files, outputDir, overwrite: false })
 
     if (writeError) {
-      ctx.spinner.stop('Failed')
+      ctx.status.spinner.stop('Failed')
       return ctx.fail(writeError.message)
     }
 
-    ctx.spinner.stop('Project created!')
+    ctx.status.spinner.stop('Project created!')
 
     ctx.log.newline()
     ctx.log.raw('Next steps:')

@@ -7,7 +7,7 @@
 
 import { match } from 'ts-pattern'
 
-import type { Log } from '@/context/types.js'
+import type { Log, LogMessageOptions, NoteOptions, StreamLog } from '@/context/types.js'
 
 import type { OutputStore } from './types.js'
 
@@ -24,27 +24,27 @@ import type { OutputStore } from './types.js'
  */
 export function createScreenLog(store: OutputStore): Log {
   return Object.freeze({
-    info(message: string): void {
+    info(message: string, _opts?: LogMessageOptions): void {
       store.push({ kind: 'log', level: 'info', text: message })
     },
 
-    success(message: string): void {
+    success(message: string, _opts?: LogMessageOptions): void {
       store.push({ kind: 'log', level: 'success', text: message })
     },
 
-    error(message: string): void {
+    error(message: string, _opts?: LogMessageOptions): void {
       store.push({ kind: 'log', level: 'error', text: message })
     },
 
-    warn(message: string): void {
+    warn(message: string, _opts?: LogMessageOptions): void {
       store.push({ kind: 'log', level: 'warn', text: message })
     },
 
-    step(message: string): void {
+    step(message: string, _opts?: LogMessageOptions): void {
       store.push({ kind: 'log', level: 'step', text: message })
     },
 
-    message(message: string, opts?: { readonly symbol?: string }): void {
+    message(message: string, opts?: LogMessageOptions): void {
       const symbol = match(opts)
         .with(undefined, () => undefined)
         .otherwise((o) => o.symbol)
@@ -59,7 +59,7 @@ export function createScreenLog(store: OutputStore): Log {
       // No-op in screen context — screens handle their own exit
     },
 
-    note(_message?: string, _title?: string): void {
+    note(_message?: string, _title?: string, _opts?: NoteOptions): void {
       // No-op in screen context — use Box/Text for notes
     },
 
@@ -70,5 +70,35 @@ export function createScreenLog(store: OutputStore): Log {
     raw(text: string): void {
       store.push({ kind: 'raw', text })
     },
+
+    box(_message: string, _title?: string): void {
+      // No-op in screen context — use Box/Text for bordered display
+    },
+
+    stream: createScreenStreamLog(),
   }) satisfies Log
+}
+
+// ---------------------------------------------------------------------------
+// Private
+// ---------------------------------------------------------------------------
+
+/**
+ * Create a no-op {@link StreamLog} for screen contexts.
+ *
+ * @private
+ */
+function createScreenStreamLog(): StreamLog {
+  const noop = async (_iterable: AsyncIterable<string>): Promise<void> => {
+    // No-op in screen context — streaming is not supported in React/Ink
+  }
+
+  return Object.freeze({
+    info: noop,
+    success: noop,
+    error: noop,
+    warn: noop,
+    step: noop,
+    message: noop,
+  }) satisfies StreamLog
 }

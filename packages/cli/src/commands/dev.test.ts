@@ -45,7 +45,7 @@ function makeContext(): CommandContext {
       select: vi.fn(),
       text: vi.fn(),
     },
-    spinner: { message: vi.fn(), start: vi.fn(), stop: vi.fn() },
+    status: { spinner: { message: vi.fn(), start: vi.fn(), stop: vi.fn() } },
     store: { clear: vi.fn(), delete: vi.fn(), get: vi.fn(), has: vi.fn(), set: vi.fn() },
   } as unknown as CommandContext
 }
@@ -63,7 +63,7 @@ describe('dev command', () => {
     const mod = await import('./dev.js')
     await mod.default.handler!(ctx)
 
-    expect(ctx.spinner.start).toHaveBeenCalledWith('Starting dev server...')
+    expect(ctx.status.spinner.start).toHaveBeenCalledWith('Starting dev server...')
   })
 
   it('should stop spinner with watching message on first build success', async () => {
@@ -79,7 +79,7 @@ describe('dev command', () => {
     const mod = await import('./dev.js')
     await mod.default.handler!(ctx)
 
-    expect(ctx.spinner.stop).toHaveBeenCalledWith('Watching for changes...')
+    expect(ctx.status.spinner.stop).toHaveBeenCalledWith('Watching for changes...')
   })
 
   it('should log rebuilt successfully on subsequent builds', async () => {
@@ -107,7 +107,7 @@ describe('dev command', () => {
     const mod = await import('./dev.js')
     await mod.default.handler!(ctx)
 
-    expect(ctx.spinner.stop).toHaveBeenCalledWith('Watch failed')
+    expect(ctx.status.spinner.stop).toHaveBeenCalledWith('Watch failed')
     expect(ctx.fail).toHaveBeenCalledWith('tsdown watch failed')
   })
 

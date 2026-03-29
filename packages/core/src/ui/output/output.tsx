@@ -1,7 +1,7 @@
 /**
  * React component that renders accumulated output entries from an
  * {@link OutputStore}. Used inside `screen()` components to display
- * `ctx.log`, `ctx.spinner`, and `ctx.report` output declaratively.
+ * `ctx.log`, `ctx.status.spinner`, and `ctx.report` output declaratively.
  *
  * @module
  */
@@ -61,17 +61,34 @@ function SpinnerRow({ state }: { readonly state: SpinnerState }): ReactElement |
   return match(state)
     .with({ status: 'idle' }, () => null)
     .with({ status: 'spinning' }, ({ message }) => <Spinner label={message} />)
-    .with({ status: 'stopped' }, ({ message }) =>
-      match(message.length > 0)
-        .with(true, () => (
-          <Text>
-            <Text color="green">{figures.tick}</Text> {message}
-          </Text>
-        ))
-        .with(false, () => null)
-        .exhaustive()
+    .with({ status: 'stopped' }, ({ message }) => resolveTerminalIcon(message, 'green', figures.tick))
+    .with({ status: 'cancelled' }, ({ message }) =>
+      resolveTerminalIcon(message, 'yellow', figures.warning)
+    )
+    .with({ status: 'error' }, ({ message }) =>
+      resolveTerminalIcon(message, 'red', figures.cross)
     )
     .exhaustive()
+}
+
+/**
+ * Render a terminal-state spinner icon with a message, or null if the message is empty.
+ *
+ * @private
+ */
+function resolveTerminalIcon(
+  message: string,
+  color: string,
+  icon: string
+): ReactElement | null {
+  if (message.length === 0) {
+    return null
+  }
+  return (
+    <Text>
+      <Text color={color}>{icon}</Text> {message}
+    </Text>
+  )
 }
 
 /**

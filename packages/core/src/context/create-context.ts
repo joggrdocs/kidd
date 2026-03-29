@@ -1,4 +1,3 @@
-import * as clack from '@clack/prompts'
 import pc from 'picocolors'
 import type { Colors } from 'picocolors/types'
 
@@ -9,14 +8,17 @@ import type { AnyRecord, KiddStore, Merge, ResolvedDirs } from '@/types/index.js
 import { createContextError } from './error.js'
 import { createContextFormat } from './format.js'
 import { createContextPrompts } from './prompts.js'
+import { createContextStatus } from './status.js'
 import { createMemoryStore } from './store.js'
 import type {
   CommandContext,
+  DisplayConfig,
   Format,
   Log,
   Meta,
   Prompts,
   Spinner,
+  Status,
   Store,
   StoreMap,
 } from './types.js'
@@ -26,8 +28,9 @@ import type {
  *
  * Carries the parsed args, validated config, and CLI metadata needed to
  * assemble a fully-wired context. Optional overrides allow callers to inject
- * custom {@link Log}, {@link Prompts}, and {@link Spinner} implementations;
- * when omitted, default `@clack/prompts`-backed instances are used.
+ * custom {@link Log}, {@link Prompts}, {@link Status}, and {@link Spinner}
+ * implementations; when omitted, default `@clack/prompts`-backed instances
+ * are used.
  */
 export interface CreateContextOptions<TArgs extends AnyRecord, TConfig extends AnyRecord> {
   readonly args: TArgs
@@ -38,17 +41,27 @@ export interface CreateContextOptions<TArgs extends AnyRecord, TConfig extends A
     readonly command: string[]
     readonly dirs: ResolvedDirs
   }
+  readonly display?: DisplayConfig
   readonly log?: Log
   readonly prompts?: Prompts
+  readonly status?: Status
+  /**
+   * @deprecated Use `status` instead. When provided, creates a Status
+   * wrapper around this spinner for backwards compatibility.
+   */
   readonly spinner?: Spinner
 }
 
 /**
  * Create the {@link CommandContext} object threaded through middleware and command handlers.
  *
- * Assembles log, spinner, format, store, prompts, and meta from
+ * Assembles log, status, format, store, prompts, and meta from
  * the provided options into a single immutable context. Each sub-system is
  * constructed via its own factory so this function remains a lean orchestrator.
+ *
+ * When `display` is provided, per-call defaults are extracted and passed
+ * to each factory. Global-only settings (`aliases`, `messages`) are applied
+ * via `updateSettings()` at boot time in `cli()`, not here.
  *
  * @param options - Args, config, and meta for the current invocation.
  * @returns A fully constructed CommandContext.
@@ -56,11 +69,24 @@ export interface CreateContextOptions<TArgs extends AnyRecord, TConfig extends A
 export function createContext<TArgs extends AnyRecord, TConfig extends AnyRecord>(
   options: CreateContextOptions<TArgs, TConfig>
 ): CommandContext<TArgs, TConfig> {
-  const ctxLog: Log = options.log ?? createLog()
-  const ctxSpinner: Spinner = options.spinner ?? clack.spinner()
+  const dc = options.display ?? {}
+  const commonDefaults = resolveCommonDefaults(dc)
+
+  const ctxLog: Log =
+    options.log ??
+    createLog({
+      boxDefaults: dc.box,
+      defaults: commonDefaults,
+      output: dc.output,
+    })
+  const ctxStatus: Status = resolveStatus(options, dc, commonDefaults)
   const ctxFormat: Format = createContextFormat()
   const ctxStore: Store<Merge<KiddStore, StoreMap>> = createMemoryStore()
-  const ctxPrompts: Prompts = options.prompts ?? createContextPrompts()
+  const ctxPrompts: Prompts =
+    options.prompts ??
+    createContextPrompts({
+      defaults: commonDefaults,
+    })
   const ctxMeta: Meta = {
     command: options.meta.command,
     dirs: Object.freeze({ ...options.meta.dirs }),
@@ -86,7 +112,57 @@ export function createContext<TArgs extends AnyRecord, TConfig extends AnyRecord
     log: ctxLog,
     meta: ctxMeta as CommandContext<TArgs, TConfig>['meta'],
     prompts: ctxPrompts,
-    spinner: ctxSpinner,
+    status: ctxStatus,
     store: ctxStore,
   } as CommandContext<TArgs, TConfig>
+}
+
+// ---------------------------------------------------------------------------
+// Private helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Extract the common per-call defaults from display config.
+ *
+ * @private
+ * @param dc - The display config, if any.
+ * @returns Common defaults suitable for prompts, log, and status factories.
+ */
+function resolveCommonDefaults(dc: DisplayConfig): {
+  readonly guide?: boolean
+  readonly input?: DisplayConfig['input']
+  readonly output?: DisplayConfig['output']
+} {
+  return {
+    guide: dc.guide,
+    input: dc.input,
+    output: dc.output,
+  }
+}
+
+/**
+ * Resolve the Status instance from options, supporting the deprecated
+ * `spinner` override for backwards compatibility.
+ *
+ * @private
+ * @param options - The create context options.
+ * @param dc - The resolved display config.
+ * @param commonDefaults - Common per-call defaults from display config.
+ * @returns A Status instance.
+ */
+function resolveStatus<TArgs extends AnyRecord, TConfig extends AnyRecord>(
+  options: CreateContextOptions<TArgs, TConfig>,
+  dc: DisplayConfig,
+  commonDefaults: { readonly guide?: boolean; readonly output?: DisplayConfig['output'] }
+): Status {
+  if (options.status !== undefined) {
+    return options.status
+  }
+
+  return createContextStatus({
+    defaults: commonDefaults,
+    progressConfig: dc.progress,
+    spinner: options.spinner,
+    spinnerConfig: dc.spinner,
+  })
 }

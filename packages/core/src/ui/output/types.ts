@@ -95,6 +95,8 @@ export type SpinnerState =
   | { readonly status: 'idle' }
   | { readonly status: 'spinning'; readonly message: string }
   | { readonly status: 'stopped'; readonly message: string }
+  | { readonly status: 'cancelled'; readonly message: string }
+  | { readonly status: 'error'; readonly message: string }
 
 // ---------------------------------------------------------------------------
 // Output Store

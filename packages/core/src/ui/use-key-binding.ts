@@ -83,12 +83,12 @@ export function useKeyBinding({
     actionRef.current = action
   })
 
-  useEffect(() => {
-    if (active && !prevActiveRef.current) {
-      historyRef.current = []
-    }
-    prevActiveRef.current = active
-  }, [active])
+  // Synchronous: clear stale history the instant this binding activates
+  // so the very first keypress lands in a clean buffer.
+  if (active && !prevActiveRef.current) {
+    historyRef.current = []
+  }
+  prevActiveRef.current = active
 
   const parsedPatterns = useMemo<readonly ParsedKeyPattern[]>(
     () => keys.map(parseKeyPattern),

@@ -60,7 +60,7 @@ export function stories<TProps extends Record<string, unknown>>(
               defaultKeys,
               decorators: Object.freeze(variant.decorators ?? []),
               description: variant.description,
-                    },
+            },
             'Story'
           )
         ),

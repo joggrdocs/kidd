@@ -1,5 +1,5 @@
 /**
- * Gate component that isolates child `useInput` hooks from the global
+ * Barrier component that isolates child `useInput` hooks from the global
  * stdin event emitter. When inactive, children receive a silent
  * {@link EventEmitter} so their input handlers never fire. When active,
  * the real stdin context passes through unchanged.
@@ -36,9 +36,9 @@ function noop(): void {}
 // ---------------------------------------------------------------------------
 
 /**
- * Props for the {@link InputGate} component.
+ * Props for the {@link InputBarrier} component.
  */
-interface InputGateProps {
+interface InputBarrierProps {
   /** Whether child input hooks should receive real stdin events. */
   readonly active: boolean
   /** The child elements to render. */
@@ -54,13 +54,14 @@ interface InputGateProps {
  * `active` is `false`. When `active` is `true`, the real stdin context
  * passes through and hooks work normally.
  *
- * @param props - The input gate props.
- * @returns A rendered element with the gated stdin context.
+ * @param props - The input barrier props.
+ * @returns A rendered element with the barrier-controlled stdin context.
  */
-export function InputGate({ active, children }: InputGateProps): ReactElement {
+export function InputBarrier({ active, children }: InputBarrierProps): ReactElement {
   const silentContext = useMemo(
     () => ({
       stdin: process.stdin,
+      // eslint-disable-next-line unicorn/prefer-event-target -- Ink's StdinContext requires EventEmitter
       internal_eventEmitter: new EventEmitter(),
       setRawMode: noop,
       isRawModeSupported: false,
@@ -70,7 +71,7 @@ export function InputGate({ active, children }: InputGateProps): ReactElement {
   )
 
   if (active) {
-    return <>{children}</>
+    return children as ReactElement
   }
 
   return <StdinContext.Provider value={silentContext}>{children}</StdinContext.Provider>

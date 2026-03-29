@@ -4,7 +4,7 @@ import type { ComponentType, ReactElement } from 'react'
 import { useMemo, useRef } from 'react'
 import { match } from 'ts-pattern'
 
-import { InputGate } from '../../../ui/input-gate.js'
+import { InputBarrier } from '../../../ui/input-barrier.js'
 import { ScrollArea } from '../../../ui/scroll-area.js'
 import { useSize } from '../../../ui/use-size.js'
 import type { FieldDescriptor, Story } from '../../types.js'
@@ -150,11 +150,11 @@ export function Preview({
       <PreviewHeader context={context} />
       <Box ref={contentRef} flexDirection="column" flexGrow={1}>
         <ScrollArea height={Math.max(1, componentAreaHeight)}>
-          <InputGate active={interactive}>
+          <InputBarrier active={interactive}>
             <ErrorBoundary key={context.displayName}>
               <DecoratedComponent {...currentProps} />
             </ErrorBoundary>
-          </InputGate>
+          </InputBarrier>
         </ScrollArea>
         <Box height={propsAreaHeight} overflow="hidden" flexDirection="column">
           <PropsEditor

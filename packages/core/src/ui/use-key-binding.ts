@@ -105,10 +105,6 @@ export function useKeyBinding({
         return
       }
 
-      // TODO: remove debug logging after double-escape is confirmed working
-      // eslint-disable-next-line no-console
-      console.error('[keybind]', JSON.stringify({ key: normalized.key, ctrl: normalized.ctrl, meta: normalized.meta, active: activeRef.current, historyLen: historyRef.current.length }))
-
       const matched = parsedPatterns.some((pattern) =>
         checkBinding(pattern, normalized, historyRef.current, sequenceTimeout)
       )

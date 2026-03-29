@@ -169,16 +169,20 @@ export function mockStatus(spinnerOverride?: Spinner): Status {
       isCancelled: false,
     })),
     tasks: vi.fn(async () => {}),
-    taskLog: vi.fn((): TaskLogHandle => ({
-      message: vi.fn(),
-      success: vi.fn(),
-      error: vi.fn(),
-      group: vi.fn((): TaskLogGroupHandle => ({
+    taskLog: vi.fn(
+      (): TaskLogHandle => ({
         message: vi.fn(),
         success: vi.fn(),
         error: vi.fn(),
-      })),
-    })),
+        group: vi.fn(
+          (): TaskLogGroupHandle => ({
+            message: vi.fn(),
+            success: vi.fn(),
+            error: vi.fn(),
+          })
+        ),
+      })
+    ),
   } as Status
 }
 
@@ -216,8 +220,7 @@ function resolvePrompts(opts: TestContextOptions): Prompts {
 }
 
 /**
- * Resolve the status instance from overrides, supporting the deprecated
- * `spinner` override for backwards compatibility.
+ * Resolve the status instance from overrides or create a mock.
  *
  * @private
  * @param opts - Test context options.
@@ -226,9 +229,6 @@ function resolvePrompts(opts: TestContextOptions): Prompts {
 function resolveStatus(opts: TestContextOptions): Status {
   if (opts.status !== undefined) {
     return opts.status
-  }
-  if (opts.spinner !== undefined) {
-    return mockStatus(opts.spinner)
   }
   return mockStatus()
 }

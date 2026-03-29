@@ -4,7 +4,6 @@ import type { z } from 'zod'
 
 import { createContext } from '@/context/index.js'
 import type { CommandContext } from '@/context/types.js'
-import { createConfigClient } from '@/lib/config/index.js'
 import type { CliConfigOptions, Middleware } from '@/types/index.js'
 
 import { createArgsParser } from './args/index.js'
@@ -98,6 +97,7 @@ async function resolveConfig<TSchema extends z.ZodType>(
   if (!configOptions || !configOptions.schema) {
     return {}
   }
+  const { createConfigClient } = await import('@/lib/config/index.js')
   const client = createConfigClient({
     name: configOptions.name ?? defaultName,
     schema: configOptions.schema,

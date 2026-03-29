@@ -1,7 +1,6 @@
 import { resolve } from 'node:path'
 
 import * as clack from '@clack/prompts'
-import { loadConfig } from '@kidd-cli/config/loader'
 import { P, attemptAsync, err, isNil, isPlainObject, isString, match, ok } from '@kidd-cli/utils/fp'
 import type { Result } from '@kidd-cli/utils/fp'
 import yargs from 'yargs'
@@ -247,6 +246,7 @@ async function resolveCommandsConfig(config: CommandsConfig): Promise<ResolvedCo
 async function resolveCommandsFromConfig(): Promise<ResolvedCommands> {
   const DEFAULT_COMMANDS_DIR = './commands'
 
+  const { loadConfig } = await import('@kidd-cli/config/loader')
   const [configError, configResult] = await loadConfig()
   if (configError || !configResult) {
     return { commands: await autoload({ dir: DEFAULT_COMMANDS_DIR }) }

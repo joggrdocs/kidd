@@ -76,19 +76,14 @@ export function useKeyBinding({
 }: UseKeyBindingArgs): void {
   const historyRef = useRef<KeyHistoryEntry[]>([])
   const actionRef = useRef(action)
-  const prevActiveRef = useRef(active)
+  const activeRef = useRef(active)
   const keysKey = keys.join('\0')
 
   useEffect(() => {
     actionRef.current = action
   })
 
-  // Synchronous: clear stale history the instant this binding activates
-  // so the very first keypress lands in a clean buffer.
-  if (active && !prevActiveRef.current) {
-    historyRef.current = []
-  }
-  prevActiveRef.current = active
+  activeRef.current = active
 
   const parsedPatterns = useMemo<readonly ParsedKeyPattern[]>(
     () => keys.map(parseKeyPattern),
@@ -102,7 +97,13 @@ export function useKeyBinding({
       const normalized = normalizeKey(input, key)
       const entry: KeyHistoryEntry = { ...normalized, timestamp: Date.now() }
 
+      // Always record — sequences must build up even before activation.
       historyRef.current = [...historyRef.current.slice(-(maxHistory - 1)), entry]
+
+      // Only fire the action when the binding is active.
+      if (!activeRef.current) {
+        return
+      }
 
       const matched = parsedPatterns.some((pattern) =>
         checkBinding(pattern, normalized, historyRef.current, sequenceTimeout)
@@ -115,7 +116,8 @@ export function useKeyBinding({
     [parsedPatterns, sequenceTimeout, maxHistory]
   )
 
-  useInput(inputHandler, { isActive: active })
+  // Always listening — history records all keys, active gates the action.
+  useInput(inputHandler)
 }
 
 // ---------------------------------------------------------------------------

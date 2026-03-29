@@ -20,7 +20,7 @@ import { matchesSequence, matchesSingleKey, normalizeKey, parseKeyPattern } from
 // ---------------------------------------------------------------------------
 
 /** Default timeout in ms for multi-key sequences. */
-const DEFAULT_SEQUENCE_TIMEOUT = 300
+const DEFAULT_SEQUENCE_TIMEOUT = 600
 
 /** Minimum key history entries retained for sequence matching. */
 const MIN_HISTORY_LENGTH = 10
@@ -42,7 +42,7 @@ export interface UseKeyBindingArgs {
   readonly action: () => void
   /** Whether the binding is active. Defaults to `true`. */
   readonly active?: boolean
-  /** Timeout in ms for multi-key sequences. Defaults to `300`. */
+  /** Timeout in ms for multi-key sequences. Defaults to `600`. */
   readonly sequenceTimeout?: number
 }
 

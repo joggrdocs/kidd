@@ -48,8 +48,11 @@ export function StatusBar({ mode, hasSelection, isReloading }: StatusBarProps): 
         .with({ isReloading: false, mode: 'interactive' }, () => <InteractiveHints />)
         .exhaustive()}
       <Spacer />
-      <Text dimColor>q</Text>
-      <Text>: quit</Text>
+      {match(mode)
+        .with('interactive', () => null)
+        .with('browse', () => <QuitHint />)
+        .with('edit', () => <QuitHint />)
+        .exhaustive()}
     </Box>
   )
 }
@@ -154,6 +157,21 @@ function InteractiveHints(): ReactElement {
     <Box>
       <Text dimColor>esc esc</Text>
       <Text>: exit interactive</Text>
+    </Box>
+  )
+}
+
+/**
+ * Render the quit shortcut hint.
+ *
+ * @private
+ * @returns A rendered quit hint element.
+ */
+function QuitHint(): ReactElement {
+  return (
+    <Box>
+      <Text dimColor>q</Text>
+      <Text>: quit</Text>
     </Box>
   )
 }

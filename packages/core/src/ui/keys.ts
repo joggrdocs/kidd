@@ -97,16 +97,22 @@ const MODIFIER_NAMES = new Set(['ctrl', 'meta', 'shift'])
 export function normalizeKey(input: string, key: Key): NormalizedKeyEvent {
   const specialKey = resolveSpecialKey(key)
 
+  const resolvedKey = match(specialKey)
+    .with(null, () =>
+      match(input)
+        .with(' ', () => 'space')
+        .otherwise(() => input)
+    )
+    .otherwise((name) => name)
+
   return {
-    key: match(specialKey)
-      .with(null, () =>
-        match(input)
-          .with(' ', () => 'space')
-          .otherwise(() => input)
-      )
-      .otherwise((name) => name),
+    key: resolvedKey,
     ctrl: key.ctrl,
-    meta: key.meta,
+    // Terminal escape (\x1b) doubles as the meta prefix — when the resolved
+    // key is 'escape', the meta flag is protocol noise and must be cleared.
+    meta: match(resolvedKey)
+      .with('escape', () => false)
+      .otherwise(() => key.meta),
     shift: key.shift,
   }
 }

@@ -127,6 +127,8 @@ export function Preview({
     )
   }
 
+  const isInteractiveOnly = story.interactive === true
+
   return (
     <Box
       flexDirection="column"
@@ -149,9 +151,14 @@ export function Preview({
       <PreviewHeader context={context} />
       <Box ref={contentRef} flexDirection="column" flexGrow={1}>
         <ScrollArea height={Math.max(1, componentAreaHeight)}>
-          <ErrorBoundary key={context.displayName}>
-            <DecoratedComponent {...currentProps} />
-          </ErrorBoundary>
+          {match(isInteractiveOnly)
+            .with(true, () => <InteractivePlaceholder />)
+            .with(false, () => (
+              <ErrorBoundary key={context.displayName}>
+                <DecoratedComponent {...currentProps} />
+              </ErrorBoundary>
+            ))
+            .exhaustive()}
         </ScrollArea>
         <Box height={propsAreaHeight} overflow="hidden" flexDirection="column">
           <PropsEditor
@@ -214,6 +221,24 @@ function StoryDescription({
     <Text dimColor italic>
       {description}
     </Text>
+  )
+}
+
+/**
+ * Placeholder shown for interactive-only stories when not in interactive mode.
+ * Instructs the user to press `i` to mount the component.
+ *
+ * @private
+ * @returns A rendered placeholder element.
+ */
+function InteractivePlaceholder(): ReactElement {
+  return (
+    <Box flexDirection="column" flexGrow={1} alignItems="center" justifyContent="center">
+      <Text dimColor>This story requires interactive mode.</Text>
+      <Text dimColor>
+        Press <Text bold>i</Text> to enter interactive mode.
+      </Text>
+    </Box>
   )
 }
 

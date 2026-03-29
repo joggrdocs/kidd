@@ -24,6 +24,7 @@ export function story<TProps extends Record<string, unknown>>(
       defaultKeys: [] as readonly string[],
       decorators: Object.freeze(def.decorators ?? []),
       description: def.description,
+      interactive: def.interactive ?? false,
     },
     'Story'
   )
@@ -60,6 +61,7 @@ export function stories<TProps extends Record<string, unknown>>(
               defaultKeys,
               decorators: Object.freeze(variant.decorators ?? []),
               description: variant.description,
+              interactive: def.interactive ?? false,
             },
             'Story'
           )

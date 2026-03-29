@@ -49,4 +49,6 @@ jobs:
         uses: CodSpeedHQ/action@v4
         with:
           mode: walltime
-          run: pnpm test:bench
+          run: |
+            codspeed exec --mode walltime -- node examples/icons/dist/index.mjs --help
+            codspeed exec --mode walltime -- node examples/icons/dist/index.mjs status

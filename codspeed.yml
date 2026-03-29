@@ -1,0 +1,8 @@
+benchmarks:
+  - name: "icons --help"
+    run: "node examples/icons/dist/index.mjs --help"
+    mode: walltime
+
+  - name: "icons status"
+    run: "node examples/icons/dist/index.mjs status"
+    mode: walltime

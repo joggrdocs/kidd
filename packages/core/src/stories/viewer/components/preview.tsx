@@ -4,6 +4,7 @@ import type { ComponentType, ReactElement } from 'react'
 import { useMemo, useRef } from 'react'
 import { match } from 'ts-pattern'
 
+import { InputGate } from '../../../ui/input-gate.js'
 import { ScrollArea } from '../../../ui/scroll-area.js'
 import { useSize } from '../../../ui/use-size.js'
 import type { FieldDescriptor, Story } from '../../types.js'
@@ -127,8 +128,6 @@ export function Preview({
     )
   }
 
-  const isInteractiveOnly = story.interactive === true
-
   return (
     <Box
       flexDirection="column"
@@ -151,14 +150,11 @@ export function Preview({
       <PreviewHeader context={context} />
       <Box ref={contentRef} flexDirection="column" flexGrow={1}>
         <ScrollArea height={Math.max(1, componentAreaHeight)}>
-          {match(isInteractiveOnly)
-            .with(true, () => <InteractivePlaceholder />)
-            .with(false, () => (
-              <ErrorBoundary key={context.displayName}>
-                <DecoratedComponent {...currentProps} />
-              </ErrorBoundary>
-            ))
-            .exhaustive()}
+          <InputGate active={interactive}>
+            <ErrorBoundary key={context.displayName}>
+              <DecoratedComponent {...currentProps} />
+            </ErrorBoundary>
+          </InputGate>
         </ScrollArea>
         <Box height={propsAreaHeight} overflow="hidden" flexDirection="column">
           <PropsEditor
@@ -221,24 +217,6 @@ function StoryDescription({
     <Text dimColor italic>
       {description}
     </Text>
-  )
-}
-
-/**
- * Placeholder shown for interactive-only stories when not in interactive mode.
- * Instructs the user to press `i` to mount the component.
- *
- * @private
- * @returns A rendered placeholder element.
- */
-function InteractivePlaceholder(): ReactElement {
-  return (
-    <Box flexDirection="column" flexGrow={1} alignItems="center" justifyContent="center">
-      <Text dimColor>This story requires interactive mode.</Text>
-      <Text dimColor>
-        Press <Text bold>i</Text> to enter interactive mode.
-      </Text>
-    </Box>
   )
 }
 

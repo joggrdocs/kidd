@@ -13,7 +13,6 @@ export default stories({
   title: 'SelectMenu',
   component: SelectMenu,
   schema,
-  interactive: true,
   defaults: {
     accentColor: 'cyan',
   },

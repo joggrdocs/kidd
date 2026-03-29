@@ -45,8 +45,6 @@ export interface StoryDef<TProps extends Record<string, unknown>> {
   readonly props: TProps
   readonly decorators?: readonly Decorator[]
   readonly description?: string
-  /** When `true`, the component is only mounted in interactive mode. */
-  readonly interactive?: boolean
 }
 
 /**
@@ -72,8 +70,6 @@ export interface StoriesGroupDef<TProps extends Record<string, unknown>> {
   readonly schema: z.ZodObject<z.ZodRawShape>
   readonly defaults?: Partial<TProps>
   readonly decorators?: readonly Decorator[]
-  /** When `true`, the component is only mounted in interactive mode. */
-  readonly interactive?: boolean
   readonly stories: Readonly<Record<string, StoryVariantDef<Partial<TProps>>>>
 }
 
@@ -90,7 +86,6 @@ export type Story<TProps extends Record<string, unknown> = Record<string, unknow
     readonly defaultKeys: readonly string[]
     readonly decorators: readonly Decorator[]
     readonly description: string | undefined
-    readonly interactive: boolean
   },
   'Story'
 >

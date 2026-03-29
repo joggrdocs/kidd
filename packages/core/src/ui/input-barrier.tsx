@@ -9,16 +9,53 @@
  * value with a silent emitter effectively mutes all input hooks in the
  * subtree without requiring component cooperation.
  *
+ * Ink does not export `StdinContext` in its public `exports` map, so a
+ * direct static import (`ink/build/components/StdinContext.js`) is
+ * blocked by Node.js module resolution at runtime. We resolve the
+ * internal path dynamically via {@link import.meta.resolve} to bypass
+ * the restriction while keeping the same context identity.
+ *
  * @module
  */
 
 import { EventEmitter } from 'node:events'
 import process from 'node:process'
 
-// eslint-disable-next-line import/no-unresolved -- internal Ink module, not re-exported from main entry
-import StdinContext from 'ink/build/components/StdinContext.js'
-import type { ReactElement, ReactNode } from 'react'
+import type { Context, ReactElement, ReactNode } from 'react'
 import { useMemo } from 'react'
+
+// ---------------------------------------------------------------------------
+// Ink StdinContext — resolved at module load time
+// ---------------------------------------------------------------------------
+
+/**
+ * Shape of the Ink stdin context value.
+ *
+ * @private
+ */
+interface StdinContextValue {
+  readonly stdin: NodeJS.ReadStream
+  readonly setRawMode: (value: boolean) => void
+  readonly isRawModeSupported: boolean
+  readonly internal_exitOnCtrlC: boolean
+  readonly internal_eventEmitter: EventEmitter
+}
+
+/**
+ * Resolve Ink's internal StdinContext by deriving its file path from the
+ * main entry URL. A full file URL bypasses the `exports` restriction.
+ *
+ * @private
+ * @returns The StdinContext React context object.
+ */
+async function resolveStdinContext(): Promise<Context<StdinContextValue>> {
+  const inkEntryUrl = import.meta.resolve('ink')
+  const stdinContextUrl = new URL('components/StdinContext.js', inkEntryUrl).href
+  const mod = (await import(stdinContextUrl)) as { default: Context<StdinContextValue> }
+  return mod.default
+}
+
+const StdinContext = await resolveStdinContext()
 
 // ---------------------------------------------------------------------------
 // Constants

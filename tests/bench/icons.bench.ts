@@ -1,15 +1,15 @@
 import { bench, describe } from 'vitest'
 
-import { createExampleRunner } from '../helpers.js'
+import { createInProcessRunner } from '../helpers.js'
 
-const run = createExampleRunner({ example: 'icons' })
+const run = createInProcessRunner({ example: 'icons' })
 
 describe('examples/icons startup', () => {
-  bench('--help', () => {
-    run('--help')
+  bench('--help', async () => {
+    await run('--help')
   })
 
-  bench('status command', () => {
-    run('status')
+  bench('status command', async () => {
+    await run('status')
   })
 })

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { createTestContext, mockLog, mockPrompts, mockSpinner, mockStatus } from './context.js'
+import { createTestContext, mockLog, mockPrompts, mockStatus } from './context.js'
 
 describe('test context factory', () => {
   it('should return a context with default args', () => {
@@ -52,12 +52,6 @@ describe('test context factory', () => {
     const status = mockStatus()
     const { ctx } = createTestContext({ status })
     expect(ctx.status).toBe(status)
-  })
-
-  it('should accept custom spinner via deprecated option', () => {
-    const spinner = mockSpinner()
-    const { ctx } = createTestContext({ spinner })
-    expect(ctx.status.spinner).toBe(spinner)
   })
 
   it('should provide status with stub methods by default', () => {

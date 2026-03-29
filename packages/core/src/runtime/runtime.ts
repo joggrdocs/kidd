@@ -51,7 +51,6 @@ export async function createRuntime<TSchema extends z.ZodType>(
           version: options.version,
         },
         prompts: options.prompts,
-        spinner: options.spinner,
         status: options.status,
       })
 

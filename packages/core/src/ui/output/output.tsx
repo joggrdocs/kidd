@@ -61,13 +61,13 @@ function SpinnerRow({ state }: { readonly state: SpinnerState }): ReactElement |
   return match(state)
     .with({ status: 'idle' }, () => null)
     .with({ status: 'spinning' }, ({ message }) => <Spinner label={message} />)
-    .with({ status: 'stopped' }, ({ message }) => resolveTerminalIcon(message, 'green', figures.tick))
+    .with({ status: 'stopped' }, ({ message }) =>
+      resolveTerminalIcon(message, 'green', figures.tick)
+    )
     .with({ status: 'cancelled' }, ({ message }) =>
       resolveTerminalIcon(message, 'yellow', figures.warning)
     )
-    .with({ status: 'error' }, ({ message }) =>
-      resolveTerminalIcon(message, 'red', figures.cross)
-    )
+    .with({ status: 'error' }, ({ message }) => resolveTerminalIcon(message, 'red', figures.cross))
     .exhaustive()
 }
 
@@ -76,11 +76,7 @@ function SpinnerRow({ state }: { readonly state: SpinnerState }): ReactElement |
  *
  * @private
  */
-function resolveTerminalIcon(
-  message: string,
-  color: string,
-  icon: string
-): ReactElement | null {
+function resolveTerminalIcon(message: string, color: string, icon: string): ReactElement | null {
   if (message.length === 0) {
     return null
   }

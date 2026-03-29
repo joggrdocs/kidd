@@ -88,7 +88,7 @@ export function createLog(options?: CreateLogOptions): Log {
     },
 
     box(message: string, title?: string, opts?: BoxOptions): void {
-      clack.box(message, title, mergeClackOpts(boxBase as ClackBase, opts))
+      clack.box(message, title, mergeClackOpts(boxBase, opts))
     },
 
     outro(message?: string): void {
@@ -144,7 +144,7 @@ function resolveOutput(options: CreateLogOptions | undefined): NodeJS.WritableSt
 function resolveBoxBase(
   base: ClackBase,
   boxDefaults: DisplayConfig['box'] | undefined
-): ClackBase | Record<string, unknown> {
+): ClackBase & Partial<NonNullable<DisplayConfig['box']>> {
   if (boxDefaults === undefined) {
     return base
   }

@@ -32,10 +32,6 @@ import type {
  * Options for {@link createContextStatus}.
  */
 export interface CreateContextStatusOptions {
-  /**
-   * Override the spinner implementation (useful for testing or screen contexts).
-   */
-  readonly spinner?: Spinner
   /** Spinner config defaults from {@link DisplayConfig}. */
   readonly spinnerConfig?: DisplayConfig['spinner']
   /** Progress config defaults from {@link DisplayConfig}. */
@@ -61,8 +57,7 @@ export interface CreateContextStatusOptions {
  */
 export function createContextStatus(options?: CreateContextStatusOptions): Status {
   const base = resolveClackBase(options?.defaults)
-  const spinner: Spinner =
-    options?.spinner ?? createDefaultSpinner(base, options?.spinnerConfig ?? {})
+  const spinner: Spinner = createDefaultSpinner(base, options?.spinnerConfig ?? {})
   const progressConfig = options?.progressConfig ?? {}
 
   return Object.freeze({

@@ -4,6 +4,7 @@ import type { ComponentType, ReactElement } from 'react'
 import { useMemo, useRef } from 'react'
 import { match } from 'ts-pattern'
 
+import { InputBarrier } from '../../../ui/input-barrier.js'
 import { ScrollArea } from '../../../ui/scroll-area.js'
 import { useSize } from '../../../ui/use-size.js'
 import type { FieldDescriptor, Story } from '../../types.js'
@@ -48,6 +49,7 @@ interface PreviewProps {
   readonly onPropsChange: (name: string, value: unknown) => void
   readonly isFocused: boolean
   readonly borderless?: boolean
+  readonly interactive?: boolean
 }
 
 // ---------------------------------------------------------------------------
@@ -75,6 +77,7 @@ export function Preview({
   onPropsChange,
   isFocused,
   borderless = false,
+  interactive = false,
 }: PreviewProps): ReactElement {
   const contentRef = useRef<DOMElement>(null)
   const { height: contentHeight } = useSize(contentRef)
@@ -115,6 +118,16 @@ export function Preview({
     )
   }
 
+  if (interactive) {
+    return (
+      <Box flexDirection="column" flexGrow={1} overflow="hidden">
+        <ErrorBoundary key={context.displayName}>
+          <DecoratedComponent {...currentProps} />
+        </ErrorBoundary>
+      </Box>
+    )
+  }
+
   return (
     <Box
       flexDirection="column"
@@ -137,9 +150,11 @@ export function Preview({
       <PreviewHeader context={context} />
       <Box ref={contentRef} flexDirection="column" flexGrow={1}>
         <ScrollArea height={Math.max(1, componentAreaHeight)}>
-          <ErrorBoundary key={context.displayName}>
-            <DecoratedComponent {...currentProps} />
-          </ErrorBoundary>
+          <InputBarrier active={interactive}>
+            <ErrorBoundary key={context.displayName}>
+              <DecoratedComponent {...currentProps} />
+            </ErrorBoundary>
+          </InputBarrier>
         </ScrollArea>
         <Box height={propsAreaHeight} overflow="hidden" flexDirection="column">
           <PropsEditor

@@ -84,3 +84,9 @@ export type { OutputStore } from './output/index.js'
 
 export { screen } from './screen.js'
 export type { ScreenDef, ScreenExit } from './screen.js'
+
+export { useKeyBinding } from './use-key-binding.js'
+export type { UseKeyBindingArgs } from './use-key-binding.js'
+
+export { useKeyInput } from './use-key-input.js'
+export type { KeyInputEvent, KeyInputOptions } from './use-key-input.js'

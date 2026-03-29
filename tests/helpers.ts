@@ -1,5 +1,5 @@
 import { spawnSync } from 'node:child_process'
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 
 const EXAMPLES_DIR = fileURLToPath(new URL('../examples', import.meta.url))
 
@@ -95,9 +95,10 @@ export function createInProcessRunner({
   example,
   distPath = 'dist/index.mjs',
 }: CliRunnerOptions): InProcessRunner {
-  const entryPath = `${EXAMPLES_DIR}/${example}/${distPath}`
+  const entryUrl = pathToFileURL(`${EXAMPLES_DIR}/${example}/${distPath}`)
+  const queue: { tail: Promise<void> } = { tail: Promise.resolve() }
 
-  return async (...args: readonly string[]): Promise<CliRunResult> => {
+  const runOnce = async (...args: readonly string[]): Promise<CliRunResult> => {
     const originalArgv = process.argv
     const originalExit = process.exit
     const originalStdoutWrite = process.stdout.write
@@ -132,7 +133,9 @@ export function createInProcessRunner({
     }) as typeof process.stderr.write
 
     try {
-      await import(`${entryPath}?t=${Date.now()}`)
+      const specifier = new URL(entryUrl.href)
+      specifier.searchParams.set('t', String(Date.now()))
+      await import(specifier.href)
     } finally {
       process.argv = originalArgv
       process.exit = originalExit
@@ -149,5 +152,11 @@ export function createInProcessRunner({
       stderr,
       stdout,
     }
+  }
+
+  return (...args: readonly string[]): Promise<CliRunResult> => {
+    const next = queue.tail.then(() => runOnce(...args), () => runOnce(...args))
+    queue.tail = next.then(() => undefined, () => undefined)
+    return next
   }
 }

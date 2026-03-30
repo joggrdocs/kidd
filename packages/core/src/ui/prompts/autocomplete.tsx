@@ -84,7 +84,8 @@ export function Autocomplete<TValue>({
         if (filtered.length === 0) {
           return
         }
-        const next = Math.max(0, focusIndex - 1)
+        const clamped = Math.min(focusIndex, filtered.length - 1)
+        const next = Math.max(0, clamped - 1)
         setFocusIndex(next)
         const focused = filtered[next]
         if (onChange && focused !== undefined) {

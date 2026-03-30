@@ -1,7 +1,7 @@
 import { Box, Text, useInput } from 'ink'
 import picocolors from 'picocolors'
 import type { ReactElement } from 'react'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { match } from 'ts-pattern'
 
 import { ErrorMessage } from '../display/error-message.js'
@@ -71,8 +71,28 @@ export function GroupMultiSelect<TValue>({
   const [error, setError] = useState<string | undefined>(undefined)
   const selectedSet = useMemo(() => new Set(selected), [selected])
 
+  useEffect(() => {
+    if (flatItems.length === 0) {
+      return
+    }
+    if (focusIndex >= flatItems.length) {
+      setFocusIndex(flatItems.length - 1)
+    }
+  }, [flatItems, focusIndex])
+
   useInput(
     (input, key) => {
+      if (key.return) {
+        if (required && selected.length === 0) {
+          setError('At least one option must be selected.')
+          return
+        }
+        if (onSubmit) {
+          onSubmit(selected)
+        }
+        return
+      }
+
       if (flatItems.length === 0) {
         return
       }
@@ -97,17 +117,6 @@ export function GroupMultiSelect<TValue>({
         setError(undefined)
         if (onChange) {
           onChange(nextSelected)
-        }
-        return
-      }
-
-      if (key.return) {
-        if (required && selected.length === 0) {
-          setError('At least one option must be selected.')
-          return
-        }
-        if (onSubmit) {
-          onSubmit(selected)
         }
       }
     },

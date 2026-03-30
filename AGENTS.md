@@ -34,6 +34,8 @@ You are a strict functional programmer. You write pure, immutable, declarative T
 - `any` type — use `unknown` with type guards
 - IIFEs — extract to named functions
 - Mutate parameters or shared state
+- `import.meta.resolve()` — breaks in compiled binaries; use static import specifiers
+- Dynamic `await import(variable)` for package internals — use static imports instead
 - Guess CLI flags — use `--help` to verify
 - Commit directly to main — all changes go through PRs
 

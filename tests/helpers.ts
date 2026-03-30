@@ -4,9 +4,42 @@ import { fileURLToPath } from 'node:url'
 const EXAMPLES_DIR = fileURLToPath(new URL('../examples', import.meta.url))
 
 /**
- * Options for creating a CLI runner.
+ * Map from `process.platform` to compile target OS prefix.
+ *
+ * @private
  */
-interface CliRunnerOptions {
+const PLATFORM_MAP: Readonly<Record<string, string>> = {
+  darwin: 'darwin',
+  linux: 'linux',
+  win32: 'windows',
+}
+
+/**
+ * Map from `process.arch` to compile target architecture suffix.
+ *
+ * @private
+ */
+const ARCH_MAP: Readonly<Record<string, string>> = {
+  arm64: 'arm64',
+  x64: 'x64',
+}
+
+/**
+ * Resolve the host compile target string from the current platform and arch.
+ *
+ * @private
+ * @returns A compile target string (e.g., `darwin-arm64`).
+ */
+function resolveHostTarget(): string {
+  const os = PLATFORM_MAP[process.platform] ?? process.platform
+  const arch = ARCH_MAP[process.arch] ?? process.arch
+  return `${os}-${arch}`
+}
+
+/**
+ * Options for creating a node runner.
+ */
+interface NodeRunnerOptions {
   /**
    * The example directory name under `examples/`.
    */
@@ -34,10 +67,10 @@ type SubprocessRunner = (...args: readonly string[]) => string
  * @param options - Runner configuration.
  * @returns A function that runs the built CLI with the given arguments.
  */
-export function createExampleRunner({
+export function createNodeRunner({
   example,
   distPath = 'dist/index.mjs',
-}: CliRunnerOptions): SubprocessRunner {
+}: NodeRunnerOptions): SubprocessRunner {
   const cwd = `${EXAMPLES_DIR}/${example}`
 
   return (...args: readonly string[]): string => {
@@ -53,6 +86,56 @@ export function createExampleRunner({
 
     if (result.status !== 0) {
       throw new Error(`CLI exited with status ${String(result.status)}: ${result.stderr}`)
+    }
+
+    return `${result.stdout}${result.stderr}`
+  }
+}
+
+/**
+ * Options for creating a compiled binary runner.
+ */
+interface BinaryRunnerOptions {
+  /**
+   * The example directory name under `examples/`.
+   */
+  readonly example: string
+  /**
+   * Relative path to the dist directory (default: `dist`).
+   * The binary name `cli-<host-target>` is appended automatically.
+   */
+  readonly distDir?: string
+}
+
+/**
+ * Create a subprocess runner for a compiled example binary.
+ *
+ * Executes the binary directly (not via `node`) with the given arguments.
+ * Returns combined stdout + stderr as a string, or throws on non-zero exit.
+ *
+ * @param options - Runner configuration.
+ * @returns A function that runs the compiled binary with the given arguments.
+ */
+export function createBinaryRunner({
+  example,
+  distDir = 'dist',
+}: BinaryRunnerOptions): SubprocessRunner {
+  const cwd = `${EXAMPLES_DIR}/${example}`
+  const binary = `${cwd}/${distDir}/cli-${resolveHostTarget()}`
+
+  return (...args: readonly string[]): string => {
+    const result = spawnSync(binary, [...args], {
+      cwd,
+      encoding: 'utf8',
+      timeout: 10_000,
+    })
+
+    if (result.error) {
+      throw result.error
+    }
+
+    if (result.status !== 0) {
+      throw new Error(`Binary exited with status ${String(result.status)}: ${result.stderr}`)
     }
 
     return `${result.stdout}${result.stderr}`

@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os'
 
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
-import { cleanBuildArtifacts, isBuildArtifact } from './clean.js'
+import { cleanBuildArtifacts, isBuildArtifact, isCompiledBinary } from './clean.js'
 
 describe('isBuildArtifact', () => {
   it('should match .js files', () => {
@@ -32,6 +32,24 @@ describe('isBuildArtifact', () => {
   })
 })
 
+describe('isCompiledBinary', () => {
+  it('should match extensionless files', () => {
+    expect(isCompiledBinary('cli-darwin-arm64')).toBe(true)
+  })
+
+  it('should match .exe files', () => {
+    expect(isCompiledBinary('cli-windows-x64.exe')).toBe(true)
+  })
+
+  it('should not match .js files', () => {
+    expect(isCompiledBinary('index.js')).toBe(false)
+  })
+
+  it('should not match .md files', () => {
+    expect(isCompiledBinary('README.md')).toBe(false)
+  })
+})
+
 describe('cleanBuildArtifacts', () => {
   const testDir = join(tmpdir(), `kidd-clean-test-${Date.now()}`)
 
@@ -44,7 +62,7 @@ describe('cleanBuildArtifacts', () => {
   })
 
   it('should return empty result for non-existent directory', () => {
-    const result = cleanBuildArtifacts('/non/existent/path')
+    const result = cleanBuildArtifacts({ outDir: '/non/existent/path' })
 
     expect(result.removed).toStrictEqual([])
     expect(result.foreign).toStrictEqual([])
@@ -54,7 +72,7 @@ describe('cleanBuildArtifacts', () => {
     writeFileSync(join(testDir, 'index.js'), '')
     writeFileSync(join(testDir, 'index.js.map'), '')
 
-    const result = cleanBuildArtifacts(testDir)
+    const result = cleanBuildArtifacts({ outDir: testDir })
 
     expect(result.removed).toContain('index.js')
     expect(result.removed).toContain('index.js.map')
@@ -67,7 +85,7 @@ describe('cleanBuildArtifacts', () => {
     writeFileSync(join(testDir, 'README.md'), '')
     writeFileSync(join(testDir, 'cli-darwin-arm64'), '')
 
-    const result = cleanBuildArtifacts(testDir)
+    const result = cleanBuildArtifacts({ outDir: testDir })
 
     expect(result.removed).toContain('index.js')
     expect(result.foreign).toContain('README.md')
@@ -76,8 +94,29 @@ describe('cleanBuildArtifacts', () => {
     expect(existsSync(join(testDir, 'cli-darwin-arm64'))).toBe(true)
   })
 
+  it('should remove compiled binaries when compile is true', () => {
+    writeFileSync(join(testDir, 'index.mjs'), '')
+    writeFileSync(join(testDir, 'cli-darwin-arm64'), '')
+    writeFileSync(join(testDir, 'cli-linux-x64'), '')
+    writeFileSync(join(testDir, 'cli-windows-x64.exe'), '')
+    writeFileSync(join(testDir, 'README.md'), '')
+
+    const result = cleanBuildArtifacts({ compile: true, outDir: testDir })
+
+    expect(result.removed).toContain('index.mjs')
+    expect(result.removed).toContain('cli-darwin-arm64')
+    expect(result.removed).toContain('cli-linux-x64')
+    expect(result.removed).toContain('cli-windows-x64.exe')
+    expect(result.foreign).toContain('README.md')
+    expect(existsSync(join(testDir, 'index.mjs'))).toBe(false)
+    expect(existsSync(join(testDir, 'cli-darwin-arm64'))).toBe(false)
+    expect(existsSync(join(testDir, 'cli-linux-x64'))).toBe(false)
+    expect(existsSync(join(testDir, 'cli-windows-x64.exe'))).toBe(false)
+    expect(existsSync(join(testDir, 'README.md'))).toBe(true)
+  })
+
   it('should return empty result for empty directory', () => {
-    const result = cleanBuildArtifacts(testDir)
+    const result = cleanBuildArtifacts({ outDir: testDir })
 
     expect(result.removed).toStrictEqual([])
     expect(result.foreign).toStrictEqual([])

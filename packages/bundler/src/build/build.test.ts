@@ -34,14 +34,12 @@ describe('build operation', () => {
   })
 
   it('should return err with Error on tsdown failure', async () => {
-    const errorSpy = vi.spyOn(console, 'error').mockImplementation(function noop() {})
     mockTsdownBuild.mockRejectedValueOnce(new Error('tsdown crashed'))
     const [error, output] = await build({ config: {}, cwd: '/project' })
 
     expect(output).toBeNull()
     expect(error).toBeInstanceOf(Error)
     expect(error).toMatchObject({ message: expect.stringContaining('tsdown build failed') })
-    expect(errorSpy).toHaveBeenCalled()
   })
 
   it('should return err when no entry file is produced', async () => {
@@ -74,8 +72,7 @@ describe('build operation', () => {
     expect(output).toMatchObject({ version: '2.5.0' })
   })
 
-  it('should warn and continue when readVersion fails', async () => {
-    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(function noop() {})
+  it('should continue with undefined version when readVersion fails', async () => {
     mockReadVersion.mockResolvedValueOnce([new Error('ENOENT'), null])
     mockTsdownBuild.mockResolvedValueOnce([])
     mockExistsSync.mockImplementation((p) => String(p).endsWith('index.mjs'))
@@ -84,10 +81,6 @@ describe('build operation', () => {
 
     expect(error).toBeNull()
     expect(output).toHaveProperty('version', undefined)
-    expect(warnSpy).toHaveBeenCalledWith(
-      expect.stringContaining('[kidd-bundler]'),
-      expect.stringContaining('ENOENT')
-    )
   })
 
   it('should inject __KIDD_VERSION__ define when version is available', async () => {

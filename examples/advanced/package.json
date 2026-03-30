@@ -6,7 +6,6 @@
   "scripts": {
     "dev": "kidd dev",
     "build": "kidd build",
-    "compile": "kidd compile",
     "routes": "kidd routes",
     "typecheck": "tsgo --noEmit"
   },

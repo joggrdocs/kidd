@@ -90,12 +90,9 @@ describe('build config mapping', () => {
     expect(result.cwd).toBe('/project')
   })
 
-  it('should combine node builtins, c12 optional deps, and user externals in deps.neverBundle', () => {
+  it('should combine node builtins and user externals in deps.neverBundle', () => {
     const neverBundle = result.deps as { neverBundle: (string | RegExp)[] }
     expect(neverBundle.neverBundle).toContain('pg')
-    expect(neverBundle.neverBundle).toContain('chokidar')
-    expect(neverBundle.neverBundle).toContain('magicast')
-    expect(neverBundle.neverBundle).toContain('giget')
     expect(neverBundle.neverBundle).toEqual(expect.arrayContaining(NODE_BUILTINS))
   })
 

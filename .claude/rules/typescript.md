@@ -27,6 +27,11 @@ These rules are enforced by OXLint (`.oxlintrc.json`) and must be followed in al
 - **No ternaries** — use `if`/`else` or `match` expressions.
 - **ESM only** with `verbatimModuleSyntax` — use `import type` for type-only imports.
 
+## Bundler safety
+
+- **No `import.meta.resolve()`** — breaks inside compiled binaries (Bun compile). Use static import specifiers instead.
+- **No dynamic `await import(variable)`** for package internals — bundlers can't trace runtime-computed specifiers. Use static `import ... from 'pkg/path.js'` with `@ts-expect-error` if bypassing a package's `exports` map.
+
 ## General
 
 - **No `eval`**, `new Function()`, or implied eval.

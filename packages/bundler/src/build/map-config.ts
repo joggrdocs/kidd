@@ -1,10 +1,11 @@
 import { createRequire } from 'node:module'
 
 import { match } from 'ts-pattern'
+import type { Rolldown } from 'tsdown'
 import type { InlineConfig } from 'tsdown'
 
 import { createAutoloadPlugin } from '../autoloader/autoload-plugin.js'
-import { ALWAYS_BUNDLE, NODE_BUILTINS, SHEBANG } from '../constants.js'
+import { ALWAYS_BUNDLE, NODE_BUILTINS, SHEBANG, STUB_PACKAGES } from '../constants.js'
 import type { ResolvedBundlerConfig } from '../types.js'
 
 /**
@@ -16,6 +17,7 @@ import type { ResolvedBundlerConfig } from '../types.js'
 export function mapToBuildConfig(params: {
   readonly config: ResolvedBundlerConfig
   readonly version?: string
+  readonly compile?: boolean
 }): InlineConfig {
   return {
     banner: SHEBANG,
@@ -23,10 +25,7 @@ export function mapToBuildConfig(params: {
     config: false,
     cwd: params.config.cwd,
     define: buildDefine(params.version),
-    deps: {
-      alwaysBundle: ALWAYS_BUNDLE,
-      neverBundle: buildExternals(params.config.build.external),
-    },
+    deps: buildDeps(params.config.build.external, params.compile ?? false),
     dts: false,
     entry: { index: params.config.entry },
     format: 'esm',
@@ -47,6 +46,7 @@ export function mapToBuildConfig(params: {
         commandsDir: params.config.commands,
         tagModulePath: resolveTagModulePath(),
       }),
+      ...buildPlugins(params.compile ?? false),
     ],
     sourcemap: params.config.build.sourcemap,
     target: params.config.build.target,
@@ -78,22 +78,29 @@ export function mapToWatchConfig(params: {
 // ---------------------------------------------------------------------------
 
 /**
- * Optional peer dependencies of `c12` (the config loader) that are behind
- * dynamic `import()` calls and never execute at runtime. Externalizing them
- * at the tsdown level strips the imports from the bundle so `bun build --compile`
- * does not attempt to resolve them in strict pnpm layouts (e.g. CI).
- */
-const C12_OPTIONAL_DEPS: readonly string[] = ['chokidar', 'magicast', 'giget']
-
-/**
- * Combine Node.js builtins, c12 optional deps, and user-specified externals.
+ * Build the `deps` configuration for tsdown.
+ *
+ * When compiling to a standalone binary, all dependencies must be inlined so
+ * `bun build --compile` never encounters unresolvable bare imports. Only
+ * Node.js builtins and explicit user externals are kept external.
+ *
+ * In normal (non-compile) mode, only `@kidd-cli/*` packages are force-bundled
+ * and everything else in `node_modules` is left external by tsdown's default.
  *
  * @private
- * @param userExternals - Additional packages to mark as external.
- * @returns Combined array of externals for tsdown's `deps.neverBundle`.
+ * @param userExternals - Additional packages the user explicitly marked external.
+ * @param compile - Whether the build targets a compiled binary.
+ * @returns A tsdown `deps` configuration object.
  */
-function buildExternals(userExternals: readonly string[]): (string | RegExp)[] {
-  return [...NODE_BUILTINS, ...C12_OPTIONAL_DEPS, ...userExternals]
+function buildDeps(
+  userExternals: readonly string[],
+  compile: boolean
+): { alwaysBundle: RegExp[]; neverBundle: (string | RegExp)[] } {
+  return {
+    // oxlint-disable-next-line no-ternary
+    alwaysBundle: compile ? [/./] : ALWAYS_BUNDLE,
+    neverBundle: [...NODE_BUILTINS, ...userExternals],
+  }
 }
 
 /**
@@ -112,6 +119,58 @@ function buildDefine(version: string | undefined): Record<string, string> {
     .otherwise((resolvedVersion) => ({
       __KIDD_VERSION__: JSON.stringify(resolvedVersion),
     }))
+}
+
+/**
+ * Build additional plugins needed when compiling to a standalone binary.
+ *
+ * When `compile` is true, includes a stub plugin that replaces optional/conditional
+ * dependencies with empty modules so rolldown (and subsequently bun compile) never
+ * attempts to resolve packages that don't exist at runtime.
+ *
+ * @private
+ * @param compile - Whether the build targets a compiled binary.
+ * @returns An array of rolldown plugins (empty when not compiling).
+ */
+// oxlint-disable-next-line no-ternary
+function buildPlugins(compile: boolean): Rolldown.Plugin[] {
+  // oxlint-disable-next-line no-ternary
+  return compile ? [createStubPlugin(STUB_PACKAGES)] : []
+}
+
+/**
+ * Create a rolldown plugin that replaces specified packages with empty modules.
+ *
+ * Libraries like c12 and ink have optional/conditional dependencies behind
+ * dynamic `import()` calls or runtime guards (e.g. `isDev()`). When all deps
+ * are inlined for compile mode, rolldown traces into these statically. Stubbing
+ * at the resolve level ensures the real package is never loaded.
+ *
+ * @private
+ * @param packages - Package names to replace with empty modules.
+ * @returns A rolldown plugin.
+ */
+function createStubPlugin(packages: readonly string[]): Rolldown.Plugin {
+  const stubbed = new Set(packages)
+  const STUB_PREFIX = '\0stub:'
+
+  return {
+    name: 'kidd-stub-packages',
+    resolveId(source) {
+      if (stubbed.has(source)) {
+        return `${STUB_PREFIX}${source}`
+      }
+
+      return null
+    },
+    load(id) {
+      if (id.startsWith(STUB_PREFIX)) {
+        return 'export default undefined;'
+      }
+
+      return null
+    },
+  }
 }
 
 /**

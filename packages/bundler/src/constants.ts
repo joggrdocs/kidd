@@ -75,6 +75,19 @@ export const DEFAULT_COMPILE_TARGETS: readonly CompileTarget[] = [
 export const ALWAYS_BUNDLE: RegExp[] = [/^@?kidd/]
 
 /**
+ * Packages that are optional or conditional dependencies of bundled libraries
+ * (c12, ink) that must be stubbed during compile-mode builds. These are behind
+ * dynamic `import()` calls or runtime guards that never execute in production,
+ * but when all deps are inlined, rolldown traces into them statically.
+ */
+export const STUB_PACKAGES: readonly string[] = [
+  'chokidar',
+  'magicast',
+  'giget',
+  'react-devtools-core',
+]
+
+/**
  * Node.js builtin modules in both bare and `node:` prefixed forms.
  */
 export const NODE_BUILTINS: readonly string[] = [

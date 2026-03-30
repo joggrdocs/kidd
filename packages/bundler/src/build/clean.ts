@@ -28,17 +28,18 @@ export function isBuildArtifact(filename: string): boolean {
  *
  * Unlike tsdown's built-in `clean: true` which deletes the entire output
  * directory, this function targets only files with known build artifact
- * extensions (`.js`, `.mjs`, `.js.map`, `.mjs.map`). Foreign files are
- * left in place and returned so the caller can warn.
+ * extensions (`.js`, `.mjs`, `.js.map`, `.mjs.map`). When `compile` is
+ * true, all files in the directory are treated as artifacts (including
+ * compiled binaries from a previous run).
  *
  * Only regular files and symbolic links are considered for removal.
- * Directories (even if their name matches an artifact extension) are
- * treated as foreign entries.
+ * Directories are always treated as foreign entries.
  *
  * @param outDir - Absolute path to the build output directory.
+ * @param compile - Whether compiled binaries are expected in this directory.
  * @returns A {@link CleanResult} describing what was removed and what was skipped.
  */
-export function cleanBuildArtifacts(outDir: string): CleanResult {
+export function cleanBuildArtifacts(outDir: string, compile: boolean = false): CleanResult {
   if (!existsSync(outDir)) {
     return { foreign: [], removed: [] }
   }
@@ -48,7 +49,8 @@ export function cleanBuildArtifacts(outDir: string): CleanResult {
   return entries.reduce<{ readonly removed: string[]; readonly foreign: string[] }>(
     (acc, entry) => {
       const name = entry.name
-      if ((entry.isFile() || entry.isSymbolicLink()) && isBuildArtifact(name)) {
+      const isRemovable = entry.isFile() || entry.isSymbolicLink()
+      if (isRemovable && (compile || isBuildArtifact(name))) {
         rmSync(join(outDir, name), { force: true })
         return { ...acc, removed: [...acc.removed, name] }
       }

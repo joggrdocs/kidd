@@ -133,8 +133,6 @@ export type { ThemeColor, Variant } from './theme.js'
 // Input
 // ---------------------------------------------------------------------------
 
-export { InputBarrier } from './input-barrier.js'
-
 export { useKeyBinding } from './use-key-binding.js'
 export type { UseKeyBindingArgs } from './use-key-binding.js'
 

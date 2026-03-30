@@ -76,6 +76,23 @@ describe('cleanBuildArtifacts', () => {
     expect(existsSync(join(testDir, 'cli-darwin-arm64'))).toBe(true)
   })
 
+  it('should remove compiled binaries when compile is true', () => {
+    writeFileSync(join(testDir, 'index.mjs'), '')
+    writeFileSync(join(testDir, 'cli-darwin-arm64'), '')
+    writeFileSync(join(testDir, 'cli-linux-x64'), '')
+    writeFileSync(join(testDir, 'README.md'), '')
+
+    const result = cleanBuildArtifacts(testDir, true)
+
+    expect(result.removed).toContain('index.mjs')
+    expect(result.removed).toContain('cli-darwin-arm64')
+    expect(result.removed).toContain('cli-linux-x64')
+    expect(result.removed).toContain('README.md')
+    expect(existsSync(join(testDir, 'index.mjs'))).toBe(false)
+    expect(existsSync(join(testDir, 'cli-darwin-arm64'))).toBe(false)
+    expect(existsSync(join(testDir, 'cli-linux-x64'))).toBe(false)
+  })
+
   it('should return empty result for empty directory', () => {
     const result = cleanBuildArtifacts(testDir)
 

@@ -59,17 +59,12 @@ describe('watch operation', () => {
     )
   })
 
-  it('should warn and continue when readVersion fails', async () => {
-    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(function noop() {})
+  it('should continue when readVersion fails', async () => {
     mockReadVersion.mockResolvedValueOnce([new Error('ENOENT'), null])
     mockTsdownBuild.mockResolvedValueOnce([])
 
     const [error] = await watch({ config: {}, cwd: '/project' })
 
     expect(error).toBeNull()
-    expect(warnSpy).toHaveBeenCalledWith(
-      expect.stringContaining('[kidd-bundler]'),
-      expect.stringContaining('ENOENT')
-    )
   })
 })

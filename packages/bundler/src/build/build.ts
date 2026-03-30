@@ -1,4 +1,5 @@
 import { err, ok } from '@kidd-cli/utils/fp'
+import { attempt, attemptAsync } from 'es-toolkit'
 import { build as tsdownBuild } from 'tsdown'
 
 import { cleanBuildArtifacts } from './clean.js'
@@ -12,45 +13,33 @@ import type { AsyncBundlerResult, BuildOutput, BuildParams } from '../types.js'
  *
  * Resolves defaults, reads the project version from package.json, maps the
  * config to tsdown's InlineConfig (injecting `__KIDD_VERSION__`), and invokes
- * the build. When `clean` is enabled (the default), only kidd build artifacts
- * are removed — foreign files in the output directory are preserved and a
- * warning is printed.
+ * the build. When `clean` is enabled (the default), build artifacts (and
+ * compiled binaries when `compile` is set) are removed before bundling.
  *
  * @param params - The build parameters including config and working directory.
  * @returns A result tuple with build output on success or an Error on failure.
  */
 export async function build(params: BuildParams): AsyncBundlerResult<BuildOutput> {
   const resolved = resolveConfig(params)
+  const compile = !!params.config.compile
 
   if (resolved.build.clean) {
-    try {
-      const cleanResult = cleanBuildArtifacts(resolved.buildOutDir)
-
-      if (cleanResult.foreign.length > 0) {
-        console.warn(
-          `[kidd-bundler] foreign files detected in ${resolved.buildOutDir} (not removed):\n  ${cleanResult.foreign.join('\n  ')}`
-        )
-      }
-    } catch (error: unknown) {
+    const [cleanError] = attempt(() => cleanBuildArtifacts(resolved.buildOutDir, compile))
+    if (cleanError) {
       return err(
-        new Error(`failed to clean build artifacts in ${resolved.buildOutDir}`, { cause: error })
+        new Error(`failed to clean build artifacts in ${resolved.buildOutDir}`, { cause: cleanError })
       )
     }
   }
 
-  const [versionError, versionResult] = await readVersion(params.cwd)
-  if (versionError) {
-    console.warn('[kidd-bundler] could not read version from package.json:', versionError.message)
-  }
+  const [, versionResult] = await readVersion(params.cwd)
   const version = versionResult ?? undefined
 
-  const inlineConfig = mapToBuildConfig({ config: resolved, version })
+  const inlineConfig = mapToBuildConfig({ compile, config: resolved, version })
 
-  try {
-    await tsdownBuild(inlineConfig)
-  } catch (error: unknown) {
-    console.error('[kidd-bundler] build error:', error)
-    return err(new Error('tsdown build failed', { cause: error }))
+  const [buildError] = await attemptAsync(() => tsdownBuild(inlineConfig))
+  if (buildError) {
+    return err(new Error('tsdown build failed', { cause: buildError }))
   }
 
   const entryFile = detectBuildEntry(resolved.buildOutDir)

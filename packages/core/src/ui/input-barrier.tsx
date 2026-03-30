@@ -1,11 +1,13 @@
 import { EventEmitter } from 'node:events'
 import process from 'node:process'
 
+// @ts-expect-error -- ink does not export this subpath in its exports map
+import InkStdinContext from 'ink/build/components/StdinContext.js'
 import type { Context, ReactElement, ReactNode } from 'react'
 import { useMemo } from 'react'
 
 // ---------------------------------------------------------------------------
-// Ink StdinContext — resolved at module load time
+// Ink StdinContext — static import so bundlers can resolve and inline it.
 // ---------------------------------------------------------------------------
 
 /**
@@ -21,21 +23,7 @@ interface StdinContextValue {
   readonly internal_eventEmitter: EventEmitter
 }
 
-/**
- * Resolve Ink's internal StdinContext by deriving its file path from the
- * main entry URL. A full file URL bypasses the `exports` restriction.
- *
- * @private
- * @returns The StdinContext React context object.
- */
-async function resolveStdinContext(): Promise<Context<StdinContextValue>> {
-  const inkEntryUrl = import.meta.resolve('ink')
-  const stdinContextUrl = new URL('components/StdinContext.js', inkEntryUrl).href
-  const mod = (await import(stdinContextUrl)) as { default: Context<StdinContextValue> }
-  return mod.default
-}
-
-const StdinContext = await resolveStdinContext()
+const StdinContext = InkStdinContext as Context<StdinContextValue>
 
 // ---------------------------------------------------------------------------
 // Constants

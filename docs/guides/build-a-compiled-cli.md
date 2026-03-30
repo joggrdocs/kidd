@@ -304,6 +304,33 @@ node -e "import('@kidd-cli/bundler').then(b => b.build({ config: {}, cwd: proces
 
 **Fix:** Verify `commands` in your config points to the directory containing your command files. Each file must export a `command()` call as its default export. The path is resolved relative to the project root (`cwd`), not the source file.
 
+### Compiled binary crashes with `illegal hardware instruction` (macOS)
+
+**Issue:** Running a compiled binary on macOS (especially Apple Silicon) exits immediately with `illegal hardware instruction` (exit code 132 / SIGILL).
+
+**Cause:** The Mach-O binary's adhoc code signature is invalid. This happens when the binary is modified after `bun build --compile` produces it — for example, by copying it with `cp`, appending data, or restoring it from a build cache (e.g. turbo). macOS refuses to execute ARM64 binaries with broken signatures.
+
+**Fix:**
+
+1. **Rebuild from scratch.** Clear any build caches (`rm -rf .turbo`) and re-run the compile step. A freshly compiled binary should work.
+2. **Re-sign after copying.** If your build pipeline copies compiled binaries to another directory, re-sign them afterward:
+
+   ```bash
+   if [[ "$(uname -s)" == "Darwin" ]]; then
+     codesign --force --sign - path/to/binary
+   fi
+   ```
+
+3. **Verify the binary.** You can check whether a binary's signature is intact with:
+
+   ```bash
+   codesign -v path/to/binary
+   ```
+
+   If it reports `invalid signature (code or signature have been modified)`, the binary needs to be recompiled or re-signed.
+
+> **Note:** `codesign --strict` may still fail on Bun-compiled binaries — this is expected because Bun appends embedded data after the Mach-O segments. Non-strict validation (`codesign -v`) is the correct check.
+
 ### Build target does not match runtime
 
 **Issue:** The binary crashes with a Node API not found error.

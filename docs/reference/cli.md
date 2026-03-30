@@ -208,4 +208,3 @@ kidd stories --include "src/ui/**/*.stories.tsx"
 - [Core](./kidd.md)
 - [Build a CLI](../guides/build-a-cli.md)
 - [Configuration](../concepts/configuration.md)
-- [Component Stories](../guides/component-stories.md)

@@ -156,13 +156,10 @@ This means middleware like `auth()`, `report()`, or custom middleware will not r
 
 kidd includes a Storybook-like TUI for developing and previewing screen components in isolation. Define `.stories.tsx` files alongside your components with `story()` or `stories()` from `@kidd-cli/core/stories`, then run `kidd stories` to browse them with live preview and an interactive props editor.
 
-See the [Component Stories guide](../guides/component-stories.md) for full details.
-
 ## References
 
 - [Context](./context.md)
 - [Lifecycle](./lifecycle.md)
 - [Build a CLI](../guides/build-a-cli.md)
-- [Component Stories](../guides/component-stories.md)
 - [screen() Reference](../reference/screen.md)
 - [Core](../reference/kidd.md)

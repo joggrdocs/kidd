@@ -11,7 +11,7 @@ const schema = z.object({
   isDisabled: z.boolean().optional().describe('Disable the component'),
 })
 
-const defaultOptions = Object.freeze({
+const defaultOptions = {
   Fruits: [
     { value: 'apple', label: 'Apple', hint: 'Sweet' },
     { value: 'banana', label: 'Banana' },
@@ -21,7 +21,7 @@ const defaultOptions = Object.freeze({
     { value: 'carrot', label: 'Carrot' },
     { value: 'broccoli', label: 'Broccoli', hint: 'Healthy' },
   ],
-})
+}
 
 const storyGroup: StoryGroup = stories({
   title: 'GroupMultiSelect',

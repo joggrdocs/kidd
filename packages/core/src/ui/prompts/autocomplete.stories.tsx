@@ -11,7 +11,7 @@ const schema = z.object({
   isDisabled: z.boolean().optional().describe('Disable the component'),
 })
 
-const defaultOptions = Object.freeze([
+const defaultOptions = [
   { value: 'react', label: 'React', hint: 'UI library' },
   { value: 'vue', label: 'Vue', hint: 'Progressive framework' },
   { value: 'angular', label: 'Angular', hint: 'Platform' },
@@ -20,7 +20,7 @@ const defaultOptions = Object.freeze([
   { value: 'preact', label: 'Preact', hint: 'Lightweight' },
   { value: 'lit', label: 'Lit', hint: 'Web components' },
   { value: 'htmx', label: 'HTMX', disabled: true },
-])
+]
 
 const storyGroup: StoryGroup = stories({
   title: 'Autocomplete',

@@ -9,12 +9,12 @@ const schema = z.object({
   isDisabled: z.boolean().optional().describe('Disable the component'),
 })
 
-const defaultOptions = Object.freeze([
+const defaultOptions = [
   { value: 'y', label: 'Yes', hint: 'Confirm action' },
   { value: 'n', label: 'No', hint: 'Cancel action' },
   { value: 'a', label: 'Always' },
   { value: 's', label: 'Skip', disabled: true },
-])
+]
 
 const storyGroup: StoryGroup = stories({
   title: 'SelectKey',

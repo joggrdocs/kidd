@@ -1,10 +1,18 @@
 # @kidd-cli/config
 
+## 0.1.7
+
+### Patch Changes
+
+- Updated dependencies [687e8a1]
+  - @kidd-cli/utils@0.2.0
+
 ## 0.1.6
 
 ### Patch Changes
 
 - 0d0c61f: Comprehensive code review cleanup and refactoring across all packages:
+
   - Reorganize bundler into `build/`, `compile/`, `autoloader/`, `config/` subdirectories
   - Split core `types.ts` into `types/utility`, `types/middleware`, `types/command`, `types/cli`
   - Create shared `tsdown.base.mjs` config for all packages

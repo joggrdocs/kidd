@@ -1,5 +1,13 @@
 # @kidd-cli/bundler
 
+## 0.3.2
+
+### Patch Changes
+
+- Updated dependencies [687e8a1]
+  - @kidd-cli/utils@0.2.0
+  - @kidd-cli/config@0.1.7
+
 ## 0.3.1
 
 ### Patch Changes

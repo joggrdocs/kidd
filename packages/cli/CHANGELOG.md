@@ -1,5 +1,37 @@
 # kidd-cli
 
+## 0.8.0
+
+### Minor Changes
+
+- f0198b2: feat(core): add configurable `strict` mode for CLI, command, and screen
+
+  Add `strict` option to `CliOptions`, `CommandDef`, and `ScreenDef` to control whether yargs rejects unknown flags. Defaults to `true` (existing behavior). Per-command `strict: false` overrides the CLI-level setting.
+
+  feat(cli): add `kidd run` command
+
+  New command to run the current kidd CLI project with three engine modes:
+
+  - `node` (default) — builds first, then runs `node dist/index.mjs`
+  - `tsx` — runs the source entry file directly via `tsx`
+  - `binary` — builds and compiles, then executes the compiled binary
+
+  Supports `--inspect`, `--inspect-brk`, `--inspect-wait`, and `--inspect-port` for debugging (node and tsx engines only). All unknown flags are forwarded to the executed CLI.
+
+### Patch Changes
+
+- Updated dependencies [e724996]
+- Updated dependencies [f0198b2]
+- Updated dependencies [f51a6b1]
+- Updated dependencies [687e8a1]
+- Updated dependencies [ddc5140]
+- Updated dependencies [9a6fa77]
+- Updated dependencies [2995c8f]
+  - @kidd-cli/core@0.17.0
+  - @kidd-cli/utils@0.2.0
+  - @kidd-cli/bundler@0.3.2
+  - @kidd-cli/config@0.1.7
+
 ## 0.7.0
 
 ### Minor Changes

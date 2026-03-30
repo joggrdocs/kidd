@@ -6,6 +6,7 @@ import type { ResolvedBundlerConfig } from '../types.js'
 
 const config: ResolvedBundlerConfig = {
   build: {
+    clean: true,
     external: ['pg'],
     minify: false,
     sourcemap: true,
@@ -62,8 +63,8 @@ describe('build config mapping', () => {
     expect(result.config).toBeFalsy()
   })
 
-  it('should enable clean and treeshake', () => {
-    expect(result.clean).toBeTruthy()
+  it('should disable tsdown clean (kidd handles cleaning) and enable treeshake', () => {
+    expect(result.clean).toBeFalsy()
     expect(result.treeshake).toBeTruthy()
   })
 

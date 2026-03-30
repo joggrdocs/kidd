@@ -1,10 +1,3 @@
-/**
- * Utility functions for attaching and retrieving the {@link OutputStore}
- * on a screen context object via a hidden Symbol key.
- *
- * @module
- */
-
 import type { ScreenContext } from '../../context/types.js'
 import type { OutputStore } from './types.js'
 

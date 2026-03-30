@@ -1,12 +1,3 @@
-/**
- * Spinner UI component.
- *
- * Renders an animated spinner with an optional label. Spinner frame data
- * is inlined to avoid depending on transitive packages.
- *
- * @module
- */
-
 import { Text } from 'ink'
 import type { ReactElement } from 'react'
 import { useEffect, useState } from 'react'

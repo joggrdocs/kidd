@@ -1,14 +1,3 @@
-/**
- * PasswordInput prompt component.
- *
- * A masked single-line text input for terminal UIs. Behaves identically
- * to {@link TextInput} but replaces each character with a configurable
- * mask character (default `*`). Supports full cursor movement,
- * validation, and placeholder text.
- *
- * @module
- */
-
 import { Box, Text, useInput } from 'ink'
 import type { ReactElement } from 'react'
 import { useState } from 'react'

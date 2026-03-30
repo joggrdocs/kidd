@@ -1,12 +1,3 @@
-/**
- * Shared keyboard navigation utilities for prompt components.
- *
- * Provides direction resolution and focus index computation used by
- * Select, MultiSelect, and other navigable prompt components.
- *
- * @module
- */
-
 import { match } from 'ts-pattern'
 
 import type { PromptOption } from './types.js'

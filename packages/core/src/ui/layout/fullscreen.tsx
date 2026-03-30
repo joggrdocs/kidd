@@ -1,14 +1,3 @@
-/**
- * Fullscreen mode for terminal UIs.
- *
- * Provides a `<FullScreen>` component that enters the terminal's alternate
- * screen buffer, a `useFullScreen` hook for reading terminal dimensions
- * and fullscreen state, and a standalone `useTerminalSize` hook for
- * tracking terminal dimensions independently.
- *
- * @module
- */
-
 import process from 'node:process'
 
 import { Box, useStdout } from 'ink'

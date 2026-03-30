@@ -1,9 +1,3 @@
-/**
- * Factory for creating a {@link Log} instance backed by `@clack/prompts`.
- *
- * @module
- */
-
 import type { Writable } from 'node:stream'
 
 import * as clack from '@clack/prompts'

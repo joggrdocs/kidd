@@ -1,13 +1,3 @@
-/**
- * Alert UI component.
- *
- * Renders a bordered box with variant-colored borders, an optional title,
- * and an icon matching the alert variant. Supports rounded and square
- * border styles with configurable width and alignment.
- *
- * @module
- */
-
 import { Text } from 'ink'
 import type { ReactElement } from 'react'
 import { match } from 'ts-pattern'

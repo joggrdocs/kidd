@@ -1,10 +1,3 @@
-/**
- * Screen-backed {@link Report} implementation that pushes entries
- * to an {@link OutputStore} instead of writing to stderr.
- *
- * @module
- */
-
 import type { CheckInput, FindingInput, SummaryInput } from '@/lib/format/types.js'
 import type { Report } from '@/middleware/report/types.js'
 

@@ -1,12 +1,3 @@
-/**
- * Shared cursor-rendered value component for text-based prompts.
- *
- * Renders a string with a visible cursor (inverse character) at the
- * given position. Used by TextInput and PasswordInput.
- *
- * @module
- */
-
 import { Text } from 'ink'
 import type { ReactElement } from 'react'
 import { match } from 'ts-pattern'

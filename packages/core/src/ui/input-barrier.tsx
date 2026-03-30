@@ -1,23 +1,3 @@
-/**
- * Barrier component that isolates child `useInput` hooks from the global
- * stdin event emitter. When inactive, children receive a silent
- * {@link EventEmitter} so their input handlers never fire. When active,
- * the real stdin context passes through unchanged.
- *
- * This relies on Ink's internal `StdinContext` — the same context that
- * `useInput` and `useStdin` consume. Providing a replacement context
- * value with a silent emitter effectively mutes all input hooks in the
- * subtree without requiring component cooperation.
- *
- * Ink does not export `StdinContext` in its public `exports` map, so a
- * direct static import (`ink/build/components/StdinContext.js`) is
- * blocked by Node.js module resolution at runtime. We resolve the
- * internal path dynamically via {@link import.meta.resolve} to bypass
- * the restriction while keeping the same context identity.
- *
- * @module
- */
-
 import { EventEmitter } from 'node:events'
 import process from 'node:process'
 

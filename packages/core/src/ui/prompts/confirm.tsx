@@ -1,13 +1,3 @@
-/**
- * Confirm prompt component.
- *
- * A boolean yes/no prompt for terminal UIs. Renders two toggle choices
- * that can be switched with left/right arrows or y/n keys. The active
- * choice is highlighted with cyan and underline styling.
- *
- * @module
- */
-
 import { Box, Text, useInput } from 'ink'
 import type { ReactElement } from 'react'
 import { useState } from 'react'

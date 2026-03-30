@@ -1,14 +1,3 @@
-/**
- * MultiSelect prompt component.
- *
- * A multi-value checkbox selector for terminal UIs. Renders a scrollable
- * list of options with keyboard navigation (up/down arrows), space to
- * toggle, and Enter to submit. Supports disabled options, required
- * validation, and pre-selected defaults.
- *
- * @module
- */
-
 import { Box, useInput } from 'ink'
 import type { ReactElement } from 'react'
 import { useState } from 'react'

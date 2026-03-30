@@ -1,13 +1,3 @@
-/**
- * Autocomplete prompt component.
- *
- * Provides a text input that filters a list of options in real-time.
- * Arrow keys navigate the filtered results and Enter selects the
- * focused option.
- *
- * @module
- */
-
 import { Box, Text, useInput } from 'ink'
 import type { ReactElement } from 'react'
 import { useMemo, useState } from 'react'

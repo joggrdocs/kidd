@@ -1,9 +1,3 @@
-/**
- * Factory for creating the {@link Status} indicator methods on the context.
- *
- * @module
- */
-
 import type { Writable } from 'node:stream'
 
 import * as clack from '@clack/prompts'

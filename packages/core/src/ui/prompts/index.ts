@@ -1,9 +1,3 @@
-/**
- * Prompt components for interactive terminal input.
- *
- * @module
- */
-
 export type { PromptOption } from './types.js'
 
 export { Autocomplete } from './autocomplete.js'

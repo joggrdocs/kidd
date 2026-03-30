@@ -1,9 +1,3 @@
-/**
- * Types for the screen output system.
- *
- * @module
- */
-
 import type { CheckInput, FindingInput, SummaryInput } from '@/lib/format/types.js'
 
 // ---------------------------------------------------------------------------

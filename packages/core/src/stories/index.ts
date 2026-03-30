@@ -1,12 +1,3 @@
-/**
- * Storybook-like TUI component browser for kidd CLI screens.
- *
- * Define stories alongside components, then run `kidd stories` to
- * preview and interactively edit props in the terminal.
- *
- * @module
- */
-
 export { story, stories } from './story.js'
 
 export { withContext, withFullScreen, withLayout } from './decorators.js'

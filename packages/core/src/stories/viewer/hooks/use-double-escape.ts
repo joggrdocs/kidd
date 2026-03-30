@@ -1,11 +1,3 @@
-/**
- * Thin wrapper hook that listens for a double-press Escape sequence
- * and invokes an exit callback. Used by the stories viewer to exit
- * interactive mode without intercepting single Escape presses.
- *
- * @module
- */
-
 import { useKeyBinding } from '../../../ui/use-key-binding.js'
 
 // ---------------------------------------------------------------------------

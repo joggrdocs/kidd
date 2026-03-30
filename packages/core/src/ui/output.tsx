@@ -1,11 +1,3 @@
-/**
- * React component that renders accumulated output entries from an
- * {@link OutputStore}. Used inside `screen()` components to display
- * `ctx.log`, `ctx.status.spinner`, and `ctx.report` output declaratively.
- *
- * @module
- */
-
 import { Box, Text } from 'ink'
 import type { ReactElement } from 'react'
 import { useSyncExternalStore } from 'react'

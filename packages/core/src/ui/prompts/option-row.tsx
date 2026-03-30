@@ -1,12 +1,3 @@
-/**
- * Shared option row component for prompt lists.
- *
- * Used by Select, MultiSelect, and other prompt components that render
- * a vertical list of focusable options with indicator, label, and hint.
- *
- * @module
- */
-
 import { Box, Text } from 'ink'
 import picocolors from 'picocolors'
 import type { ReactElement } from 'react'

@@ -1,9 +1,3 @@
-/**
- * Hook to access the {@link OutputStore} from the screen context.
- *
- * @module
- */
-
 import { useScreenContext } from '../provider.js'
 import { getOutputStore } from './store-key.js'
 import type { OutputStore } from './types.js'

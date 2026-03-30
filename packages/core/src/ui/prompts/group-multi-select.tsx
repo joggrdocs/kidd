@@ -1,13 +1,3 @@
-/**
- * Group multi-select prompt component.
- *
- * Renders a multi-select list with options organized into named groups.
- * Each group has a header label, and options within groups are indented.
- * Supports toggling entire groups when `selectableGroups` is enabled.
- *
- * @module
- */
-
 import { Box, Text, useInput } from 'ink'
 import picocolors from 'picocolors'
 import type { ReactElement } from 'react'

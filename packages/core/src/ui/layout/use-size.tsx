@@ -1,13 +1,3 @@
-/**
- * Element and terminal size measurement hook.
- *
- * Provides a {@link useSize} hook that measures the computed dimensions
- * of an Ink `<Box>` element via Yoga's layout engine. When no element
- * ref is provided, falls back to the terminal ("window") dimensions.
- *
- * @module
- */
-
 import type { DOMElement } from 'ink'
 import { measureElement } from 'ink'
 import type { RefObject } from 'react'

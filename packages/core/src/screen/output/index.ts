@@ -1,10 +1,3 @@
-/**
- * Screen output system for rendering `ctx.log`, `ctx.status.spinner`, and
- * `ctx.report` inside React/Ink screen components.
- *
- * @module
- */
-
 export { useOutputStore } from './use-output-store.js'
 
 export { createOutputStore } from './store.js'

@@ -1,13 +1,3 @@
-/**
- * TextInput prompt component.
- *
- * A single-line text input for terminal UIs. Supports full cursor
- * movement (left/right, home/end), character insertion, backspace/delete,
- * placeholder text, and validation on submit.
- *
- * @module
- */
-
 import { Box, Text, useInput } from 'ink'
 import type { ReactElement } from 'react'
 import { useState } from 'react'

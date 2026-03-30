@@ -1,10 +1,3 @@
-/**
- * Screen-backed {@link Log} implementation that pushes entries
- * to an {@link OutputStore} instead of writing to stderr.
- *
- * @module
- */
-
 import { match } from 'ts-pattern'
 
 import type { Log, LogMessageOptions, NoteOptions, StreamLog } from '@/context/types.js'

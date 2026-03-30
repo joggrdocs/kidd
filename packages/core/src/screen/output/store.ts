@@ -1,11 +1,3 @@
-/**
- * External store for screen output entries and spinner state.
- *
- * Compatible with React's `useSyncExternalStore` for reactive rendering.
- *
- * @module
- */
-
 import type {
   OutputEntry,
   OutputEntryInput,

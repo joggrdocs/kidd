@@ -1,12 +1,3 @@
-/**
- * Predefined icon definitions organized by category.
- *
- * Each icon has a Nerd Font glyph and an emoji fallback. The middleware
- * resolves to one or the other based on font detection.
- *
- * @module
- */
-
 import { match } from 'ts-pattern'
 
 import type { IconCategory, IconDefinition } from './types.js'

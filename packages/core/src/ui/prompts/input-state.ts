@@ -1,12 +1,3 @@
-/**
- * Shared input state management for text-based prompt components.
- *
- * Provides the state type, key descriptor, and state resolution logic
- * shared by TextInput and PasswordInput.
- *
- * @module
- */
-
 import { match } from 'ts-pattern'
 
 // ---------------------------------------------------------------------------

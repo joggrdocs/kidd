@@ -1,12 +1,3 @@
-/**
- * Kidd color palette and symbol constants for the component library.
- *
- * All components share a consistent clack-inspired visual language
- * defined here.
- *
- * @module
- */
-
 import figures from 'figures'
 import { match } from 'ts-pattern'
 

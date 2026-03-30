@@ -1,13 +1,3 @@
-/**
- * UI components for building interactive terminal interfaces.
- *
- * Re-exports kidd components (prompts, display, layout), the Output
- * component, base Ink primitives, and shared types. Users import
- * everything from `@kidd-cli/core/ui` — one path, one barrel.
- *
- * @module
- */
-
 // ---------------------------------------------------------------------------
 // Base — raw Ink + @inkjs/ui primitives
 // ---------------------------------------------------------------------------

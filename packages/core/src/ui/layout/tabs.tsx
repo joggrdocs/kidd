@@ -1,14 +1,3 @@
-/**
- * Tab navigation UI component.
- *
- * Provides a universal {@link Tabs} component for switching between
- * panels in a terminal UI. Supports keyboard navigation with left/right
- * arrows and number keys. The active tab is highlighted with a colored
- * underline.
- *
- * @module
- */
-
 import { Box, Text, useInput } from 'ink'
 import type { ReactElement, ReactNode } from 'react'
 import { useState } from 'react'

@@ -1,15 +1,3 @@
-/**
- * ScrollArea UI component.
- *
- * A vertically scrollable container for terminal UIs. Renders a
- * viewport that clips overflowing content and shifts the visible
- * window based on a tracked scroll offset. Supports both controlled
- * and uncontrolled scroll position, auto-scroll to keep a highlighted
- * index visible, and an optional scroll indicator.
- *
- * @module
- */
-
 import { Box, Text } from 'ink'
 import type { ReactElement, ReactNode } from 'react'
 import { useEffect, useState } from 'react'

@@ -1,9 +1,3 @@
-/**
- * Layout components for building terminal UI structures.
- *
- * @module
- */
-
 export { FullScreen, useFullScreen, useTerminalSize } from './fullscreen.js'
 export type { FullScreenProps, FullScreenState, TerminalSize } from './fullscreen.js'
 

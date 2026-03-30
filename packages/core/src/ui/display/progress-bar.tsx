@@ -1,13 +1,3 @@
-/**
- * ProgressBar UI component.
- *
- * Renders a horizontal progress bar with configurable style, size, and
- * label. Displays a percentage alongside the bar and an optional
- * descriptive label.
- *
- * @module
- */
-
 import { Text } from 'ink'
 import type { ReactElement } from 'react'
 import { match } from 'ts-pattern'

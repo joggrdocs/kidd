@@ -1,12 +1,3 @@
-/**
- * Inline validation error message component.
- *
- * Shared by prompt components that display validation errors below
- * their input area.
- *
- * @module
- */
-
 import { Text } from 'ink'
 import type { ReactElement } from 'react'
 import { match } from 'ts-pattern'

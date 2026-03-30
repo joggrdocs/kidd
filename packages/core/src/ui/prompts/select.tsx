@@ -1,14 +1,3 @@
-/**
- * Select prompt component.
- *
- * A single-value selector for terminal UIs. Renders a scrollable list
- * of options with keyboard navigation (up/down arrows), radio-style
- * indicators, and optional hint text. Supports disabled options,
- * controlled focus, and scroll overflow.
- *
- * @module
- */
-
 import { useInput } from 'ink'
 import type { ReactElement } from 'react'
 import { useState } from 'react'

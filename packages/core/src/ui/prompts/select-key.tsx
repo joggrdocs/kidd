@@ -1,13 +1,3 @@
-/**
- * Select-by-key prompt component.
- *
- * Renders a list of options where each option is bound to a single
- * key character. Pressing the key immediately selects that option
- * without requiring Enter confirmation.
- *
- * @module
- */
-
 import { Box, Text, useInput } from 'ink'
 import type { ReactElement } from 'react'
 import { match } from 'ts-pattern'

@@ -1,10 +1,3 @@
-/**
- * Screen-backed {@link Spinner} implementation that updates
- * spinner state in an {@link OutputStore} instead of writing to stderr.
- *
- * @module
- */
-
 import type { Spinner } from '@/context/types.js'
 
 import type { OutputStore } from './types.js'

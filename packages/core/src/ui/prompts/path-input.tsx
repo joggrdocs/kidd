@@ -1,13 +1,3 @@
-/**
- * Path input prompt component.
- *
- * Provides a text input with tab-completion from the filesystem.
- * On Tab press, directory entries matching the current input are
- * enumerated and cycled through as suggestions.
- *
- * @module
- */
-
 import { readdirSync, statSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 

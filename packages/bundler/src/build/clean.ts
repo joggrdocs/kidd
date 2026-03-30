@@ -1,4 +1,5 @@
 import { existsSync, readdirSync, rmSync } from 'node:fs'
+import { join } from 'node:path'
 
 import { BUILD_ARTIFACT_EXTENSIONS } from '../constants.js'
 
@@ -30,6 +31,10 @@ export function isBuildArtifact(filename: string): boolean {
  * extensions (`.js`, `.mjs`, `.js.map`, `.mjs.map`). Foreign files are
  * left in place and returned so the caller can warn.
  *
+ * Only regular files and symbolic links are considered for removal.
+ * Directories (even if their name matches an artifact extension) are
+ * treated as foreign entries.
+ *
  * @param outDir - Absolute path to the build output directory.
  * @returns A {@link CleanResult} describing what was removed and what was skipped.
  */
@@ -38,19 +43,17 @@ export function cleanBuildArtifacts(outDir: string): CleanResult {
     return { foreign: [], removed: [] }
   }
 
-  const entries = readdirSync(outDir)
+  const entries = readdirSync(outDir, { withFileTypes: true })
 
-  const removed: string[] = []
-  const foreign: string[] = []
-
-  entries.map((entry) => {
-    if (isBuildArtifact(entry)) {
-      rmSync(`${outDir}/${entry}`, { force: true })
-      removed.push(entry)
-    } else {
-      foreign.push(entry)
-    }
-  })
-
-  return { foreign, removed }
+  return entries.reduce<{ readonly removed: string[]; readonly foreign: string[] }>(
+    (acc, entry) => {
+      const name = entry.name
+      if ((entry.isFile() || entry.isSymbolicLink()) && isBuildArtifact(name)) {
+        rmSync(join(outDir, name), { force: true })
+        return { ...acc, removed: [...acc.removed, name] }
+      }
+      return { ...acc, foreign: [...acc.foreign, name] }
+    },
+    { foreign: [], removed: [] },
+  )
 }

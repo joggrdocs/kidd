@@ -23,11 +23,17 @@ export async function build(params: BuildParams): AsyncBundlerResult<BuildOutput
   const resolved = resolveConfig(params)
 
   if (resolved.build.clean) {
-    const cleanResult = cleanBuildArtifacts(resolved.buildOutDir)
+    try {
+      const cleanResult = cleanBuildArtifacts(resolved.buildOutDir)
 
-    if (cleanResult.foreign.length > 0) {
-      console.warn(
-        `[kidd-bundler] foreign files detected in ${resolved.buildOutDir} (not removed):\n  ${cleanResult.foreign.join('\n  ')}`
+      if (cleanResult.foreign.length > 0) {
+        console.warn(
+          `[kidd-bundler] foreign files detected in ${resolved.buildOutDir} (not removed):\n  ${cleanResult.foreign.join('\n  ')}`
+        )
+      }
+    } catch (error: unknown) {
+      return err(
+        new Error(`failed to clean build artifacts in ${resolved.buildOutDir}`, { cause: error })
       )
     }
   }

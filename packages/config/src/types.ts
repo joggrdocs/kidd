@@ -29,7 +29,7 @@ export interface BuildOptions {
    * `.map` files). Foreign files in the output directory are preserved
    * and a warning is printed.
    */
-  clean?: boolean
+  readonly clean?: boolean
 }
 
 /**

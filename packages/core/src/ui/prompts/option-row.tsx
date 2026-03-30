@@ -8,6 +8,7 @@
  */
 
 import { Box, Text } from 'ink'
+import picocolors from 'picocolors'
 import type { ReactElement } from 'react'
 import { match } from 'ts-pattern'
 
@@ -69,29 +70,39 @@ export function OptionRow<TValue>({
           .exhaustive()}
       </Text>
       <Text
-        color={match({ isSelected, isFocused })
+        color={match({ isOptionDisabled, isSelected, isFocused })
+          .with({ isOptionDisabled: true }, () => 'gray' as const)
           .with({ isSelected: true }, () => colors.primary)
           .with({ isFocused: true }, () => colors.primary)
           .otherwise(() => undefined)}
-        dimColor={isOptionDisabled}
       >
         {indicator}
       </Text>
       <Text> </Text>
       <Text
-        color={match(isFocused)
-          .with(true, () => colors.primary)
-          .with(false, () => undefined)
-          .exhaustive()}
-        dimColor={isOptionDisabled}
-        strikethrough={option.disabled === true}
+        color={match({ isOptionDisabled, isFocused })
+          .with({ isOptionDisabled: true }, () => 'gray' as const)
+          .with({ isFocused: true }, () => colors.primary)
+          .otherwise(() => undefined)}
       >
         {option.label}
+        {match(isOptionDisabled && !picocolors.isColorSupported)
+          .with(true, () => ' (disabled)')
+          .with(false, () => '')
+          .exhaustive()}
       </Text>
       {match(option.hint)
         .with(undefined, () => null)
         .otherwise((hint) => (
-          <Text dimColor>{`  ${hint}`}</Text>
+          <Text
+            color={match(isOptionDisabled)
+              .with(true, () => 'gray' as const)
+              .with(false, () => undefined)
+              .exhaustive()}
+            dimColor
+          >
+            {`  ${hint}`}
+          </Text>
         ))}
     </Box>
   )

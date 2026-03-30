@@ -9,6 +9,7 @@
  */
 
 import { Box, Text, useInput } from 'ink'
+import picocolors from 'picocolors'
 import type { ReactElement } from 'react'
 import { useMemo, useState } from 'react'
 import { match } from 'ts-pattern'
@@ -367,11 +368,9 @@ function FlatItemRow({ item, isFocused, isSelected, isDisabled }: FlatItemRowPro
         <Box paddingLeft={2}>
           <Text
             color={match({ isFocused, disabled })
-              .with({ disabled: true }, () => undefined)
+              .with({ disabled: true }, () => 'gray' as const)
               .with({ isFocused: true }, () => colors.primary)
               .otherwise(() => undefined)}
-            dimColor={disabled}
-            strikethrough={disabled}
           >
             {match(isFocused)
               .with(true, () => `${symbols.pointer} `)
@@ -382,11 +381,24 @@ function FlatItemRow({ item, isFocused, isSelected, isDisabled }: FlatItemRowPro
               .with(false, () => `${symbols.checkboxOff} `)
               .exhaustive()}
             {option.label}
+            {match(disabled && !picocolors.isColorSupported)
+              .with(true, () => ' (disabled)')
+              .with(false, () => '')
+              .exhaustive()}
           </Text>
           {match(option.hint)
             .with(undefined, () => null)
             .otherwise((hint) => (
-              <Text dimColor> {hint}</Text>
+              <Text
+                color={match(disabled)
+                  .with(true, () => 'gray' as const)
+                  .with(false, () => undefined)
+                  .exhaustive()}
+                dimColor
+              >
+                {' '}
+                {hint}
+              </Text>
             ))}
         </Box>
       )

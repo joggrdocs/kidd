@@ -15,7 +15,7 @@
     "test:coverage": {
       "dependsOn": ["build"]
     },
-    "dev": {
+"dev": {
       "cache": false,
       "persistent": true
     },

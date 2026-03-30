@@ -22,6 +22,14 @@ export interface BuildOptions {
    * Additional external packages (beyond kidd's defaults).
    */
   external?: string[]
+  /**
+   * Clean build artifacts before building. Default: true.
+   *
+   * When enabled, only files created by kidd are removed (`.js`, `.mjs`,
+   * `.map` files). Foreign files in the output directory are preserved
+   * and a warning is printed.
+   */
+  clean?: boolean
 }
 
 /**

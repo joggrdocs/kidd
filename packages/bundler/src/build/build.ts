@@ -1,6 +1,7 @@
 import { err, ok } from '@kidd-cli/utils/fp'
 import { build as tsdownBuild } from 'tsdown'
 
+import { cleanBuildArtifacts } from './clean.js'
 import { mapToBuildConfig } from './map-config.js'
 import { readVersion } from '../config/read-version.js'
 import { detectBuildEntry, resolveConfig } from '../config/resolve-config.js'
@@ -11,13 +12,25 @@ import type { AsyncBundlerResult, BuildOutput, BuildParams } from '../types.js'
  *
  * Resolves defaults, reads the project version from package.json, maps the
  * config to tsdown's InlineConfig (injecting `__KIDD_VERSION__`), and invokes
- * the build.
+ * the build. When `clean` is enabled (the default), only kidd build artifacts
+ * are removed — foreign files in the output directory are preserved and a
+ * warning is printed.
  *
  * @param params - The build parameters including config and working directory.
  * @returns A result tuple with build output on success or an Error on failure.
  */
 export async function build(params: BuildParams): AsyncBundlerResult<BuildOutput> {
   const resolved = resolveConfig(params)
+
+  if (resolved.build.clean) {
+    const cleanResult = cleanBuildArtifacts(resolved.buildOutDir)
+
+    if (cleanResult.foreign.length > 0) {
+      console.warn(
+        `[kidd-bundler] foreign files detected in ${resolved.buildOutDir} (not removed):\n  ${cleanResult.foreign.join('\n  ')}`
+      )
+    }
+  }
 
   const [versionError, versionResult] = await readVersion(params.cwd)
   if (versionError) {

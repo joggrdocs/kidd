@@ -19,7 +19,7 @@ export function mapToBuildConfig(params: {
 }): InlineConfig {
   return {
     banner: SHEBANG,
-    clean: true,
+    clean: false,
     config: false,
     cwd: params.config.cwd,
     define: buildDefine(params.version),

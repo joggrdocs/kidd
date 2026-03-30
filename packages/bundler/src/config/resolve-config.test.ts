@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
   DEFAULT_BINARY_NAME,
+  DEFAULT_CLEAN,
   DEFAULT_COMMANDS,
   DEFAULT_ENTRY,
   DEFAULT_MINIFY,
@@ -37,6 +38,7 @@ describe('config resolution', () => {
 
     it('should apply default build options', () => {
       expect(resolved.build).toStrictEqual({
+        clean: DEFAULT_CLEAN,
         external: [],
         minify: DEFAULT_MINIFY,
         sourcemap: DEFAULT_SOURCEMAP,
@@ -100,6 +102,7 @@ describe('config resolution', () => {
 
     it('should use custom build options', () => {
       expect(resolved.build).toStrictEqual({
+        clean: DEFAULT_CLEAN,
         external: ['pg'],
         minify: true,
         sourcemap: false,

@@ -11,6 +11,7 @@ import { z } from 'zod'
 import { extractConfig } from '../lib/config-helpers.js'
 
 const options = z.object({
+  clean: z.boolean().optional().describe('Clean build artifacts before bundling (default: true)'),
   compile: z.boolean().optional().describe('Compile to standalone binaries after bundling'),
   targets: z.array(z.string()).optional().describe('Compile targets (implies --compile)'),
   verbose: z.boolean().optional().describe('Show detailed error output on compile failure'),
@@ -33,7 +34,7 @@ const buildCommand: Command = command({
     const cwd = process.cwd()
 
     const [, configResult] = await loadConfig({ cwd })
-    const config = extractConfig(configResult)
+    const config = mergeCleanOption({ config: extractConfig(configResult), clean: ctx.args.clean })
 
     ctx.status.spinner.start('Bundling with tsdown...')
 
@@ -183,6 +184,33 @@ function resolveExistingCompile(
   }
 
   return {}
+}
+
+/**
+ * Merge the CLI `--clean` / `--no-clean` flag into the loaded config.
+ *
+ * When the flag is provided it overrides whatever is in config.
+ * Otherwise the config value is used unchanged.
+ *
+ * @private
+ * @param params - The loaded config and optional CLI clean flag.
+ * @returns A config with the clean option merged in.
+ */
+function mergeCleanOption(params: {
+  readonly config: KiddConfig
+  readonly clean: boolean | undefined
+}): KiddConfig {
+  if (params.clean === undefined) {
+    return params.config
+  }
+
+  return {
+    ...params.config,
+    build: {
+      ...params.config.build,
+      clean: params.clean,
+    },
+  }
 }
 
 /**

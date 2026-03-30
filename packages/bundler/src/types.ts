@@ -13,6 +13,7 @@ export interface ResolvedBuildOptions {
   readonly minify: boolean
   readonly sourcemap: boolean
   readonly external: readonly string[]
+  readonly clean: boolean
 }
 
 /**

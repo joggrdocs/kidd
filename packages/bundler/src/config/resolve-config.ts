@@ -5,6 +5,7 @@ import type { CompileOptions, KiddConfig } from '@kidd-cli/config'
 
 import {
   DEFAULT_BINARY_NAME,
+  DEFAULT_CLEAN,
   DEFAULT_COMMANDS,
   DEFAULT_ENTRY,
   DEFAULT_MINIFY,
@@ -65,6 +66,7 @@ export function resolveConfig(params: {
 
   return {
     build: {
+      clean: buildOpts.clean ?? DEFAULT_CLEAN,
       external: buildOpts.external ?? [],
       minify: buildOpts.minify ?? DEFAULT_MINIFY,
       sourcemap: buildOpts.sourcemap ?? DEFAULT_SOURCEMAP,

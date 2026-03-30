@@ -22,6 +22,7 @@ const CompileTargetSchema = z.enum([
  */
 const BuildOptionsSchema = z
   .object({
+    clean: z.boolean().optional(),
     external: z.array(z.string()).optional(),
     minify: z.boolean().optional(),
     out: z.string().optional(),

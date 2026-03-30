@@ -1,5 +1,12 @@
 # @kidd-cli/config
 
+## 0.1.8
+
+### Patch Changes
+
+- Updated dependencies [c9ca207]
+  - @kidd-cli/utils@0.3.0
+
 ## 0.1.7
 
 ### Patch Changes

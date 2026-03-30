@@ -108,6 +108,8 @@ export function Spinner({
   const [frameIndex, setFrameIndex] = useState(0)
 
   useEffect(() => {
+    setFrameIndex(0)
+
     if (!isActive) {
       return
     }

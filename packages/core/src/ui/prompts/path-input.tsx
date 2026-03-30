@@ -130,7 +130,7 @@ export function PathInput({
 
       if (key.backspace || key.delete) {
         if (cursorOffset > 0) {
-          const nextValue = removeCharAt(value, cursorOffset - 1)
+          const nextValue = removeCharAt({ str: value, index: cursorOffset - 1 })
           setValue(nextValue)
           setCursorOffset(cursorOffset - 1)
           setSuggestions([])
@@ -144,7 +144,7 @@ export function PathInput({
       }
 
       if (input && !key.ctrl && !key.meta) {
-        const nextValue = insertCharAt(value, cursorOffset, input)
+        const nextValue = insertCharAt({ str: value, index: cursorOffset, chars: input })
         setValue(nextValue)
         setCursorOffset(cursorOffset + input.length)
         setSuggestions([])

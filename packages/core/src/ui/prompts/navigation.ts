@@ -63,10 +63,6 @@ export function resolveNextFocusIndex<TValue>({
   return findNextEnabledIndex(options, currentIndex, step)
 }
 
-// ---------------------------------------------------------------------------
-// Private
-// ---------------------------------------------------------------------------
-
 /**
  * Find the first non-disabled option index.
  *
@@ -106,6 +102,10 @@ export function resolveInitialIndex<TValue>({
 
   return resolveFirstEnabledIndex(options)
 }
+
+// ---------------------------------------------------------------------------
+// Private
+// ---------------------------------------------------------------------------
 
 /**
  * Walk through options in the given step direction to find the next

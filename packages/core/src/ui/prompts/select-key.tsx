@@ -45,7 +45,7 @@ export function SelectKey<TValue extends string>({
 }: SelectKeyProps<TValue>): ReactElement {
   useInput(
     (input) => {
-      const matched = options.find((opt) => opt.value === input)
+      const matched = options.find((opt) => opt.value.toLowerCase() === input.toLowerCase())
       if (matched === undefined || matched.disabled) {
         return
       }

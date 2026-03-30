@@ -183,10 +183,11 @@ function resolveInnerWidth({ width, title, contentStr }: InnerWidthOptions): num
   if (width !== 'auto') {
     return Math.max(0, width - 4)
   }
+  const maxLineWidth = contentStr.split('\n').reduce((max, line) => Math.max(max, line.length), 0)
   const titleWidth = match(title)
     .with(undefined, () => 0)
     .otherwise((t) => t.length + 4)
-  return Math.max(contentStr.length, titleWidth)
+  return Math.max(maxLineWidth, titleWidth)
 }
 
 /**

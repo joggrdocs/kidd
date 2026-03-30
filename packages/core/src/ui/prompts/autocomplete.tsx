@@ -127,7 +127,7 @@ export function Autocomplete<TValue>({
 
       if (key.backspace) {
         if (cursorOffset > 0) {
-          const nextSearch = removeCharAt(search, cursorOffset - 1)
+          const nextSearch = removeCharAt({ str: search, index: cursorOffset - 1 })
           setSearch(nextSearch)
           setCursorOffset(cursorOffset - 1)
           setFocusIndex(0)
@@ -137,7 +137,7 @@ export function Autocomplete<TValue>({
 
       if (key.delete) {
         if (cursorOffset < search.length) {
-          const nextSearch = removeCharAt(search, cursorOffset)
+          const nextSearch = removeCharAt({ str: search, index: cursorOffset })
           setSearch(nextSearch)
           setFocusIndex(0)
         }
@@ -145,7 +145,7 @@ export function Autocomplete<TValue>({
       }
 
       if (input && !key.ctrl && !key.meta) {
-        const nextSearch = insertCharAt(search, cursorOffset, input)
+        const nextSearch = insertCharAt({ str: search, index: cursorOffset, chars: input })
         setSearch(nextSearch)
         setCursorOffset(cursorOffset + input.length)
         setFocusIndex(0)

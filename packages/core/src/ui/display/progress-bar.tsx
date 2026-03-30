@@ -59,8 +59,9 @@ export function ProgressBar({
     .with(false, () => 0)
     .exhaustive()
   const percentage = Math.round(ratio * 100)
-  const filledCount = Math.round(ratio * size)
-  const emptyCount = size - filledCount
+  const guardedSize = Math.max(0, size)
+  const filledCount = Math.round(ratio * guardedSize)
+  const emptyCount = guardedSize - filledCount
   const chars = resolveChars(style)
   const filledBar = chars.filled.repeat(filledCount)
   const emptyBar = chars.empty.repeat(emptyCount)

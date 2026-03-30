@@ -45,5 +45,7 @@ jobs:
         with:
           publish: pnpm release
           version: pnpm run version
+          title: 'release: version packages'
+          commit: 'release: version packages'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

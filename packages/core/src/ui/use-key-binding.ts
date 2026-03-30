@@ -1,12 +1,3 @@
-/**
- * Declarative keymap hook that binds key patterns to action callbacks.
- * Supports single keys, modifier combinations, and multi-key sequences
- * (e.g. double-press Escape). Wraps Ink's `useInput` and uses the shared
- * key vocabulary from `keys.ts`.
- *
- * @module
- */
-
 import type { Key } from 'ink'
 import { useInput } from 'ink'
 import { useCallback, useEffect, useMemo, useRef } from 'react'

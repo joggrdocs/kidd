@@ -8,7 +8,7 @@ import type { ReactElement } from 'react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { match } from 'ts-pattern'
 
-import { FullScreen } from '../../ui/fullscreen.js'
+import { FullScreen } from '../../ui/layout/fullscreen.js'
 import type { StoryRegistry } from '../registry.js'
 import { schemaToFieldDescriptors } from '../schema.js'
 import type { Story, StoryEntry, StoryGroup } from '../types.js'

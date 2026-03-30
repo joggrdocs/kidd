@@ -5,8 +5,8 @@ import type { ReactElement } from 'react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { match } from 'ts-pattern'
 
-import { ScrollArea } from '../../../ui/scroll-area.js'
-import { useSize } from '../../../ui/use-size.js'
+import { ScrollArea } from '../../../ui/layout/scroll-area.js'
+import { useSize } from '../../../ui/layout/use-size.js'
 import type { Story, StoryEntry, StoryGroup } from '../../types.js'
 
 // ---------------------------------------------------------------------------

@@ -1,9 +1,3 @@
-/**
- * Factory for creating the interactive prompt methods on the context.
- *
- * @module
- */
-
 import type { Readable, Writable } from 'node:stream'
 
 import * as clack from '@clack/prompts'

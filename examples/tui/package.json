@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "kidd dev",
     "build": "kidd build",
+    "stories": "kidd stories --cwd ../../packages/core",
     "typecheck": "tsgo --noEmit"
   },
   "dependencies": {

@@ -1,9 +1,3 @@
-/**
- * Shared utilities for the stories viewer components.
- *
- * @module
- */
-
 import type { ComponentType } from 'react'
 
 import type { Decorator } from '../types.js'

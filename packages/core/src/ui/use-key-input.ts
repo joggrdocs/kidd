@@ -1,11 +1,3 @@
-/**
- * Enhanced raw keyboard input hook that normalizes Ink's `useInput` callback
- * into a richer {@link KeyInputEvent} descriptor. Useful for components that
- * need character-by-character input handling with consistent key names.
- *
- * @module
- */
-
 import type { Key } from 'ink'
 import { useInput } from 'ink'
 import { useCallback } from 'react'

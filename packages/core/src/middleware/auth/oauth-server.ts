@@ -1,12 +1,3 @@
-/**
- * Shared utilities for OAuth-based auth resolvers.
- *
- * Extracted from the local HTTP server, browser-launch, and
- * lifecycle patterns shared by the PKCE and device-code flows.
- *
- * @module
- */
-
 import { execFile } from 'node:child_process'
 import { createServer } from 'node:http'
 import type { IncomingMessage, Server, ServerResponse } from 'node:http'

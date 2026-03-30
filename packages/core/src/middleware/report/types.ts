@@ -1,9 +1,3 @@
-/**
- * Types for the report middleware.
- *
- * @module
- */
-
 import type { CheckInput, FindingInput, SummaryInput } from '@/lib/format/types.js'
 
 // ---------------------------------------------------------------------------

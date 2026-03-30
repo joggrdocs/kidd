@@ -1,12 +1,3 @@
-/**
- * Report middleware factory.
- *
- * Decorates `ctx.report` with a structured reporting API for checks,
- * findings, and summaries backed by format functions.
- *
- * @module
- */
-
 import { decorateContext } from '@/context/decorate.js'
 import { formatCheck } from '@/lib/format/check.js'
 import { formatFinding } from '@/lib/format/finding.js'

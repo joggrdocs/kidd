@@ -1,9 +1,3 @@
-/**
- * Shared utilities for resolving clack per-call defaults from display config.
- *
- * @module
- */
-
 import type { Readable, Writable } from 'node:stream'
 
 // ---------------------------------------------------------------------------

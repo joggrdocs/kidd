@@ -1,3 +1,5 @@
+import Module from 'node:module'
+
 import { toError } from '@kidd-cli/utils/fp'
 import { hasTag } from '@kidd-cli/utils/tag'
 import { createJiti } from 'jiti'
@@ -14,9 +16,14 @@ export interface StoryImporter {
 /**
  * Create a story importer backed by jiti with cache disabled for hot reload.
  *
+ * Installs a TypeScript extension resolution hook so that ESM-style `.js`
+ * imports (e.g. `from './alert.js'`) resolve to `.ts` / `.tsx` source files.
+ *
  * @returns A frozen {@link StoryImporter} instance.
  */
 export function createStoryImporter(): StoryImporter {
+  installTsExtensionResolution()
+
   const jiti = createJiti(import.meta.url, {
     fsCache: false,
     moduleCache: false,
@@ -43,6 +50,103 @@ export function createStoryImporter(): StoryImporter {
 }
 
 // ---------------------------------------------------------------------------
+
+/**
+ * TypeScript extensions to try when a `.js` import fails to resolve.
+ *
+ * @private
+ */
+const TS_EXTENSIONS: readonly string[] = ['.ts', '.tsx']
+
+/**
+ * TypeScript extensions to try when a `.jsx` import fails to resolve.
+ *
+ * @private
+ */
+const TSX_EXTENSIONS: readonly string[] = ['.tsx', '.ts', '.jsx']
+
+/**
+ * Name used to tag the patched `_resolveFilename` function so the
+ * patch can detect itself and remain idempotent.
+ *
+ * @private
+ */
+const PATCHED_FN_NAME = '__kidd_ts_resolve'
+
+/**
+ * Patch `Module._resolveFilename` so that ESM-style `.js` / `.jsx` specifiers
+ * fall back to their TypeScript equivalents (`.ts`, `.tsx`).
+ *
+ * This is the same strategy used by `tsx` and `ts-node`. The patch is
+ * idempotent — calling it more than once is a no-op.
+ *
+ * @private
+ */
+function installTsExtensionResolution(): void {
+  const mod = Module as unknown as Record<string, unknown>
+  const current = mod._resolveFilename as (...args: unknown[]) => string
+
+  if (current.name === PATCHED_FN_NAME) {
+    return
+  }
+
+  const original = current
+
+  const patched = {
+    [PATCHED_FN_NAME]: (
+      request: string,
+      parent: unknown,
+      isMain: boolean,
+      options: unknown
+    ): string => {
+      try {
+        return original.call(mod, request, parent, isMain, options)
+      } catch (error) {
+        const alternates = resolveAlternateExtensions(request)
+
+        const resolved = alternates.reduce<string | null>((found, alt) => {
+          if (found) {
+            return found
+          }
+          try {
+            return original.call(mod, alt, parent, isMain, options)
+          } catch {
+            return null
+          }
+        }, null)
+
+        if (resolved) {
+          return resolved
+        }
+        throw error
+      }
+    },
+  }
+
+  mod._resolveFilename = patched[PATCHED_FN_NAME]
+}
+
+/**
+ * Build a list of alternate file paths to try when a `.js` or `.jsx`
+ * import fails to resolve.
+ *
+ * @private
+ * @param request - The original module specifier.
+ * @returns Alternate specifiers to try, or an empty array if not applicable.
+ */
+function resolveAlternateExtensions(request: string): readonly string[] {
+  if (request.endsWith('.js')) {
+    const base = request.slice(0, -3)
+    return [...TS_EXTENSIONS.map((ext) => base + ext), base]
+  }
+
+  if (request.endsWith('.jsx')) {
+    const base = request.slice(0, -4)
+    return TSX_EXTENSIONS.map((ext) => base + ext)
+  }
+
+  return []
+}
 
 /**
  * Check whether a value is a valid {@link StoryEntry} (tagged as `Story` or `StoryGroup`).

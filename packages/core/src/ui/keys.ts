@@ -1,11 +1,3 @@
-/**
- * Shared key name vocabulary, pattern parser, and normalizer for keyboard
- * input hooks. Maps Ink's `Key` boolean fields to human-readable key names
- * and parses declarative key patterns like `'ctrl+c'` or `'escape escape'`.
- *
- * @module
- */
-
 import type { Key } from 'ink'
 import { match } from 'ts-pattern'
 

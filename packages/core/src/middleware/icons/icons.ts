@@ -1,12 +1,3 @@
-/**
- * Icons middleware factory.
- *
- * Detects Nerd Font availability, optionally prompts for installation,
- * and decorates `ctx.icons` with an icon resolver.
- *
- * @module
- */
-
 import { decorateContext } from '@/context/decorate.js'
 import { middleware } from '@/middleware.js'
 import type { Middleware } from '@/types/index.js'

@@ -1,5 +1,11 @@
 # kidd-cli
 
+## 0.9.0
+
+### Minor Changes
+
+- ef2b663: Add executable bin shebang wrapper and fix CLI display name to "kidd"
+
 ## 0.8.1
 
 ### Patch Changes

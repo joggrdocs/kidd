@@ -332,7 +332,7 @@ function isItemSelected<TValue>(
 function itemKey(item: FlatItem): string {
   return match(item)
     .with({ kind: 'group' }, (i) => `group-${i.groupName}`)
-    .with({ kind: 'option' }, (i) => `option-${i.groupName}-${i.option.label}`)
+    .with({ kind: 'option' }, (i) => `option-${i.groupName}-${String(i.option.value)}`)
     .exhaustive()
 }
 

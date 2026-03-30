@@ -91,6 +91,9 @@ export function Autocomplete<TValue>({
   useInput(
     (input, key) => {
       if (key.upArrow) {
+        if (filtered.length === 0) {
+          return
+        }
         const next = Math.max(0, focusIndex - 1)
         setFocusIndex(next)
         const focused = filtered[next]
@@ -101,6 +104,9 @@ export function Autocomplete<TValue>({
       }
 
       if (key.downArrow) {
+        if (filtered.length === 0) {
+          return
+        }
         const next = Math.min(filtered.length - 1, focusIndex + 1)
         setFocusIndex(next)
         const focused = filtered[next]

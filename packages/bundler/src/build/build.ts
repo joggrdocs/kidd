@@ -24,7 +24,9 @@ export async function build(params: BuildParams): AsyncBundlerResult<BuildOutput
   const compile = !!params.config.compile
 
   if (resolved.build.clean) {
-    const [cleanError] = attempt(() => cleanBuildArtifacts(resolved.buildOutDir, compile))
+    const [cleanError] = attempt(() =>
+      cleanBuildArtifacts({ compile, outDir: resolved.buildOutDir })
+    )
     if (cleanError) {
       return err(
         new Error(`failed to clean build artifacts in ${resolved.buildOutDir}`, { cause: cleanError })

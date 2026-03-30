@@ -11,7 +11,6 @@ export default defineConfig({
     index: 'src/index.ts',
     json: 'src/json.ts',
     manifest: 'src/manifest.ts',
-    redact: 'src/redact.ts',
     tag: 'src/tag.ts',
     validate: 'src/validate.ts',
   },

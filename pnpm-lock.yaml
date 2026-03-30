@@ -395,9 +395,6 @@ importers:
       jiti:
         specifier: '>=2.0.0'
         version: 2.6.1
-      jsonc-parser:
-        specifier: ^3.3.1
-        version: 3.3.1
       liquidjs:
         specifier: 'catalog:'
         version: 10.25.1

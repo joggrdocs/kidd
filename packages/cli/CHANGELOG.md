@@ -1,5 +1,19 @@
 # kidd-cli
 
+## 0.10.0
+
+### Minor Changes
+
+- 991a8f1: Targeted build clean: only remove kidd build artifacts instead of nuking the entire dist directory. Foreign files are preserved and a warning is printed when detected. Clean can be disabled via `build.clean: false` in config or `--no-clean` CLI flag.
+
+### Patch Changes
+
+- Updated dependencies [26f5a8d]
+- Updated dependencies [991a8f1]
+  - @kidd-cli/bundler@0.5.0
+  - @kidd-cli/core@0.19.0
+  - @kidd-cli/config@0.2.0
+
 ## 0.9.0
 
 ### Minor Changes

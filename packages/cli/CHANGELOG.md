@@ -1,5 +1,15 @@
 # kidd-cli
 
+## 0.8.1
+
+### Patch Changes
+
+- Updated dependencies [c9ca207]
+  - @kidd-cli/core@0.18.0
+  - @kidd-cli/utils@0.3.0
+  - @kidd-cli/bundler@0.4.0
+  - @kidd-cli/config@0.1.8
+
 ## 0.8.0
 
 ### Minor Changes

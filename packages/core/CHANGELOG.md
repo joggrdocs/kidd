@@ -1,5 +1,17 @@
 # kidd
 
+## 0.18.0
+
+### Minor Changes
+
+- c9ca207: Remove dead and internal-only exports from public API surface. Drops 3 unused sub-entrypoints from `@kidd-cli/core` (`./format`, `./store`, `./project`), deletes the dead `@kidd-cli/utils/redact` module (source + tests), removes the `jsonc-parser` dead dependency from core, and trims `@kidd-cli/bundler` to only externally consumed exports.
+
+### Patch Changes
+
+- Updated dependencies [c9ca207]
+  - @kidd-cli/utils@0.3.0
+  - @kidd-cli/config@0.1.8
+
 ## 0.17.0
 
 ### Minor Changes

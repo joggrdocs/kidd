@@ -11,7 +11,7 @@ if (manifestError) {
 await cli({
   commands: `${import.meta.dirname}/commands`,
   description: manifest.description,
-  help: { header: `${manifest.name} v${manifest.version}` },
+  help: { header: `kidd v${manifest.version}` },
   name: 'kidd',
   version: manifest.version,
 })

@@ -45,10 +45,6 @@
       "types": "./dist/manifest.d.ts",
       "default": "./dist/manifest.js"
     },
-    "./redact": {
-      "types": "./dist/redact.d.ts",
-      "default": "./dist/redact.js"
-    },
     "./validate": {
       "types": "./dist/validate.d.ts",
       "default": "./dist/validate.js"

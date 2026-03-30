@@ -30,22 +30,6 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
-    "./config": {
-      "types": "./dist/lib/config.d.ts",
-      "default": "./dist/lib/config.js"
-    },
-    "./format": {
-      "types": "./dist/lib/format.d.ts",
-      "default": "./dist/lib/format.js"
-    },
-    "./store": {
-      "types": "./dist/lib/store.d.ts",
-      "default": "./dist/lib/store.js"
-    },
-    "./project": {
-      "types": "./dist/lib/project.d.ts",
-      "default": "./dist/lib/project.js"
-    },
     "./auth": {
       "types": "./dist/middleware/auth.d.ts",
       "default": "./dist/middleware/auth.js"
@@ -97,7 +81,6 @@
     "dotenv": "^17.3.1",
     "es-toolkit": "catalog:",
     "figures": "^6.1.0",
-    "jsonc-parser": "^3.3.1",
     "liquidjs": "catalog:",
     "picocolors": "^1.1.1",
     "ts-pattern": "catalog:",

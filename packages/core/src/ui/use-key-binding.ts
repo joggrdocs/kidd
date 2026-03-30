@@ -10,10 +10,14 @@ import { matchesSequence, matchesSingleKey, normalizeKey, parseKeyPattern } from
 // Constants
 // ---------------------------------------------------------------------------
 
-/** Default timeout in ms for multi-key sequences. */
+/**
+ * Default timeout in ms for multi-key sequences.
+ */
 const DEFAULT_SEQUENCE_TIMEOUT = 600
 
-/** Minimum key history entries retained for sequence matching. */
+/**
+ * Minimum key history entries retained for sequence matching.
+ */
 const MIN_HISTORY_LENGTH = 10
 
 // ---------------------------------------------------------------------------
@@ -27,13 +31,21 @@ const MIN_HISTORY_LENGTH = 10
  * `useKeyBinding` calls for independent actions.
  */
 export interface UseKeyBindingArgs {
-  /** Key patterns that trigger the action (e.g. `['q']`, `['escape escape']`). */
+  /**
+   * Key patterns that trigger the action (e.g. `['q']`, `['escape escape']`).
+   */
   readonly keys: readonly string[]
-  /** Callback invoked when any pattern matches. */
+  /**
+   * Callback invoked when any pattern matches.
+   */
   readonly action: () => void
-  /** Whether the binding is active. Defaults to `true`. */
+  /**
+   * Whether the binding is active. Defaults to `true`.
+   */
   readonly active?: boolean
-  /** Timeout in ms for multi-key sequences. Defaults to `600`. */
+  /**
+   * Timeout in ms for multi-key sequences. Defaults to `600`.
+   */
   readonly sequenceTimeout?: number
 }
 

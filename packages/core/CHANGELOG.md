@@ -1,5 +1,55 @@
 # kidd
 
+## 0.17.0
+
+### Minor Changes
+
+- e724996: feat(core): add DisplayConfig and full clack API coverage
+
+  Introduces `DisplayConfig` — a per-CLI configuration object that injects defaults into all clack-backed APIs (`ctx.log`, `ctx.prompts`, `ctx.status`). Only `aliases` and `messages` are applied globally via `updateSettings()`; everything else is merged per-call so method-level options always win.
+
+  Also widens all kidd interfaces to match the full `@clack/prompts` API surface:
+
+  - **Prompts**: `ConfirmOptions.vertical`, `PasswordOptions.clearOnError`, `GroupMultiSelectOptions.cursorAt`/`groupSpacing`, `AutocompleteOptions.initialUserInput`, `SelectKeyOptions.caseSensitive`, `PathOptions.validate` accepts `string | undefined`
+  - **Spinner**: `cancel()`, `error()`, `clear()`, `isCancelled`
+  - **ProgressBar**: `message()`, `cancel()`, `error()`, `clear()`, `isCancelled`
+  - **TaskLog**: `group()` sub-groups, `TaskLogMessageOptions.raw`, `TaskLogCompletionOptions.showLog`, `TaskLogOptions.spacing`
+  - **Log**: all level methods accept `LogMessageOptions` (symbol, spacing, secondarySymbol); `note` accepts `NoteOptions` with `format`; `BoxOptions.formatBorder`
+
+- f0198b2: feat(core): add configurable `strict` mode for CLI, command, and screen
+
+  Add `strict` option to `CliOptions`, `CommandDef`, and `ScreenDef` to control whether yargs rejects unknown flags. Defaults to `true` (existing behavior). Per-command `strict: false` overrides the CLI-level setting.
+
+  feat(cli): add `kidd run` command
+
+  New command to run the current kidd CLI project with three engine modes:
+
+  - `node` (default) — builds first, then runs `node dist/index.mjs`
+  - `tsx` — runs the source entry file directly via `tsx`
+  - `binary` — builds and compiles, then executes the compiled binary
+
+  Supports `--inspect`, `--inspect-brk`, `--inspect-wait`, and `--inspect-port` for debugging (node and tsx engines only). All unknown flags are forwarded to the executed CLI.
+
+- f51a6b1: Add `figures` middleware that decorates `ctx.figures` with platform-appropriate terminal symbols from the `figures` package by sindresorhus
+- 9a6fa77: feat(core): add interactive mode and declarative key binding hooks
+
+  Adds interactive mode to the stories viewer, giving story components full terminal control with the header and sidebar hidden. Press `i` to enter interactive mode and double-press `Esc` to exit.
+
+  Introduces reusable key handling primitives:
+
+  - **keys.ts**: shared key vocabulary, pattern parser, and normalizer for Ink's `useInput`
+  - **useKeyBinding**: declarative keymap hook supporting single keys, modifier combos, and multi-key sequences
+  - **useKeyInput**: enhanced raw input hook with normalized key events
+
+- 2995c8f: Reorganize UI components into prompts, display, and layout modules. Add new prompt components (Autocomplete, GroupMultiSelect, PathInput, SelectKey), display components (Alert, ProgressBar, Spinner, StatusMessage), and extract screen module with provider and context.
+
+### Patch Changes
+
+- ddc5140: Add `-h` alias for `--help` and `-v` alias for `--version`
+- Updated dependencies [687e8a1]
+  - @kidd-cli/utils@0.2.0
+  - @kidd-cli/config@0.1.7
+
 ## 0.16.0
 
 ### Minor Changes

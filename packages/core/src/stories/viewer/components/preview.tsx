@@ -4,7 +4,6 @@ import type { ComponentType, ReactElement } from 'react'
 import { useMemo, useRef } from 'react'
 import { match } from 'ts-pattern'
 
-import { InputBarrier } from '../../../ui/input-barrier.js'
 import { ScrollArea } from '../../../ui/layout/scroll-area.js'
 import { useSize } from '../../../ui/layout/use-size.js'
 import type { FieldDescriptor, Story } from '../../types.js'
@@ -150,11 +149,9 @@ export function Preview({
       <PreviewHeader context={context} />
       <Box ref={contentRef} flexDirection="column" flexGrow={1}>
         <ScrollArea height={Math.max(1, componentAreaHeight)}>
-          <InputBarrier active={interactive}>
-            <ErrorBoundary key={context.displayName}>
-              <DecoratedComponent {...currentProps} />
-            </ErrorBoundary>
-          </InputBarrier>
+          <ErrorBoundary key={context.displayName}>
+            <DecoratedComponent {...currentProps} />
+          </ErrorBoundary>
         </ScrollArea>
         <Box height={propsAreaHeight} overflow="hidden" flexDirection="column">
           <PropsEditor

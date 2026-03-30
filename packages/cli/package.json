@@ -19,9 +19,10 @@
     "directory": "packages/cli"
   },
   "bin": {
-    "kidd": "./dist/index.js"
+    "kidd": "./bin/kidd.js"
   },
   "files": [
+    "bin",
     "dist"
   ],
   "type": "module",

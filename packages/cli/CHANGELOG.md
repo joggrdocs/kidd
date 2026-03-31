@@ -1,5 +1,12 @@
 # kidd-cli
 
+## 0.10.1
+
+### Patch Changes
+
+- Updated dependencies [d752216]
+  - @kidd-cli/core@0.20.0
+
 ## 0.10.0
 
 ### Minor Changes

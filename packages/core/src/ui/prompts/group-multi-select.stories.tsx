@@ -8,7 +8,7 @@ import { GroupMultiSelect } from './group-multi-select.js'
 const schema = z.object({
   required: z.boolean().optional().describe('Require at least one selection'),
   selectableGroups: z.boolean().optional().describe('Allow toggling entire groups'),
-  isDisabled: z.boolean().optional().describe('Disable the component'),
+  disabled: z.boolean().optional().describe('Disable the component'),
 })
 
 const defaultOptions = {

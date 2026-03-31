@@ -7,7 +7,7 @@ import { ScrollArea } from '../layout/scroll-area.js'
 import { symbols } from '../theme.js'
 import { resolveDirection, resolveInitialIndex, resolveNextFocusIndex } from './navigation.js'
 import { OptionRow } from './option-row.js'
-import type { PromptOption } from './types.js'
+import type { PromptOption, PromptProps } from './types.js'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -18,7 +18,7 @@ import type { PromptOption } from './types.js'
  *
  * @typeParam TValue - The type of each option's value.
  */
-export interface SelectProps<TValue> {
+export interface SelectProps<TValue> extends PromptProps {
   /** The list of selectable options. */
   readonly options: readonly PromptOption<TValue>[]
 
@@ -33,9 +33,6 @@ export interface SelectProps<TValue> {
 
   /** Callback fired when an option is submitted via Enter. */
   readonly onSubmit?: (value: TValue) => void
-
-  /** When `true`, the component ignores all keyboard input. */
-  readonly isDisabled?: boolean
 }
 
 // ---------------------------------------------------------------------------
@@ -63,7 +60,8 @@ export function Select<TValue>({
   maxVisible = 5,
   onChange,
   onSubmit,
-  isDisabled = false,
+  focused = true,
+  disabled = false,
 }: SelectProps<TValue>): ReactElement {
   const initialIndex = resolveInitialIndex({ options, defaultValue })
   const [focusedIndex, setFocusedIndex] = useState(initialIndex)
@@ -96,7 +94,7 @@ export function Select<TValue>({
         }
       }
     },
-    { isActive: !isDisabled }
+    { isActive: focused && !disabled }
   )
 
   return (
@@ -115,7 +113,7 @@ export function Select<TValue>({
             indicator={indicator}
             isFocused={index === focusedIndex}
             isSelected={isSelected}
-            isDisabled={isDisabled}
+            disabled={disabled}
           />
         )
       })}

@@ -6,7 +6,7 @@ import { z } from 'zod'
 import { SelectKey } from './select-key.js'
 
 const schema = z.object({
-  isDisabled: z.boolean().optional().describe('Disable the component'),
+  disabled: z.boolean().optional().describe('Disable the component'),
 })
 
 const defaultOptions = [
@@ -32,7 +32,7 @@ const storyGroup: StoryGroup = stories({
       description: 'Key-press driven selection with highlighted key characters.',
     },
     Disabled: {
-      props: { isDisabled: true },
+      props: { disabled: true },
       description: 'Select-key in disabled state.',
     },
   },

@@ -7,6 +7,7 @@ import { ErrorMessage } from '../display/error-message.js'
 import { CursorValue } from './cursor-value.js'
 import type { InputState } from './input-state.js'
 import { resolveNextState } from './input-state.js'
+import type { PromptProps } from './types.js'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -15,7 +16,7 @@ import { resolveNextState } from './input-state.js'
 /**
  * Props for the {@link TextInput} component.
  */
-export interface TextInputProps {
+export interface TextInputProps extends PromptProps {
   /** Placeholder text shown dimmed when the input is empty. */
   readonly placeholder?: string
 
@@ -30,9 +31,6 @@ export interface TextInputProps {
 
   /** Callback fired when the value is submitted via Enter. */
   readonly onSubmit?: (value: string) => void
-
-  /** When `true`, the component ignores all keyboard input. */
-  readonly isDisabled?: boolean
 }
 
 // ---------------------------------------------------------------------------
@@ -62,7 +60,8 @@ export function TextInput({
   validate,
   onChange,
   onSubmit,
-  isDisabled = false,
+  focused = true,
+  disabled = false,
 }: TextInputProps): ReactElement {
   const [state, setState] = useState<InputState>({
     value: defaultValue,
@@ -95,7 +94,7 @@ export function TextInput({
         }
       }
     },
-    { isActive: !isDisabled }
+    { isActive: focused && !disabled }
   )
 
   return (
@@ -103,7 +102,7 @@ export function TextInput({
       {match(state.value.length === 0 && placeholder !== undefined)
         .with(true, () => <Text dimColor>{placeholder}</Text>)
         .with(false, () => (
-          <CursorValue value={state.value} cursor={state.cursor} isDisabled={isDisabled} />
+          <CursorValue value={state.value} cursor={state.cursor} disabled={disabled} />
         ))
         .exhaustive()}
       <ErrorMessage message={state.error} />

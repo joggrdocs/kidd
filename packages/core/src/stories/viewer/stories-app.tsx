@@ -9,6 +9,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { match } from 'ts-pattern'
 
 import { FullScreen } from '../../ui/layout/fullscreen.js'
+import { useHotkey } from '../../ui/use-key-binding.js'
 import type { StoryRegistry } from '../registry.js'
 import { schemaToFieldDescriptors } from '../schema.js'
 import type { Story, StoryEntry, StoryGroup } from '../types.js'
@@ -19,7 +20,6 @@ import { Preview } from './components/preview.js'
 import type { PreviewContext } from './components/preview.js'
 import { Sidebar } from './components/sidebar.js'
 import { StatusBar } from './components/status-bar.js'
-import { useDoubleEscape } from './hooks/use-double-escape.js'
 import { useViewerMode } from './hooks/use-panel-focus.js'
 import { useStories } from './hooks/use-stories.js'
 
@@ -44,17 +44,26 @@ interface StoriesAppProps {
  * preview, props editor, and status bar into a fullscreen interactive
  * terminal application.
  *
- * Operates in two modes:
+ * Operates in four modes:
  * - **browse** — Sidebar is active, user navigates the story tree.
+ * - **preview** — Preview panel focused, story and props visible but read-only.
  * - **edit** — Props editor is active, user edits field values.
+ * - **interactive** — Story has full terminal control, props are hidden.
  *
  * @param props - The stories app props.
  * @returns A rendered stories app element.
  */
 export function StoriesApp({ registry, isReloading }: StoriesAppProps): ReactElement {
   const entries = useStories(registry)
-  const { mode, enterEditMode, exitEditMode, enterInteractiveMode, exitInteractiveMode } =
-    useViewerMode()
+  const {
+    mode,
+    enterPreviewMode,
+    exitPreviewMode,
+    enterEditMode,
+    exitEditMode,
+    enterInteractiveMode,
+    exitInteractiveMode,
+  } = useViewerMode()
   const [selectedStoryId, setSelectedStoryId] = useState<string | null>(null)
   const [currentProps, setCurrentProps] = useState<Record<string, unknown>>({})
   const [showHelp, setShowHelp] = useState(false)
@@ -109,9 +118,9 @@ export function StoriesApp({ registry, isReloading }: StoriesAppProps): ReactEle
       if (resolved !== null) {
         setCurrentProps({ ...resolved.props })
       }
-      enterEditMode()
+      enterPreviewMode()
     },
-    [entries, enterEditMode]
+    [entries, enterPreviewMode]
   )
 
   const handlePropsChange = useCallback((name: string, value: unknown) => {
@@ -128,21 +137,59 @@ export function StoriesApp({ registry, isReloading }: StoriesAppProps): ReactEle
     setShowHelp(false)
   }, [])
 
-  useDoubleEscape({ onExit: exitInteractiveMode, active: mode === 'interactive' })
+  useHotkey({
+    keys: ['escape escape'],
+    action: exitInteractiveMode,
+    active: mode === 'interactive',
+  })
+
+  useInput(
+    (_input, key) => {
+      if (key.escape) {
+        exitEditMode()
+      }
+    },
+    { isActive: mode === 'edit' }
+  )
 
   useInput(
     (input, key) => {
       if (showHelp) {
         return
       }
-      if (input === 'q') {
-        exit()
+      if (key.return && selectedStory !== null) {
+        enterEditMode()
+        return
       }
-      if (key.escape && mode === 'edit') {
-        exitEditMode()
+      if (key.escape) {
+        exitPreviewMode()
       }
       if (input === 'i' && selectedStory !== null) {
         enterInteractiveMode()
+      }
+      if (input === 'r') {
+        handleResetProps()
+      }
+      if (input === 'q') {
+        exit()
+      }
+      if (input === '?') {
+        setShowHelp(true)
+      }
+      if (input === 'b') {
+        setShowSidebar((prev) => !prev)
+      }
+    },
+    { isActive: mode === 'preview' }
+  )
+
+  useInput(
+    (input, _key) => {
+      if (showHelp) {
+        return
+      }
+      if (input === 'q') {
+        exit()
       }
       if (input === 'r') {
         handleResetProps()
@@ -154,7 +201,7 @@ export function StoriesApp({ registry, isReloading }: StoriesAppProps): ReactEle
         setShowSidebar((prev) => !prev)
       }
     },
-    { isActive: mode !== 'interactive' }
+    { isActive: mode === 'browse' }
   )
 
   if (showHelp) {
@@ -198,7 +245,8 @@ export function StoriesApp({ registry, isReloading }: StoriesAppProps): ReactEle
                   fields={fields}
                   errors={errors}
                   onPropsChange={handlePropsChange}
-                  isFocused={mode === 'edit'}
+                  isFocused={mode === 'preview' || mode === 'edit'}
+                  editable={mode === 'edit'}
                   borderless={isInteractive || !showSidebar}
                   interactive={isInteractive}
                 />

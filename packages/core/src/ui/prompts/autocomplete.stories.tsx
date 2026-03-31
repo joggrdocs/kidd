@@ -8,7 +8,7 @@ import { Autocomplete } from './autocomplete.js'
 const schema = z.object({
   placeholder: z.string().optional().describe('Placeholder text for the search input'),
   maxVisible: z.number().optional().describe('Maximum visible options'),
-  isDisabled: z.boolean().optional().describe('Disable the component'),
+  disabled: z.boolean().optional().describe('Disable the component'),
 })
 
 const defaultOptions = [
@@ -49,7 +49,7 @@ const storyGroup: StoryGroup = stories({
       description: 'Autocomplete with a custom starts-with filter.',
     },
     Disabled: {
-      props: { isDisabled: true },
+      props: { disabled: true },
       description: 'Autocomplete in disabled state.',
     },
   },

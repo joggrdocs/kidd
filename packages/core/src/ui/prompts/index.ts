@@ -1,4 +1,4 @@
-export type { PromptOption } from './types.js'
+export type { PromptOption, PromptProps } from './types.js'
 
 export { Autocomplete } from './autocomplete.js'
 export type { AutocompleteProps } from './autocomplete.js'

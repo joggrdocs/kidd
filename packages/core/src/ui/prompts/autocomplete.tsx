@@ -9,7 +9,7 @@ import { CursorValue } from './cursor-value.js'
 import { resolveInitialIndex } from './navigation.js'
 import { OptionRow } from './option-row.js'
 import { insertCharAt, removeCharAt } from './string-utils.js'
-import type { PromptOption } from './types.js'
+import type { PromptOption, PromptProps } from './types.js'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -18,7 +18,7 @@ import type { PromptOption } from './types.js'
 /**
  * Props for the {@link Autocomplete} component.
  */
-export interface AutocompleteProps<TValue> {
+export interface AutocompleteProps<TValue> extends PromptProps {
   /** The full list of selectable options. */
   readonly options: readonly PromptOption<TValue>[]
 
@@ -39,9 +39,6 @@ export interface AutocompleteProps<TValue> {
 
   /** Called when the user presses Enter to confirm. */
   readonly onSubmit?: (value: TValue) => void
-
-  /** When `true`, the component does not respond to input. */
-  readonly isDisabled?: boolean
 }
 
 // ---------------------------------------------------------------------------
@@ -67,7 +64,8 @@ export function Autocomplete<TValue>({
   filter = defaultFilter,
   onChange,
   onSubmit,
-  isDisabled = false,
+  focused = true,
+  disabled = false,
 }: AutocompleteProps<TValue>): ReactElement {
   const [search, setSearch] = useState('')
   const [focusIndex, setFocusIndex] = useState(resolveInitialIndex({ options, defaultValue }))
@@ -87,9 +85,9 @@ export function Autocomplete<TValue>({
         const clamped = Math.min(focusIndex, filtered.length - 1)
         const next = Math.max(0, clamped - 1)
         setFocusIndex(next)
-        const focused = filtered[next]
-        if (onChange && focused !== undefined) {
-          onChange(focused.value)
+        const focusedOption = filtered[next]
+        if (onChange && focusedOption !== undefined) {
+          onChange(focusedOption.value)
         }
         return
       }
@@ -100,17 +98,17 @@ export function Autocomplete<TValue>({
         }
         const next = Math.min(filtered.length - 1, focusIndex + 1)
         setFocusIndex(next)
-        const focused = filtered[next]
-        if (onChange && focused !== undefined) {
-          onChange(focused.value)
+        const focusedOption = filtered[next]
+        if (onChange && focusedOption !== undefined) {
+          onChange(focusedOption.value)
         }
         return
       }
 
       if (key.return) {
-        const focused = filtered[focusIndex]
-        if (onSubmit && focused !== undefined && !focused.disabled) {
-          onSubmit(focused.value)
+        const focusedOption = filtered[focusIndex]
+        if (onSubmit && focusedOption !== undefined && !focusedOption.disabled) {
+          onSubmit(focusedOption.value)
         }
         return
       }
@@ -125,20 +123,20 @@ export function Autocomplete<TValue>({
         return
       }
 
-      if (key.backspace) {
-        if (cursorOffset > 0) {
-          const nextSearch = removeCharAt({ str: search, index: cursorOffset - 1 })
+      if (key.ctrl && input === 'd') {
+        if (cursorOffset < search.length) {
+          const nextSearch = removeCharAt({ str: search, index: cursorOffset })
           setSearch(nextSearch)
-          setCursorOffset(cursorOffset - 1)
           setFocusIndex(0)
         }
         return
       }
 
-      if (key.delete) {
-        if (cursorOffset < search.length) {
-          const nextSearch = removeCharAt({ str: search, index: cursorOffset })
+      if (key.backspace || key.delete) {
+        if (cursorOffset > 0) {
+          const nextSearch = removeCharAt({ str: search, index: cursorOffset - 1 })
           setSearch(nextSearch)
+          setCursorOffset(cursorOffset - 1)
           setFocusIndex(0)
         }
         return
@@ -151,7 +149,7 @@ export function Autocomplete<TValue>({
         setFocusIndex(0)
       }
     },
-    { isActive: !isDisabled }
+    { isActive: focused && !disabled }
   )
 
   return (
@@ -159,7 +157,7 @@ export function Autocomplete<TValue>({
       <SearchInput
         value={search}
         placeholder={placeholder}
-        isDisabled={isDisabled}
+        disabled={disabled}
         cursorOffset={cursorOffset}
       />
       {match(filtered.length > 0)
@@ -179,7 +177,7 @@ export function Autocomplete<TValue>({
                   indicator={indicator}
                   isFocused={isFocused}
                   isSelected={isFocused}
-                  isDisabled={isDisabled}
+                  disabled={disabled}
                 />
               )
             })}
@@ -203,7 +201,7 @@ export function Autocomplete<TValue>({
 interface SearchInputProps {
   readonly value: string
   readonly placeholder?: string
-  readonly isDisabled: boolean
+  readonly disabled: boolean
   readonly cursorOffset: number
 }
 
@@ -232,7 +230,7 @@ function defaultFilter<TValue>(search: string, option: PromptOption<TValue>): bo
 function SearchInput({
   value,
   placeholder,
-  isDisabled,
+  disabled,
   cursorOffset,
 }: SearchInputProps): ReactElement {
   return (
@@ -243,7 +241,7 @@ function SearchInput({
       {match({ isEmpty: value === '', hasPlaceholder: placeholder !== undefined })
         .with({ isEmpty: true, hasPlaceholder: true }, () => <Text dimColor>{placeholder}</Text>)
         .otherwise(() => (
-          <CursorValue value={value} cursor={cursorOffset} isDisabled={isDisabled} />
+          <CursorValue value={value} cursor={cursorOffset} disabled={disabled} />
         ))}
     </Box>
   )

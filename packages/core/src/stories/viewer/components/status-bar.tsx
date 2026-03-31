@@ -44,15 +44,15 @@ export function StatusBar({ mode, hasSelection, isReloading }: StatusBarProps): 
         .with({ isReloading: false, mode: 'browse' }, () => (
           <BrowseHints hasSelection={hasSelection} />
         ))
+        .with({ isReloading: false, mode: 'preview' }, () => <PreviewHints />)
         .with({ isReloading: false, mode: 'edit' }, () => <EditHints />)
         .with({ isReloading: false, mode: 'interactive' }, () => <InteractiveHints />)
         .exhaustive()}
       <Spacer />
       {match(mode)
-        .with('interactive', () => null)
         .with('browse', () => <QuitHint />)
-        .with('edit', () => <QuitHint />)
-        .exhaustive()}
+        .with('preview', () => <QuitHint />)
+        .otherwise(() => null)}
     </Box>
   )
 }
@@ -74,12 +74,14 @@ function ModeIndicator({ mode }: { readonly mode: ViewerMode }): ReactElement {
       bold
       color={match(mode)
         .with('browse', () => 'cyan' as const)
+        .with('preview', () => 'blue' as const)
         .with('edit', () => 'yellow' as const)
         .with('interactive', () => 'green' as const)
         .exhaustive()}
     >
       {match(mode)
         .with('browse', () => '● Browse')
+        .with('preview', () => '● Preview')
         .with('edit', () => '● Edit')
         .with('interactive', () => '● Interactive')
         .exhaustive()}
@@ -123,6 +125,33 @@ function BrowseHints({ hasSelection }: { readonly hasSelection: boolean }): Reac
 }
 
 /**
+ * Render keyboard hints for preview mode.
+ *
+ * @private
+ * @returns A rendered hints element.
+ */
+function PreviewHints(): ReactElement {
+  return (
+    <Box>
+      <Text dimColor>enter</Text>
+      <Text>: edit props</Text>
+      <Text> </Text>
+      <Text dimColor>i</Text>
+      <Text>: interactive</Text>
+      <Text> </Text>
+      <Text dimColor>r</Text>
+      <Text>: reset</Text>
+      <Text> </Text>
+      <Text dimColor>esc</Text>
+      <Text>: back</Text>
+      <Text> </Text>
+      <Text dimColor>?</Text>
+      <Text>: help</Text>
+    </Box>
+  )
+}
+
+/**
  * Render keyboard hints for edit mode.
  *
  * @private
@@ -136,12 +165,6 @@ function EditHints(): ReactElement {
       <Text> </Text>
       <Text dimColor>esc</Text>
       <Text>: back</Text>
-      <Text> </Text>
-      <Text dimColor>r</Text>
-      <Text>: reset</Text>
-      <Text> </Text>
-      <Text dimColor>?</Text>
-      <Text>: help</Text>
     </Box>
   )
 }

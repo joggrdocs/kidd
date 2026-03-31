@@ -27,7 +27,7 @@ export interface OptionRowProps<TValue> {
   readonly isSelected: boolean
 
   /** Whether the entire prompt is disabled. */
-  readonly isDisabled: boolean
+  readonly disabled: boolean
 }
 
 // ---------------------------------------------------------------------------
@@ -48,9 +48,9 @@ export function OptionRow<TValue>({
   indicator,
   isFocused,
   isSelected,
-  isDisabled,
+  disabled,
 }: OptionRowProps<TValue>): ReactElement {
-  const isOptionDisabled = option.disabled === true || isDisabled
+  const isOptionDisabled = option.disabled === true || disabled
 
   return (
     <Box>

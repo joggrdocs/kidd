@@ -34,7 +34,7 @@ async function main(): Promise<void> {
   const plugins = [
     createAutoloadPlugin({
       commandsDir: config.commandsDir,
-      coreDistPath: config.coreDistPath,
+      coreDistDir: config.coreDistDir,
       tagModulePath: config.tagModulePath,
     }),
     createExternalsPlugin({

@@ -75,7 +75,7 @@ beforeEach(() => {
     outDir: '/project/dist',
     commandsDir: '/project/commands',
     tagModulePath: '/fake/tag.js',
-    coreDistPath: '/fake/core.js',
+    coreDistDir: '/fake/core',
     minify: false,
     sourcemap: true,
     target: 'node18',

@@ -27,7 +27,7 @@ describe('createAutoloadPlugin', () => {
     const plugin = createAutoloadPlugin({
       commandsDir: '/project/commands',
       tagModulePath: '/project/tag.js',
-      coreDistPath: '/project/node_modules/@kidd-cli/core/dist/index.js',
+      coreDistDir: '/project/node_modules/@kidd-cli/core/dist',
     })
 
     plugin.setup(mockBuild as never)

@@ -1,4 +1,5 @@
 import { createRequire } from 'node:module'
+import { dirname } from 'node:path'
 
 import { match } from 'ts-pattern'
 
@@ -13,7 +14,7 @@ export interface BunRunnerConfig {
   readonly outDir: string
   readonly commandsDir: string
   readonly tagModulePath: string
-  readonly coreDistPath: string
+  readonly coreDistDir: string
   readonly minify: boolean
   readonly sourcemap: boolean
   readonly target: string
@@ -42,7 +43,7 @@ export function buildRunnerConfig(params: {
   return {
     alwaysBundlePatterns: ALWAYS_BUNDLE.map((re) => re.source),
     compile: params.compile,
-    coreDistPath: resolveCoreDistPath(),
+    coreDistDir: resolveCoreDistDir(),
     define: buildDefine(params.version),
     entry: params.config.entry,
     external: [...params.config.build.external],
@@ -88,13 +89,16 @@ function resolveTagModulePath(): string {
 /**
  * Resolve the absolute path to the `@kidd-cli/core` dist directory.
  *
- * Used by the autoload plugin to identify which files to intercept for
- * region replacement (the Bun equivalent of Rolldown's `transform` hook).
+ * The core package's tsdown output splits code across multiple chunk files
+ * (e.g. `cli-CirRkJ6N.js`). The autoload region marker may live in any chunk,
+ * so we return the dist directory rather than a single entry file. The autoload
+ * plugin uses this to match all files inside the directory.
  *
  * @private
- * @returns The absolute file path to the core dist entry.
+ * @returns The absolute directory path containing core dist files.
  */
-function resolveCoreDistPath(): string {
+function resolveCoreDistDir(): string {
   const require = createRequire(import.meta.url)
-  return require.resolve('@kidd-cli/core')
+  const entry = require.resolve('@kidd-cli/core')
+  return dirname(entry)
 }

@@ -16,7 +16,7 @@ const AUTOLOADER_REGION_END = '//#endregion'
 interface CreateAutoloadPluginParams {
   readonly commandsDir: string
   readonly tagModulePath: string
-  readonly coreDistPath: string
+  readonly coreDistDir: string
 }
 
 /**
@@ -31,13 +31,13 @@ interface CreateAutoloadPluginParams {
  * 3. `onLoad` (kidd-autoload namespace) — scans the commands directory and
  *    generates a static autoloader module with all command imports pre-resolved
  *
- * @param params - The commands directory, tag module path, and core dist path.
+ * @param params - The commands directory, tag module path, and core dist directory.
  * @returns A BunPlugin for static autoloading.
  */
 export function createAutoloadPlugin(params: CreateAutoloadPluginParams): BunPlugin {
-  const coreDistEscaped = params.coreDistPath.replaceAll('.', '\\.').replaceAll('/', '\\/')
+  const dirEscaped = params.coreDistDir.replaceAll('.', '\\.').replaceAll('/', '\\/')
   // oxlint-disable-next-line security/detect-non-literal-regexp
-  const coreDistFilter = new RegExp(coreDistEscaped)
+  const coreDistFilter = new RegExp(`${dirEscaped}\\/[^/]+\\.js$`)
 
   return {
     name: 'kidd-static-autoloader',

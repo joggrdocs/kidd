@@ -8,7 +8,7 @@ import { TextInput } from './text-input.js'
 const schema = z.object({
   placeholder: z.string().describe('Placeholder text'),
   defaultValue: z.string().describe('Initial value'),
-  isDisabled: z.boolean().describe('Disable interaction'),
+  disabled: z.boolean().describe('Disable interaction'),
 })
 
 const storyGroup: StoryGroup = stories({
@@ -20,18 +20,18 @@ const storyGroup: StoryGroup = stories({
   },
   stories: {
     Default: {
-      props: { placeholder: '', defaultValue: '', isDisabled: false },
+      props: { placeholder: '', defaultValue: '', disabled: false },
       description: 'Empty text input with no placeholder',
     },
     WithPlaceholder: {
-      props: { placeholder: 'Enter your name...', defaultValue: '', isDisabled: false },
+      props: { placeholder: 'Enter your name...', defaultValue: '', disabled: false },
       description: 'Text input with placeholder text',
     },
     WithValidation: {
       props: {
         placeholder: 'Enter at least 3 characters...',
         defaultValue: '',
-        isDisabled: false,
+        disabled: false,
         validate: (value: string) => {
           if (value.length < 3) {
             return 'Must be at least 3 characters'
@@ -42,7 +42,7 @@ const storyGroup: StoryGroup = stories({
       description: 'Text input with minimum length validation',
     },
     Disabled: {
-      props: { placeholder: 'Disabled input', defaultValue: '', isDisabled: true },
+      props: { placeholder: 'Disabled input', defaultValue: '', disabled: true },
       description: 'Fully disabled text input',
     },
   },

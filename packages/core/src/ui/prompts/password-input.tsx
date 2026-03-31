@@ -1,12 +1,14 @@
-import { Box, Text, useInput } from 'ink'
+import { Box, Text } from 'ink'
 import type { ReactElement } from 'react'
 import { useState } from 'react'
 import { match } from 'ts-pattern'
 
 import { ErrorMessage } from '../display/error-message.js'
+import { useInput } from '../use-input.js'
 import { CursorValue } from './cursor-value.js'
 import type { InputState } from './input-state.js'
 import { resolveNextState } from './input-state.js'
+import type { PromptProps } from './types.js'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -15,7 +17,7 @@ import { resolveNextState } from './input-state.js'
 /**
  * Props for the {@link PasswordInput} component.
  */
-export interface PasswordInputProps {
+export interface PasswordInputProps extends PromptProps {
   /** Placeholder text shown dimmed when the input is empty. */
   readonly placeholder?: string
 
@@ -30,9 +32,6 @@ export interface PasswordInputProps {
 
   /** Callback fired when the value is submitted via Enter. */
   readonly onSubmit?: (value: string) => void
-
-  /** When `true`, the component ignores all keyboard input. */
-  readonly isDisabled?: boolean
 }
 
 // ---------------------------------------------------------------------------
@@ -63,7 +62,8 @@ export function PasswordInput({
   validate,
   onChange,
   onSubmit,
-  isDisabled = false,
+  focused = true,
+  disabled = false,
 }: PasswordInputProps): ReactElement {
   const [state, setState] = useState<InputState>({
     value: '',
@@ -96,7 +96,7 @@ export function PasswordInput({
         }
       }
     },
-    { isActive: !isDisabled }
+    { isActive: focused && !disabled }
   )
 
   const maskedValue = mask.repeat(state.value.length)
@@ -106,7 +106,7 @@ export function PasswordInput({
       {match(state.value.length === 0 && placeholder !== undefined)
         .with(true, () => <Text dimColor>{placeholder}</Text>)
         .with(false, () => (
-          <CursorValue value={maskedValue} cursor={state.cursor} isDisabled={isDisabled} />
+          <CursorValue value={maskedValue} cursor={state.cursor} disabled={disabled} />
         ))
         .exhaustive()}
       <ErrorMessage message={state.error} />

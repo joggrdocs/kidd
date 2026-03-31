@@ -9,7 +9,7 @@ const schema = z.object({
   active: z.string().describe('Label for the affirmative choice'),
   inactive: z.string().describe('Label for the negative choice'),
   defaultValue: z.boolean().describe('Initial value'),
-  isDisabled: z.boolean().describe('Disable interaction'),
+  disabled: z.boolean().describe('Disable interaction'),
 })
 
 const storyGroup: StoryGroup = stories({
@@ -21,7 +21,7 @@ const storyGroup: StoryGroup = stories({
   },
   stories: {
     Default: {
-      props: { active: 'Yes', inactive: 'No', defaultValue: true, isDisabled: false },
+      props: { active: 'Yes', inactive: 'No', defaultValue: true, disabled: false },
       description: 'Standard confirm with default labels',
     },
     CustomLabels: {
@@ -29,16 +29,16 @@ const storyGroup: StoryGroup = stories({
         active: 'Proceed',
         inactive: 'Cancel',
         defaultValue: true,
-        isDisabled: false,
+        disabled: false,
       },
       description: 'Confirm with custom active/inactive labels',
     },
     DefaultNo: {
-      props: { active: 'Yes', inactive: 'No', defaultValue: false, isDisabled: false },
+      props: { active: 'Yes', inactive: 'No', defaultValue: false, disabled: false },
       description: 'Confirm defaulting to the negative choice',
     },
     Disabled: {
-      props: { active: 'Yes', inactive: 'No', defaultValue: true, isDisabled: true },
+      props: { active: 'Yes', inactive: 'No', defaultValue: true, disabled: true },
       description: 'Fully disabled confirm',
     },
   },

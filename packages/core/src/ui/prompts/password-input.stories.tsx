@@ -8,7 +8,7 @@ import { PasswordInput } from './password-input.js'
 const schema = z.object({
   placeholder: z.string().describe('Placeholder text'),
   mask: z.string().describe('Mask character'),
-  isDisabled: z.boolean().describe('Disable interaction'),
+  disabled: z.boolean().describe('Disable interaction'),
 })
 
 const storyGroup: StoryGroup = stories({
@@ -20,18 +20,18 @@ const storyGroup: StoryGroup = stories({
   },
   stories: {
     Default: {
-      props: { placeholder: 'Enter password...', mask: '*', isDisabled: false },
+      props: { placeholder: 'Enter password...', mask: '*', disabled: false },
       description: 'Standard password input with asterisk mask',
     },
     CustomMask: {
-      props: { placeholder: 'Enter secret...', mask: '#', isDisabled: false },
+      props: { placeholder: 'Enter secret...', mask: '#', disabled: false },
       description: 'Password input with custom hash mask character',
     },
     WithValidation: {
       props: {
         placeholder: 'Enter at least 8 characters...',
         mask: '*',
-        isDisabled: false,
+        disabled: false,
         validate: (value: string) => {
           if (value.length < 8) {
             return 'Password must be at least 8 characters'
@@ -42,7 +42,7 @@ const storyGroup: StoryGroup = stories({
       description: 'Password input with minimum length validation',
     },
     Disabled: {
-      props: { placeholder: 'Disabled input', mask: '*', isDisabled: true },
+      props: { placeholder: 'Disabled input', mask: '*', disabled: true },
       description: 'Fully disabled password input',
     },
   },

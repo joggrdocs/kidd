@@ -8,7 +8,7 @@ import { MultiSelect } from './multi-select.js'
 const schema = z.object({
   maxVisible: z.number().describe('Max visible options'),
   required: z.boolean().describe('Require at least one selection'),
-  isDisabled: z.boolean().describe('Disable interaction'),
+  disabled: z.boolean().describe('Disable interaction'),
 })
 
 const storyGroup: StoryGroup = stories({
@@ -26,18 +26,18 @@ const storyGroup: StoryGroup = stories({
   },
   stories: {
     Default: {
-      props: { maxVisible: 5, required: false, isDisabled: false },
+      props: { maxVisible: 5, required: false, disabled: false },
       description: 'Standard multi-select with default settings',
     },
     WithRequired: {
-      props: { maxVisible: 5, required: true, isDisabled: false },
+      props: { maxVisible: 5, required: true, disabled: false },
       description: 'Multi-select that requires at least one selection',
     },
     DisabledOptions: {
       props: {
         maxVisible: 5,
         required: false,
-        isDisabled: false,
+        disabled: false,
         options: [
           { value: 'a', label: 'Available' },
           { value: 'b', label: 'Blocked', disabled: true },
@@ -51,13 +51,13 @@ const storyGroup: StoryGroup = stories({
       props: {
         maxVisible: 5,
         required: false,
-        isDisabled: false,
+        disabled: false,
         defaultValue: ['ts', 'prettier'],
       },
       description: 'Pre-selected values on mount',
     },
     Disabled: {
-      props: { maxVisible: 5, required: false, isDisabled: true },
+      props: { maxVisible: 5, required: false, disabled: true },
       description: 'Fully disabled multi-select',
     },
   },

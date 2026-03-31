@@ -1,9 +1,10 @@
-import { Box, Text, useInput } from 'ink'
+import { Box, Text } from 'ink'
 import type { ReactElement, ReactNode } from 'react'
 import { useState } from 'react'
 import { match } from 'ts-pattern'
 
 import { colors } from '../theme.js'
+import { useInput } from '../use-input.js'
 
 // ---------------------------------------------------------------------------
 // Types

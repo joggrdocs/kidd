@@ -1,4 +1,4 @@
-import { useKeyBinding } from '../../../ui/use-key-binding.js'
+import { useHotkey } from '../../../ui/use-key-binding.js'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -25,5 +25,5 @@ interface DoubleEscapeOptions {
  * @returns Nothing. Registers the key binding side effect.
  */
 export function useDoubleEscape({ onExit, active }: DoubleEscapeOptions): void {
-  useKeyBinding({ keys: ['escape escape'], action: onExit, active })
+  useHotkey({ keys: ['escape escape'], action: onExit, active })
 }

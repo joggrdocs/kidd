@@ -150,7 +150,7 @@ export function Preview({
       <Box ref={contentRef} flexDirection="column" flexGrow={1}>
         <ScrollArea height={Math.max(1, componentAreaHeight)}>
           <ErrorBoundary key={context.displayName}>
-            <DecoratedComponent {...currentProps} />
+            <DecoratedComponent {...currentProps} focused={false} />
           </ErrorBoundary>
         </ScrollArea>
         <Box height={propsAreaHeight} overflow="hidden" flexDirection="column">

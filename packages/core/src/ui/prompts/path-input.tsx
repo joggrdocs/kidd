@@ -1,14 +1,16 @@
 import { readdirSync, statSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 
-import { Box, Text, useInput } from 'ink'
+import { Box, Text } from 'ink'
 import type { ReactElement } from 'react'
 import { useState } from 'react'
 import { match } from 'ts-pattern'
 
 import { ErrorMessage } from '../display/error-message.js'
 import { colors } from '../theme.js'
+import { useInput } from '../use-input.js'
 import { insertCharAt, removeCharAt } from './string-utils.js'
+import type { PromptProps } from './types.js'
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -23,7 +25,7 @@ const MAX_SUGGESTIONS = 5
 /**
  * Props for the {@link PathInput} component.
  */
-export interface PathInputProps {
+export interface PathInputProps extends PromptProps {
   /** Root directory for completion lookups. Defaults to `process.cwd()`. */
   readonly root?: string
 
@@ -41,9 +43,6 @@ export interface PathInputProps {
 
   /** Called when the user presses Enter to confirm. */
   readonly onSubmit?: (value: string) => void
-
-  /** When `true`, the component does not respond to input. */
-  readonly isDisabled?: boolean
 }
 
 // ---------------------------------------------------------------------------
@@ -68,7 +67,8 @@ export function PathInput({
   validate,
   onChange,
   onSubmit,
-  isDisabled = false,
+  focused = true,
+  disabled = false,
 }: PathInputProps): ReactElement {
   const resolvedRoot = root ?? process.cwd()
   const [value, setValue] = useState(defaultValue)
@@ -155,7 +155,7 @@ export function PathInput({
         }
       }
     },
-    { isActive: !isDisabled }
+    { isActive: focused && !disabled }
   )
 
   return (
@@ -164,7 +164,7 @@ export function PathInput({
         <Text color={colors.primary} bold>
           {'> '}
         </Text>
-        <Text dimColor={isDisabled}>{value}</Text>
+        <Text dimColor={disabled}>{value}</Text>
       </Box>
       {match(suggestions.length > 0)
         .with(true, () => (

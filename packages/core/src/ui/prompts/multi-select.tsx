@@ -1,4 +1,4 @@
-import { Box, useInput } from 'ink'
+import { Box } from 'ink'
 import type { ReactElement } from 'react'
 import { useState } from 'react'
 import { match } from 'ts-pattern'
@@ -6,9 +6,10 @@ import { match } from 'ts-pattern'
 import { ErrorMessage } from '../display/error-message.js'
 import { ScrollArea } from '../layout/scroll-area.js'
 import { symbols } from '../theme.js'
+import { useInput } from '../use-input.js'
 import { resolveDirection, resolveFirstEnabledIndex, resolveNextFocusIndex } from './navigation.js'
 import { OptionRow } from './option-row.js'
-import type { PromptOption } from './types.js'
+import type { PromptOption, PromptProps } from './types.js'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -19,7 +20,7 @@ import type { PromptOption } from './types.js'
  *
  * @typeParam TValue - The type of each option's value.
  */
-export interface MultiSelectProps<TValue> {
+export interface MultiSelectProps<TValue> extends PromptProps {
   /** The list of selectable options. */
   readonly options: readonly PromptOption<TValue>[]
 
@@ -37,9 +38,6 @@ export interface MultiSelectProps<TValue> {
 
   /** Callback fired when the selection is submitted via Enter. */
   readonly onSubmit?: (value: readonly TValue[]) => void
-
-  /** When `true`, the component ignores all keyboard input. */
-  readonly isDisabled?: boolean
 }
 
 // ---------------------------------------------------------------------------
@@ -69,7 +67,8 @@ export function MultiSelect<TValue>({
   required = false,
   onChange,
   onSubmit,
-  isDisabled = false,
+  focused = true,
+  disabled = false,
 }: MultiSelectProps<TValue>): ReactElement {
   const initialSelected = resolveInitialSelected(options, defaultValue)
   const [focusedIndex, setFocusedIndex] = useState(resolveFirstEnabledIndex(options))
@@ -114,7 +113,7 @@ export function MultiSelect<TValue>({
         setFocusedIndex(nextIndex)
       }
     },
-    { isActive: !isDisabled }
+    { isActive: focused && !disabled }
   )
 
   return (
@@ -134,7 +133,7 @@ export function MultiSelect<TValue>({
               indicator={indicator}
               isFocused={index === focusedIndex}
               isSelected={isSelected}
-              isDisabled={isDisabled}
+              disabled={disabled}
             />
           )
         })}

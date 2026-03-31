@@ -9,7 +9,7 @@ const schema = z.object({
   root: z.string().optional().describe('Root directory for completions'),
   directoryOnly: z.boolean().optional().describe('Only suggest directories'),
   defaultValue: z.string().optional().describe('Initial input value'),
-  isDisabled: z.boolean().optional().describe('Disable the component'),
+  disabled: z.boolean().optional().describe('Disable the component'),
 })
 
 const storyGroup: StoryGroup = stories({

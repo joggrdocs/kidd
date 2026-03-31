@@ -7,7 +7,7 @@ import { Select } from './select.js'
 
 const schema = z.object({
   maxVisible: z.number().describe('Max visible options'),
-  isDisabled: z.boolean().describe('Disable interaction'),
+  disabled: z.boolean().describe('Disable interaction'),
 })
 
 const storyGroup: StoryGroup = stories({
@@ -25,13 +25,13 @@ const storyGroup: StoryGroup = stories({
   },
   stories: {
     Default: {
-      props: { maxVisible: 5, isDisabled: false },
+      props: { maxVisible: 5, disabled: false },
       description: 'Standard select with default settings',
     },
     WithHints: {
       props: {
         maxVisible: 5,
-        isDisabled: false,
+        disabled: false,
         options: [
           { value: 'ts', label: 'TypeScript', hint: 'Strongly typed' },
           { value: 'js', label: 'JavaScript', hint: 'Dynamic typing' },
@@ -44,7 +44,7 @@ const storyGroup: StoryGroup = stories({
     DisabledOptions: {
       props: {
         maxVisible: 5,
-        isDisabled: false,
+        disabled: false,
         options: [
           { value: 'a', label: 'Available' },
           { value: 'b', label: 'Blocked', disabled: true },
@@ -57,7 +57,7 @@ const storyGroup: StoryGroup = stories({
     Scrolling: {
       props: {
         maxVisible: 3,
-        isDisabled: false,
+        disabled: false,
         options: [
           { value: '1', label: 'Option 1' },
           { value: '2', label: 'Option 2' },
@@ -70,7 +70,7 @@ const storyGroup: StoryGroup = stories({
       description: 'Scrollable list with maxVisible=3',
     },
     Disabled: {
-      props: { maxVisible: 5, isDisabled: true },
+      props: { maxVisible: 5, disabled: true },
       description: 'Fully disabled select',
     },
   },

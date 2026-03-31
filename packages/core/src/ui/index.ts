@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Base — raw Ink + @inkjs/ui primitives
+// Base — raw Ink primitives
 // ---------------------------------------------------------------------------
 
 export {
@@ -16,7 +16,7 @@ export {
   useCursor,
   useFocus,
   useFocusManager,
-  useInput,
+  useInput as useInkInput,
   useIsScreenReaderEnabled,
   useStderr,
   useStdin,
@@ -62,6 +62,7 @@ export type {
   PasswordInputProps,
   PathInputProps,
   PromptOption,
+  PromptProps,
   SelectKeyProps,
   SelectProps,
   TextInputProps,
@@ -133,8 +134,8 @@ export type { ThemeColor, Variant } from './theme.js'
 // Input
 // ---------------------------------------------------------------------------
 
-export { useKeyBinding } from './use-key-binding.js'
-export type { UseKeyBindingArgs } from './use-key-binding.js'
+export { useInput } from './use-input.js'
+export type { UseInputOptions } from './use-input.js'
 
-export { useKeyInput } from './use-key-input.js'
-export type { KeyInputEvent, KeyInputOptions } from './use-key-input.js'
+export { useHotkey } from './use-key-binding.js'
+export type { UseHotkeyArgs } from './use-key-binding.js'

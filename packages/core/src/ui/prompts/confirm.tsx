@@ -1,9 +1,11 @@
-import { Box, Text, useInput } from 'ink'
+import { Box, Text } from 'ink'
 import type { ReactElement } from 'react'
 import { useState } from 'react'
 import { match } from 'ts-pattern'
 
 import { colors } from '../theme.js'
+import { useInput } from '../use-input.js'
+import type { PromptProps } from './types.js'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -12,7 +14,7 @@ import { colors } from '../theme.js'
 /**
  * Props for the {@link Confirm} component.
  */
-export interface ConfirmProps {
+export interface ConfirmProps extends PromptProps {
   /** Label for the affirmative choice. @default "Yes" */
   readonly active?: string
 
@@ -24,9 +26,6 @@ export interface ConfirmProps {
 
   /** Callback fired when the value is submitted via Enter. */
   readonly onSubmit?: (value: boolean) => void
-
-  /** When `true`, the component ignores all keyboard input. */
-  readonly isDisabled?: boolean
 }
 
 // ---------------------------------------------------------------------------
@@ -54,7 +53,8 @@ export function Confirm({
   inactive = 'No',
   defaultValue = true,
   onSubmit,
-  isDisabled = false,
+  focused = true,
+  disabled = false,
 }: ConfirmProps): ReactElement {
   const [value, setValue] = useState(defaultValue)
 
@@ -81,14 +81,14 @@ export function Confirm({
         setValue(false)
       }
     },
-    { isActive: !isDisabled }
+    { isActive: focused && !disabled }
   )
 
   return (
     <Box gap={1}>
-      <ConfirmChoice label={active} isActive={value} isDisabled={isDisabled} />
+      <ConfirmChoice label={active} isActive={value} disabled={disabled} />
       <Text dimColor>/</Text>
-      <ConfirmChoice label={inactive} isActive={!value} isDisabled={isDisabled} />
+      <ConfirmChoice label={inactive} isActive={!value} disabled={disabled} />
     </Box>
   )
 }
@@ -105,7 +105,7 @@ export function Confirm({
 interface ConfirmChoiceProps {
   readonly label: string
   readonly isActive: boolean
-  readonly isDisabled: boolean
+  readonly disabled: boolean
 }
 
 /**
@@ -115,14 +115,14 @@ interface ConfirmChoiceProps {
  * @param props - The choice props.
  * @returns A rendered choice element.
  */
-function ConfirmChoice({ label, isActive, isDisabled }: ConfirmChoiceProps): ReactElement {
-  const color = match({ isActive, isDisabled })
-    .with({ isDisabled: true }, () => undefined)
+function ConfirmChoice({ label, isActive, disabled }: ConfirmChoiceProps): ReactElement {
+  const color = match({ isActive, disabled })
+    .with({ disabled: true }, () => undefined)
     .with({ isActive: true }, () => colors.primary)
     .otherwise(() => undefined)
 
   return (
-    <Text color={color} dimColor={!isActive || isDisabled} underline={isActive && !isDisabled}>
+    <Text color={color} dimColor={!isActive || disabled} underline={isActive && !disabled}>
       {label}
     </Text>
   )

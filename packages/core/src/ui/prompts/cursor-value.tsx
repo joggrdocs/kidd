@@ -17,7 +17,7 @@ export interface CursorValueProps {
   readonly cursor: number
 
   /** When `true`, the value is rendered dimmed. */
-  readonly isDisabled: boolean
+  readonly disabled: boolean
 }
 
 // ---------------------------------------------------------------------------
@@ -33,13 +33,13 @@ export interface CursorValueProps {
  * @param props - The cursor value props.
  * @returns A rendered value element with cursor.
  */
-export function CursorValue({ value, cursor, isDisabled }: CursorValueProps): ReactElement {
+export function CursorValue({ value, cursor, disabled }: CursorValueProps): ReactElement {
   const beforeCursor = value.slice(0, cursor)
   const atCursor = value[cursor]
   const afterCursor = value.slice(cursor + 1)
 
   return (
-    <Text dimColor={isDisabled}>
+    <Text dimColor={disabled}>
       {beforeCursor}
       <Text inverse>
         {match(atCursor)

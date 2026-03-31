@@ -1,4 +1,4 @@
-import { Box, Text, useInput } from 'ink'
+import { Box, Text } from 'ink'
 import picocolors from 'picocolors'
 import type { ReactElement } from 'react'
 import { useEffect, useMemo, useState } from 'react'
@@ -6,7 +6,8 @@ import { match } from 'ts-pattern'
 
 import { ErrorMessage } from '../display/error-message.js'
 import { colors, symbols } from '../theme.js'
-import type { PromptOption } from './types.js'
+import { useInput } from '../use-input.js'
+import type { PromptOption, PromptProps } from './types.js'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -15,7 +16,7 @@ import type { PromptOption } from './types.js'
 /**
  * Props for the {@link GroupMultiSelect} component.
  */
-export interface GroupMultiSelectProps<TValue> {
+export interface GroupMultiSelectProps<TValue> extends PromptProps {
   /** Options organized by group name. */
   readonly options: Readonly<Record<string, readonly PromptOption<TValue>[]>>
 
@@ -33,9 +34,6 @@ export interface GroupMultiSelectProps<TValue> {
 
   /** Called when the user presses Enter to confirm. */
   readonly onSubmit?: (value: readonly TValue[]) => void
-
-  /** When `true`, the component does not respond to input. */
-  readonly isDisabled?: boolean
 }
 
 // ---------------------------------------------------------------------------
@@ -60,7 +58,8 @@ export function GroupMultiSelect<TValue>({
   selectableGroups = false,
   onChange,
   onSubmit,
-  isDisabled = false,
+  focused = true,
+  disabled = false,
 }: GroupMultiSelectProps<TValue>): ReactElement {
   const flatItems = useMemo(
     () => buildFlatItems({ options, selectableGroups }),
@@ -120,7 +119,7 @@ export function GroupMultiSelect<TValue>({
         }
       }
     },
-    { isActive: !isDisabled }
+    { isActive: focused && !disabled }
   )
 
   return (
@@ -133,7 +132,7 @@ export function GroupMultiSelect<TValue>({
             item={item}
             isFocused={isFocused}
             isSelected={isItemSelected(item, selectedSet, options)}
-            isDisabled={isDisabled}
+            disabled={disabled}
           />
         )
       })}
@@ -183,7 +182,7 @@ interface FlatItemRowProps {
   readonly item: FlatItem
   readonly isFocused: boolean
   readonly isSelected: boolean
-  readonly isDisabled: boolean
+  readonly disabled: boolean
 }
 
 /**
@@ -343,11 +342,11 @@ function itemKey(item: FlatItem): string {
  * @param props - The row props.
  * @returns A rendered row element.
  */
-function FlatItemRow({ item, isFocused, isSelected, isDisabled }: FlatItemRowProps): ReactElement {
+function FlatItemRow({ item, isFocused, isSelected, disabled }: FlatItemRowProps): ReactElement {
   return match(item)
     .with({ kind: 'group' }, (groupItem) => (
       <Box>
-        <Text bold dimColor={isDisabled}>
+        <Text bold dimColor={disabled}>
           {match(isFocused)
             .with(true, () => `${symbols.pointer} `)
             .with(false, () => '  ')
@@ -362,12 +361,12 @@ function FlatItemRow({ item, isFocused, isSelected, isDisabled }: FlatItemRowPro
     ))
     .with({ kind: 'option' }, (optionItem) => {
       const { option } = optionItem
-      const disabled = isDisabled || (option.disabled ?? false)
+      const isOptionDisabled = disabled || (option.disabled ?? false)
       return (
         <Box paddingLeft={2}>
           <Text
-            color={match({ isFocused, disabled })
-              .with({ disabled: true }, () => 'gray' as const)
+            color={match({ isFocused, isOptionDisabled })
+              .with({ isOptionDisabled: true }, () => 'gray' as const)
               .with({ isFocused: true }, () => colors.primary)
               .otherwise(() => undefined)}
           >
@@ -380,7 +379,7 @@ function FlatItemRow({ item, isFocused, isSelected, isDisabled }: FlatItemRowPro
               .with(false, () => `${symbols.checkboxOff} `)
               .exhaustive()}
             {option.label}
-            {match(disabled && !picocolors.isColorSupported)
+            {match(isOptionDisabled && !picocolors.isColorSupported)
               .with(true, () => ' (disabled)')
               .with(false, () => '')
               .exhaustive()}
@@ -389,7 +388,7 @@ function FlatItemRow({ item, isFocused, isSelected, isDisabled }: FlatItemRowPro
             .with(undefined, () => null)
             .otherwise((hint) => (
               <Text
-                color={match(disabled)
+                color={match(isOptionDisabled)
                   .with(true, () => 'gray' as const)
                   .with(false, () => undefined)
                   .exhaustive()}

@@ -1,5 +1,19 @@
 # kidd
 
+## 0.20.0
+
+### Minor Changes
+
+- d752216: Replace implicit input gating with explicit `PromptProps` (`focused`, `disabled`)
+
+  - Add `PromptProps` interface with `focused` and `disabled` fields, shared by all prompt components
+  - Remove `InputBlock` / `useInputBlock` context-based input gating
+  - Remove `useFocus` from all prompt components (was conflicting with Tabs key interception)
+  - Remove `@inkjs/ui` dependency (no longer needed)
+  - Rename `isDisabled` to `disabled` across all prompts and stories
+  - Stories viewer passes `focused` explicitly to story components in preview mode
+  - Remove `useInput` proxy wrapper — all components now import `useInput` directly from `ink`
+
 ## 0.19.0
 
 ### Minor Changes

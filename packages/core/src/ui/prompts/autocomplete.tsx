@@ -123,20 +123,20 @@ export function Autocomplete<TValue>({
         return
       }
 
-      if (key.backspace) {
-        if (cursorOffset > 0) {
-          const nextSearch = removeCharAt({ str: search, index: cursorOffset - 1 })
+      if (key.ctrl && input === 'd') {
+        if (cursorOffset < search.length) {
+          const nextSearch = removeCharAt({ str: search, index: cursorOffset })
           setSearch(nextSearch)
-          setCursorOffset(cursorOffset - 1)
           setFocusIndex(0)
         }
         return
       }
 
-      if (key.delete) {
-        if (cursorOffset < search.length) {
-          const nextSearch = removeCharAt({ str: search, index: cursorOffset })
+      if (key.backspace || key.delete) {
+        if (cursorOffset > 0) {
+          const nextSearch = removeCharAt({ str: search, index: cursorOffset - 1 })
           setSearch(nextSearch)
+          setCursorOffset(cursorOffset - 1)
           setFocusIndex(0)
         }
         return

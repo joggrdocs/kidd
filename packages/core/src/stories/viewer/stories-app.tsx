@@ -131,15 +131,21 @@ export function StoriesApp({ registry, isReloading }: StoriesAppProps): ReactEle
   useDoubleEscape({ onExit: exitInteractiveMode, active: mode === 'interactive' })
 
   useInput(
-    (input, key) => {
+    (_input, key) => {
+      if (key.escape) {
+        exitEditMode()
+      }
+    },
+    { isActive: mode === 'edit' }
+  )
+
+  useInput(
+    (input, _key) => {
       if (showHelp) {
         return
       }
       if (input === 'q') {
         exit()
-      }
-      if (key.escape && mode === 'edit') {
-        exitEditMode()
       }
       if (input === 'i' && selectedStory !== null) {
         enterInteractiveMode()
@@ -154,7 +160,7 @@ export function StoriesApp({ registry, isReloading }: StoriesAppProps): ReactEle
         setShowSidebar((prev) => !prev)
       }
     },
-    { isActive: mode !== 'interactive' }
+    { isActive: mode === 'browse' }
   )
 
   if (showHelp) {

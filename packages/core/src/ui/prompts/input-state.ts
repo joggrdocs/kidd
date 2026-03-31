@@ -1,5 +1,3 @@
-import { match } from 'ts-pattern'
-
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
@@ -43,7 +41,11 @@ export interface ResolveStateOptions {
  * Compute the next input state from a keyboard event.
  *
  * Handles cursor movement (left/right, home/end), character deletion
- * (backspace/delete), and character insertion.
+ * (backspace, Ctrl+D for forward-delete), and character insertion.
+ *
+ * Both `key.backspace` and `key.delete` are treated as backspace
+ * because macOS terminals send `\x7f` (DEL) for the Backspace key,
+ * which ink reports as `key.delete`. Forward-delete uses Ctrl+D.
  *
  * @param options - The state resolution options.
  * @returns The next input state.
@@ -65,23 +67,20 @@ export function resolveNextState({ state, input, key }: ResolveStateOptions): In
     return { ...state, cursor: state.value.length }
   }
 
+  if (key.ctrl && input === 'd') {
+    if (state.cursor >= state.value.length) {
+      return state
+    }
+    const nextValue = state.value.slice(0, state.cursor) + state.value.slice(state.cursor + 1)
+    return { ...state, value: nextValue, error: undefined }
+  }
+
   if (key.backspace || key.delete) {
-    return match(key.backspace)
-      .with(true, () => {
-        if (state.cursor === 0) {
-          return state
-        }
-        const nextValue = state.value.slice(0, state.cursor - 1) + state.value.slice(state.cursor)
-        return { ...state, value: nextValue, cursor: state.cursor - 1, error: undefined }
-      })
-      .with(false, () => {
-        if (state.cursor >= state.value.length) {
-          return state
-        }
-        const nextValue = state.value.slice(0, state.cursor) + state.value.slice(state.cursor + 1)
-        return { ...state, value: nextValue, error: undefined }
-      })
-      .exhaustive()
+    if (state.cursor === 0) {
+      return state
+    }
+    const nextValue = state.value.slice(0, state.cursor - 1) + state.value.slice(state.cursor)
+    return { ...state, value: nextValue, cursor: state.cursor - 1, error: undefined }
   }
 
   if (key.ctrl || key.meta) {

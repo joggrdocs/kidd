@@ -29,7 +29,13 @@
       ]
     },
     "//#test:exports": {
-      "dependsOn": ["build"]
+      "dependsOn": [
+        "@kidd-cli/bundler#build",
+        "@kidd-cli/cli#build",
+        "@kidd-cli/config#build",
+        "@kidd-cli/core#build",
+        "@kidd-cli/utils#build"
+      ]
     }
   }
 }

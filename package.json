@@ -15,7 +15,7 @@
     "build": "turbo run build --filter='./packages/*'",
     "dev": "turbo run dev",
     "stories": "pnpm build && kidd stories --cwd packages/core",
-    "test": "turbo run test test:integration test:exports",
+    "test": "turbo run test test:exports",
     "test:integration": "vitest run --project integration",
     "test:exports": "vitest run --project exports",
     "test:coverage": "turbo run test:coverage --filter='./packages/*'",

@@ -103,17 +103,29 @@ export interface DisplayConfig {
    * Spinner configuration defaults.
    */
   readonly spinner?: {
-    /** Animation style: `'dots'` (default) or `'timer'`. */
+    /**
+     * Animation style: `'dots'` (default) or `'timer'`.
+     */
     readonly indicator?: 'dots' | 'timer'
-    /** Custom animation frame characters. */
+    /**
+     * Custom animation frame characters.
+     */
     readonly frames?: readonly string[]
-    /** Frame delay in ms. */
+    /**
+     * Frame delay in ms.
+     */
     readonly delay?: number
-    /** Custom frame styling function. */
+    /**
+     * Custom frame styling function.
+     */
     readonly styleFrame?: (frame: string) => string
-    /** Message shown on cancel. */
+    /**
+     * Message shown on cancel.
+     */
     readonly cancelMessage?: string
-    /** Message shown on error. */
+    /**
+     * Message shown on error.
+     */
     readonly errorMessage?: string
   }
 
@@ -121,9 +133,13 @@ export interface DisplayConfig {
    * Progress bar configuration defaults.
    */
   readonly progress?: {
-    /** Bar style: `'light'`, `'heavy'`, or `'block'`. */
+    /**
+     * Bar style: `'light'`, `'heavy'`, or `'block'`.
+     */
     readonly style?: 'light' | 'heavy' | 'block'
-    /** Bar width in characters. */
+    /**
+     * Bar width in characters.
+     */
     readonly size?: number
   }
 
@@ -137,7 +153,9 @@ export interface DisplayConfig {
     readonly contentPadding?: number
     readonly titlePadding?: number
     readonly width?: number | 'auto'
-    /** Custom border styling function. */
+    /**
+     * Custom border styling function.
+     */
     readonly formatBorder?: (text: string) => string
   }
 }

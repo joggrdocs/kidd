@@ -146,8 +146,5 @@ jobs:
           find examples -name 'cli-*' -type f -exec chmod +x {} +
           find examples -name '*.mjs' -path '*/dist/*' -type f -exec chmod +x {} +
 
-      - name: 'Build packages'
-        run: pnpm build
-
       - name: 'Run integration tests'
         run: pnpm test:integration

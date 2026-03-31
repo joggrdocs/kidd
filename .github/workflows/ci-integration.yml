@@ -104,7 +104,8 @@ jobs:
           name: examples-dist
           retention-days: 1
           path: |
-            examples/**/dist
+            examples/*/dist
+            examples/*/cli/dist
 
   test-os:
     name: 'Integration / ${{ matrix.name }}'

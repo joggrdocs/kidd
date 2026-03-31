@@ -1,0 +1,9 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vercel/turborepo/main/packages/turbo-types/schemas/schema.json",
+  "extends": ["//"],
+  "tasks": {
+    "build": {
+      "outputs": ["cli/dist/**"]
+    }
+  }
+}

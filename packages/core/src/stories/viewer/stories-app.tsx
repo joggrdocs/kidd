@@ -9,6 +9,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { match } from 'ts-pattern'
 
 import { FullScreen } from '../../ui/layout/fullscreen.js'
+import { useHotkey } from '../../ui/use-key-binding.js'
 import type { StoryRegistry } from '../registry.js'
 import { schemaToFieldDescriptors } from '../schema.js'
 import type { Story, StoryEntry, StoryGroup } from '../types.js'
@@ -19,7 +20,6 @@ import { Preview } from './components/preview.js'
 import type { PreviewContext } from './components/preview.js'
 import { Sidebar } from './components/sidebar.js'
 import { StatusBar } from './components/status-bar.js'
-import { useDoubleEscape } from './hooks/use-double-escape.js'
 import { useViewerMode } from './hooks/use-panel-focus.js'
 import { useStories } from './hooks/use-stories.js'
 
@@ -137,7 +137,11 @@ export function StoriesApp({ registry, isReloading }: StoriesAppProps): ReactEle
     setShowHelp(false)
   }, [])
 
-  useDoubleEscape({ onExit: exitInteractiveMode, active: mode === 'interactive' })
+  useHotkey({
+    keys: ['escape escape'],
+    action: exitInteractiveMode,
+    active: mode === 'interactive',
+  })
 
   useInput(
     (_input, key) => {

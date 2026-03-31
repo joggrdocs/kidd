@@ -1,9 +1,10 @@
 import { story } from '@kidd-cli/core/stories'
 import { z } from 'zod'
 
+import type { StatusBadgeProps } from './StatusBadge'
 import { StatusBadge } from './StatusBadge'
 
-export default story({
+export default story<StatusBadgeProps>({
   name: 'StatusBadge',
   component: StatusBadge,
   schema: z.object({

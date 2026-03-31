@@ -1,6 +1,7 @@
 import { stories } from '@kidd-cli/core/stories'
 import { z } from 'zod'
 
+import type { SelectMenuProps } from './SelectMenu'
 import { SelectMenu } from './SelectMenu'
 
 const schema = z.object({
@@ -9,7 +10,7 @@ const schema = z.object({
   accentColor: z.string().describe('Ink color for highlights and selection'),
 })
 
-export default stories({
+export default stories<SelectMenuProps>({
   title: 'SelectMenu',
   component: SelectMenu,
   schema,

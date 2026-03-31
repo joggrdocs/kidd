@@ -1,13 +1,14 @@
 import { stories } from '@kidd-cli/core/stories'
 import { z } from 'zod'
 
+import type { LogLevelProps } from './LogLevel'
 import { LogLevel } from './LogLevel'
 
 const schema = z.object({
   level: z.enum(['info', 'warn', 'error']).describe('Log severity level'),
 })
 
-export default stories({
+export default stories<LogLevelProps>({
   title: 'LogLevel',
   component: LogLevel,
   schema,

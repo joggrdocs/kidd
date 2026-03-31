@@ -1,6 +1,7 @@
 import { story } from '@kidd-cli/core/stories'
 import { z } from 'zod'
 
+import type { UserCardProps } from './UserCard'
 import { UserCard } from './UserCard'
 
 const schema = z.object({
@@ -11,7 +12,7 @@ const schema = z.object({
   loginCount: z.number().describe('Total login count'),
 })
 
-export default story({
+export default story<UserCardProps>({
   name: 'UserCard',
   component: UserCard,
   schema,

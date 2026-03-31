@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url'
 import { err, ok } from '@kidd-cli/utils/fp'
 import type { AsyncResult, Result } from '@kidd-cli/utils/fp'
 import { attempt, attemptAsync } from 'es-toolkit'
-import { z } from 'zod/v4'
+import { z } from 'zod'
 
 import { buildRunnerConfig } from './bun-config.js'
 import type { BunRunnerConfig } from './bun-config.js'

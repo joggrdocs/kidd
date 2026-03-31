@@ -61,6 +61,10 @@
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest"
   },
+  "engines": {
+    "node": ">=24",
+    "bun": ">=1.2"
+  },
   "dependencies": {
     "es-toolkit": "catalog:",
     "ts-pattern": "catalog:",

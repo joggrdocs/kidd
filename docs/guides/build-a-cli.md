@@ -4,7 +4,7 @@ Define commands, middleware, configuration, and use kidd's sub-exports to build 
 
 ## Prerequisites
 
-- Node.js 22+
+- Node.js 24+
 - `@kidd-cli/core` installed (`pnpm add @kidd-cli/core`)
 
 ## Steps

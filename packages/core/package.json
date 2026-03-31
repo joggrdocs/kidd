@@ -105,6 +105,10 @@
     "react": ">=18.0.0",
     "vitest": ">=2.0.0"
   },
+  "engines": {
+    "node": ">=24",
+    "bun": ">=1.2"
+  },
   "peerDependenciesMeta": {
     "jiti": {
       "optional": true

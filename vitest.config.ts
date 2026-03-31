@@ -32,6 +32,19 @@ export default defineConfig({
       'packages/config',
       'packages/core',
       'packages/utils',
+      {
+        test: {
+          name: 'integration',
+          include: ['tests/integration/**/*.test.ts'],
+          testTimeout: 30_000,
+        },
+      },
+      {
+        test: {
+          name: 'exports',
+          include: ['tests/exports.test.ts'],
+        },
+      },
     ],
   },
 })

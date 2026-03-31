@@ -1,3 +1,5 @@
+import { sep } from 'node:path'
+
 import { describe, expect, it } from 'vitest'
 
 import { createBinaryRunner, createNodeRunner } from '../helpers.js'
@@ -15,6 +17,7 @@ describe('examples/simple', () => {
         expect(help).toContain('tasks greet')
         expect(help).toContain('tasks init')
         expect(help).toContain('tasks list')
+        expect(help).toContain('tasks paths')
       })
 
       it('should display command descriptions', () => {
@@ -75,6 +78,67 @@ describe('examples/simple', () => {
         const output = run('list', '--json', '--status', 'active')
         const parsed = JSON.parse(output) as unknown[]
         expect(parsed).toHaveLength(3)
+      })
+    })
+
+    describe('paths', () => {
+      it('should output valid JSON with resolved paths', () => {
+        const output = run('paths')
+        const parsed = JSON.parse(output) as Record<string, unknown>
+        expect(parsed).toHaveProperty('cwd')
+        expect(parsed).toHaveProperty('globalDir')
+        expect(parsed).toHaveProperty('sep')
+      })
+
+      it('should use the OS-native path separator', () => {
+        const output = run('paths')
+        const parsed = JSON.parse(output) as { sep: string }
+        expect(parsed.sep).toBe(sep)
+      })
+
+      it('should resolve globalDir as an absolute path with native separators', () => {
+        const output = run('paths')
+        const parsed = JSON.parse(output) as { globalDir: string }
+        expect(parsed.globalDir).toContain(sep)
+        expect(parsed.globalDir).toContain('.tasks')
+      })
+
+      it('should resolve globalConfigPath with native separators', () => {
+        const output = run('paths')
+        const parsed = JSON.parse(output) as { globalConfigPath: string }
+        expect(parsed.globalConfigPath).toContain(`${sep}.tasks${sep}config.json`)
+      })
+
+      it('should resolve cwd as an absolute path with native separators', () => {
+        const output = run('paths')
+        const parsed = JSON.parse(output) as { cwd: string }
+        expect(parsed.cwd).toContain(sep)
+        expect(parsed.cwd).not.toBe('')
+      })
+
+      it('should not contain mixed path separators in any resolved path', () => {
+        const output = run('paths')
+        const parsed = JSON.parse(output) as Record<string, unknown>
+        const pathKeys = ['cwd', 'globalDir', 'globalConfigPath', 'localDir', 'localConfigPath']
+        pathKeys
+          .map((key) => parsed[key])
+          .filter((value): value is string => typeof value === 'string')
+          .reduce((_acc, value) => {
+            if (sep === '\\') {
+              expect(value).not.toContain('/')
+            }
+            return _acc
+          }, undefined)
+      })
+
+      it('should include meta with CLI name and dirs', () => {
+        const output = run('paths')
+        const parsed = JSON.parse(output) as {
+          meta: { name: string; dirs: { global: string; local: string } }
+        }
+        expect(parsed.meta.name).toBe('tasks')
+        expect(parsed.meta.dirs.global).toBe('.tasks')
+        expect(parsed.meta.dirs.local).toBe('.tasks')
       })
     })
   })

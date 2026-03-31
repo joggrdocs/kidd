@@ -20,9 +20,11 @@ concurrency:
   group: ci-integration-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-  ZIG_VERSION: '0.15.2'
 
 jobs:
   build:
@@ -30,6 +32,9 @@ jobs:
     runs-on: macos-latest
     if: ${{ !github.event.pull_request.draft }}
     timeout-minutes: 15
+    env:
+      TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+      TURBO_TEAM: ${{ vars.TURBO_TEAM }}
     steps:
       - name: 'Checkout code'
         uses: actions/checkout@v5
@@ -47,9 +52,9 @@ jobs:
         uses: oven-sh/setup-bun@v2
 
       - name: 'Setup Zig'
-        run: |
-          curl -sSfL "https://ziglang.org/download/${ZIG_VERSION}/zig-aarch64-macos-${ZIG_VERSION}.tar.xz" | tar -xJ -C "$RUNNER_TEMP"
-          echo "$RUNNER_TEMP/zig-aarch64-macos-${ZIG_VERSION}" >> "$GITHUB_PATH"
+        uses: mlugg/setup-zig@v2
+        with:
+          version: '0.15.2'
 
       - name: 'Install dependencies'
         run: pnpm install --frozen-lockfile
@@ -69,12 +74,8 @@ jobs:
           name: examples-dist
           retention-days: 1
           path: |
-            examples/simple/dist
-            examples/advanced/dist
-            examples/icons/dist
-            examples/diagnostic-output/dist
-            examples/authenticated-service/cli/dist
-            examples/tui/dist
+            examples/*/dist
+            examples/*/cli/dist
 
   test:
     name: 'test / ${{ matrix.name }}'

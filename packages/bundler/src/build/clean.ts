@@ -40,7 +40,7 @@ export function isCompiledBinary(filename: string): boolean {
  * Remove kidd build artifacts (and compiled binaries when enabled) from the
  * output directory.
  *
- * Unlike tsdown's built-in `clean: true` which deletes the entire output
+ * Unlike a blanket `clean: true` which deletes the entire output
  * directory, this function targets only files with known build artifact
  * extensions (`.js`, `.mjs`, `.js.map`, `.mjs.map`). When `compile` is
  * true, compiled binaries (extensionless or `.exe`) are also removed.

@@ -2,129 +2,68 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock(import('./generate-autoloader.js'))
 vi.mock(import('./scan-commands.js'))
+vi.mock(import('node:fs'))
 
 const { generateStaticAutoloader } = await import('./generate-autoloader.js')
 const { scanCommandsDir } = await import('./scan-commands.js')
+const { readFileSync } = await import('node:fs')
 const { createAutoloadPlugin } = await import('./autoload-plugin.js')
 
 const mockGenerateStaticAutoloader = vi.mocked(generateStaticAutoloader)
 const mockScanCommandsDir = vi.mocked(scanCommandsDir)
+const mockReadFileSync = vi.mocked(readFileSync)
 
 beforeEach(() => {
   vi.clearAllMocks()
 })
 
 describe('createAutoloadPlugin', () => {
-  describe('transform hook', () => {
-    it('should return null for non-kidd dist files', () => {
-      const plugin = createAutoloadPlugin({
-        commandsDir: '/project/commands',
-        tagModulePath: '/project/tag.js',
-      })
+  const onResolveCalls: Array<{ filter: RegExp; fn: Function }> = []
+  const onLoadCalls: Array<{ filter: RegExp; namespace?: string; fn: Function }> = []
+  const mockBuild = {
+    onResolve: vi.fn((opts: { filter: RegExp }, fn: Function) => {
+      onResolveCalls.push({ filter: opts.filter, fn })
+    }),
+    onLoad: vi.fn((opts: { filter: RegExp; namespace?: string }, fn: Function) => {
+      onLoadCalls.push({ filter: opts.filter, namespace: opts.namespace, fn })
+    }),
+  }
 
-      const result = plugin.transform('some code', '/other/package/dist/index.js')
+  beforeEach(() => {
+    onResolveCalls.length = 0
+    onLoadCalls.length = 0
 
-      expect(result).toBeNull()
+    const plugin = createAutoloadPlugin({
+      commandsDir: '/project/commands',
+      tagModulePath: '/project/tag.js',
+      coreDistPath: '/project/node_modules/@kidd-cli/core/dist/index.js',
     })
 
-    it('should return null when no region start marker found', () => {
-      const plugin = createAutoloadPlugin({
-        commandsDir: '/project/commands',
-        tagModulePath: '/project/tag.js',
+    plugin.setup(mockBuild as never)
+  })
+
+  describe('onResolve hook', () => {
+    it('should resolve virtual module ID', () => {
+      const resolveHook = onResolveCalls[0]
+      const result = resolveHook.fn({ path: 'virtual:kidd-static-commands' })
+
+      expect(result).toEqual({
+        namespace: 'kidd-autoload',
+        path: 'virtual:kidd-static-commands',
       })
-
-      const code = 'const x = 1\n//#endregion\n'
-      const result = plugin.transform(code, '/node_modules/kidd/dist/index.js')
-
-      expect(result).toBeNull()
-    })
-
-    it('should return null when no region end marker found', () => {
-      const plugin = createAutoloadPlugin({
-        commandsDir: '/project/commands',
-        tagModulePath: '/project/tag.js',
-      })
-
-      const code = 'const x = 1\n//#region src/autoload.ts\nsome content'
-      const result = plugin.transform(code, '/node_modules/kidd/dist/index.js')
-
-      expect(result).toBeNull()
-    })
-
-    it('should replace region with static import when markers found in kidd dist', () => {
-      const plugin = createAutoloadPlugin({
-        commandsDir: '/project/commands',
-        tagModulePath: '/project/tag.js',
-      })
-
-      const code = [
-        'const before = 1',
-        '//#region src/autoload.ts',
-        'async function autoload() { return {} }',
-        '//#endregion',
-        'const after = 2',
-      ].join('\n')
-
-      const result = plugin.transform(code, '/node_modules/kidd/dist/index.js')
-
-      expect(result).toContain('const before = 1')
-      expect(result).toContain('const after = 2')
-      expect(result).toContain('//#region src/autoload.ts (static)')
-      expect(result).toContain("await import('virtual:kidd-static-commands')")
-      expect(result).toContain('return mod.autoload()')
-      expect(result).not.toContain('async function autoload() { return {} }')
     })
   })
 
-  describe('resolveId hook', () => {
-    it('should resolve virtual module ID to prefixed ID', () => {
-      const plugin = createAutoloadPlugin({
-        commandsDir: '/project/commands',
-        tagModulePath: '/project/tag.js',
-      })
-
-      const result = plugin.resolveId('virtual:kidd-static-commands')
-
-      expect(result).toBe('\0virtual:kidd-static-commands')
-    })
-
-    it('should return null for non-virtual module IDs', () => {
-      const plugin = createAutoloadPlugin({
-        commandsDir: '/project/commands',
-        tagModulePath: '/project/tag.js',
-      })
-
-      const result = plugin.resolveId('./some-module.js')
-
-      expect(result).toBeNull()
-    })
-  })
-
-  describe('load hook', () => {
-    it('should return null for non-virtual module IDs', async () => {
-      const plugin = createAutoloadPlugin({
-        commandsDir: '/project/commands',
-        tagModulePath: '/project/tag.js',
-      })
-
-      const result = await plugin.load('./some-module.js')
-
-      expect(result).toBeNull()
-    })
-
+  describe('onLoad autoload hook', () => {
     it('should call scanCommandsDir and generateStaticAutoloader for virtual module', async () => {
       const scanResult = { dirs: [], files: [] }
       mockScanCommandsDir.mockResolvedValueOnce(scanResult)
       mockGenerateStaticAutoloader.mockReturnValueOnce('generated code')
 
-      const plugin = createAutoloadPlugin({
-        commandsDir: '/project/commands',
-        tagModulePath: '/project/tag.js',
-      })
+      const autoloadHook = onLoadCalls.find((c) => c.namespace === 'kidd-autoload')
+      const result = await autoloadHook.fn({})
 
-      const result = await plugin.load('\0virtual:kidd-static-commands')
-
-      expect(result).toBe('generated code')
+      expect(result).toEqual({ contents: 'generated code', loader: 'js' })
       expect(mockScanCommandsDir).toHaveBeenCalledOnce()
       expect(mockGenerateStaticAutoloader).toHaveBeenCalledOnce()
     })
@@ -134,18 +73,66 @@ describe('createAutoloadPlugin', () => {
       mockScanCommandsDir.mockResolvedValueOnce(scanResult)
       mockGenerateStaticAutoloader.mockReturnValueOnce('generated code')
 
-      const plugin = createAutoloadPlugin({
-        commandsDir: '/project/commands',
-        tagModulePath: '/project/tag.js',
-      })
-
-      await plugin.load('\0virtual:kidd-static-commands')
+      const autoloadHook = onLoadCalls.find((c) => c.namespace === 'kidd-autoload')
+      await autoloadHook.fn({})
 
       expect(mockScanCommandsDir).toHaveBeenCalledWith('/project/commands')
       expect(mockGenerateStaticAutoloader).toHaveBeenCalledWith({
         scan: scanResult,
         tagModulePath: '/project/tag.js',
       })
+    })
+  })
+
+  describe('onLoad transform hook', () => {
+    it('should return undefined when no region start marker found', () => {
+      const transformHook = onLoadCalls.find((c) => c.namespace !== 'kidd-autoload')
+
+      mockReadFileSync.mockReturnValueOnce('const x = 1\nconst y = 2\n')
+
+      const result = transformHook.fn({
+        path: '/project/node_modules/@kidd-cli/core/dist/index.js',
+      })
+
+      expect(result).toBeUndefined()
+    })
+
+    it('should replace region with static import when markers found', () => {
+      const transformHook = onLoadCalls.find((c) => c.namespace !== 'kidd-autoload')
+
+      const code = [
+        'const before = 1',
+        '//#region src/autoload.ts',
+        'async function autoload() { return {} }',
+        '//#endregion',
+        'const after = 2',
+      ].join('\n')
+
+      mockReadFileSync.mockReturnValueOnce(code)
+
+      const result = transformHook.fn({
+        path: '/project/node_modules/@kidd-cli/core/dist/index.js',
+      })
+
+      expect(result).toEqual({ contents: expect.any(String), loader: 'js' })
+      expect(result.contents).toContain('const before = 1')
+      expect(result.contents).toContain('const after = 2')
+      expect(result.contents).toContain('//#region src/autoload.ts (static)')
+      expect(result.contents).toContain("await import('virtual:kidd-static-commands')")
+      expect(result.contents).toContain('return mod.autoload()')
+      expect(result.contents).not.toContain('async function autoload() { return {} }')
+    })
+
+    it('should return undefined when code has end marker but no start marker', () => {
+      const transformHook = onLoadCalls.find((c) => c.namespace !== 'kidd-autoload')
+
+      mockReadFileSync.mockReturnValueOnce('const x = 1\n//#endregion\n')
+
+      const result = transformHook.fn({
+        path: '/project/node_modules/@kidd-cli/core/dist/index.js',
+      })
+
+      expect(result).toBeUndefined()
     })
   })
 })

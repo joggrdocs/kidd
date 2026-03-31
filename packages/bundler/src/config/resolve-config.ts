@@ -16,7 +16,7 @@ import {
 import type { ResolvedBundlerConfig } from '../types.js'
 
 /**
- * Known entry file names produced by tsdown for ESM builds, in preference order.
+ * Known entry file names produced by the bundler for ESM builds, in preference order.
  */
 const ENTRY_CANDIDATES = ['index.mjs', 'index.js'] as const
 
@@ -88,8 +88,8 @@ export function resolveConfig(params: {
 /**
  * Detect the bundled entry file in a build output directory.
  *
- * tsdown may produce `index.mjs` or `index.js` depending on the project's
- * `package.json` `type` field and tsdown configuration. This function checks
+ * The bundler may produce `index.mjs` or `index.js` depending on the project's
+ * `package.json` `type` field and bundler configuration. This function checks
  * for both candidates and returns the first one that exists on disk.
  *
  * @param outDir - Absolute path to the build output directory.

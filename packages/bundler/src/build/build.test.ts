@@ -1,50 +1,129 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-vi.mock(import('node:fs'))
-vi.mock(import('tsdown'))
+vi.mock(import('node:child_process'))
+vi.mock(import('node:fs/promises'))
 vi.mock(import('../config/read-version.js'))
+vi.mock(import('../config/resolve-config.js'))
+vi.mock(import('./bun-config.js'))
+vi.mock(import('./clean.js'))
 
-const { existsSync } = await import('node:fs')
-const { build: tsdownBuild } = await import('tsdown')
+const { execFile } = await import('node:child_process')
+const { readFile, writeFile, unlink } = await import('node:fs/promises')
 const { readVersion } = await import('../config/read-version.js')
+const { resolveConfig } = await import('../config/resolve-config.js')
+const { buildRunnerConfig } = await import('./bun-config.js')
 const { build } = await import('./build.js')
 
-const mockExistsSync = vi.mocked(existsSync)
-const mockTsdownBuild = vi.mocked(tsdownBuild)
+const mockExecFile = vi.mocked(execFile)
+const mockReadFile = vi.mocked(readFile)
+const mockWriteFile = vi.mocked(writeFile)
+const mockUnlink = vi.mocked(unlink)
 const mockReadVersion = vi.mocked(readVersion)
+const mockResolveConfig = vi.mocked(resolveConfig)
+const mockBuildRunnerConfig = vi.mocked(buildRunnerConfig)
+
+const SUCCESS_STDOUT = JSON.stringify({
+  success: true,
+  entryFile: '/project/dist/index.js',
+  errors: [],
+})
+
+const RESOLVED_CONFIG = {
+  entry: '/project/src/index.ts',
+  commands: '/project/commands',
+  buildOutDir: '/project/dist',
+  compileOutDir: '/project/dist',
+  build: {
+    target: 'node18',
+    minify: false,
+    sourcemap: true,
+    external: [],
+    clean: false,
+  },
+  compile: {
+    targets: [],
+    name: 'cli',
+  },
+  include: [],
+  cwd: '/project',
+} as const
+
+function mockExecFileSuccess(stdout: string = SUCCESS_STDOUT) {
+  mockExecFile.mockImplementation(
+    // @ts-expect-error -- callback signature mismatch with overloaded execFile
+    (_cmd: string, _args: string[], cb: (err: Error | null, stdout: string, stderr: string) => void) => {
+      cb(null, stdout, '')
+    },
+  )
+}
+
+function mockExecFileFailure(error: Error) {
+  mockExecFile.mockImplementation(
+    // @ts-expect-error -- callback signature mismatch with overloaded execFile
+    (_cmd: string, _args: string[], cb: (err: Error | null, stdout: string, stderr: string) => void) => {
+      cb(error, '', '')
+    },
+  )
+}
 
 beforeEach(() => {
   vi.clearAllMocks()
   mockReadVersion.mockResolvedValue([null, '1.0.0'])
+  mockResolveConfig.mockReturnValue(RESOLVED_CONFIG)
+  mockBuildRunnerConfig.mockReturnValue({
+    entry: '/project/src/index.ts',
+    outDir: '/project/dist',
+    commandsDir: '/project/commands',
+    tagModulePath: '/fake/tag.js',
+    coreDistPath: '/fake/core.js',
+    minify: false,
+    sourcemap: true,
+    target: 'node18',
+    define: {},
+    external: [],
+    compile: false,
+    stubPackages: [],
+    alwaysBundlePatterns: [],
+    nodeBuiltins: [],
+  })
+  // @ts-expect-error -- writeFile overload signature mismatch
+  mockWriteFile.mockResolvedValue(undefined)
+  mockUnlink.mockResolvedValue(undefined)
 })
 
 describe('build operation', () => {
   it('should return ok with build output on success', async () => {
-    mockTsdownBuild.mockResolvedValueOnce([])
-    mockExistsSync.mockImplementation((p) => String(p).endsWith('index.mjs'))
+    mockExecFileSuccess()
+    // @ts-expect-error -- readFile overload signature mismatch
+    mockReadFile.mockResolvedValueOnce('console.log("hello")')
 
     const [error, output] = await build({ config: {}, cwd: '/project' })
 
     expect(error).toBeNull()
     expect(output).toMatchObject({
-      entryFile: expect.stringMatching(/index\.mjs$/),
-      outDir: expect.stringContaining('dist'),
+      entryFile: '/project/dist/index.js',
+      outDir: '/project/dist',
       version: '1.0.0',
     })
   })
 
-  it('should return err with Error on tsdown failure', async () => {
-    mockTsdownBuild.mockRejectedValueOnce(new Error('tsdown crashed'))
+  it('should return err with Error on bun build failure', async () => {
+    mockExecFileFailure(new Error('bun crashed'))
+
     const [error, output] = await build({ config: {}, cwd: '/project' })
 
     expect(output).toBeNull()
     expect(error).toBeInstanceOf(Error)
-    expect(error).toMatchObject({ message: expect.stringContaining('tsdown build failed') })
+    expect(error).toMatchObject({ message: expect.stringContaining('bun build failed') })
   })
 
   it('should return err when no entry file is produced', async () => {
-    mockTsdownBuild.mockResolvedValueOnce([])
-    mockExistsSync.mockReturnValue(false)
+    const stdout = JSON.stringify({
+      success: true,
+      entryFile: undefined,
+      errors: [],
+    })
+    mockExecFileSuccess(stdout)
 
     const [error, output] = await build({ config: {}, cwd: '/project' })
 
@@ -53,19 +132,11 @@ describe('build operation', () => {
     expect(error).toMatchObject({ message: expect.stringContaining('no entry file') })
   })
 
-  it('should pass inline config to tsdown build', async () => {
-    mockTsdownBuild.mockResolvedValueOnce([])
-    mockExistsSync.mockImplementation((p) => String(p).endsWith('index.mjs'))
-
-    await build({ config: { build: { minify: true } }, cwd: '/project' })
-
-    expect(mockTsdownBuild).toHaveBeenCalledWith(expect.objectContaining({ minify: true }))
-  })
-
   it('should include version in build output', async () => {
     mockReadVersion.mockResolvedValueOnce([null, '2.5.0'])
-    mockTsdownBuild.mockResolvedValueOnce([])
-    mockExistsSync.mockImplementation((p) => String(p).endsWith('index.mjs'))
+    mockExecFileSuccess()
+    // @ts-expect-error -- readFile overload signature mismatch
+    mockReadFile.mockResolvedValueOnce('console.log("hello")')
 
     const [, output] = await build({ config: {}, cwd: '/project' })
 
@@ -74,8 +145,9 @@ describe('build operation', () => {
 
   it('should continue with undefined version when readVersion fails', async () => {
     mockReadVersion.mockResolvedValueOnce([new Error('ENOENT'), null])
-    mockTsdownBuild.mockResolvedValueOnce([])
-    mockExistsSync.mockImplementation((p) => String(p).endsWith('index.mjs'))
+    mockExecFileSuccess()
+    // @ts-expect-error -- readFile overload signature mismatch
+    mockReadFile.mockResolvedValueOnce('console.log("hello")')
 
     const [error, output] = await build({ config: {}, cwd: '/project' })
 
@@ -83,15 +155,18 @@ describe('build operation', () => {
     expect(output).toHaveProperty('version', undefined)
   })
 
-  it('should inject __KIDD_VERSION__ define when version is available', async () => {
-    mockReadVersion.mockResolvedValueOnce([null, '4.0.0'])
-    mockTsdownBuild.mockResolvedValueOnce([])
-    mockExistsSync.mockImplementation((p) => String(p).endsWith('index.mjs'))
+  it('should prepend shebang to entry file on success', async () => {
+    const originalContent = 'console.log("hello")'
+    mockExecFileSuccess()
+    // @ts-expect-error -- readFile overload signature mismatch
+    mockReadFile.mockResolvedValueOnce(originalContent)
 
     await build({ config: {}, cwd: '/project' })
 
-    expect(mockTsdownBuild).toHaveBeenCalledWith(
-      expect.objectContaining({ define: { __KIDD_VERSION__: '"4.0.0"' } })
+    expect(mockWriteFile).toHaveBeenCalledWith(
+      '/project/dist/index.js',
+      `#!/usr/bin/env node\n${originalContent}`,
+      'utf-8',
     )
   })
 })

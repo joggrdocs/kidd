@@ -1,10 +1,11 @@
-import type { Rolldown } from 'tsdown'
+import { readFileSync } from 'node:fs'
+
+import type { BunPlugin } from 'bun'
 
 import { generateStaticAutoloader } from './generate-autoloader.js'
 import { scanCommandsDir } from './scan-commands.js'
 
 const VIRTUAL_MODULE_ID = 'virtual:kidd-static-commands'
-const RESOLVED_VIRTUAL_ID = `\0${VIRTUAL_MODULE_ID}`
 
 const AUTOLOADER_REGION_START = '//#region src/autoload.ts'
 const AUTOLOADER_REGION_END = '//#endregion'
@@ -15,70 +16,87 @@ const AUTOLOADER_REGION_END = '//#endregion'
 interface CreateAutoloadPluginParams {
   readonly commandsDir: string
   readonly tagModulePath: string
+  readonly coreDistPath: string
 }
 
 /**
- * Create a rolldown plugin that replaces the runtime autoloader with a static version.
+ * Create a Bun plugin that replaces the runtime autoloader with a static version.
  *
- * Uses a three-hook approach to break the circular dependency between kidd's
- * dist and user command files (which `import { command } from '@kidd-cli/core'`):
+ * Uses three hooks to break the circular dependency between kidd's dist and
+ * user command files (which `import { command } from '@kidd-cli/core'`):
  *
- * 1. `transform` — detects kidd's pre-bundled dist and replaces the autoloader
- *    region with a dynamic `import()` to a virtual module
- * 2. `resolveId` — resolves the virtual module identifier
- * 3. `load` — scans the commands directory and generates a static autoloader
- *    module with all command imports pre-resolved
+ * 1. `onLoad` (core dist filter) — detects kidd's pre-bundled dist and replaces
+ *    the autoloader region with a dynamic `import()` to a virtual module
+ * 2. `onResolve` — resolves the virtual module identifier
+ * 3. `onLoad` (kidd-autoload namespace) — scans the commands directory and
+ *    generates a static autoloader module with all command imports pre-resolved
  *
- * The dynamic import ensures command files execute after kidd's code is fully
- * initialized, avoiding `ReferenceError` from accessing `TAG` before its
- * declaration.
- *
- * @param params - The commands directory and tag module path.
- * @returns A rolldown plugin for static autoloading.
+ * @param params - The commands directory, tag module path, and core dist path.
+ * @returns A BunPlugin for static autoloading.
  */
-export function createAutoloadPlugin(params: CreateAutoloadPluginParams): Rolldown.Plugin {
+export function createAutoloadPlugin(params: CreateAutoloadPluginParams): BunPlugin {
+  const coreDistEscaped = params.coreDistPath.replaceAll('.', '\\.').replaceAll('/', '\\/')
+  // oxlint-disable-next-line security/detect-non-literal-regexp
+  const coreDistFilter = new RegExp(coreDistEscaped)
+
   return {
-    async load(id) {
-      if (id !== RESOLVED_VIRTUAL_ID) {
-        return null
-      }
-
-      const scan = await scanCommandsDir(params.commandsDir)
-
-      return generateStaticAutoloader({
-        scan,
-        tagModulePath: params.tagModulePath,
-      })
-    },
     name: 'kidd-static-autoloader',
-    resolveId(source) {
-      if (source === VIRTUAL_MODULE_ID) {
-        return RESOLVED_VIRTUAL_ID
-      }
+    setup(build) {
+      build.onResolve({ filter: /^virtual:kidd-static-commands$/ }, () => ({
+        namespace: 'kidd-autoload',
+        path: VIRTUAL_MODULE_ID,
+      }))
 
-      return null
-    },
-    transform(code, _id) {
-      const regionStart = code.indexOf(AUTOLOADER_REGION_START)
-      if (regionStart === -1) {
-        return null
-      }
+      build.onLoad({ filter: /.*/, namespace: 'kidd-autoload' }, async () => {
+        const scan = await scanCommandsDir(params.commandsDir)
+        const contents = generateStaticAutoloader({
+          scan,
+          tagModulePath: params.tagModulePath,
+        })
 
-      const regionEnd = code.indexOf(AUTOLOADER_REGION_END, regionStart)
-      if (regionEnd === -1) {
-        return null
-      }
+        return { contents, loader: 'js' }
+      })
 
-      const before = code.slice(0, regionStart)
-      const after = code.slice(regionEnd + AUTOLOADER_REGION_END.length)
-      const staticRegion = buildStaticRegion()
+      build.onLoad({ filter: coreDistFilter }, (args) => {
+        const code = readFileSync(args.path, 'utf-8')
+        const transformed = transformAutoloaderRegion(code)
 
-      return `${before}${staticRegion}${after}`
+        if (!transformed) {
+          return undefined
+        }
+
+        return { contents: transformed, loader: 'js' }
+      })
     },
   }
 }
 
 // ---------------------------------------------------------------------------
+
+/**
+ * Replace the autoloader region in kidd's dist with a static import delegation.
+ *
+ * @private
+ * @param code - The source code to transform.
+ * @returns The transformed code, or `undefined` if no region markers were found.
+ */
+function transformAutoloaderRegion(code: string): string | undefined {
+  const regionStart = code.indexOf(AUTOLOADER_REGION_START)
+  if (regionStart === -1) {
+    return undefined
+  }
+
+  const regionEnd = code.indexOf(AUTOLOADER_REGION_END, regionStart)
+  if (regionEnd === -1) {
+    return undefined
+  }
+
+  const before = code.slice(0, regionStart)
+  const after = code.slice(regionEnd + AUTOLOADER_REGION_END.length)
+  const staticRegion = buildStaticRegion()
+
+  return `${before}${staticRegion}${after}`
+}
 
 /**
  * Build the replacement autoloader region that delegates to the virtual module.

@@ -1,37 +1,79 @@
-import { err, ok } from '@kidd-cli/utils/fp'
-import { attemptAsync } from 'es-toolkit'
-import { build as tsdownBuild } from 'tsdown'
+import { watch as fsWatch } from 'node:fs'
 
-import { mapToWatchConfig } from './map-config.js'
-import { readVersion } from '../config/read-version.js'
-import { resolveConfig } from '../config/resolve-config.js'
+import { err, ok } from '@kidd-cli/utils/fp'
+import { debounce } from 'es-toolkit'
+
+import { build } from './build.js'
 import type { AsyncBundlerResult, WatchParams } from '../types.js'
 
 /**
- * Start a watch-mode build for a kidd CLI tool using tsdown.
+ * Debounce interval in milliseconds for batching rapid file changes.
+ */
+const DEBOUNCE_MS = 250
+
+/**
+ * Start a watch-mode build for a kidd CLI tool.
  *
- * The returned promise resolves only when tsdown's watch terminates (typically on process exit).
- * tsdown's `build()` with `watch: true` runs indefinitely.
+ * Runs an initial build, then watches the project directory for file changes
+ * using `node:fs.watch`. Changes are debounced to avoid excessive rebuilds.
+ * The `onSuccess` callback fires after each successful build.
+ *
+ * The returned promise resolves only when the process receives SIGINT or SIGTERM.
  *
  * @param params - The watch parameters including config, working directory, and optional success callback.
  * @returns A result tuple with void on success or an Error on failure.
  */
 export async function watch(params: WatchParams): AsyncBundlerResult<void> {
-  const resolved = resolveConfig(params)
-
-  const [, versionResult] = await readVersion(params.cwd)
-  const version = versionResult ?? undefined
-
-  const watchConfig = mapToWatchConfig({
-    config: resolved,
-    onSuccess: params.onSuccess,
-    version,
-  })
-
-  const [watchError] = await attemptAsync(() => tsdownBuild(watchConfig))
-  if (watchError) {
-    return err(new Error('tsdown watch failed', { cause: watchError }))
+  const [initialError] = await build({ config: params.config, cwd: params.cwd })
+  if (initialError) {
+    return err(new Error('initial build failed', { cause: initialError }))
   }
 
-  return ok()
+  if (params.onSuccess) {
+    await params.onSuccess()
+  }
+
+  const rebuild = debounce(async () => {
+    const [rebuildError] = await build({ config: params.config, cwd: params.cwd })
+    if (!rebuildError && params.onSuccess) {
+      await params.onSuccess()
+    }
+  }, DEBOUNCE_MS)
+
+  const watcher = fsWatch(params.cwd, { recursive: true }, (_eventType, filename) => {
+    if (shouldIgnore(filename)) {
+      return
+    }
+
+    rebuild()
+  })
+
+  return new Promise((resolve) => {
+    const cleanup = () => {
+      watcher.close()
+      resolve(ok())
+    }
+
+    process.once('SIGINT', cleanup)
+    process.once('SIGTERM', cleanup)
+  })
+}
+
+// ---------------------------------------------------------------------------
+
+/**
+ * Check whether a changed file should be ignored by the watcher.
+ *
+ * Ignores changes inside `node_modules`, `dist`, and dotfile directories.
+ *
+ * @private
+ * @param filename - The relative filename from the watcher, or null.
+ * @returns `true` when the file change should be skipped.
+ */
+function shouldIgnore(filename: string | null): boolean {
+  if (!filename) {
+    return true
+  }
+
+  return filename.includes('node_modules') || filename.includes('dist') || filename.startsWith('.')
 }

@@ -13,6 +13,7 @@
     "lint": "oxlint --ignore-pattern node_modules",
     "lint:fix": "oxlint --fix --ignore-pattern node_modules",
     "build": "turbo run build --filter='./packages/*'",
+    "build:examples": "turbo run build --filter='./examples/*'",
     "dev": "turbo run dev",
     "stories": "pnpm build && kidd stories --cwd packages/core",
     "test": "turbo run test test:exports",

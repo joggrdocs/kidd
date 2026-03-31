@@ -116,28 +116,13 @@ describe('createExternalsPlugin', () => {
     expect(resolve({ path: 'kidd' })).toBeUndefined()
   })
 
-  it('should pass through non-builtin non-external bare specifiers in compile mode', () => {
+  it('should not register any onResolve handler in compile mode', () => {
     const plugin = createExternalsPlugin({ ...defaultParams, compile: true })
-    const { mockBuild, onResolveCalls } = createMockBuild()
+    const { mockBuild } = createMockBuild()
 
     plugin.setup(mockBuild as never)
 
-    const resolve = onResolveCalls[0].fn
-
-    expect(resolve({ path: 'lodash' })).toBeUndefined()
-    expect(resolve({ path: 'express' })).toBeUndefined()
-  })
-
-  it('should still mark builtins and user externals as external in compile mode', () => {
-    const plugin = createExternalsPlugin({ ...defaultParams, compile: true })
-    const { mockBuild, onResolveCalls } = createMockBuild()
-
-    plugin.setup(mockBuild as never)
-
-    const resolve = onResolveCalls[0].fn
-
-    expect(resolve({ path: 'fs' })).toStrictEqual({ external: true, path: 'fs' })
-    expect(resolve({ path: 'pg' })).toStrictEqual({ external: true, path: 'pg' })
+    expect(mockBuild.onResolve).not.toHaveBeenCalled()
   })
 })
 

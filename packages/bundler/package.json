@@ -3,8 +3,8 @@
   "version": "0.5.0",
   "description": "Programmatic bundler for kidd CLI tools powered by Bun",
   "keywords": [
-    "bundler",
     "bun",
+    "bundler",
     "cli",
     "kidd",
     "typescript"

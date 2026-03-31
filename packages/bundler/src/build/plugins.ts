@@ -1,14 +1,15 @@
 import type { BunPlugin } from 'bun'
 
-import { NODE_BUILTINS } from '../constants.js'
-
 /**
  * Create a Bun plugin that controls which modules are externalized.
  *
  * In normal mode: externalizes all bare specifiers EXCEPT those matching
  * the kidd namespace (which must be bundled for the autoload plugin).
- * In compile mode: only externalizes Node.js builtins and user-specified externals
- * (everything else is inlined for the standalone binary).
+ *
+ * In compile mode: relies on Bun's default bundling behavior (bundle everything)
+ * and only uses the `external` array passed to Bun.build for builtins/user externals.
+ * Returning `undefined` from `onResolve` in Bun causes modules to be treated as
+ * external, so compile mode must avoid registering a catch-all handler.
  *
  * @param params - The compile flag, user externals, and always-bundle patterns.
  * @returns A BunPlugin that handles externalization.
@@ -26,6 +27,10 @@ export function createExternalsPlugin(params: {
   return {
     name: 'kidd-externals',
     setup(build) {
+      if (params.compile) {
+        return
+      }
+
       build.onResolve({ filter: /.*/ }, (args) => {
         if (isRelativeOrAbsolute(args.path)) {
           return undefined
@@ -37,10 +42,6 @@ export function createExternalsPlugin(params: {
 
         if (userExternals.has(args.path)) {
           return { external: true, path: args.path }
-        }
-
-        if (params.compile) {
-          return undefined
         }
 
         const shouldBundle = alwaysBundleRegexes.some((re) => re.test(args.path))

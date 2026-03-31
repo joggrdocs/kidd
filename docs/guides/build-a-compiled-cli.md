@@ -290,7 +290,7 @@ node -e "import('@kidd-cli/bundler').then(b => b.build({ config: {}, cwd: proces
 
 **Issue:** `compile()` returns `bundled entry not found in ./dist -- run build() first`.
 
-**Fix:** Always call `build()` before `compile()`. Confirm `build.out` and `compile.out` resolve to the same directory (or that the build output directory contains `index.mjs` or `index.js`).
+**Fix:** Always call `build()` before `compile()`. Confirm `build.out` and `compile.out` resolve to the same directory (or that the build output directory contains `index.js`).
 
 ### `bun build --compile failed` for a target
 

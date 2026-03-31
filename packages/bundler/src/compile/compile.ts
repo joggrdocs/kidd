@@ -98,31 +98,28 @@ async function compileTargetsSequentially(params: {
   readonly targets: readonly CompileTarget[]
   readonly verbose: boolean
 }): Promise<readonly Result<CompiledBinary>[]> {
-  return params.targets.reduce<Promise<Result<CompiledBinary>[]>>(
-    async (accPromise, target) => {
-      const acc = await accPromise
+  return params.targets.reduce<Promise<Result<CompiledBinary>[]>>(async (accPromise, target) => {
+    const acc = await accPromise
 
-      if (params.onTargetStart) {
-        await params.onTargetStart(target)
-      }
+    if (params.onTargetStart) {
+      await params.onTargetStart(target)
+    }
 
-      const result = await compileSingleTarget({
-        bundledEntry: params.bundledEntry,
-        isMultiTarget: params.isMultiTarget,
-        name: params.name,
-        outDir: params.outDir,
-        target,
-        verbose: params.verbose,
-      })
+    const result = await compileSingleTarget({
+      bundledEntry: params.bundledEntry,
+      isMultiTarget: params.isMultiTarget,
+      name: params.name,
+      outDir: params.outDir,
+      target,
+      verbose: params.verbose,
+    })
 
-      if (result[0] === null && params.onTargetComplete) {
-        await params.onTargetComplete(target)
-      }
+    if (result[0] === null && params.onTargetComplete) {
+      await params.onTargetComplete(target)
+    }
 
-      return [...acc, result]
-    },
-    Promise.resolve([]),
-  )
+    return [...acc, result]
+  }, Promise.resolve([]))
 }
 
 /**

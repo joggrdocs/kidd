@@ -5,7 +5,7 @@ import { createBinaryRunner, createNodeRunner } from '../helpers.js'
 const runners = [
   {
     label: 'node',
-    run: createNodeRunner({ example: 'authenticated-service', distPath: 'cli/dist/index.mjs' }),
+    run: createNodeRunner({ example: 'authenticated-service', distPath: 'cli/dist/index.js' }),
   },
   {
     label: 'binary',

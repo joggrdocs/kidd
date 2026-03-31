@@ -49,7 +49,7 @@ type RunArgs = z.infer<typeof options>
  * Run the current kidd CLI project.
  *
  * Supports three engines:
- * - `node` (default) — builds first, then runs `node dist/index.mjs`
+ * - `node` (default) — builds first, then runs `node dist/index.js`
  * - `tsx` — runs the source entry file directly via `tsx`
  * - `binary` — builds and compiles, then executes the compiled binary
  *

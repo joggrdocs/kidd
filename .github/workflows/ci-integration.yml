@@ -1,4 +1,4 @@
-name: 'ci-integration'
+name: 'CI: OS Integration Tests'
 
 on:
   pull_request:

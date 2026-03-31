@@ -27,6 +27,9 @@
         "@examples/diagnostic-output#build",
         "@examples/authenticated-service#build"
       ]
+    },
+    "//#test:exports": {
+      "dependsOn": ["build"]
     }
   }
 }

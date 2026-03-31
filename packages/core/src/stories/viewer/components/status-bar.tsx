@@ -50,10 +50,9 @@ export function StatusBar({ mode, hasSelection, isReloading }: StatusBarProps): 
         .exhaustive()}
       <Spacer />
       {match(mode)
-        .with('interactive', () => null)
-        .otherwise(() => (
-          <QuitHint />
-        ))}
+        .with('browse', () => <QuitHint />)
+        .with('preview', () => <QuitHint />)
+        .otherwise(() => null)}
     </Box>
   )
 }

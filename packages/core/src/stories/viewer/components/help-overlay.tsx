@@ -7,10 +7,19 @@ import type { ReactElement } from 'react'
 
 const BROWSE_SHORTCUTS = [
   { key: 'Up/Down', description: 'Navigate story tree' },
-  { key: 'Enter', description: 'Select story / expand-collapse group' },
-  { key: 'i', description: 'Enter interactive mode' },
+  { key: 'Enter', description: 'Select story' },
   { key: 'b', description: 'Toggle sidebar' },
   { key: 'r', description: 'Reset props to defaults' },
+  { key: '?', description: 'Toggle help' },
+  { key: 'q', description: 'Quit' },
+] as const
+
+const PREVIEW_SHORTCUTS = [
+  { key: 'Enter', description: 'Edit props' },
+  { key: 'i', description: 'Enter interactive mode' },
+  { key: 'r', description: 'Reset props to defaults' },
+  { key: 'b', description: 'Toggle sidebar' },
+  { key: 'Esc', description: 'Back to browse' },
   { key: '?', description: 'Toggle help' },
   { key: 'q', description: 'Quit' },
 ] as const
@@ -18,11 +27,7 @@ const BROWSE_SHORTCUTS = [
 const EDIT_SHORTCUTS = [
   { key: 'Tab', description: 'Cycle to next prop' },
   { key: 'Left/Right', description: 'Switch between prop fields' },
-  { key: 'Esc', description: 'Back to story browser' },
-  { key: 'b', description: 'Toggle sidebar' },
-  { key: 'r', description: 'Reset props to defaults' },
-  { key: '?', description: 'Toggle help' },
-  { key: 'q', description: 'Quit' },
+  { key: 'Esc', description: 'Back to preview' },
 ] as const
 
 const INTERACTIVE_SHORTCUTS = [{ key: 'Esc Esc', description: 'Exit interactive mode' }] as const
@@ -64,6 +69,18 @@ export function HelpOverlay({ onClose }: HelpOverlayProps): ReactElement {
         Browse Mode
       </Text>
       {BROWSE_SHORTCUTS.map((shortcut) => (
+        <Box key={shortcut.key} gap={2}>
+          <Box width={12}>
+            <Text color="cyan">{shortcut.key}</Text>
+          </Box>
+          <Text>{shortcut.description}</Text>
+        </Box>
+      ))}
+      <Text> </Text>
+      <Text bold color="blue">
+        Preview Mode
+      </Text>
+      {PREVIEW_SHORTCUTS.map((shortcut) => (
         <Box key={shortcut.key} gap={2}>
           <Box width={12}>
             <Text color="cyan">{shortcut.key}</Text>

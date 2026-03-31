@@ -8,7 +8,7 @@ import type { Argv } from 'yargs'
 import { z } from 'zod'
 
 import type { DisplayConfig } from '@/context/types.js'
-import { exitOnError, installCrashHandlers } from '@/lib/crash.js'
+import { exitOnError, registerCrashHandlers } from '@/lib/crash.js'
 import type {
   CliOptions,
   CommandMap,
@@ -36,7 +36,7 @@ const ARGV_SLICE_START = 2
 export async function cli<TSchema extends z.ZodType = z.ZodType>(
   options: CliOptions<TSchema>
 ): Promise<void> {
-  installCrashHandlers(options.name)
+  registerCrashHandlers(options.name)
 
   const [uncaughtError, result] = await attemptAsync(async () => {
     const [versionError, version] = resolveVersion(options.version)

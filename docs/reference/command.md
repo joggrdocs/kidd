@@ -22,19 +22,18 @@ const deploy = command({
 
 ## CommandDef
 
-| Field         | Type                                     | Default | Description                                                    |
-| ------------- | ---------------------------------------- | ------- | -------------------------------------------------------------- |
-| `description` | `Resolvable<string>`                     | --      | Human-readable description (static or function)                |
-| `options`     | `ArgsDef`                                | --      | Option (flag) definitions -- Zod schema or yargs-native format |
-| `positionals` | `ArgsDef`                                | --      | Positional argument definitions                                |
-| `handler`     | `(ctx: CommandContext) => Promise<void>` | --      | Command handler function                                       |
-| `middleware`  | `Middleware[]`                           | --      | Command-scoped middleware                                      |
-| `commands`    | `CommandMap`                             | --      | Nested subcommands                                             |
-| `help`        | `HelpOptions`                            | --      | Help output customization (header, footer, subcommand order)   |
-| `hidden`      | `Resolvable<boolean>`                    | --      | When true, hidden from help output                             |
-| `deprecated`  | `Resolvable<string \| boolean>`          | --      | Marks the command as deprecated                                |
-| `name`        | `string`                                 | --      | Explicit command name (overrides autoload filename)            |
-| `aliases`     | `readonly string[]`                      | --      | Alternative names                                              |
+| Field         | Type                              | Default | Description                                                    |
+| ------------- | --------------------------------- | ------- | -------------------------------------------------------------- |
+| `description` | `Resolvable<string>`              | --      | Human-readable description (static or function)                |
+| `options`     | `ArgsDef`                         | --      | Option (flag) definitions -- Zod schema or yargs-native format |
+| `positionals` | `ArgsDef`                         | --      | Positional argument definitions                                |
+| `handler`     | `(ctx: Context) => Promise<void>` | --      | Command handler function                                       |
+| `middleware`  | `Middleware[]`                    | --      | Command-scoped middleware                                      |
+| `commands`    | `CommandMap`                      | --      | Nested subcommands                                             |
+| `hidden`      | `Resolvable<boolean>`             | --      | When true, hidden from help output                             |
+| `deprecated`  | `Resolvable<string \| boolean>`   | --      | Marks the command as deprecated                                |
+| `name`        | `string`                          | --      | Explicit command name (overrides autoload filename)            |
+| `aliases`     | `readonly string[]`               | --      | Alternative names                                              |
 
 ## Yargs-native arg format
 

@@ -137,7 +137,7 @@ function ScanScreen({ verbose }: { readonly verbose: boolean }): ReactElement {
  */
 export default screen({
   description: 'Run a simulated lint + test scan with live output',
-  exit: 'auto',
+  exit: 'manual',
   options: z.object({
     verbose: z.boolean().default(false).describe('Show extra scan details'),
   }),

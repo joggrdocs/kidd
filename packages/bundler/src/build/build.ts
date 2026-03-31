@@ -1,4 +1,5 @@
 import { execFile as execFileCb } from 'node:child_process'
+import { randomUUID } from 'node:crypto'
 import { readFile, unlink, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { tmpdir } from 'node:os'
@@ -92,7 +93,7 @@ export async function build(params: BuildParams): AsyncBundlerResult<BuildOutput
 async function spawnBunBuild(
   config: BunRunnerConfig
 ): AsyncBundlerResult<RunnerResult> {
-  const configPath = join(tmpdir(), `kidd-build-${Date.now()}.json`)
+  const configPath = join(tmpdir(), `kidd-build-${randomUUID()}.json`)
   await writeFile(configPath, JSON.stringify(config), 'utf-8')
 
   const runnerPath = join(dirname(fileURLToPath(import.meta.url)), 'bun-runner.js')

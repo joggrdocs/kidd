@@ -6,7 +6,7 @@ Bundle and compile a kidd CLI into standalone binaries using `@kidd-cli/bundler`
 
 - An existing kidd CLI project with `@kidd-cli/core`
 - Node.js 24+
-- Bun 1.2+ installed (required for the compile step)
+- Bun 1.3+ installed (required for the compile step)
 - `@kidd-cli/bundler` installed (`pnpm add -D @kidd-cli/bundler`)
 
 ## Overview
@@ -296,7 +296,7 @@ node -e "import('@kidd-cli/bundler').then(b => b.build({ config: {}, cwd: proces
 
 **Issue:** Compilation fails for a specific target.
 
-**Fix:** Ensure Bun is installed and up to date (`bun --version`). Cross-compilation requires Bun 1.2+. The `linux-x64-musl` target maps to Bun's standard Linux x64 target -- there is no separate musl binary in Bun.
+**Fix:** Ensure Bun is installed and up to date (`bun --version`). Cross-compilation requires Bun 1.3+. The `linux-x64-musl` target maps to Bun's standard Linux x64 target -- there is no separate musl binary in Bun.
 
 ### Autoloader finds no commands
 

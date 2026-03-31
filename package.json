@@ -16,7 +16,7 @@
     "dev": "turbo run dev",
     "stories": "pnpm build && kidd stories --cwd packages/core",
     "test": "turbo run test test:integration",
-    "test:integration": "vitest run --config vitest.exports.config.ts",
+    "test:integration": "vitest run --project integration --project exports",
     "test:coverage": "turbo run test:coverage --filter='./packages/*'",
     "test:watch": "turbo run build --filter='./packages/*' && vitest",
     "typecheck": "turbo run typecheck --filter='./packages/*'",

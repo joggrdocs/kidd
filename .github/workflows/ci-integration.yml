@@ -7,6 +7,10 @@ on:
       - packages/**
       - examples/**
       - tests/**
+      - vitest.config.ts
+      - package.json
+      - pnpm-lock.yaml
+      - turbo.json
       - .github/workflows/ci-integration.yml
   push:
     branches: [main]
@@ -14,6 +18,10 @@ on:
       - packages/**
       - examples/**
       - tests/**
+      - vitest.config.ts
+      - package.json
+      - pnpm-lock.yaml
+      - turbo.json
       - .github/workflows/ci-integration.yml
 
 concurrency:

@@ -1,0 +1,152 @@
+name: 'ci-integration'
+
+on:
+  pull_request:
+    types: [synchronize, opened, reopened, ready_for_review]
+    paths:
+      - packages/**
+      - examples/**
+      - tests/**
+      - .github/workflows/ci-integration.yml
+  push:
+    branches: [main]
+    paths:
+      - packages/**
+      - examples/**
+      - tests/**
+      - .github/workflows/ci-integration.yml
+
+concurrency:
+  group: ci-integration-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  ZIG_VERSION: '0.15.2'
+
+jobs:
+  build:
+    name: 'build'
+    runs-on: macos-latest
+    if: ${{ !github.event.pull_request.draft }}
+    timeout-minutes: 15
+    steps:
+      - name: 'Checkout code'
+        uses: actions/checkout@v5
+
+      - name: 'Setup pnpm'
+        uses: pnpm/action-setup@v4
+
+      - name: 'Setup Node.js'
+        uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+
+      - name: 'Setup Bun'
+        uses: oven-sh/setup-bun@v2
+
+      - name: 'Setup Zig'
+        run: |
+          curl -sSfL "https://ziglang.org/download/${ZIG_VERSION}/zig-aarch64-macos-${ZIG_VERSION}.tar.xz" | tar -xJ -C "$RUNNER_TEMP"
+          echo "$RUNNER_TEMP/zig-aarch64-macos-${ZIG_VERSION}" >> "$GITHUB_PATH"
+
+      - name: 'Install dependencies'
+        run: pnpm install --frozen-lockfile
+
+      - name: 'Build packages'
+        run: pnpm build
+
+      - name: 'Rebuild bin links'
+        run: pnpm install --frozen-lockfile
+
+      - name: 'Build examples (all platforms)'
+        run: pnpm turbo run build --filter='./examples/*'
+
+      - name: 'Upload example dist artifacts'
+        uses: actions/upload-artifact@v4
+        with:
+          name: examples-dist
+          retention-days: 1
+          path: |
+            examples/simple/dist
+            examples/advanced/dist
+            examples/icons/dist
+            examples/diagnostic-output/dist
+            examples/authenticated-service/cli/dist
+            examples/tui/dist
+
+  test:
+    name: 'test / ${{ matrix.name }}'
+    needs: build
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            name: macOS ARM
+          - os: macos-15-intel
+            name: macOS Intel
+          - os: ubuntu-latest
+            name: Linux x64
+          - os: windows-latest
+            name: Windows x64
+        # ──────────────────────────────────────────────────────────────
+        # Platform notes:
+        #
+        #   macos-15-intel — Paid runner ($0.062/min, no free tier).
+        #                    This is the last Intel macOS image GitHub
+        #                    will offer, available until August 2027.
+        #                    After that, x86_64 macOS is unsupported.
+        #
+        # Missing platforms (not testable with standard GitHub runners):
+        #
+        #   linux-arm64    — GitHub does not offer ARM64 Linux runners
+        #                    in the standard tier. Available only as
+        #                    "larger runners" which require a paid
+        #                    GitHub Teams or Enterprise plan.
+        #
+        #   linux-x64-musl — Standard ubuntu-latest runners use glibc.
+        #                    Testing musl would require a container-based
+        #                    job (e.g. alpine:latest), but kidd produces
+        #                    a standalone binary so the glibc test on
+        #                    ubuntu-latest provides sufficient coverage
+        #                    for the Linux x64 code path. The musl
+        #                    binary is a link-time variant, not a
+        #                    separate code path.
+        # ──────────────────────────────────────────────────────────────
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: 'Checkout code'
+        uses: actions/checkout@v5
+
+      - name: 'Setup pnpm'
+        uses: pnpm/action-setup@v4
+
+      - name: 'Setup Node.js'
+        uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+
+      - name: 'Install dependencies'
+        run: pnpm install --frozen-lockfile
+
+      - name: 'Download example dist artifacts'
+        uses: actions/download-artifact@v4
+        with:
+          name: examples-dist
+          path: examples
+
+      - name: 'Restore binary permissions'
+        if: runner.os != 'Windows'
+        run: |
+          find examples -name 'cli-*' -type f -exec chmod +x {} +
+          find examples -name '*.mjs' -path '*/dist/*' -type f -exec chmod +x {} +
+
+      - name: 'Build packages'
+        run: pnpm build
+
+      - name: 'Run integration tests'
+        run: pnpm test:integration

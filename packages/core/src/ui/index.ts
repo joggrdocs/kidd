@@ -16,7 +16,7 @@ export {
   useCursor,
   useFocus,
   useFocusManager,
-  useInput as useInkInput,
+  useInput,
   useIsScreenReaderEnabled,
   useStderr,
   useStdin,
@@ -133,9 +133,6 @@ export type { ThemeColor, Variant } from './theme.js'
 // ---------------------------------------------------------------------------
 // Input
 // ---------------------------------------------------------------------------
-
-export { useInput } from './use-input.js'
-export type { UseInputOptions } from './use-input.js'
 
 export { useHotkey } from './use-key-binding.js'
 export type { UseHotkeyArgs } from './use-key-binding.js'

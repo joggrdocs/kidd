@@ -1,10 +1,9 @@
-import { Box, Text } from 'ink'
+import { Box, Text, useInput } from 'ink'
 import type { ReactElement } from 'react'
 import { useState } from 'react'
 import { match } from 'ts-pattern'
 
 import { ErrorMessage } from '../display/error-message.js'
-import { useInput } from '../use-input.js'
 import { CursorValue } from './cursor-value.js'
 import type { InputState } from './input-state.js'
 import { resolveNextState } from './input-state.js'

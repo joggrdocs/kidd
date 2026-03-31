@@ -1,13 +1,12 @@
 import { hasTag } from '@kidd-cli/utils/tag'
 import type { DOMElement } from 'ink'
-import { Box, Text } from 'ink'
+import { Box, Text, useInput } from 'ink'
 import type { ReactElement } from 'react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { match } from 'ts-pattern'
 
 import { ScrollArea } from '../../../ui/layout/scroll-area.js'
 import { useSize } from '../../../ui/layout/use-size.js'
-import { useInput } from '../../../ui/use-input.js'
 import type { Story, StoryEntry, StoryGroup } from '../../types.js'
 
 // ---------------------------------------------------------------------------

@@ -10,4 +10,4 @@ Replace implicit input gating with explicit `PromptProps` (`focused`, `disabled`
 - Remove `@inkjs/ui` dependency (no longer needed)
 - Rename `isDisabled` to `disabled` across all prompts and stories
 - Stories viewer passes `focused` explicitly to story components in preview mode
-- `useInput` wrapper simplified to a direct proxy of ink's `useInput`
+- Remove `useInput` proxy wrapper — all components now import `useInput` directly from `ink`

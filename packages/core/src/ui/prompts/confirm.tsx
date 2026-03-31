@@ -1,10 +1,9 @@
-import { Box, Text } from 'ink'
+import { Box, Text, useInput } from 'ink'
 import type { ReactElement } from 'react'
 import { useState } from 'react'
 import { match } from 'ts-pattern'
 
 import { colors } from '../theme.js'
-import { useInput } from '../use-input.js'
 import type { PromptProps } from './types.js'
 
 // ---------------------------------------------------------------------------

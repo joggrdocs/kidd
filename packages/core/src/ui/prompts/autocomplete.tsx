@@ -1,11 +1,10 @@
-import { Box, Text } from 'ink'
+import { Box, Text, useInput } from 'ink'
 import type { ReactElement } from 'react'
 import { useMemo, useState } from 'react'
 import { match } from 'ts-pattern'
 
 import { ScrollArea } from '../layout/scroll-area.js'
 import { colors, symbols } from '../theme.js'
-import { useInput } from '../use-input.js'
 import { CursorValue } from './cursor-value.js'
 import { resolveInitialIndex } from './navigation.js'
 import { OptionRow } from './option-row.js'

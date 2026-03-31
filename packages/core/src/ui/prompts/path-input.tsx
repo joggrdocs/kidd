@@ -1,14 +1,13 @@
 import { readdirSync, statSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 
-import { Box, Text } from 'ink'
+import { Box, Text, useInput } from 'ink'
 import type { ReactElement } from 'react'
 import { useState } from 'react'
 import { match } from 'ts-pattern'
 
 import { ErrorMessage } from '../display/error-message.js'
 import { colors } from '../theme.js'
-import { useInput } from '../use-input.js'
 import { insertCharAt, removeCharAt } from './string-utils.js'
 import type { PromptProps } from './types.js'
 

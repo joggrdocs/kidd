@@ -1,10 +1,10 @@
 import type { Key } from 'ink'
+import { useInput } from 'ink'
 import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { match } from 'ts-pattern'
 
 import type { NormalizedKeyEvent, ParsedKeyPattern } from './keys.js'
 import { matchesSequence, matchesSingleKey, normalizeKey, parseKeyPattern } from './keys.js'
-import { useInput } from './use-input.js'
 
 // ---------------------------------------------------------------------------
 // Constants

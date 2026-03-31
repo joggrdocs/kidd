@@ -1,7 +1,5 @@
-import { Box, Text } from 'ink'
+import { Box, Text, useInput } from 'ink'
 import type { ReactElement } from 'react'
-
-import { useInput } from '../../../ui/use-input.js'
 
 // ---------------------------------------------------------------------------
 // Constants

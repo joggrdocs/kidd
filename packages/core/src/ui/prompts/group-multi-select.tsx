@@ -1,4 +1,4 @@
-import { Box, Text } from 'ink'
+import { Box, Text, useInput } from 'ink'
 import picocolors from 'picocolors'
 import type { ReactElement } from 'react'
 import { useEffect, useMemo, useState } from 'react'
@@ -6,7 +6,6 @@ import { match } from 'ts-pattern'
 
 import { ErrorMessage } from '../display/error-message.js'
 import { colors, symbols } from '../theme.js'
-import { useInput } from '../use-input.js'
 import type { PromptOption, PromptProps } from './types.js'
 
 // ---------------------------------------------------------------------------

@@ -1,10 +1,10 @@
+import { useInput } from 'ink'
 import type { ReactElement } from 'react'
 import { useState } from 'react'
 import { match } from 'ts-pattern'
 
 import { ScrollArea } from '../layout/scroll-area.js'
 import { symbols } from '../theme.js'
-import { useInput } from '../use-input.js'
 import { resolveDirection, resolveInitialIndex, resolveNextFocusIndex } from './navigation.js'
 import { OptionRow } from './option-row.js'
 import type { PromptOption, PromptProps } from './types.js'

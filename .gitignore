@@ -153,3 +153,6 @@ vite.config.ts.timestamp-*
 .zpress/content/
 .zpress/dist/
 .zpress/cache/
+
+# bun
+*.bun-build

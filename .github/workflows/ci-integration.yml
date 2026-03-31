@@ -1,4 +1,31 @@
-name: 'CI: OS Integration Tests'
+# ──────────────────────────────────────────────────────────────
+# CI Integration Tests
+# ──────────────────────────────────────────────────────────────
+#
+# Platform notes:
+#
+#   macos-15-intel — Paid runner ($0.062/min, no free tier).
+#                    This is the last Intel macOS image GitHub
+#                    will offer, available until August 2027.
+#                    After that, x86_64 macOS is unsupported.
+#
+# Missing platforms (not testable with standard GitHub runners):
+#
+#   linux-arm64    — GitHub does not offer ARM64 Linux runners
+#                    in the standard tier. Available only as
+#                    "larger runners" which require a paid
+#                    GitHub Teams or Enterprise plan.
+#
+#   linux-x64-musl — Standard ubuntu-latest runners use glibc.
+#                    Testing musl would require a container-based
+#                    job (e.g. alpine:latest), but kidd produces
+#                    a standalone binary so the glibc test on
+#                    ubuntu-latest provides sufficient coverage
+#                    for the Linux x64 code path. The musl
+#                    binary is a link-time variant, not a
+#                    separate code path.
+# ──────────────────────────────────────────────────────────────
+name: 'ci-integration'
 
 on:
   pull_request:
@@ -36,7 +63,7 @@ env:
 
 jobs:
   build:
-    name: 'build'
+    name: 'Setup & Build'
     runs-on: macos-latest
     if: ${{ !github.event.pull_request.draft }}
     timeout-minutes: 15
@@ -59,11 +86,6 @@ jobs:
       - name: 'Setup Bun'
         uses: oven-sh/setup-bun@v2
 
-      - name: 'Setup Zig'
-        uses: mlugg/setup-zig@v2
-        with:
-          version: '0.15.2'
-
       - name: 'Install dependencies'
         run: pnpm install --frozen-lockfile
 
@@ -76,7 +98,7 @@ jobs:
       - name: 'Build examples (all platforms)'
         run: pnpm turbo run build --filter='./examples/*'
 
-      - name: 'Upload example dist artifacts'
+      - name: 'Upload build artifacts'
         uses: actions/upload-artifact@v4
         with:
           name: examples-dist
@@ -84,12 +106,12 @@ jobs:
           path: |
             examples/**/dist
 
-  test:
-    name: 'test / ${{ matrix.name }}'
+  test-os:
+    name: 'Integration / ${{ matrix.name }}'
     needs: build
     timeout-minutes: 10
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         include:
           - os: macos-latest
@@ -100,30 +122,7 @@ jobs:
             name: Linux x64
           - os: windows-latest
             name: Windows x64
-        # ──────────────────────────────────────────────────────────────
-        # Platform notes:
-        #
-        #   macos-15-intel — Paid runner ($0.062/min, no free tier).
-        #                    This is the last Intel macOS image GitHub
-        #                    will offer, available until August 2027.
-        #                    After that, x86_64 macOS is unsupported.
-        #
-        # Missing platforms (not testable with standard GitHub runners):
-        #
-        #   linux-arm64    — GitHub does not offer ARM64 Linux runners
-        #                    in the standard tier. Available only as
-        #                    "larger runners" which require a paid
-        #                    GitHub Teams or Enterprise plan.
-        #
-        #   linux-x64-musl — Standard ubuntu-latest runners use glibc.
-        #                    Testing musl would require a container-based
-        #                    job (e.g. alpine:latest), but kidd produces
-        #                    a standalone binary so the glibc test on
-        #                    ubuntu-latest provides sufficient coverage
-        #                    for the Linux x64 code path. The musl
-        #                    binary is a link-time variant, not a
-        #                    separate code path.
-        # ──────────────────────────────────────────────────────────────
+
     runs-on: ${{ matrix.os }}
     steps:
       - name: 'Checkout code'
@@ -141,7 +140,7 @@ jobs:
       - name: 'Install dependencies'
         run: pnpm install --frozen-lockfile
 
-      - name: 'Download example dist artifacts'
+      - name: 'Download build artifacts'
         uses: actions/download-artifact@v4
         with:
           name: examples-dist

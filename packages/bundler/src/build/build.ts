@@ -6,8 +6,9 @@ import { tmpdir } from 'node:os'
 import { fileURLToPath } from 'node:url'
 
 import { err, ok } from '@kidd-cli/utils/fp'
-import type { AsyncResult } from '@kidd-cli/utils/fp'
+import type { AsyncResult, Result } from '@kidd-cli/utils/fp'
 import { attempt, attemptAsync } from 'es-toolkit'
+import { z } from 'zod/v4'
 
 import { buildRunnerConfig } from './bun-config.js'
 import type { BunRunnerConfig } from './bun-config.js'
@@ -18,13 +19,18 @@ import { SHEBANG } from '../constants.js'
 import type { AsyncBundlerResult, BuildOutput, BuildParams } from '../types.js'
 
 /**
+ * Schema for validating the JSON result from the Bun runner subprocess.
+ */
+const RunnerResultSchema = z.object({
+  success: z.boolean(),
+  entryFile: z.string().optional(),
+  errors: z.array(z.string()),
+})
+
+/**
  * Result returned from the Bun runner subprocess.
  */
-interface RunnerResult {
-  readonly success: boolean
-  readonly entryFile: string | undefined
-  readonly errors: readonly string[]
-}
+type RunnerResult = z.infer<typeof RunnerResultSchema>
 
 /**
  * Build a kidd CLI tool using Bun.build via a subprocess.
@@ -94,7 +100,12 @@ async function spawnBunBuild(
   config: BunRunnerConfig
 ): AsyncBundlerResult<RunnerResult> {
   const configPath = join(tmpdir(), `kidd-build-${randomUUID()}.json`)
-  await writeFile(configPath, JSON.stringify(config), 'utf-8')
+  const [writeConfigError] = await attemptAsync(() =>
+    writeFile(configPath, JSON.stringify(config), 'utf-8')
+  )
+  if (writeConfigError) {
+    return err(new Error(`failed to write bun config ${configPath}`, { cause: writeConfigError }))
+  }
 
   const runnerPath = join(dirname(fileURLToPath(import.meta.url)), 'bun-runner.js')
 
@@ -102,13 +113,10 @@ async function spawnBunBuild(
 
   await unlink(configPath).catch(() => undefined)
 
-  if (execError) {
-    return err(new Error('bun build failed', { cause: execError }))
-  }
-
-  const parsed = parseRunnerResult(stdout)
-  if (!parsed) {
-    return err(new Error('failed to parse bun build result'))
+  const [parseError, parsed] = parseRunnerResult(stdout ?? '')
+  if (parseError) {
+    const cause = execError ?? parseError
+    return err(new Error('failed to parse bun build result', { cause }))
   }
 
   if (!parsed.success) {
@@ -116,6 +124,10 @@ async function spawnBunBuild(
       ? `bun build failed: ${parsed.errors.join(', ')}`
       : 'bun build failed'
     return err(new Error(message))
+  }
+
+  if (execError) {
+    return err(new Error('bun build failed', { cause: execError }))
   }
 
   return ok(parsed)
@@ -145,38 +157,46 @@ async function prependShebang(filePath: string): AsyncResult<void> {
 }
 
 /**
- * Parse the JSON result from the runner subprocess stdout.
+ * Parse and validate the JSON result from the runner subprocess stdout.
  *
  * @private
  * @param stdout - The raw stdout string from the subprocess.
- * @returns The parsed runner result, or `undefined` if parsing fails.
+ * @returns A result tuple with the validated runner result or an Error.
  */
-function parseRunnerResult(stdout: string): RunnerResult | undefined {
-  const [parseError, result] = attempt(() => JSON.parse(stdout) as RunnerResult)
-  if (parseError) {
-    return undefined
+function parseRunnerResult(stdout: string): Result<RunnerResult> {
+  const [jsonError, json] = attempt(() => JSON.parse(stdout) as unknown)
+  if (jsonError) {
+    return err(new Error('failed to parse runner JSON', { cause: jsonError }))
   }
 
-  return result ?? undefined
+  const validated = RunnerResultSchema.safeParse(json)
+  if (!validated.success) {
+    return err(new Error('invalid runner result shape', { cause: validated.error }))
+  }
+
+  return ok(validated.data)
 }
 
 /**
  * Promisified wrapper around `execFile` to invoke `bun`.
  *
+ * Always returns stdout so the caller can attempt to parse structured output
+ * even when the subprocess exits with a non-zero code.
+ *
  * @private
  * @param args - Arguments to pass to `bun`.
- * @returns A result tuple with stdout on success or an Error on failure.
+ * @returns A tuple of `[error | null, stdout]` where stdout is always present.
  */
-function execBun(args: readonly string[]): AsyncResult<string> {
+function execBun(args: readonly string[]): Promise<readonly [Error | null, string]> {
   return new Promise((resolve) => {
     execFileCb('bun', [...args], (error, stdout, stderr) => {
       if (error) {
         const enriched = Object.assign(error, { stderr })
-        resolve(err(enriched))
+        resolve([enriched, stdout ?? ''])
         return
       }
 
-      resolve(ok(stdout))
+      resolve([null, stdout])
     })
   })
 }

@@ -18,21 +18,12 @@ beforeEach(() => {
 })
 
 describe('createAutoloadPlugin', () => {
-  const onResolveCalls: Array<{ filter: RegExp; fn: Function }> = []
-  const onLoadCalls: Array<{ filter: RegExp; namespace?: string; fn: Function }> = []
   const mockBuild = {
-    onResolve: vi.fn((opts: { filter: RegExp }, fn: Function) => {
-      onResolveCalls.push({ filter: opts.filter, fn })
-    }),
-    onLoad: vi.fn((opts: { filter: RegExp; namespace?: string }, fn: Function) => {
-      onLoadCalls.push({ filter: opts.filter, namespace: opts.namespace, fn })
-    }),
+    onResolve: vi.fn(),
+    onLoad: vi.fn(),
   }
 
   beforeEach(() => {
-    onResolveCalls.length = 0
-    onLoadCalls.length = 0
-
     const plugin = createAutoloadPlugin({
       commandsDir: '/project/commands',
       tagModulePath: '/project/tag.js',
@@ -44,8 +35,8 @@ describe('createAutoloadPlugin', () => {
 
   describe('onResolve hook', () => {
     it('should resolve virtual module ID', () => {
-      const resolveHook = onResolveCalls[0]
-      const result = resolveHook.fn({ path: 'virtual:kidd-static-commands' })
+      const [, resolveFn] = mockBuild.onResolve.mock.calls[0]
+      const result = resolveFn({ path: 'virtual:kidd-static-commands' })
 
       expect(result).toEqual({
         namespace: 'kidd-autoload',
@@ -60,8 +51,10 @@ describe('createAutoloadPlugin', () => {
       mockScanCommandsDir.mockResolvedValueOnce(scanResult)
       mockGenerateStaticAutoloader.mockReturnValueOnce('generated code')
 
-      const autoloadHook = onLoadCalls.find((c) => c.namespace === 'kidd-autoload')
-      const result = await autoloadHook.fn({})
+      const autoloadCall = mockBuild.onLoad.mock.calls.find(
+        ([opts]) => opts.namespace === 'kidd-autoload'
+      )
+      const result = await autoloadCall[1]({})
 
       expect(result).toEqual({ contents: 'generated code', loader: 'js' })
       expect(mockScanCommandsDir).toHaveBeenCalledOnce()
@@ -73,8 +66,10 @@ describe('createAutoloadPlugin', () => {
       mockScanCommandsDir.mockResolvedValueOnce(scanResult)
       mockGenerateStaticAutoloader.mockReturnValueOnce('generated code')
 
-      const autoloadHook = onLoadCalls.find((c) => c.namespace === 'kidd-autoload')
-      await autoloadHook.fn({})
+      const autoloadCall = mockBuild.onLoad.mock.calls.find(
+        ([opts]) => opts.namespace === 'kidd-autoload'
+      )
+      await autoloadCall[1]({})
 
       expect(mockScanCommandsDir).toHaveBeenCalledWith('/project/commands')
       expect(mockGenerateStaticAutoloader).toHaveBeenCalledWith({
@@ -86,11 +81,13 @@ describe('createAutoloadPlugin', () => {
 
   describe('onLoad transform hook', () => {
     it('should return undefined when no region start marker found', () => {
-      const transformHook = onLoadCalls.find((c) => c.namespace !== 'kidd-autoload')
+      const transformCall = mockBuild.onLoad.mock.calls.find(
+        ([opts]) => opts.namespace !== 'kidd-autoload'
+      )
 
       mockReadFileSync.mockReturnValueOnce('const x = 1\nconst y = 2\n')
 
-      const result = transformHook.fn({
+      const result = transformCall[1]({
         path: '/project/node_modules/@kidd-cli/core/dist/index.js',
       })
 
@@ -98,7 +95,9 @@ describe('createAutoloadPlugin', () => {
     })
 
     it('should replace region with static import when markers found', () => {
-      const transformHook = onLoadCalls.find((c) => c.namespace !== 'kidd-autoload')
+      const transformCall = mockBuild.onLoad.mock.calls.find(
+        ([opts]) => opts.namespace !== 'kidd-autoload'
+      )
 
       const code = [
         'const before = 1',
@@ -110,7 +109,7 @@ describe('createAutoloadPlugin', () => {
 
       mockReadFileSync.mockReturnValueOnce(code)
 
-      const result = transformHook.fn({
+      const result = transformCall[1]({
         path: '/project/node_modules/@kidd-cli/core/dist/index.js',
       })
 
@@ -124,11 +123,13 @@ describe('createAutoloadPlugin', () => {
     })
 
     it('should return undefined when code has end marker but no start marker', () => {
-      const transformHook = onLoadCalls.find((c) => c.namespace !== 'kidd-autoload')
+      const transformCall = mockBuild.onLoad.mock.calls.find(
+        ([opts]) => opts.namespace !== 'kidd-autoload'
+      )
 
       mockReadFileSync.mockReturnValueOnce('const x = 1\n//#endregion\n')
 
-      const result = transformHook.fn({
+      const result = transformCall[1]({
         path: '/project/node_modules/@kidd-cli/core/dist/index.js',
       })
 

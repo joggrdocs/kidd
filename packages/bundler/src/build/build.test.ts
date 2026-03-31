@@ -114,7 +114,10 @@ describe('build operation', () => {
 
     expect(output).toBeNull()
     expect(error).toBeInstanceOf(Error)
-    expect(error).toMatchObject({ message: expect.stringContaining('bun build failed') })
+    expect(error).toMatchObject({
+      message: expect.stringContaining('failed to parse bun build result'),
+      cause: expect.objectContaining({ message: 'bun crashed' }),
+    })
   })
 
   it('should return err when no entry file is produced', async () => {

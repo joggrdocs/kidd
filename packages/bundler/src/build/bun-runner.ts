@@ -51,6 +51,7 @@ async function main(): Promise<void> {
     entrypoints: [config.entry],
     external: [...config.nodeBuiltins, ...config.external],
     minify: config.minify,
+    naming: '[dir]/[name].mjs',
     outdir: config.outDir,
     plugins,
     sourcemap: config.sourcemap ? 'linked' : 'none',

@@ -38,7 +38,7 @@ export type Decorator = (
 /**
  * Input definition for a single story created via {@link story}.
  */
-export interface StoryDef<TProps extends Record<string, unknown>> {
+export interface StoryDef<TProps extends object> {
   readonly name: string
   readonly component: ComponentType<TProps>
   readonly schema: z.ZodObject<z.ZodRawShape>
@@ -50,7 +50,7 @@ export interface StoryDef<TProps extends Record<string, unknown>> {
 /**
  * A single variant inside a {@link StoriesGroupDef}.
  */
-export interface StoryVariantDef<TProps extends Record<string, unknown>> {
+export interface StoryVariantDef<TProps extends object> {
   readonly props: TProps
   readonly decorators?: readonly Decorator[]
   readonly description?: string
@@ -64,7 +64,7 @@ export interface StoryVariantDef<TProps extends Record<string, unknown>> {
  * you define fixed context (services, events, etc.) that stays constant
  * while variant props are the editable knobs.
  */
-export interface StoriesGroupDef<TProps extends Record<string, unknown>> {
+export interface StoriesGroupDef<TProps extends object> {
   readonly title: string
   readonly component: ComponentType<TProps>
   readonly schema: z.ZodObject<z.ZodRawShape>
@@ -77,7 +77,7 @@ export interface StoriesGroupDef<TProps extends Record<string, unknown>> {
  * Tagged output of the {@link story} factory. Represents a single renderable
  * story bound to a component, schema, and default props.
  */
-export type Story<TProps extends Record<string, unknown> = Record<string, unknown>> = Tagged<
+export type Story<TProps extends object = Record<string, unknown>> = Tagged<
   {
     readonly name: string
     readonly component: ComponentType<TProps>

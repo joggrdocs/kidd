@@ -12,9 +12,7 @@ import type { StoriesGroupDef, Story, StoryDef, StoryGroup } from './types.js'
  * @param def - The story definition including component, schema, and default props.
  * @returns A frozen {@link Story} tagged with `'Story'`.
  */
-export function story<TProps extends Record<string, unknown>>(
-  def: StoryDef<TProps>
-): Story<TProps> {
+export function story<TProps extends object>(def: StoryDef<TProps>): Story<TProps> {
   const tagged = withTag(
     {
       name: def.name,
@@ -39,9 +37,7 @@ export function story<TProps extends Record<string, unknown>>(
  * @param def - The group definition including title, component, schema, and variant map.
  * @returns A frozen {@link StoryGroup} tagged with `'StoryGroup'`.
  */
-export function stories<TProps extends Record<string, unknown>>(
-  def: StoriesGroupDef<TProps>
-): StoryGroup {
+export function stories<TProps extends object>(def: StoriesGroupDef<TProps>): StoryGroup {
   const groupDecorators = Object.freeze(def.decorators ?? [])
   const defaults = def.defaults ?? ({} as Partial<Record<string, unknown>>)
   const defaultKeys = Object.keys(defaults) as readonly string[]

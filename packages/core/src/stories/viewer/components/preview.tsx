@@ -47,6 +47,7 @@ interface PreviewProps {
   readonly errors: readonly FieldError[]
   readonly onPropsChange: (name: string, value: unknown) => void
   readonly isFocused: boolean
+  readonly editable?: boolean
   readonly borderless?: boolean
   readonly interactive?: boolean
 }
@@ -75,6 +76,7 @@ export function Preview({
   errors,
   onPropsChange,
   isFocused,
+  editable = false,
   borderless = false,
   interactive = false,
 }: PreviewProps): ReactElement {
@@ -150,7 +152,7 @@ export function Preview({
       <Box ref={contentRef} flexDirection="column" flexGrow={1}>
         <ScrollArea height={Math.max(1, componentAreaHeight)}>
           <ErrorBoundary key={context.displayName}>
-            <DecoratedComponent {...currentProps} />
+            <DecoratedComponent {...currentProps} focused={false} />
           </ErrorBoundary>
         </ScrollArea>
         <Box height={propsAreaHeight} overflow="hidden" flexDirection="column">
@@ -159,7 +161,7 @@ export function Preview({
             values={currentProps}
             errors={errors}
             onChange={onPropsChange}
-            isFocused={isFocused}
+            isFocused={editable}
           />
         </Box>
       </Box>

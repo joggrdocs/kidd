@@ -3,10 +3,29 @@
 // ---------------------------------------------------------------------------
 
 /**
+ * Shared props for all interactive prompt components.
+ *
+ * Every prompt accepts `focused` and `disabled` so that hosts (like the
+ * stories viewer) can control input routing through explicit props.
+ *
+ * - `focused` — whether the component currently owns keyboard input.
+ * - `disabled` — whether the component is visually and functionally disabled.
+ *
+ * When neither is provided, the component defaults to focused and enabled.
+ */
+export interface PromptProps {
+  /** Whether the component currently has input focus. @default true */
+  readonly focused?: boolean
+
+  /** Whether the component is visually and functionally disabled. @default false */
+  readonly disabled?: boolean
+}
+
+/**
  * A single option in a prompt component.
  *
- * Replaces `@inkjs/ui`'s `Option` (`{ label: string, value: string }`)
- * with support for generic values, disabled state, and hint text.
+ * A single option in a prompt component with support for generic values,
+ * disabled state, and hint text.
  *
  * @typeParam TValue - The type of the option's value.
  */

@@ -1,9 +1,12 @@
-import type { Option } from '@inkjs/ui'
-import { ConfirmInput, MultiSelect, Select, TextInput } from '@inkjs/ui'
 import { Box, Text } from 'ink'
 import type { ReactElement } from 'react'
 import { match } from 'ts-pattern'
 
+import { Confirm } from '../../../ui/prompts/confirm.js'
+import { MultiSelect } from '../../../ui/prompts/multi-select.js'
+import { Select } from '../../../ui/prompts/select.js'
+import { TextInput } from '../../../ui/prompts/text-input.js'
+import type { PromptOption } from '../../../ui/prompts/types.js'
 import type { FieldControlKind } from '../../types.js'
 
 // ---------------------------------------------------------------------------
@@ -44,35 +47,31 @@ export function FieldControl({
     .with('text', () => (
       <TextInput
         defaultValue={valueToString(value)}
-        isDisabled={!isFocused}
+        focused={isFocused}
         onSubmit={(submitted) => onChange(submitted)}
       />
     ))
     .with('number', () => (
       <TextInput
         defaultValue={valueToString(value)}
-        isDisabled={!isFocused}
+        focused={isFocused}
         onSubmit={(submitted) => onChange(parseNumericValue(submitted))}
       />
     ))
     .with('boolean', () => (
-      <Box>
-        <ConfirmInput
-          isDisabled={!isFocused}
-          defaultChoice={match(value)
-            .with(true, () => 'confirm' as const)
-            .otherwise(() => 'cancel' as const)}
-          onConfirm={() => onChange(true)}
-          onCancel={() => onChange(false)}
-        />
-        <Text dimColor> (current: {String(value)})</Text>
-      </Box>
+      <Confirm
+        defaultValue={match(value)
+          .with(true, () => true)
+          .otherwise(() => false)}
+        focused={isFocused}
+        onSubmit={(submitted) => onChange(submitted)}
+      />
     ))
     .with('select', () => {
       const selectOptions = buildSelectOptions(options)
       return (
         <Select
-          isDisabled={!isFocused}
+          focused={isFocused}
           options={selectOptions}
           onChange={(selected) => onChange(selected)}
         />
@@ -84,7 +83,7 @@ export function FieldControl({
       return (
         <Box flexDirection="column">
           <MultiSelect
-            isDisabled={!isFocused}
+            focused={isFocused}
             options={selectOptions}
             defaultValue={defaultSelected}
             onSubmit={(selectedValues) => onChange(selectedValues)}
@@ -96,7 +95,7 @@ export function FieldControl({
     .with('json', () => (
       <TextInput
         defaultValue={stringifyJsonValue(value)}
-        isDisabled={!isFocused}
+        focused={isFocused}
         onSubmit={(submitted) => onChange(parseJsonValue(submitted))}
       />
     ))
@@ -160,7 +159,9 @@ function parseNumericValue(input: string): number {
  * @param options - The raw string options.
  * @returns An array of label/value option objects.
  */
-function buildSelectOptions(options: readonly string[] | undefined): Option[] {
+function buildSelectOptions(
+  options: readonly string[] | undefined
+): readonly PromptOption<string>[] {
   if (options === undefined) {
     return []
   }

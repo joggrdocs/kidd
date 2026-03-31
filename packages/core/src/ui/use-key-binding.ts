@@ -25,12 +25,12 @@ const MIN_HISTORY_LENGTH = 10
 // ---------------------------------------------------------------------------
 
 /**
- * Arguments for the {@link useKeyBinding} hook.
+ * Arguments for the {@link useHotkey} hook.
  *
  * Each call binds one action to one or more key patterns. Use multiple
- * `useKeyBinding` calls for independent actions.
+ * `useHotkey` calls for independent actions.
  */
-export interface UseKeyBindingArgs {
+export interface UseHotkeyArgs {
   /**
    * Key patterns that trigger the action (e.g. `['q']`, `['escape escape']`).
    */
@@ -65,18 +65,18 @@ interface KeyHistoryEntry extends NormalizedKeyEvent {
 /**
  * Bind one or more key patterns to a single action. Supports single keys
  * (`'q'`), modifier combinations (`'ctrl+c'`), and space-separated
- * sequences (`'escape escape'`). Use multiple `useKeyBinding` calls for
+ * sequences (`'escape escape'`). Use multiple `useHotkey` calls for
  * independent actions.
  *
  * @param args - Key patterns, action callback, and optional configuration.
  * @returns Nothing.
  */
-export function useKeyBinding({
+export function useHotkey({
   keys,
   action,
   active = true,
   sequenceTimeout = DEFAULT_SEQUENCE_TIMEOUT,
-}: UseKeyBindingArgs): void {
+}: UseHotkeyArgs): void {
   const historyRef = useRef<KeyHistoryEntry[]>([])
   const actionRef = useRef(action)
   const activeRef = useRef(active)

@@ -3,7 +3,7 @@ import type { ReactElement } from 'react'
 import { match } from 'ts-pattern'
 
 import { colors } from '../theme.js'
-import type { PromptOption } from './types.js'
+import type { PromptOption, PromptProps } from './types.js'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -12,15 +12,12 @@ import type { PromptOption } from './types.js'
 /**
  * Props for the {@link SelectKey} component.
  */
-export interface SelectKeyProps<TValue extends string> {
+export interface SelectKeyProps<TValue extends string> extends PromptProps {
   /** Options where each `value` is a single key character. */
   readonly options: readonly PromptOption<TValue>[]
 
   /** Called when the user presses a matching key. */
   readonly onSubmit?: (value: TValue) => void
-
-  /** When `true`, the component does not respond to input. */
-  readonly isDisabled?: boolean
 }
 
 // ---------------------------------------------------------------------------
@@ -41,7 +38,8 @@ export interface SelectKeyProps<TValue extends string> {
 export function SelectKey<TValue extends string>({
   options,
   onSubmit,
-  isDisabled = false,
+  focused = true,
+  disabled = false,
 }: SelectKeyProps<TValue>): ReactElement {
   useInput(
     (input) => {
@@ -53,13 +51,13 @@ export function SelectKey<TValue extends string>({
         onSubmit(matched.value)
       }
     },
-    { isActive: !isDisabled }
+    { isActive: focused && !disabled }
   )
 
   return (
     <Box flexDirection="column">
       {options.map((option) => (
-        <KeyOptionRow key={option.value} option={option} isDisabled={isDisabled} />
+        <KeyOptionRow key={option.value} option={option} disabled={disabled} />
       ))}
     </Box>
   )
@@ -76,7 +74,7 @@ export function SelectKey<TValue extends string>({
  */
 interface KeyOptionRowProps<TValue extends string = string> {
   readonly option: PromptOption<TValue>
-  readonly isDisabled: boolean
+  readonly disabled: boolean
 }
 
 /**
@@ -86,15 +84,15 @@ interface KeyOptionRowProps<TValue extends string = string> {
  * @param props - The row props.
  * @returns A rendered row element.
  */
-function KeyOptionRow({ option, isDisabled }: KeyOptionRowProps): ReactElement {
-  const disabled = isDisabled || (option.disabled ?? false)
+function KeyOptionRow({ option, disabled }: KeyOptionRowProps): ReactElement {
+  const isOptionDisabled = disabled || (option.disabled ?? false)
   const keyChar = option.value.charAt(0)
   const restLabel = option.label.slice(1)
   const startsWithKey = option.label.charAt(0).toLowerCase() === keyChar.toLowerCase()
 
   return (
     <Box>
-      {match(disabled)
+      {match(isOptionDisabled)
         .with(true, () => (
           <Text dimColor>
             {'  '}[{keyChar}] {option.label}

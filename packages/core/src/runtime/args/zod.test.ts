@@ -150,12 +150,30 @@ describe('zodSchemaToYargsOptions()', () => {
     })
   })
 
-  it('should fall back to string type for enum fields', () => {
+  it('should extract choices for a required enum field', () => {
     const schema = z.object({ color: z.enum(['red', 'green', 'blue']) })
     const result = zodSchemaToYargsOptions(schema)
 
     expect(result).toEqual({
-      color: { demandOption: true, type: 'string' },
+      color: { choices: ['red', 'green', 'blue'], demandOption: true, type: 'string' },
+    })
+  })
+
+  it('should extract choices for an optional enum field', () => {
+    const schema = z.object({ color: z.enum(['red', 'green', 'blue']).optional() })
+    const result = zodSchemaToYargsOptions(schema)
+
+    expect(result).toEqual({
+      color: { choices: ['red', 'green', 'blue'], type: 'string' },
+    })
+  })
+
+  it('should extract choices for an enum field with a default', () => {
+    const schema = z.object({ color: z.enum(['red', 'green', 'blue']).default('red') })
+    const result = zodSchemaToYargsOptions(schema)
+
+    expect(result).toEqual({
+      color: { choices: ['red', 'green', 'blue'], default: 'red', type: 'string' },
     })
   })
 })
@@ -215,12 +233,12 @@ describe('zodSchemaToYargsPositionals()', () => {
     })
   })
 
-  it('should fall back to string for enum positional types', () => {
+  it('should extract choices for enum positional types', () => {
     const schema = z.object({ env: z.enum(['dev', 'prod']) })
     const result = zodSchemaToYargsPositionals(schema)
 
     expect(result).toEqual({
-      env: { demandOption: true, type: 'string' },
+      env: { choices: ['dev', 'prod'], demandOption: true, type: 'string' },
     })
   })
 

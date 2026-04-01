@@ -72,9 +72,9 @@ export async function build(params: BuildParams): AsyncBundlerResult<BuildOutput
     return err(new Error(`build produced no entry file in ${resolved.buildOutDir}`))
   }
 
-  const [shebanError] = await prependShebang(buildResult.entryFile)
-  if (shebanError) {
-    return err(new Error('failed to prepend shebang to entry file', { cause: shebanError }))
+  const [shebangError] = await prependShebang(buildResult.entryFile)
+  if (shebangError) {
+    return err(new Error('failed to prepend shebang to entry file', { cause: shebangError }))
   }
 
   return ok({
@@ -191,7 +191,8 @@ function execBun(args: readonly string[]): Promise<readonly [Error | null, strin
   return new Promise((resolve) => {
     execFileCb('bun', [...args], (error, stdout, stderr) => {
       if (error) {
-        const enriched = Object.assign(error, { stderr })
+        const enriched = new Error(error.message, { cause: error })
+        Object.defineProperty(enriched, 'stderr', { enumerable: true, value: stderr })
         resolve([enriched, stdout ?? ''])
         return
       }

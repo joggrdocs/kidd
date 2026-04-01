@@ -286,7 +286,8 @@ function execBunBuild(args: readonly string[]): AsyncResult<string> {
   return new Promise((resolve) => {
     execFileCb('bun', [...args], (error, stdout, stderr) => {
       if (error) {
-        const enriched = Object.assign(error, { stderr })
+        const enriched = new Error(error.message, { cause: error })
+        Object.defineProperty(enriched, 'stderr', { enumerable: true, value: stderr })
         resolve(err(enriched))
         return
       }

@@ -93,13 +93,13 @@ function formatCause(cause: unknown): readonly string[] {
  * @returns The path to the written log file, or `undefined` on failure.
  */
 function writeCrashLog(error: Error): string | undefined {
-  const timestamp = new Date().toISOString().replaceAll(':', '-')
-  const filename = `kidd-crash-${timestamp}.log`
+  const now = new Date().toISOString()
+  const filename = `kidd-crash-${now.replaceAll(':', '-')}.log`
   const logPath = join(tmpdir(), filename)
 
   const lines = [
     'Kidd Crash Log',
-    `Timestamp: ${new Date().toISOString()}`,
+    `Timestamp: ${now}`,
     `Node: ${process.version}`,
     `Platform: ${process.platform} ${process.arch}`,
     `CWD: ${process.cwd()}`,

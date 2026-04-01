@@ -75,5 +75,6 @@ function shouldIgnore(filename: string | null): boolean {
     return true
   }
 
-  return filename.includes('node_modules') || filename.includes('dist') || filename.startsWith('.')
+  const segments = filename.split('/')
+  return segments.some((seg) => seg === 'node_modules' || seg === 'dist' || seg.startsWith('.'))
 }

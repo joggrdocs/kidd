@@ -1,5 +1,7 @@
 import { readFileSync } from 'node:fs'
 
+import { attempt } from 'es-toolkit'
+
 import { createAutoloadPlugin } from '../autoloader/autoload-plugin.js'
 import { createExternalsPlugin, createStubPlugin } from './plugins.js'
 import type { BunRunnerConfig } from './bun-config.js'
@@ -29,7 +31,14 @@ async function main(): Promise<void> {
     process.exit(1)
   }
 
-  const config: BunRunnerConfig = JSON.parse(readFileSync(configPath, 'utf-8'))
+  const [configParseError, config] = attempt(
+    () => JSON.parse(readFileSync(configPath, 'utf-8')) as BunRunnerConfig
+  )
+  if (configParseError || !config) {
+    writeResult({ entryFile: undefined, errors: [`failed to parse config: ${String(configParseError)}`], success: false })
+    process.exit(1)
+    return
+  }
 
   const plugins = [
     createAutoloadPlugin({

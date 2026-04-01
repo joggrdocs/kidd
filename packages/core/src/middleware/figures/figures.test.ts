@@ -94,6 +94,28 @@ describe('figures()', () => {
     expect(figuresCtx['cross']).toBe(defaultFigures.cross)
   })
 
+  it('should use default figures when options object is provided without figures property', async () => {
+    const ctx = createMockCtx()
+    const mw = figures({})
+    const next = vi.fn()
+
+    await mw.handler(ctx as never, next)
+
+    const figuresCtx = (ctx as Record<string, unknown>)['figures'] as Record<string, string>
+    expect(figuresCtx).toBe(defaultFigures)
+  })
+
+  it('should use default figures when options.figures is undefined', async () => {
+    const ctx = createMockCtx()
+    const mw = figures({ figures: undefined })
+    const next = vi.fn()
+
+    await mw.handler(ctx as never, next)
+
+    const figuresCtx = (ctx as Record<string, unknown>)['figures'] as Record<string, string>
+    expect(figuresCtx).toBe(defaultFigures)
+  })
+
   it('should call next after decorating', async () => {
     const ctx = createMockCtx()
     const mw = figures()

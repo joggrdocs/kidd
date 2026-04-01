@@ -171,6 +171,30 @@ describe('installNerdFont()', () => {
       expect(value).toBeFalsy()
     })
 
+    it('should return ok(false) when font selection returns a symbol', async () => {
+      const ctx = createMockCtx()
+      vi.mocked(listSystemFonts).mockResolvedValue([null, []])
+      vi.mocked(ctx.prompts.select).mockResolvedValue(Symbol.for('cancel'))
+
+      const [error, value] = await installNerdFont({ ctx })
+
+      expect(error).toBeNull()
+      expect(value).toBeFalsy()
+    })
+
+    it('should return ok(false) when action selection returns a symbol', async () => {
+      const ctx = createMockCtx()
+      vi.mocked(listSystemFonts).mockResolvedValue([null, []])
+      vi.mocked(ctx.prompts.select)
+        .mockResolvedValueOnce('JetBrainsMono')
+        .mockResolvedValueOnce(Symbol.for('cancel'))
+
+      const [error, value] = await installNerdFont({ ctx })
+
+      expect(error).toBeNull()
+      expect(value).toBeFalsy()
+    })
+
     it('should return ok(false) when user cancels action selection', async () => {
       const ctx = createMockCtx()
       vi.mocked(listSystemFonts).mockResolvedValue([null, []])
@@ -182,6 +206,30 @@ describe('installNerdFont()', () => {
 
       expect(error).toBeNull()
       expect(value).toBeFalsy()
+    })
+
+    it('should return error when selected font name fails validation', async () => {
+      const ctx = createMockCtx()
+      vi.mocked(listSystemFonts).mockResolvedValue([null, []])
+      vi.mocked(ctx.prompts.select).mockResolvedValueOnce('Invalid Font Name With Spaces')
+
+      const [error] = await installNerdFont({ ctx })
+
+      expect(error).toMatchObject({ type: 'install_failed' })
+      expect(error?.message).toContain('Invalid font name')
+    })
+
+    it('should return empty array from detectMatchingFonts when listSystemFonts fails', async () => {
+      const ctx = createMockCtx()
+      vi.mocked(listSystemFonts).mockResolvedValue([new Error('listing failed'), null])
+      vi.mocked(ctx.prompts.select).mockResolvedValue(undefined)
+
+      const [error, value] = await installNerdFont({ ctx })
+
+      expect(error).toBeNull()
+      expect(value).toBeFalsy()
+      // Spinner should still run
+      expect(ctx.status.spinner.start).toHaveBeenCalledWith('Detecting installed fonts...')
     })
   })
 
@@ -214,6 +262,60 @@ describe('installNerdFont()', () => {
       expect(error).toBeNull()
       expect(value).toBeFalsy()
       expect(ctx.log.info).toHaveBeenCalled()
+    })
+  })
+
+  describe('selection flow with show commands on windows', () => {
+    const originalPlatform = process.platform
+
+    beforeEach(() => {
+      Object.defineProperty(process, 'platform', { value: 'win32' })
+    })
+
+    afterEach(() => {
+      Object.defineProperty(process, 'platform', { value: originalPlatform })
+    })
+
+    it('should display download URL for unsupported platforms', async () => {
+      const ctx = createMockCtx()
+      vi.mocked(listSystemFonts).mockResolvedValue([null, []])
+      vi.mocked(ctx.prompts.select)
+        .mockResolvedValueOnce('JetBrainsMono')
+        .mockResolvedValueOnce('commands')
+
+      const [error, value] = await installNerdFont({ ctx })
+
+      expect(error).toBeNull()
+      expect(value).toBeFalsy()
+      expect(ctx.log.info).toHaveBeenCalledWith(
+        expect.stringContaining('https://github.com/ryanoasis/nerd-fonts')
+      )
+    })
+  })
+
+  describe('selection flow with show commands on linux', () => {
+    const originalPlatform = process.platform
+
+    beforeEach(() => {
+      Object.defineProperty(process, 'platform', { value: 'linux' })
+    })
+
+    afterEach(() => {
+      Object.defineProperty(process, 'platform', { value: originalPlatform })
+    })
+
+    it('should display linux install commands with fc-cache', async () => {
+      const ctx = createMockCtx()
+      vi.mocked(listSystemFonts).mockResolvedValue([null, []])
+      vi.mocked(ctx.prompts.select)
+        .mockResolvedValueOnce('JetBrainsMono')
+        .mockResolvedValueOnce('commands')
+
+      const [error, value] = await installNerdFont({ ctx })
+
+      expect(error).toBeNull()
+      expect(value).toBeFalsy()
+      expect(ctx.log.info).toHaveBeenCalledWith(expect.stringContaining('fc-cache'))
     })
   })
 

@@ -238,4 +238,96 @@ describe('screen() render function', () => {
     await renderPromise
     vi.useRealTimers()
   })
+
+  it('should wrap component in FullScreen when fullscreen is true', async () => {
+    mockedInkRender.mockReturnValue({
+      unmount: vi.fn(),
+      waitUntilExit: vi.fn().mockResolvedValue(undefined),
+    } as never)
+
+    const writeSpy = vi.spyOn(process.stdout, 'write').mockReturnValue(true)
+
+    const { screen } = await import('./screen.js')
+    const cmd = screen({ fullscreen: true, render: StubComponent })
+
+    await cmd.render!(makeContext())
+
+    // After waitUntilExit, LEAVE_ALT_SCREEN should be written
+    expect(writeSpy).toHaveBeenCalledWith('\u001B[?1049l')
+    writeSpy.mockRestore()
+  })
+
+  it('should not write LEAVE_ALT_SCREEN when fullscreen is false', async () => {
+    mockedInkRender.mockReturnValue({
+      unmount: vi.fn(),
+      waitUntilExit: vi.fn().mockResolvedValue(undefined),
+    } as never)
+
+    const writeSpy = vi.spyOn(process.stdout, 'write').mockReturnValue(true)
+
+    const { screen } = await import('./screen.js')
+    const cmd = screen({ fullscreen: false, render: StubComponent })
+
+    await cmd.render!(makeContext())
+
+    expect(writeSpy).not.toHaveBeenCalledWith('\u001B[?1049l')
+    writeSpy.mockRestore()
+  })
+
+  it('should inject report into screen context when report exists on ctx', async () => {
+    mockedInkRender.mockReturnValue({
+      unmount: vi.fn(),
+      waitUntilExit: vi.fn().mockResolvedValue(undefined),
+    } as never)
+
+    const { screen } = await import('./screen.js')
+    const cmd = screen({ render: StubComponent })
+    const ctx = makeContext()
+    const ctxWithReport = Object.assign(ctx, {
+      report: { check: vi.fn(), finding: vi.fn(), summary: vi.fn() },
+    })
+
+    await cmd.render!(ctxWithReport)
+
+    const rendered = mockedInkRender.mock.calls[0]![0] as React.ReactElement
+    const providerValue = rendered.props.value as ScreenContext
+    expect(providerValue).toHaveProperty('report')
+  })
+
+  it('should not inject report into screen context when report is absent', async () => {
+    mockedInkRender.mockReturnValue({
+      unmount: vi.fn(),
+      waitUntilExit: vi.fn().mockResolvedValue(undefined),
+    } as never)
+
+    const { screen } = await import('./screen.js')
+    const cmd = screen({ render: StubComponent })
+
+    await cmd.render!(makeContext())
+
+    const rendered = mockedInkRender.mock.calls[0]![0] as React.ReactElement
+    const providerValue = rendered.props.value as ScreenContext
+    expect(providerValue).not.toHaveProperty('report')
+  })
+
+  it('should write LEAVE_ALT_SCREEN even when waitUntilExit rejects in fullscreen mode', async () => {
+    mockedInkRender.mockReturnValue({
+      unmount: vi.fn(),
+      waitUntilExit: vi.fn().mockRejectedValue(new Error('exit error')),
+    } as never)
+
+    const writeSpy = vi.spyOn(process.stdout, 'write').mockReturnValue(true)
+
+    const { screen } = await import('./screen.js')
+    const cmd = screen({ fullscreen: true, render: StubComponent })
+
+    try {
+      await cmd.render!(makeContext())
+    } catch {
+      // expected
+    }
+
+    expect(writeSpy).toHaveBeenCalledWith('\u001B[?1049l')
+    writeSpy.mockRestore()
+  })
 })

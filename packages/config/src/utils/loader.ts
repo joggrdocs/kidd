@@ -6,7 +6,7 @@ import { loadConfig as c12LoadConfig } from 'c12'
 import { attemptAsync } from 'es-toolkit'
 
 import { validateConfig } from './schema.js'
-import type { KiddConfig } from './types.js'
+import type { KiddConfig } from '../types.js'
 
 export { KiddConfigSchema, validateConfig } from './schema.js'
 

@@ -1,7 +1,7 @@
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
 
-import { loadConfig } from '@kidd-cli/config/loader'
+import { loadConfig } from '@kidd-cli/config/utils'
 import { autoload, command } from '@kidd-cli/core'
 import type { Command as KiddCommand, CommandContext } from '@kidd-cli/core'
 

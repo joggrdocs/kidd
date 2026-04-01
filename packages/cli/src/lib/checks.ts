@@ -1,7 +1,7 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { dirname, join, relative } from 'node:path'
 
-import type { LoadConfigResult } from '@kidd-cli/config/loader'
+import type { LoadConfigResult } from '@kidd-cli/config/utils'
 import { attemptAsync, err, ok } from '@kidd-cli/utils/fp'
 import type { AsyncResult } from '@kidd-cli/utils/fp'
 import { fileExists } from '@kidd-cli/utils/fs'

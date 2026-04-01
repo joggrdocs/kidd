@@ -11,9 +11,37 @@ const mockExecFile = vi.mocked(execFile)
 const mockExistsSync = vi.mocked(existsSync)
 const mockReaddirSync = vi.mocked(readdirSync)
 
+const noopLifecycle = {
+  onStart: vi.fn(),
+  onFinish: vi.fn(),
+  onStepStart: vi.fn(),
+  onStepFinish: vi.fn(),
+}
+
 /**
- * Default execFile mock that succeeds for `bun --version` (existence check)
- * and succeeds for all other calls. Override per-test to simulate failures.
+ * @private
+ */
+function makeResolved(overrides?: {
+  readonly targets?: readonly string[]
+  readonly name?: string
+}): Parameters<typeof compile>[0]['resolved'] {
+  return {
+    entry: '/project/src/index.ts',
+    commands: '/project/commands',
+    buildOutDir: '/project/dist',
+    compileOutDir: '/project/dist',
+    build: { target: 'node18', minify: false, sourcemap: true, external: [], clean: false },
+    compile: {
+      targets: (overrides?.targets ?? []) as never,
+      name: overrides?.name ?? 'cli',
+    },
+    include: [],
+    cwd: '/project',
+  }
+}
+
+/**
+ * @private
  */
 function mockExecFileSuccess() {
   mockExecFile.mockImplementation(
@@ -33,14 +61,11 @@ beforeEach(() => {
 describe('compile operation', () => {
   it('should return ok with binaries for all default targets when none specified', async () => {
     mockExistsSync.mockReturnValue(true)
-    mockExecFile.mockImplementation(
-      // @ts-expect-error -- callback signature mismatch with overloaded execFile
-      (_cmd: string, _args: string[], cb: (err: Error | null, stdout: string) => void) => {
-        cb(null, '')
-      }
-    )
 
-    const [error, output] = await compile({ config: {}, cwd: '/project' })
+    const [error, output] = await compile({
+      resolved: makeResolved(),
+      lifecycle: noopLifecycle,
+    })
 
     expect(error).toBeNull()
     expect(output).toMatchObject({
@@ -61,7 +86,10 @@ describe('compile operation', () => {
       }
     )
 
-    const [error, output] = await compile({ config: {}, cwd: '/project' })
+    const [error, output] = await compile({
+      resolved: makeResolved(),
+      lifecycle: noopLifecycle,
+    })
 
     expect(output).toBeNull()
     expect(error).toBeInstanceOf(Error)
@@ -73,7 +101,10 @@ describe('compile operation', () => {
   it('should return err when bundled entry does not exist', async () => {
     mockExistsSync.mockReturnValue(false)
 
-    const [error, output] = await compile({ config: {}, cwd: '/project' })
+    const [error, output] = await compile({
+      resolved: makeResolved(),
+      lifecycle: noopLifecycle,
+    })
 
     expect(output).toBeNull()
     expect(error).toBeInstanceOf(Error)
@@ -96,7 +127,10 @@ describe('compile operation', () => {
         }
       )
 
-    const [error, output] = await compile({ config: {}, cwd: '/project' })
+    const [error, output] = await compile({
+      resolved: makeResolved(),
+      lifecycle: noopLifecycle,
+    })
 
     expect(output).toBeNull()
     expect(error).toBeInstanceOf(Error)
@@ -124,8 +158,8 @@ describe('compile operation', () => {
       )
 
     const [error] = await compile({
-      config: { compile: { name: 'my-app', targets: ['linux-x64'] } },
-      cwd: '/project',
+      resolved: makeResolved({ targets: ['linux-x64'], name: 'my-app' }),
+      lifecycle: noopLifecycle,
       verbose: true,
     })
 
@@ -155,8 +189,8 @@ describe('compile operation', () => {
       )
 
     const [error] = await compile({
-      config: { compile: { name: 'my-app', targets: ['linux-x64'] } },
-      cwd: '/project',
+      resolved: makeResolved({ targets: ['linux-x64'], name: 'my-app' }),
+      lifecycle: noopLifecycle,
     })
 
     expect(error).toMatchObject({
@@ -166,16 +200,10 @@ describe('compile operation', () => {
 
   it('should pass correct --target arg for cross-compilation', async () => {
     mockExistsSync.mockReturnValue(true)
-    mockExecFile.mockImplementation(
-      // @ts-expect-error -- callback signature mismatch with overloaded execFile
-      (_cmd: string, _args: string[], cb: (err: Error | null, stdout: string) => void) => {
-        cb(null, '')
-      }
-    )
 
     await compile({
-      config: { compile: { name: 'my-app', targets: ['linux-x64'] } },
-      cwd: '/project',
+      resolved: makeResolved({ targets: ['linux-x64'], name: 'my-app' }),
+      lifecycle: noopLifecycle,
     })
 
     expect(mockExecFile).toHaveBeenCalledWith(
@@ -187,16 +215,10 @@ describe('compile operation', () => {
 
   it('should map linux-x64-musl to bun-linux-x64', async () => {
     mockExistsSync.mockReturnValue(true)
-    mockExecFile.mockImplementation(
-      // @ts-expect-error -- callback signature mismatch with overloaded execFile
-      (_cmd: string, _args: string[], cb: (err: Error | null, stdout: string) => void) => {
-        cb(null, '')
-      }
-    )
 
     await compile({
-      config: { compile: { name: 'my-app', targets: ['linux-x64-musl'] } },
-      cwd: '/project',
+      resolved: makeResolved({ targets: ['linux-x64-musl'], name: 'my-app' }),
+      lifecycle: noopLifecycle,
     })
 
     expect(mockExecFile).toHaveBeenCalledWith(
@@ -208,16 +230,10 @@ describe('compile operation', () => {
 
   it('should append target suffix to binary name for multi-target builds', async () => {
     mockExistsSync.mockReturnValue(true)
-    mockExecFile.mockImplementation(
-      // @ts-expect-error -- callback signature mismatch with overloaded execFile
-      (_cmd: string, _args: string[], cb: (err: Error | null, stdout: string) => void) => {
-        cb(null, '')
-      }
-    )
 
     const [error, output] = await compile({
-      config: { compile: { name: 'my-app', targets: ['darwin-arm64', 'linux-x64'] } },
-      cwd: '/project',
+      resolved: makeResolved({ targets: ['darwin-arm64', 'linux-x64'], name: 'my-app' }),
+      lifecycle: noopLifecycle,
     })
 
     expect(error).toBeNull()
@@ -237,14 +253,11 @@ describe('compile operation', () => {
 
   it('should append target suffix for default multi-target build', async () => {
     mockExistsSync.mockReturnValue(true)
-    mockExecFile.mockImplementation(
-      // @ts-expect-error -- callback signature mismatch with overloaded execFile
-      (_cmd: string, _args: string[], cb: (err: Error | null, stdout: string) => void) => {
-        cb(null, '')
-      }
-    )
 
-    const [error, output] = await compile({ config: {}, cwd: '/project' })
+    const [error, output] = await compile({
+      resolved: makeResolved(),
+      lifecycle: noopLifecycle,
+    })
 
     expect(error).toBeNull()
     expect(output).toMatchObject({
@@ -257,18 +270,10 @@ describe('compile operation', () => {
 
   it('should include human-readable labels on compiled binaries', async () => {
     mockExistsSync.mockReturnValue(true)
-    mockExecFile.mockImplementation(
-      // @ts-expect-error -- callback signature mismatch with overloaded execFile
-      (_cmd: string, _args: string[], cb: (err: Error | null, stdout: string) => void) => {
-        cb(null, '')
-      }
-    )
 
     const [, output] = await compile({
-      config: {
-        compile: { name: 'my-app', targets: ['darwin-arm64', 'linux-x64', 'windows-x64'] },
-      },
-      cwd: '/project',
+      resolved: makeResolved({ targets: ['darwin-arm64', 'linux-x64', 'windows-x64'], name: 'my-app' }),
+      lifecycle: noopLifecycle,
     })
 
     expect(output).toMatchObject({
@@ -280,45 +285,37 @@ describe('compile operation', () => {
     })
   })
 
-  it('should invoke onTargetStart and onTargetComplete for each target', async () => {
+  it('should invoke onStepStart and onStepFinish for each target', async () => {
     mockExistsSync.mockReturnValue(true)
-    mockExecFile.mockImplementation(
-      // @ts-expect-error -- callback signature mismatch with overloaded execFile
-      (_cmd: string, _args: string[], cb: (err: Error | null, stdout: string) => void) => {
-        cb(null, '')
-      }
-    )
 
-    const started: string[] = []
-    const completed: string[] = []
+    const stepStarts: unknown[] = []
+    const stepFinishes: unknown[] = []
 
     await compile({
-      config: { compile: { name: 'my-app', targets: ['darwin-arm64', 'linux-x64'] } },
-      cwd: '/project',
-      onTargetComplete: (target) => {
-        completed.push(target)
-      },
-      onTargetStart: (target) => {
-        started.push(target)
+      resolved: makeResolved({ targets: ['darwin-arm64', 'linux-x64'], name: 'my-app' }),
+      lifecycle: {
+        onStepStart: (event) => {
+          stepStarts.push(event.meta.target)
+        },
+        onStepFinish: (event) => {
+          stepFinishes.push(event.meta.target)
+        },
       },
     })
 
-    expect(started).toContain('darwin-arm64')
-    expect(started).toContain('linux-x64')
-    expect(completed).toContain('darwin-arm64')
-    expect(completed).toContain('linux-x64')
+    expect(stepStarts).toContain('darwin-arm64')
+    expect(stepStarts).toContain('linux-x64')
+    expect(stepFinishes).toContain('darwin-arm64')
+    expect(stepFinishes).toContain('linux-x64')
   })
 
   it('should invoke bun with --compile and --outfile args', async () => {
     mockExistsSync.mockReturnValue(true)
-    mockExecFile.mockImplementation(
-      // @ts-expect-error -- callback signature mismatch with overloaded execFile
-      (_cmd: string, _args: string[], cb: (err: Error | null, stdout: string) => void) => {
-        cb(null, '')
-      }
-    )
 
-    await compile({ config: { compile: { name: 'my-app' } }, cwd: '/project' })
+    await compile({
+      resolved: makeResolved({ name: 'my-app' }),
+      lifecycle: noopLifecycle,
+    })
 
     expect(mockExecFile).toHaveBeenCalledWith(
       'bun',

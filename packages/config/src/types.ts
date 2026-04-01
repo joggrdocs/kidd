@@ -1,3 +1,5 @@
+import type { CompileTarget } from './utils/compile.js'
+
 /**
  * Build options passed to tsdown during `kidd build`.
  */
@@ -49,18 +51,6 @@ export interface CompileOptions {
    */
   name?: string
 }
-
-/**
- * Supported cross-compilation targets for `kidd compile`.
- */
-export type CompileTarget =
-  | 'darwin-arm64'
-  | 'darwin-x64'
-  | 'linux-x64'
-  | 'linux-arm64'
-  | 'linux-x64-musl'
-  | 'windows-x64'
-  | 'windows-arm64'
 
 /**
  * Configuration for kidd.config.ts.

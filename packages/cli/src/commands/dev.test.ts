@@ -1,11 +1,17 @@
 import type { CommandContext } from '@kidd-cli/core'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+const mockWatch = vi.fn()
+
 vi.mock(import('@kidd-cli/bundler'), () => ({
-  watch: vi.fn(),
+  createBundler: vi.fn(() => ({
+    build: vi.fn(),
+    compile: vi.fn(),
+    watch: mockWatch,
+  })),
 }))
 
-vi.mock(import('@kidd-cli/config/loader'), () => ({
+vi.mock(import('@kidd-cli/config/utils'), () => ({
   loadConfig: vi.fn(),
 }))
 
@@ -13,9 +19,9 @@ vi.mock(import('@kidd-cli/core'), () => ({
   command: vi.fn((def) => def),
 }))
 
-const { watch } = await import('@kidd-cli/bundler')
-const { loadConfig } = await import('@kidd-cli/config/loader')
-const mockedWatch = vi.mocked(watch)
+const { createBundler } = await import('@kidd-cli/bundler')
+const { loadConfig } = await import('@kidd-cli/config/utils')
+const mockedCreateBundler = vi.mocked(createBundler)
 const mockedLoadConfig = vi.mocked(loadConfig)
 
 function makeContext(): CommandContext {
@@ -53,12 +59,17 @@ function makeContext(): CommandContext {
 describe('dev command', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mockedCreateBundler.mockReturnValue({
+      build: vi.fn(),
+      compile: vi.fn(),
+      watch: mockWatch,
+    })
   })
 
   it('should start spinner with dev server message', async () => {
     const ctx = makeContext()
     mockedLoadConfig.mockResolvedValue([null, { config: {}, configFile: undefined }] as never)
-    mockedWatch.mockResolvedValue([null, undefined] as never)
+    mockWatch.mockResolvedValue([null, undefined] as never)
 
     const mod = await import('./dev.js')
     await mod.default.handler!(ctx)
@@ -69,8 +80,8 @@ describe('dev command', () => {
   it('should stop spinner with watching message on first build success', async () => {
     const ctx = makeContext()
     mockedLoadConfig.mockResolvedValue([null, { config: {}, configFile: undefined }] as never)
-    mockedWatch.mockImplementation(async (opts) => {
-      if (opts.onSuccess) {
+    mockWatch.mockImplementation(async (opts) => {
+      if (opts?.onSuccess) {
         opts.onSuccess()
       }
       return [null, undefined] as never
@@ -85,8 +96,8 @@ describe('dev command', () => {
   it('should log rebuilt successfully on subsequent builds', async () => {
     const ctx = makeContext()
     mockedLoadConfig.mockResolvedValue([null, { config: {}, configFile: undefined }] as never)
-    mockedWatch.mockImplementation(async (opts) => {
-      if (opts.onSuccess) {
+    mockWatch.mockImplementation(async (opts) => {
+      if (opts?.onSuccess) {
         opts.onSuccess()
         opts.onSuccess()
       }
@@ -102,7 +113,7 @@ describe('dev command', () => {
   it('should call fail when watch returns an error', async () => {
     const ctx = makeContext()
     mockedLoadConfig.mockResolvedValue([null, { config: {}, configFile: undefined }] as never)
-    mockedWatch.mockResolvedValue([new Error('tsdown watch failed'), null] as never)
+    mockWatch.mockResolvedValue([new Error('tsdown watch failed'), null] as never)
 
     const mod = await import('./dev.js')
     await mod.default.handler!(ctx)
@@ -114,11 +125,11 @@ describe('dev command', () => {
   it('should use empty config when loadConfig returns error', async () => {
     const ctx = makeContext()
     mockedLoadConfig.mockResolvedValue([new Error('no config'), null] as never)
-    mockedWatch.mockResolvedValue([null, undefined] as never)
+    mockWatch.mockResolvedValue([null, undefined] as never)
 
     const mod = await import('./dev.js')
     await mod.default.handler!(ctx)
 
-    expect(mockedWatch).toHaveBeenCalledWith(expect.objectContaining({ config: {} }))
+    expect(mockedCreateBundler).toHaveBeenCalledWith(expect.objectContaining({ config: {} }))
   })
 })

@@ -14,12 +14,12 @@ beforeEach(() => {
 })
 
 describe('detectBuildEntry', () => {
-  it('should return index.js when it exists', () => {
+  it('should return index.mjs when it exists (preferred over index.js)', () => {
     mockExistsSync.mockReturnValue(true)
 
     const result = detectBuildEntry('/project/dist')
 
-    expect(result).toBe(join('/project/dist', 'index.js'))
+    expect(result).toBe(join('/project/dist', 'index.mjs'))
   })
 
   it('should return undefined when no entry file exists', () => {

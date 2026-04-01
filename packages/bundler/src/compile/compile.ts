@@ -3,65 +3,61 @@ import { readdir, unlink } from 'node:fs/promises'
 import { join } from 'node:path'
 
 import type { CompileTarget } from '@kidd-cli/config'
+import { compileTargets } from '@kidd-cli/config/utils'
 import { err, ok } from '@kidd-cli/utils/fp'
 import type { AsyncResult, Result } from '@kidd-cli/utils/fp'
 import { attemptAsync } from 'es-toolkit'
+import { match } from 'ts-pattern'
 
-import { detectBuildEntry, resolveConfig } from '../config/resolve-config.js'
-import { DEFAULT_COMPILE_TARGETS } from '../constants.js'
-import type { CompileOutput, CompileParams, CompiledBinary } from '../types.js'
-
-/**
- * Human-readable labels for each compile target.
- */
-const COMPILE_TARGET_LABELS: Readonly<Record<CompileTarget, string>> = {
-  'darwin-arm64': 'macOS Apple Silicon',
-  'darwin-x64': 'macOS Intel',
-  'linux-arm64': 'Linux ARM64',
-  'linux-x64': 'Linux x64',
-  'linux-x64-musl': 'Linux x64 (musl)',
-  'windows-arm64': 'Windows ARM64',
-  'windows-x64': 'Windows x64',
-}
+import { detectBuildEntry } from '../config/resolve-config.js'
+import type {
+  AsyncBundlerResult,
+  BundlerLifecycle,
+  CompileOutput,
+  CompiledBinary,
+  ResolvedBundlerConfig,
+} from '../types.js'
 
 /**
  * Compile a kidd CLI tool into standalone binaries using `bun build --compile`.
  *
  * Expects the bundled entry to already exist in `outDir` (i.e., `build()` must
- * be run first). For each requested target (or the current platform if none
- * specified), spawns `bun build --compile` to produce a self-contained binary.
+ * be run first). For each requested target (or defaults when none configured),
+ * spawns `bun build --compile` to produce a self-contained binary.
  *
- * @param params - The compile parameters including config and working directory.
+ * @param params - The resolved config, lifecycle hooks, and verbose flag.
  * @returns A result tuple with compile output on success or an Error on failure.
  */
-export async function compile(params: CompileParams): AsyncResult<CompileOutput> {
+export async function compile(params: {
+  readonly resolved: ResolvedBundlerConfig
+  readonly lifecycle: BundlerLifecycle
+  readonly verbose?: boolean
+}): AsyncBundlerResult<CompileOutput> {
   const [bunCheckError] = await checkBunExists()
   if (bunCheckError) {
     return err(bunCheckError)
   }
 
-  const resolved = resolveConfig(params)
-  const bundledEntry = detectBuildEntry(resolved.buildOutDir)
+  const bundledEntry = detectBuildEntry(params.resolved.buildOutDir)
 
   if (!bundledEntry) {
-    return err(new Error(`bundled entry not found in ${resolved.buildOutDir} — run build() first`))
+    return err(new Error(`bundled entry not found in ${params.resolved.buildOutDir} — run build() first`))
   }
 
-  const targets: readonly CompileTarget[] = resolveTargets(resolved.compile.targets)
+  const targets: readonly CompileTarget[] = resolveTargets(params.resolved.compile.targets)
   const isMultiTarget = targets.length > 1
 
   const results = await compileTargetsSequentially({
     bundledEntry,
     isMultiTarget,
-    name: resolved.compile.name,
-    onTargetComplete: params.onTargetComplete,
-    onTargetStart: params.onTargetStart,
-    outDir: resolved.compileOutDir,
+    lifecycle: params.lifecycle,
+    name: params.resolved.compile.name,
+    outDir: params.resolved.compileOutDir,
     targets,
     verbose: params.verbose ?? false,
   })
 
-  await cleanBunBuildArtifacts(resolved.cwd)
+  await cleanBunBuildArtifacts(params.resolved.cwd)
 
   const failedResult = results.find((r) => r[0] !== null)
   if (failedResult) {
@@ -75,14 +71,25 @@ export async function compile(params: CompileParams): AsyncResult<CompileOutput>
   return ok({ binaries })
 }
 
+/**
+ * Look up the human-readable label for a compile target.
+ *
+ * @param target - The compile target identifier.
+ * @returns A descriptive label (e.g., "macOS Apple Silicon").
+ */
+export function resolveTargetLabel(target: CompileTarget): string {
+  const entry = compileTargets.find((t) => t.target === target)
+  if (entry) {
+    return entry.label
+  }
+
+  return target
+}
+
 // ---------------------------------------------------------------------------
 
 /**
  * Compile targets one at a time to avoid overwhelming bun with concurrent processes.
- *
- * When turbo runs multiple examples in parallel, each spawning `bun build --compile`
- * for every target simultaneously, bun processes compete for resources and fail.
- * Sequential execution within each example avoids this.
  *
  * @private
  * @param params - The targets and compilation parameters.
@@ -91,18 +98,19 @@ export async function compile(params: CompileParams): AsyncResult<CompileOutput>
 async function compileTargetsSequentially(params: {
   readonly bundledEntry: string
   readonly isMultiTarget: boolean
+  readonly lifecycle: BundlerLifecycle
   readonly name: string
-  readonly onTargetComplete?: (target: CompileTarget) => void | Promise<void>
-  readonly onTargetStart?: (target: CompileTarget) => void | Promise<void>
   readonly outDir: string
   readonly targets: readonly CompileTarget[]
   readonly verbose: boolean
 }): Promise<readonly Result<CompiledBinary>[]> {
   return params.targets.reduce<Promise<Result<CompiledBinary>[]>>(async (accPromise, target) => {
     const acc = await accPromise
+    const label = resolveTargetLabel(target)
+    const meta = { target, label }
 
-    if (params.onTargetStart) {
-      await params.onTargetStart(target)
+    if (params.lifecycle.onStepStart) {
+      await params.lifecycle.onStepStart({ phase: 'compile', step: 'target', meta })
     }
 
     const result = await compileSingleTarget({
@@ -114,8 +122,8 @@ async function compileTargetsSequentially(params: {
       verbose: params.verbose,
     })
 
-    if (result[0] === null && params.onTargetComplete) {
-      await params.onTargetComplete(target)
+    if (result[0] === null && params.lifecycle.onStepFinish) {
+      await params.lifecycle.onStepFinish({ phase: 'compile', step: 'target', meta })
     }
 
     return [...acc, result]
@@ -140,6 +148,11 @@ async function compileSingleTarget(params: {
   const binaryName = resolveBinaryName(params.name, params.target, params.isMultiTarget)
   const outfile = join(params.outDir, binaryName)
 
+  const [mapError, bunTarget] = mapCompileTarget(params.target)
+  if (mapError) {
+    return err(mapError)
+  }
+
   const args = [
     'build',
     '--compile',
@@ -147,7 +160,7 @@ async function compileSingleTarget(params: {
     '--outfile',
     outfile,
     '--target',
-    mapCompileTarget(params.target),
+    bunTarget,
   ]
 
   const [execError] = await execBunBuild(args)
@@ -163,9 +176,6 @@ async function compileSingleTarget(params: {
 /**
  * Resolve the list of compile targets, falling back to the default set.
  *
- * When no targets are explicitly configured, defaults to linux-x64,
- * darwin-arm64, darwin-x64, and windows-x64 to cover ~95% of developers.
- *
  * @private
  * @param explicit - User-specified targets (may be empty).
  * @returns The targets to compile for.
@@ -175,7 +185,7 @@ function resolveTargets(explicit: readonly CompileTarget[]): readonly CompileTar
     return explicit
   }
 
-  return DEFAULT_COMPILE_TARGETS
+  return compileTargets.filter((t) => t.default).map((t) => t.target)
 }
 
 /**
@@ -196,44 +206,36 @@ function resolveBinaryName(name: string, target: CompileTarget, isMultiTarget: b
 }
 
 /**
- * Look up the human-readable label for a compile target.
- *
- * @param target - The compile target identifier.
- * @returns A descriptive label (e.g., "macOS Apple Silicon").
- */
-export function resolveTargetLabel(target: CompileTarget): string {
-  return COMPILE_TARGET_LABELS[target]
-}
-
-/**
  * Map a `CompileTarget` to Bun's `--target` string.
  *
- * Note: `linux-x64-musl` maps to `bun-linux-x64` because Bun's Linux
- * builds natively handle musl — there is no separate musl target.
+ * Every supported kidd target must have an explicit mapping. An unrecognized
+ * target is a fatal error — it means `compileTargets` was extended without
+ * updating this function.
  *
  * @private
  * @param target - The kidd compile target.
- * @returns The Bun target string (e.g., `'bun-darwin-arm64'`).
+ * @returns A result with the Bun target string, or an Error for unknown targets.
  */
-function mapCompileTarget(target: CompileTarget): string {
-  if (target === 'linux-x64-musl') {
-    return 'bun-linux-x64'
-  }
-
-  return `bun-${target}`
+function mapCompileTarget(target: CompileTarget): Result<string> {
+  return match(target)
+    .with('darwin-arm64', () => ok('bun-darwin-arm64'))
+    .with('darwin-x64', () => ok('bun-darwin-x64'))
+    .with('linux-arm64', () => ok('bun-linux-arm64'))
+    .with('linux-x64', () => ok('bun-linux-x64'))
+    .with('linux-x64-musl', () => ok('bun-linux-x64'))
+    .with('windows-arm64', () => ok('bun-windows-arm64'))
+    .with('windows-x64', () => ok('bun-windows-x64'))
+    .otherwise(() => err(new Error(`unknown compile target: ${target}`)))
 }
 
 /**
  * Build a descriptive error message for a failed compile target.
  *
- * When verbose is enabled, extracts stderr from the exec error so the
- * underlying bun error is surfaced instead of being buried in the cause chain.
- *
  * @private
  * @param target - The compile target that failed.
  * @param execError - The error returned by execFile.
  * @param verbose - Whether to include stderr output in the message.
- * @returns A formatted error message, including stderr when verbose is true.
+ * @returns A formatted error message.
  */
 function formatCompileError(target: CompileTarget, execError: Error, verbose: boolean): string {
   const header = `bun build --compile failed for target ${target}`

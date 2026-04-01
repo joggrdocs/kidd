@@ -1,9 +1,9 @@
 import { relative } from 'node:path'
 
-import { build, compile, resolveTargetLabel } from '@kidd-cli/bundler'
+import { createBundler } from '@kidd-cli/bundler'
 import type { CompiledBinary } from '@kidd-cli/bundler'
 import type { CompileTarget, KiddConfig } from '@kidd-cli/config'
-import { loadConfig } from '@kidd-cli/config/loader'
+import { loadConfig } from '@kidd-cli/config/utils'
 import { command } from '@kidd-cli/core'
 import type { Command, CommandContext } from '@kidd-cli/core'
 import { z } from 'zod'
@@ -36,20 +36,33 @@ const buildCommand: Command = command({
     const [, configResult] = await loadConfig({ cwd })
     const config = mergeCleanOption({ config: extractConfig(configResult), clean: ctx.args.clean })
 
-    ctx.status.spinner.start('Bundling...')
-
-    const [buildError, buildOutput] = await build({ config, cwd })
-
-    if (buildError) {
-      ctx.status.spinner.stop('Bundle failed')
-      return ctx.fail(buildError.message)
-    }
-
     const shouldCompile = resolveCompileIntent({
       compileFlag: ctx.args.compile,
       configCompile: config.compile,
       targets: ctx.args.targets,
     })
+
+    const mergedConfig = shouldCompile
+      ? mergeCompileTargets({ config, targets: ctx.args.targets })
+      : config
+
+    const bundler = createBundler({
+      config: mergedConfig,
+      cwd,
+      onStepStart: ({ meta }) =>
+        ctx.status.spinner.message(`Compiling ${meta.label}...`),
+      onStepFinish: ({ meta }) =>
+        ctx.status.spinner.message(`Compiled ${meta.label}`),
+    })
+
+    ctx.status.spinner.start('Bundling...')
+
+    const [buildError, buildOutput] = await bundler.build()
+
+    if (buildError) {
+      ctx.status.spinner.stop('Bundle failed')
+      return ctx.fail(buildError.message)
+    }
 
     if (!shouldCompile) {
       ctx.status.spinner.stop('Build complete')
@@ -67,14 +80,7 @@ const buildCommand: Command = command({
 
     ctx.status.spinner.message('Bundled, compiling binaries...')
 
-    const mergedConfig = mergeCompileTargets({ config, targets: ctx.args.targets })
-    const [compileError, compileOutput] = await compile({
-      config: mergedConfig,
-      cwd,
-      onTargetComplete: (target) =>
-        ctx.status.spinner.message(`Compiled ${resolveTargetLabel(target)}`),
-      onTargetStart: (target) =>
-        ctx.status.spinner.message(`Compiling ${resolveTargetLabel(target)}...`),
+    const [compileError, compileOutput] = await bundler.compile({
       verbose: ctx.args.verbose,
     })
 
@@ -140,9 +146,6 @@ function resolveCompileIntent(params: {
 /**
  * Merge CLI `--targets` into the config's compile options.
  *
- * When targets are provided via CLI, they override whatever is in config.
- * Otherwise the config is returned unchanged.
- *
  * @private
  * @param params - The config and optional CLI targets.
  * @returns A config with compile targets merged in.
@@ -169,9 +172,6 @@ function mergeCompileTargets(params: {
 /**
  * Extract compile options object from the config's compile field.
  *
- * Returns the object as-is when it is an object, or an empty object
- * for boolean / undefined values.
- *
  * @private
  * @param value - The raw compile config value.
  * @returns A compile options object.
@@ -188,9 +188,6 @@ function resolveExistingCompile(
 
 /**
  * Merge the CLI `--clean` / `--no-clean` flag into the loaded config.
- *
- * When the flag is provided it overrides whatever is in config.
- * Otherwise the config value is used unchanged.
  *
  * @private
  * @param params - The loaded config and optional CLI clean flag.

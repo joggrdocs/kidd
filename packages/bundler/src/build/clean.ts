@@ -51,7 +51,7 @@ export function isCompiledBinary(filename: string): boolean {
  * @param params - The output directory and whether compile mode is active.
  * @returns A {@link CleanResult} describing what was removed and what was skipped.
  */
-export function cleanBuildArtifacts(params: {
+export function clean(params: {
   readonly outDir: string
   readonly compile?: boolean
 }): CleanResult {

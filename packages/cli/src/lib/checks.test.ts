@@ -1,6 +1,6 @@
 import { access, mkdir, readFile, writeFile } from 'node:fs/promises'
 
-import type { LoadConfigResult } from '@kidd-cli/config/loader'
+import type { LoadConfigResult } from '@kidd-cli/config/utils'
 import type { Manifest } from '@kidd-cli/utils/manifest'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 

@@ -1,12 +1,12 @@
 {
   "name": "@kidd-cli/bundler",
   "version": "0.6.0",
-  "description": "Programmatic bundler for kidd CLI tools powered by Bun",
+  "description": "Programmatic bundler for kidd CLI tools powered by tsdown",
   "keywords": [
-    "bun",
     "bundler",
     "cli",
     "kidd",
+    "tsdown",
     "typescript"
   ],
   "homepage": "https://github.com/joggrdocs/kidd/tree/main/packages/bundler",
@@ -44,17 +44,15 @@
     "@kidd-cli/utils": "workspace:*",
     "es-toolkit": "catalog:",
     "ts-pattern": "catalog:",
+    "tsdown": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {
-    "@types/bun": "catalog:",
     "@types/node": "catalog:",
-    "tsdown": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
   },
   "engines": {
-    "bun": ">=1.3",
     "node": ">=24"
   }
 }

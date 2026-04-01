@@ -1,5 +1,5 @@
-import { watch } from '@kidd-cli/bundler'
-import { loadConfig } from '@kidd-cli/config/loader'
+import { createBundler } from '@kidd-cli/bundler'
+import { loadConfig } from '@kidd-cli/config/utils'
 import { command } from '@kidd-cli/core'
 import type { Command, CommandContext } from '@kidd-cli/core'
 
@@ -21,9 +21,10 @@ const devCommand: Command = command({
 
     ctx.status.spinner.start('Starting dev server...')
 
+    const bundler = createBundler({ config, cwd })
     const onSuccess = createOnSuccess(ctx)
 
-    const [watchError] = await watch({ config, cwd, onSuccess })
+    const [watchError] = await bundler.watch({ onSuccess })
 
     if (watchError) {
       ctx.status.spinner.stop('Watch failed')

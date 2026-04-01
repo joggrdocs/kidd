@@ -16,7 +16,7 @@ const mockSpinnerInstance = vi.hoisted(() => ({
 const mockLoadConfig = vi.hoisted(() => vi.fn())
 const mockAutoload = vi.hoisted(() => vi.fn())
 
-vi.mock(import('@kidd-cli/config/loader'), () => ({
+vi.mock(import('@kidd-cli/config/utils'), () => ({
   loadConfig: mockLoadConfig,
 }))
 

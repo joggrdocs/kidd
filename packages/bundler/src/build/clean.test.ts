@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os'
 
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
-import { cleanBuildArtifacts, isBuildArtifact, isCompiledBinary } from './clean.js'
+import { clean, isBuildArtifact, isCompiledBinary } from './clean.js'
 
 describe('isBuildArtifact', () => {
   it('should match .js files', () => {
@@ -50,7 +50,7 @@ describe('isCompiledBinary', () => {
   })
 })
 
-describe('cleanBuildArtifacts', () => {
+describe('clean', () => {
   const testDir = join(tmpdir(), `kidd-clean-test-${Date.now()}`)
 
   beforeEach(() => {
@@ -62,7 +62,7 @@ describe('cleanBuildArtifacts', () => {
   })
 
   it('should return empty result for non-existent directory', () => {
-    const result = cleanBuildArtifacts({ outDir: '/non/existent/path' })
+    const result = clean({ outDir: '/non/existent/path' })
 
     expect(result.removed).toStrictEqual([])
     expect(result.foreign).toStrictEqual([])
@@ -72,7 +72,7 @@ describe('cleanBuildArtifacts', () => {
     writeFileSync(join(testDir, 'index.js'), '')
     writeFileSync(join(testDir, 'index.js.map'), '')
 
-    const result = cleanBuildArtifacts({ outDir: testDir })
+    const result = clean({ outDir: testDir })
 
     expect(result.removed).toContain('index.js')
     expect(result.removed).toContain('index.js.map')
@@ -85,7 +85,7 @@ describe('cleanBuildArtifacts', () => {
     writeFileSync(join(testDir, 'README.md'), '')
     writeFileSync(join(testDir, 'cli-darwin-arm64'), '')
 
-    const result = cleanBuildArtifacts({ outDir: testDir })
+    const result = clean({ outDir: testDir })
 
     expect(result.removed).toContain('index.js')
     expect(result.foreign).toContain('README.md')
@@ -101,7 +101,7 @@ describe('cleanBuildArtifacts', () => {
     writeFileSync(join(testDir, 'cli-windows-x64.exe'), '')
     writeFileSync(join(testDir, 'README.md'), '')
 
-    const result = cleanBuildArtifacts({ compile: true, outDir: testDir })
+    const result = clean({ compile: true, outDir: testDir })
 
     expect(result.removed).toContain('index.mjs')
     expect(result.removed).toContain('cli-darwin-arm64')
@@ -116,7 +116,7 @@ describe('cleanBuildArtifacts', () => {
   })
 
   it('should return empty result for empty directory', () => {
-    const result = cleanBuildArtifacts({ outDir: testDir })
+    const result = clean({ outDir: testDir })
 
     expect(result.removed).toStrictEqual([])
     expect(result.foreign).toStrictEqual([])

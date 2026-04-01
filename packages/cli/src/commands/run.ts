@@ -1,10 +1,10 @@
 import { spawn } from 'node:child_process'
 import { resolve } from 'node:path'
 
-import { build, compile } from '@kidd-cli/bundler'
-import type { BuildOutput, CompileOutput, CompiledBinary } from '@kidd-cli/bundler'
+import { createBundler } from '@kidd-cli/bundler'
+import type { BuildOutput, Bundler, CompileOutput, CompiledBinary } from '@kidd-cli/bundler'
 import type { CompileTarget, KiddConfig } from '@kidd-cli/config'
-import { loadConfig } from '@kidd-cli/config/loader'
+import { loadConfig } from '@kidd-cli/config/utils'
 import { command } from '@kidd-cli/core'
 import type { Command, CommandContext } from '@kidd-cli/core'
 import { match } from 'ts-pattern'
@@ -104,7 +104,8 @@ export default runCommand
  * @returns The exit code of the spawned process.
  */
 async function runWithNode(params: EngineParams): Promise<number> {
-  const buildOutput = await buildProject(params)
+  const bundler = createBundler({ config: params.config, cwd: params.cwd })
+  const buildOutput = await buildProject({ bundler, ctx: params.ctx })
   const inspectFlags = buildInspectFlags(params.args)
 
   return spawnProcess({
@@ -157,15 +158,13 @@ async function runWithBinary(params: EngineParams): Promise<number> {
     )
   }
 
-  await buildProject({ ...params, config: configWithTarget })
+  const bundler = createBundler({ config: configWithTarget, cwd: params.cwd })
+
+  await buildProject({ bundler, ctx: params.ctx })
 
   params.ctx.status.spinner.message('Compiling binary...')
 
-  const compileOutput = await compileProject({
-    config: configWithTarget,
-    ctx: params.ctx,
-    cwd: params.cwd,
-  })
+  const compileOutput = await compileProject({ bundler, ctx: params.ctx })
 
   const binary = resolveBinary({
     compileOutput,
@@ -201,17 +200,16 @@ interface EngineParams {
  * Starts a spinner, invokes the build, and fails the command on error.
  *
  * @private
- * @param params - The config, cwd, and command context.
+ * @param params - The bundler instance and command context.
  * @returns The successful build output.
  */
 async function buildProject(params: {
-  readonly config: KiddConfig
+  readonly bundler: Bundler
   readonly ctx: CommandContext<RunArgs>
-  readonly cwd: string
 }): Promise<BuildOutput> {
   params.ctx.status.spinner.start('Building...')
 
-  const [buildError, buildOutput] = await build({ config: params.config, cwd: params.cwd })
+  const [buildError, buildOutput] = await params.bundler.build()
 
   if (buildError) {
     params.ctx.status.spinner.stop('Build failed')
@@ -227,18 +225,14 @@ async function buildProject(params: {
  * Compile the project into standalone binaries.
  *
  * @private
- * @param params - The config, cwd, and command context.
+ * @param params - The bundler instance and command context.
  * @returns The successful compile output.
  */
 async function compileProject(params: {
-  readonly config: KiddConfig
+  readonly bundler: Bundler
   readonly ctx: CommandContext<RunArgs>
-  readonly cwd: string
 }): Promise<CompileOutput> {
-  const [compileError, compileOutput] = await compile({
-    config: params.config,
-    cwd: params.cwd,
-  })
+  const [compileError, compileOutput] = await params.bundler.compile()
 
   if (compileError) {
     params.ctx.status.spinner.stop('Compile failed')

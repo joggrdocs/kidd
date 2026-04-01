@@ -1,5 +1,5 @@
 import type { KiddConfig } from '@kidd-cli/config'
-import type { LoadConfigResult } from '@kidd-cli/config/loader'
+import type { LoadConfigResult } from '@kidd-cli/config/utils'
 
 /**
  * Extract a KiddConfig from a load result, falling back to empty defaults.

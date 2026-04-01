@@ -1,150 +1,87 @@
-import type { FSWatcher } from 'node:fs'
-
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-vi.mock(import('node:fs'))
-vi.mock(import('./build.js'))
+vi.mock(import('tsdown'))
+vi.mock(import('../config/read-version.js'))
 
-const { watch: fsWatch } = await import('node:fs')
-const { build } = await import('./build.js')
+const { build: tsdownBuild } = await import('tsdown')
+const { readVersion } = await import('../config/read-version.js')
 const { watch } = await import('./watch.js')
 
-const mockBuild = vi.mocked(build)
-const mockFsWatch = vi.mocked(fsWatch)
+const mockTsdownBuild = vi.mocked(tsdownBuild)
+const mockReadVersion = vi.mocked(readVersion)
 
-type WatchCallback = (_eventType: string, filename: string | null) => void
-
-const createMockWatcher = (): { readonly watcher: FSWatcher; readonly close: ReturnType<typeof vi.fn> } => {
-  const close = vi.fn()
-  const watcher = { close } as unknown as FSWatcher
-  return { watcher, close }
-}
-
-const captureWatchCallback = (): WatchCallback => {
-  const call = mockFsWatch.mock.calls[0]
-  return call[2] as WatchCallback
-}
+const resolved = {
+  entry: '/project/src/index.ts',
+  commands: '/project/commands',
+  buildOutDir: '/project/dist',
+  compileOutDir: '/project/dist',
+  build: {
+    target: 'node18',
+    minify: false,
+    sourcemap: true,
+    external: [],
+    clean: false,
+  },
+  compile: { targets: [], name: 'cli' },
+  include: [],
+  cwd: '/project',
+} as const
 
 beforeEach(() => {
   vi.clearAllMocks()
+  mockReadVersion.mockResolvedValue([null, '1.0.0'])
 })
 
 describe('watch operation', () => {
-  it('should return err when initial build fails', async () => {
-    const buildError = new Error('build failed')
-    mockBuild.mockResolvedValueOnce([buildError, null])
-
-    const [error, output] = await watch({ config: {}, cwd: '/project' })
-
-    expect(output).toBeNull()
-    expect(error).toBeInstanceOf(Error)
-    expect((error as Error).message).toContain('initial build failed')
-  })
-
-  it('should call onSuccess after initial build', async () => {
-    const { watcher } = createMockWatcher()
-    mockBuild.mockResolvedValueOnce([null, undefined])
-    mockFsWatch.mockReturnValueOnce(watcher)
-    const onSuccess = vi.fn().mockResolvedValue(undefined)
-
-    const promise = watch({ config: {}, cwd: '/project', onSuccess })
-
-    await vi.waitFor(() => {
-      expect(onSuccess).toHaveBeenCalledTimes(1)
-    })
-
-    process.emit('SIGINT', 'SIGINT')
-    const [error] = await promise
-
-    expect(error).toBeNull()
-  })
-
-  it('should return ok after signal cleanup', async () => {
-    const { watcher, close } = createMockWatcher()
-    mockBuild.mockResolvedValueOnce([null, undefined])
-    mockFsWatch.mockReturnValueOnce(watcher)
-
-    const promise = watch({ config: {}, cwd: '/project' })
-
-    await vi.waitFor(() => {
-      expect(mockFsWatch).toHaveBeenCalledTimes(1)
-    })
-
-    process.emit('SIGINT', 'SIGINT')
-    const [error, output] = await promise
+  it('should return ok on success', async () => {
+    mockTsdownBuild.mockResolvedValueOnce([])
+    const [error, output] = await watch({ resolved })
 
     expect(error).toBeNull()
     expect(output).toBeUndefined()
-    expect(close).toHaveBeenCalledTimes(1)
   })
 
-  it('should call build on file changes', async () => {
-    const { watcher } = createMockWatcher()
-    mockBuild.mockResolvedValue([null, undefined])
-    mockFsWatch.mockReturnValueOnce(watcher)
+  it('should return err with Error on failure', async () => {
+    mockTsdownBuild.mockRejectedValueOnce(new Error('watch crashed'))
+    const [error, output] = await watch({ resolved })
 
-    const promise = watch({ config: {}, cwd: '/project' })
-
-    await vi.waitFor(() => {
-      expect(mockFsWatch).toHaveBeenCalledTimes(1)
-    })
-
-    const callback = captureWatchCallback()
-    callback('change', 'src/index.ts')
-
-    await vi.waitFor(() => {
-      expect(mockBuild).toHaveBeenCalledTimes(2)
-    })
-
-    process.emit('SIGINT', 'SIGINT')
-    await promise
+    expect(output).toBeNull()
+    expect(error).toBeInstanceOf(Error)
+    expect(error!.message).toContain('tsdown watch failed')
   })
 
-  it('should ignore node_modules changes', async () => {
-    const { watcher } = createMockWatcher()
-    mockBuild.mockResolvedValue([null, undefined])
-    mockFsWatch.mockReturnValueOnce(watcher)
+  it('should enable watch mode in tsdown config', async () => {
+    mockTsdownBuild.mockResolvedValueOnce([])
+    await watch({ resolved })
 
-    const promise = watch({ config: {}, cwd: '/project' })
-
-    await vi.waitFor(() => {
-      expect(mockFsWatch).toHaveBeenCalledTimes(1)
-    })
-
-    const callback = captureWatchCallback()
-    callback('change', 'node_modules/foo/index.js')
-
-    await new Promise((resolve) => {
-      setTimeout(resolve, 300)
-    })
-
-    expect(mockBuild).toHaveBeenCalledTimes(1)
-
-    process.emit('SIGINT', 'SIGINT')
-    await promise
+    expect(mockTsdownBuild).toHaveBeenCalledWith(expect.objectContaining({ watch: true }))
   })
 
-  it('should ignore dist changes', async () => {
-    const { watcher } = createMockWatcher()
-    mockBuild.mockResolvedValue([null, undefined])
-    mockFsWatch.mockReturnValueOnce(watcher)
+  it('should pass onSuccess callback to tsdown config', async () => {
+    const onSuccess = vi.fn()
+    mockTsdownBuild.mockResolvedValueOnce([])
+    await watch({ resolved, onSuccess })
 
-    const promise = watch({ config: {}, cwd: '/project' })
+    expect(mockTsdownBuild).toHaveBeenCalledWith(expect.objectContaining({ onSuccess }))
+  })
 
-    await vi.waitFor(() => {
-      expect(mockFsWatch).toHaveBeenCalledTimes(1)
-    })
+  it('should pass version define to tsdown config', async () => {
+    mockReadVersion.mockResolvedValueOnce([null, '2.0.0'])
+    mockTsdownBuild.mockResolvedValueOnce([])
 
-    const callback = captureWatchCallback()
-    callback('change', 'dist/index.js')
+    await watch({ resolved })
 
-    await new Promise((resolve) => {
-      setTimeout(resolve, 300)
-    })
+    expect(mockTsdownBuild).toHaveBeenCalledWith(
+      expect.objectContaining({ define: { __KIDD_VERSION__: '"2.0.0"' } })
+    )
+  })
 
-    expect(mockBuild).toHaveBeenCalledTimes(1)
+  it('should continue when readVersion fails', async () => {
+    mockReadVersion.mockResolvedValueOnce([new Error('ENOENT'), null])
+    mockTsdownBuild.mockResolvedValueOnce([])
 
-    process.emit('SIGINT', 'SIGINT')
-    await promise
+    const [error] = await watch({ resolved })
+
+    expect(error).toBeNull()
   })
 })

@@ -48,7 +48,6 @@ Commands live in `src/commands/`, middleware in `src/middleware/`, and the entry
 | Terminal UI          | Logger, spinner, prompts, colors, formatters         |
 | HTTP client          | Typed fetch wrapper with auth header injection       |
 | Icons                | Nerd Font glyphs with emoji fallback                 |
-| Stories viewer       | Storybook-like TUI for developing Ink components     |
 | Build & compile      | ESM bundling via tsdown, standalone binaries via Bun |
 
 ## Sub-exports
@@ -66,7 +65,6 @@ The `@kidd-cli/core` package exposes focused sub-exports so you only import what
 | `@kidd-cli/core/store`   | File-backed JSON store                             |
 | `@kidd-cli/core/project` | Git root resolution and path utilities             |
 | `@kidd-cli/core/format`  | Standalone format functions                        |
-| `@kidd-cli/core/stories` | Stories viewer and story definition helpers        |
 | `@kidd-cli/core/test`    | Test utilities for commands and middleware         |
 
 ## Packages

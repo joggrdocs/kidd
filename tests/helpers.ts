@@ -45,7 +45,7 @@ interface NodeRunnerOptions {
    */
   readonly example: string
   /**
-   * Relative path to the built entry file (default: `dist/index.mjs`).
+   * Relative path to the built entry file (default: `dist/index.js`).
    */
   readonly distPath?: string
 }
@@ -69,7 +69,7 @@ type SubprocessRunner = (...args: readonly string[]) => string
  */
 export function createNodeRunner({
   example,
-  distPath = 'dist/index.mjs',
+  distPath = 'dist/index.js',
 }: NodeRunnerOptions): SubprocessRunner {
   const cwd = `${EXAMPLES_DIR}/${example}`
 

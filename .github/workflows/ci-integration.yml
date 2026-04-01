@@ -153,7 +153,7 @@ jobs:
         if: runner.os != 'Windows'
         run: |
           find examples -name 'cli-*' -type f -exec chmod +x {} +
-          find examples -name '*.mjs' -path '*/dist/*' -type f -exec chmod +x {} +
+          find examples -name '*.js' -path '*/dist/*' -type f -exec chmod +x {} +
 
       - name: 'Run integration tests'
         run: pnpm test:integration

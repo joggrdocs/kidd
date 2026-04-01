@@ -4,7 +4,7 @@ import { join } from 'node:path'
 
 import type { CompileTarget } from '@kidd-cli/config'
 import { err, ok } from '@kidd-cli/utils/fp'
-import type { AsyncResult } from '@kidd-cli/utils/fp'
+import type { AsyncResult, Result } from '@kidd-cli/utils/fp'
 import { attemptAsync } from 'es-toolkit'
 
 import { detectBuildEntry, resolveConfig } from '../config/resolve-config.js'
@@ -50,28 +50,16 @@ export async function compile(params: CompileParams): AsyncResult<CompileOutput>
   const targets: readonly CompileTarget[] = resolveTargets(resolved.compile.targets)
   const isMultiTarget = targets.length > 1
 
-  const results = await Promise.all(
-    targets.map(async (target) => {
-      if (params.onTargetStart) {
-        await params.onTargetStart(target)
-      }
-
-      const result = await compileSingleTarget({
-        bundledEntry,
-        isMultiTarget,
-        name: resolved.compile.name,
-        outDir: resolved.compileOutDir,
-        target,
-        verbose: params.verbose ?? false,
-      })
-
-      if (result[0] === null && params.onTargetComplete) {
-        await params.onTargetComplete(target)
-      }
-
-      return result
-    })
-  )
+  const results = await compileTargetsSequentially({
+    bundledEntry,
+    isMultiTarget,
+    name: resolved.compile.name,
+    onTargetComplete: params.onTargetComplete,
+    onTargetStart: params.onTargetStart,
+    outDir: resolved.compileOutDir,
+    targets,
+    verbose: params.verbose ?? false,
+  })
 
   await cleanBunBuildArtifacts(resolved.cwd)
 
@@ -88,6 +76,51 @@ export async function compile(params: CompileParams): AsyncResult<CompileOutput>
 }
 
 // ---------------------------------------------------------------------------
+
+/**
+ * Compile targets one at a time to avoid overwhelming bun with concurrent processes.
+ *
+ * When turbo runs multiple examples in parallel, each spawning `bun build --compile`
+ * for every target simultaneously, bun processes compete for resources and fail.
+ * Sequential execution within each example avoids this.
+ *
+ * @private
+ * @param params - The targets and compilation parameters.
+ * @returns The accumulated result tuples for each target.
+ */
+async function compileTargetsSequentially(params: {
+  readonly bundledEntry: string
+  readonly isMultiTarget: boolean
+  readonly name: string
+  readonly onTargetComplete?: (target: CompileTarget) => void | Promise<void>
+  readonly onTargetStart?: (target: CompileTarget) => void | Promise<void>
+  readonly outDir: string
+  readonly targets: readonly CompileTarget[]
+  readonly verbose: boolean
+}): Promise<readonly Result<CompiledBinary>[]> {
+  return params.targets.reduce<Promise<Result<CompiledBinary>[]>>(async (accPromise, target) => {
+    const acc = await accPromise
+
+    if (params.onTargetStart) {
+      await params.onTargetStart(target)
+    }
+
+    const result = await compileSingleTarget({
+      bundledEntry: params.bundledEntry,
+      isMultiTarget: params.isMultiTarget,
+      name: params.name,
+      outDir: params.outDir,
+      target,
+      verbose: params.verbose,
+    })
+
+    if (result[0] === null && params.onTargetComplete) {
+      await params.onTargetComplete(target)
+    }
+
+    return [...acc, result]
+  }, Promise.resolve([]))
+}
 
 /**
  * Compile a single target via `bun build --compile`.
@@ -253,7 +286,8 @@ function execBunBuild(args: readonly string[]): AsyncResult<string> {
   return new Promise((resolve) => {
     execFileCb('bun', [...args], (error, stdout, stderr) => {
       if (error) {
-        const enriched = Object.assign(error, { stderr })
+        const enriched = new Error(error.message, { cause: error })
+        Object.defineProperty(enriched, 'stderr', { enumerable: true, value: stderr })
         resolve(err(enriched))
         return
       }

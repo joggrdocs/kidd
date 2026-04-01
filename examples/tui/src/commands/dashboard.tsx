@@ -116,7 +116,7 @@ function MenuView({
   return (
     <Box flexDirection="column" gap={1}>
       <Text bold>Dashboard</Text>
-      <Select options={MENU_OPTIONS} onChange={onSelect} />
+      <Select options={MENU_OPTIONS} onSubmit={onSelect} />
     </Box>
   )
 }
@@ -139,7 +139,7 @@ function TasksView(): React.ReactElement {
         .with(null, () => (
           <Select
             options={taskOptions}
-            onChange={(value) => {
+            onSubmit={(value) => {
               setSelectedIndex(Number(value))
             }}
           />

@@ -1,5 +1,6 @@
 import { Box, Text } from 'ink'
 import type { ReactElement } from 'react'
+import { match } from 'ts-pattern'
 
 /**
  * Props for the UserCard component.
@@ -13,11 +14,17 @@ export interface UserCardProps {
 }
 
 /**
- * Map of active status to display properties.
+ * Resolve display properties for an active/inactive status.
+ *
+ * @private
+ * @param active - Whether the user is active.
+ * @returns The color and label for the status.
  */
-const STATUS_MAP: Record<string, { readonly color: string; readonly label: string }> = {
-  true: { color: 'green', label: 'Active' },
-  false: { color: 'red', label: 'Inactive' },
+function resolveStatus(active: boolean): { readonly color: string; readonly label: string } {
+  return match(active)
+    .with(true, () => ({ color: 'green', label: 'Active' }))
+    .with(false, () => ({ color: 'red', label: 'Inactive' }))
+    .exhaustive()
 }
 
 /**
@@ -30,7 +37,7 @@ export function UserCard({
   active,
   loginCount,
 }: UserCardProps): ReactElement {
-  const status = STATUS_MAP[String(active)] ?? STATUS_MAP['false']
+  const status = resolveStatus(active)
 
   return (
     <Box flexDirection="column" padding={1}>

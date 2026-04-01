@@ -8,7 +8,7 @@ import { extractConfig } from '../lib/config-helpers.js'
 /**
  * Start a kidd CLI project in development mode with file watching.
  *
- * Loads the project's `kidd.config.ts`, starts tsdown in watch mode, and
+ * Loads the project's `kidd.config.ts`, starts the bundler in watch mode, and
  * logs rebuild status on each successful build.
  */
 const devCommand: Command = command({

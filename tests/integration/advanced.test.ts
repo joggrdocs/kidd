@@ -40,5 +40,53 @@ describe('examples/advanced', () => {
         expect(help).toContain('Deploy a preview environment')
       })
     })
+
+    describe('status', () => {
+      it('should display the CLI name', () => {
+        const output = run('status')
+        expect(output).toContain('"name": "acme"')
+      })
+
+      it('should display the CLI version', () => {
+        const output = run('status')
+        expect(output).toContain('"version": "2.0.0"')
+      })
+    })
+
+    describe('whoami', () => {
+      it('should display user info', () => {
+        const output = run('whoami')
+        expect(output).toContain('User: todo')
+      })
+
+      it('should output JSON when --json flag is passed', () => {
+        const output = run('whoami', '--json')
+        expect(output).toContain('"user": "todo"')
+      })
+    })
+
+    describe('deploy preview', () => {
+      it('should display deployment output for a branch', () => {
+        const output = run('deploy', 'preview', 'my-branch')
+        expect(output).toContain('Preview deployed')
+        expect(output).toContain('"branch": "my-branch"')
+        expect(output).toContain('"environment": "preview"')
+      })
+
+      it('should accept the --clean flag', () => {
+        const output = run('deploy', 'preview', 'my-branch', '--clean')
+        expect(output).toContain('Preview deployed')
+        expect(output).toContain('"branch": "my-branch"')
+      })
+    })
+
+    describe('deploy production', () => {
+      it('should deploy with --force to skip confirmation', () => {
+        const output = run('deploy', 'production', '--tag', 'v1.2.3', '--force')
+        expect(output).toContain('Deployed v1.2.3 to production')
+        expect(output).toContain('"environment": "production"')
+        expect(output).toContain('"tag": "v1.2.3"')
+      })
+    })
   })
 })

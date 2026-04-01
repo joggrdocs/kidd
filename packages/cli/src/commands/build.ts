@@ -20,7 +20,7 @@ const options = z.object({
 type BuildArgs = z.infer<typeof options>
 
 /**
- * Build a kidd CLI project for production using tsdown.
+ * Build a kidd CLI project for production.
  *
  * Loads the project's `kidd.config.ts`, invokes the bundler, and reports
  * the output entry file and directory on success. When `--compile` or
@@ -36,7 +36,7 @@ const buildCommand: Command = command({
     const [, configResult] = await loadConfig({ cwd })
     const config = mergeCleanOption({ config: extractConfig(configResult), clean: ctx.args.clean })
 
-    ctx.status.spinner.start('Bundling with tsdown...')
+    ctx.status.spinner.start('Bundling...')
 
     const [buildError, buildOutput] = await build({ config, cwd })
 

@@ -973,7 +973,7 @@ const COMMANDS: readonly Command[] = [
             'Compiling src/utils.ts...',
             'Compiling src/cli.ts...',
             'Generating type declarations...',
-            'Writing dist/index.mjs...',
+            'Writing dist/index.js...',
           ]
           for (const line of lines) {
             tl.message(line)

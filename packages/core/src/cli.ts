@@ -1,6 +1,5 @@
 import { resolve } from 'node:path'
 
-import * as clack from '@clack/prompts'
 import { updateSettings } from '@clack/prompts'
 import { P, attemptAsync, err, isNil, isPlainObject, isString, match, ok } from '@kidd-cli/utils/fp'
 import type { Result } from '@kidd-cli/utils/fp'
@@ -8,8 +7,8 @@ import yargs from 'yargs'
 import type { Argv } from 'yargs'
 import { z } from 'zod'
 
-import { DEFAULT_EXIT_CODE, isContextError } from '@/context/index.js'
 import type { DisplayConfig } from '@/context/types.js'
+import { exitOnError, registerCrashHandlers } from '@/lib/crash.js'
 import type {
   CliOptions,
   CommandMap,
@@ -37,6 +36,8 @@ const ARGV_SLICE_START = 2
 export async function cli<TSchema extends z.ZodType = z.ZodType>(
   options: CliOptions<TSchema>
 ): Promise<void> {
+  registerCrashHandlers(options.name)
+
   const [uncaughtError, result] = await attemptAsync(async () => {
     const [versionError, version] = resolveVersion(options.version)
 
@@ -405,20 +406,3 @@ function applyDisplayGlobals(display: DisplayConfig | undefined): void {
   })
 }
 
-/**
- * Handle a CLI error by logging the message and exiting with the appropriate code.
- *
- * ContextErrors carry a custom exit code; all other errors exit with code 1.
- *
- * @private
- * @param error - The caught error value.
- */
-function exitOnError(error: unknown): void {
-  const info = match(error)
-    .when(isContextError, (e) => ({ exitCode: e.exitCode, message: e.message }))
-    .with(P.instanceOf(Error), (e) => ({ exitCode: DEFAULT_EXIT_CODE, message: e.message }))
-    .otherwise((e) => ({ exitCode: DEFAULT_EXIT_CODE, message: String(e) }))
-
-  clack.log.error(info.message)
-  process.exit(info.exitCode)
-}

@@ -1,6 +1,7 @@
 import { stories } from '@kidd-cli/core/stories'
 import { z } from 'zod'
 
+import type { SystemMonitorProps } from './SystemMonitor'
 import { SystemMonitor } from './SystemMonitor'
 
 const ServiceStatusSchema = z.object({
@@ -32,7 +33,7 @@ const schema = z.object({
   recentEvents: z.array(EventEntrySchema).describe('Recent system events'),
 })
 
-export default stories({
+export default stories<SystemMonitorProps>({
   title: 'SystemMonitor',
   component: SystemMonitor,
   schema,

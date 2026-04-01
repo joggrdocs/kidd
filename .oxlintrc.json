@@ -103,11 +103,15 @@
   },
   "overrides": [
     {
-      "files": ["*.test.ts", "*.spec.ts", "**/__tests__/**"],
+      "files": ["*.test.ts", "*.spec.ts", "**/__tests__/**", "**/test/**"],
       "rules": {
         "no-unused-vars": "off",
         "functional/no-classes": "off",
-        "typescript/no-non-null-assertion": "off"
+        "typescript/no-non-null-assertion": "off",
+        "vitest/require-mock-type-parameters": "off",
+        "vitest/prefer-strict-boolean-matchers": "off",
+        "vitest/prefer-import-in-mock": "off",
+        "vitest/prefer-called-exactly-once-with": "off"
       }
     }
   ],

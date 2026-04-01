@@ -405,4 +405,3 @@ function applyDisplayGlobals(display: DisplayConfig | undefined): void {
     messages: display.messages,
   })
 }
-

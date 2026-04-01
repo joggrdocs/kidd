@@ -73,7 +73,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@clack/prompts": "^1.1.0",
+    "@clack/prompts": "^1.2.0",
     "@kidd-cli/config": "workspace:*",
     "@kidd-cli/utils": "workspace:*",
     "@pinojs/redact": "^0.4.0",
@@ -105,10 +105,6 @@
     "react": ">=18.0.0",
     "vitest": ">=2.0.0"
   },
-  "engines": {
-    "node": ">=24",
-    "bun": ">=1.3"
-  },
   "peerDependenciesMeta": {
     "jiti": {
       "optional": true
@@ -125,5 +121,9 @@
     "react": {
       "optional": true
     }
+  },
+  "engines": {
+    "bun": ">=1.3",
+    "node": ">=24"
   }
 }

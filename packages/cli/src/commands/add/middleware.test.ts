@@ -164,4 +164,110 @@ describe('add middleware', () => {
     const mod = await import('./middleware.js')
     await expect(mod.default.handler!(ctx)).rejects.toThrow('Not in a kidd project')
   })
+
+  it('should fail when detect returns an error', async () => {
+    const ctx = makeContext({ name: 'auth' })
+    mockedDetectProject.mockResolvedValue([new Error('detect failed'), null])
+
+    const mod = await import('./middleware.js')
+    await expect(mod.default.handler!(ctx)).rejects.toThrow('detect failed')
+  })
+
+  it('should fail when name is not kebab-case', async () => {
+    const ctx = makeContext({ name: 'MyMiddleware' })
+    mockedDetectProject.mockResolvedValue([
+      null,
+      { commandsDir: null, hasKiddDep: true, rootDir: '/project' },
+    ])
+
+    const mod = await import('./middleware.js')
+    await expect(mod.default.handler!(ctx)).rejects.toThrow('Middleware name must be kebab-case')
+  })
+
+  it('should fail when render returns an error', async () => {
+    const ctx = makeContext({ description: 'Auth', name: 'auth' })
+    mockedDetectProject.mockResolvedValue([
+      null,
+      { commandsDir: null, hasKiddDep: true, rootDir: '/project' },
+    ])
+    mockedRenderTemplate.mockResolvedValue([new Error('render failed'), null])
+
+    const mod = await import('./middleware.js')
+    await expect(mod.default.handler!(ctx)).rejects.toThrow('render failed')
+    expect(ctx.status.spinner.stop).toHaveBeenCalledWith('Failed')
+  })
+
+  it('should fail when write returns an error', async () => {
+    const ctx = makeContext({ description: 'Auth', name: 'auth' })
+    mockedDetectProject.mockResolvedValue([
+      null,
+      { commandsDir: null, hasKiddDep: true, rootDir: '/project' },
+    ])
+    mockedRenderTemplate.mockResolvedValue([
+      null,
+      [{ content: 'code', relativePath: 'middleware.ts' }],
+    ])
+    mockedWriteFiles.mockResolvedValue([new Error('write failed'), null])
+
+    const mod = await import('./middleware.js')
+    await expect(mod.default.handler!(ctx)).rejects.toThrow('write failed')
+    expect(ctx.status.spinner.stop).toHaveBeenCalledWith('Failed')
+  })
+
+  it('should log skipped files', async () => {
+    const ctx = makeContext({ description: 'Auth', name: 'auth' })
+    mockedDetectProject.mockResolvedValue([
+      null,
+      { commandsDir: null, hasKiddDep: true, rootDir: '/project' },
+    ])
+    mockedRenderTemplate.mockResolvedValue([
+      null,
+      [{ content: 'code', relativePath: 'middleware.ts' }],
+    ])
+    mockedWriteFiles.mockResolvedValue([null, { skipped: ['auth.ts'], written: [] }])
+
+    const mod = await import('./middleware.js')
+    await mod.default.handler!(ctx)
+
+    expect(ctx.log.raw).toHaveBeenCalledWith('  skipped auth.ts (already exists)')
+  })
+
+  it('should not log summary when no files are written or skipped', async () => {
+    const ctx = makeContext({ description: 'Auth', name: 'auth' })
+    mockedDetectProject.mockResolvedValue([
+      null,
+      { commandsDir: null, hasKiddDep: true, rootDir: '/project' },
+    ])
+    mockedRenderTemplate.mockResolvedValue([
+      null,
+      [{ content: 'code', relativePath: 'middleware.ts' }],
+    ])
+    mockedWriteFiles.mockResolvedValue([null, { skipped: [], written: [] }])
+
+    const mod = await import('./middleware.js')
+    await mod.default.handler!(ctx)
+
+    expect(ctx.log.raw).not.toHaveBeenCalled()
+  })
+
+  it('should prompt for description when not provided via args', async () => {
+    const ctx = makeContext({ name: 'auth' })
+    mockedDetectProject.mockResolvedValue([
+      null,
+      { commandsDir: null, hasKiddDep: true, rootDir: '/project' },
+    ])
+    vi.mocked(ctx.prompts.text).mockResolvedValueOnce('Auth middleware')
+    mockedRenderTemplate.mockResolvedValue([
+      null,
+      [{ content: 'code', relativePath: 'middleware.ts' }],
+    ])
+    mockedWriteFiles.mockResolvedValue([null, { skipped: [], written: ['auth.ts'] }])
+
+    const mod = await import('./middleware.js')
+    await mod.default.handler!(ctx)
+
+    expect(ctx.prompts.text).toHaveBeenCalledWith(
+      expect.objectContaining({ message: 'Description' })
+    )
+  })
 })

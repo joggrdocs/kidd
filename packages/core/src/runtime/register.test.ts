@@ -175,6 +175,51 @@ describe('command ordering', () => {
     expect(errorRef.error?.message).toContain('"missing"')
   })
 
+  it('should set errorRef when order contains duplicate names', () => {
+    const commands: CommandMap = {
+      alpha: command({ description: 'Alpha' }),
+      beta: command({ description: 'Beta' }),
+    }
+
+    const resolved: ResolvedRef = { ref: undefined }
+    const errorRef: ErrorRef = { error: undefined }
+    const instance = yargs([])
+
+    registerCommands({
+      commands,
+      errorRef,
+      instance,
+      order: ['alpha', 'alpha'],
+      parentPath: [],
+      resolved,
+    })
+
+    expect(errorRef.error).toBeInstanceOf(Error)
+    expect(errorRef.error?.message).toContain('duplicate')
+  })
+
+  it('should not validate order when order array is empty', () => {
+    const commands: CommandMap = {
+      alpha: command({ description: 'Alpha' }),
+      beta: command({ description: 'Beta' }),
+    }
+
+    const resolved: ResolvedRef = { ref: undefined }
+    const errorRef: ErrorRef = { error: undefined }
+    const instance = yargs([])
+
+    registerCommands({
+      commands,
+      errorRef,
+      instance,
+      order: [],
+      parentPath: [],
+      resolved,
+    })
+
+    expect(errorRef.error).toBeUndefined()
+  })
+
   it('should handle subcommand ordering via cmd.help.order', () => {
     const commands: CommandMap = {
       deploy: command({

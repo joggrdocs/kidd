@@ -35,7 +35,6 @@ describe('listSystemFonts()', () => {
 
   afterEach(() => {
     Object.defineProperty(process, 'platform', { value: originalPlatform, configurable: true })
-    vi.restoreAllMocks()
   })
 
   describe('darwin', () => {
@@ -179,6 +178,102 @@ describe('listSystemFonts()', () => {
 
       expect(error).toBeNull()
       expect(fonts).toEqual([])
+    })
+
+    it('should gracefully handle lstat Error via safeLstat and return empty results', async () => {
+      Object.defineProperty(process, 'platform', { value: 'darwin', configurable: true })
+
+      vi.mocked(readdir).mockImplementation((dir) => {
+        if (String(dir) === '/Library/Fonts') {
+          return Promise.resolve(['font.ttf'] as never)
+        }
+        return Promise.reject(new Error('ENOENT'))
+      })
+
+      vi.mocked(lstat).mockRejectedValue(new Error('Unexpected EPERM'))
+
+      const [error, fonts] = await listSystemFonts()
+
+      expect(error).toBeNull()
+      expect(fonts).toEqual([])
+    })
+
+    it('should gracefully handle lstat non-Error rejection via safeLstat and return empty results', async () => {
+      Object.defineProperty(process, 'platform', { value: 'darwin', configurable: true })
+
+      vi.mocked(readdir).mockImplementation((dir) => {
+        if (String(dir) === '/Library/Fonts') {
+          return Promise.resolve(['font.ttf'] as never)
+        }
+        return Promise.reject(new Error('ENOENT'))
+      })
+
+      vi.mocked(lstat).mockRejectedValue('string error')
+
+      const [error, fonts] = await listSystemFonts()
+
+      expect(error).toBeNull()
+      expect(fonts).toEqual([])
+    })
+  })
+
+  describe('win32', () => {
+    beforeEach(() => {
+      Object.defineProperty(process, 'platform', { value: 'win32', configurable: true })
+    })
+
+    it('should scan windows font directories', async () => {
+      vi.mocked(readdir).mockImplementation((dir) => {
+        if (String(dir).includes('Fonts')) {
+          return Promise.resolve(['Arial.ttf'] as never)
+        }
+        return Promise.reject(new Error('ENOENT'))
+      })
+
+      vi.mocked(lstat).mockResolvedValue(fileStats() as never)
+
+      const [error, fonts] = await listSystemFonts()
+
+      expect(error).toBeNull()
+      expect(fonts?.some((f) => f.endsWith('Arial.ttf'))).toBeTruthy()
+    })
+  })
+
+  describe('file extension filtering', () => {
+    beforeEach(() => {
+      Object.defineProperty(process, 'platform', { value: 'darwin', configurable: true })
+    })
+
+    it('should include otf, ttc, woff, and woff2 extensions', async () => {
+      vi.mocked(readdir).mockImplementation((dir) => {
+        if (String(dir) === '/Library/Fonts') {
+          return Promise.resolve(['a.otf', 'b.ttc', 'c.woff', 'd.woff2'] as never)
+        }
+        return Promise.reject(new Error('ENOENT'))
+      })
+
+      vi.mocked(lstat).mockResolvedValue(fileStats() as never)
+
+      const [error, fonts] = await listSystemFonts()
+
+      expect(error).toBeNull()
+      expect(fonts).toHaveLength(4)
+    })
+
+    it('should exclude files without an extension', async () => {
+      vi.mocked(readdir).mockImplementation((dir) => {
+        if (String(dir) === '/Library/Fonts') {
+          return Promise.resolve(['LICENSE', 'font.ttf'] as never)
+        }
+        return Promise.reject(new Error('ENOENT'))
+      })
+
+      vi.mocked(lstat).mockResolvedValue(fileStats() as never)
+
+      const [error, fonts] = await listSystemFonts()
+
+      expect(error).toBeNull()
+      expect(fonts).toEqual(['/Library/Fonts/font.ttf'])
     })
   })
 })

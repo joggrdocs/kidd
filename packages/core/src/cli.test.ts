@@ -312,6 +312,35 @@ describe('version resolution', () => {
 
     expect(lifecycle.getExitSpy()).toHaveBeenCalled()
   })
+
+  it('should error when explicit version is whitespace only', async () => {
+    vi.stubGlobal('__KIDD_VERSION__', '5.0.0')
+
+    setArgv('info')
+    await runTestCli({
+      commands: {
+        info: command({ description: 'Show info', handler: vi.fn() }),
+      },
+      name: 'whitespace-version-cli',
+      version: '   ',
+    })
+
+    expect(lifecycle.getExitSpy()).toHaveBeenCalled()
+  })
+
+  it('should error when __KIDD_VERSION__ is an empty string and no explicit version', async () => {
+    vi.stubGlobal('__KIDD_VERSION__', '')
+
+    setArgv('info')
+    await runTestCli({
+      commands: {
+        info: command({ description: 'Show info', handler: vi.fn() }),
+      },
+      name: 'empty-global-version-cli',
+    })
+
+    expect(lifecycle.getExitSpy()).toHaveBeenCalled()
+  })
 })
 
 describe('config-based autoloading', () => {
@@ -513,6 +542,58 @@ describe('help', () => {
 
     const output = logSpy.mock.calls.map((call) => String(call[0])).join('\n')
     expect(output).toContain('Docs: https://example.com')
+  })
+
+  it('should not show footer when help options are undefined', async () => {
+    const handler = vi.fn()
+    const commands: CommandMap = {
+      run: command({ description: 'Run something', handler }),
+    }
+
+    setArgv()
+    await runTestCli({
+      commands,
+      name: 'test-cli',
+      version: '1.0.0',
+    })
+
+    const output = logSpy.mock.calls.map((call) => String(call[0])).join('\n')
+    expect(output).not.toContain('epilogue')
+  })
+
+  it('should not show header when help options are undefined', async () => {
+    const handler = vi.fn()
+    const commands: CommandMap = {
+      run: command({ description: 'Run something', handler }),
+    }
+
+    setArgv()
+    await runTestCli({
+      commands,
+      name: 'test-cli',
+      version: '1.0.0',
+    })
+
+    const output = logSpy.mock.calls.map((call) => String(call[0])).join('\n')
+    expect(output).toContain('run')
+    expect(output).not.toContain('undefined')
+  })
+
+  it('should not show description when description is omitted', async () => {
+    const handler = vi.fn()
+    const commands: CommandMap = {
+      run: command({ description: 'Run something', handler }),
+    }
+
+    setArgv()
+    await runTestCli({
+      commands,
+      name: 'test-cli',
+      version: '1.0.0',
+    })
+
+    const output = logSpy.mock.calls.map((call) => String(call[0])).join('\n')
+    expect(output).toContain('run')
   })
 
   it('should show both header and description on no-command', async () => {

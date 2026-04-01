@@ -168,4 +168,59 @@ describe('compose()', () => {
 
     expect(next).toHaveBeenCalledOnce()
   })
+
+  it('should call next when middleware array contains undefined entry', async () => {
+    const order: number[] = []
+
+    const first = middleware((_ctx, next) => {
+      order.push(1)
+      return next()
+    })
+
+    const third = middleware((_ctx, next) => {
+      order.push(3)
+      return next()
+    })
+
+    const middlewares = [first, undefined, third] as unknown as Parameters<typeof compose>[0]
+    const composed = compose(middlewares)
+    const ctx = createMockCtx()
+    const next = vi.fn()
+
+    await composed.handler(ctx as never, next)
+
+    expect(order).toEqual([1])
+    expect(next).toHaveBeenCalledOnce()
+  })
+
+  it('should call downstream next exactly once with empty array', async () => {
+    const composed = compose([])
+    const ctx = createMockCtx()
+    const next = vi.fn()
+
+    await composed.handler(ctx as never, next)
+    await composed.handler(ctx as never, next)
+
+    expect(next).toHaveBeenCalledTimes(2)
+  })
+
+  it('should handle async middleware that awaits next', async () => {
+    const order: string[] = []
+
+    const asyncMw = middleware(async (_ctx, next) => {
+      order.push('before')
+      await next()
+      order.push('after')
+    })
+
+    const composed = compose([asyncMw])
+    const ctx = createMockCtx()
+    const next = vi.fn(async () => {
+      order.push('downstream')
+    })
+
+    await composed.handler(ctx as never, next)
+
+    expect(order).toEqual(['before', 'downstream', 'after'])
+  })
 })

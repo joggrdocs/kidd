@@ -174,6 +174,19 @@ describe('isSecureAuthUrl()', () => {
   it('should reject invalid URLs', () => {
     expect(isSecureAuthUrl('not a url')).toBeFalsy()
   })
+
+  it('should reject an empty string', () => {
+    expect(isSecureAuthUrl('')).toBeFalsy()
+  })
+
+  it('should reject a URL with javascript scheme', () => {
+    // oxlint-disable-next-line eslint(no-script-url) -- Intentional: testing URL scheme validation
+    expect(isSecureAuthUrl('javascript:alert(1)')).toBeFalsy()
+  })
+
+  it('should reject a URL with data scheme', () => {
+    expect(isSecureAuthUrl('data:text/html,<h1>hi</h1>')).toBeFalsy()
+  })
 })
 
 describe('openBrowser()', () => {
@@ -198,6 +211,39 @@ describe('openBrowser()', () => {
     const [[command, args]] = vi.mocked(execFile).mock.calls
     expect(command).toBe('cmd')
     expect(args).toContain('https://example.com/auth?a=1^&b=2')
+  })
+
+  it('should escape pipe, angle brackets, and caret on Windows', () => {
+    vi.mocked(platform).mockReturnValue('win32')
+
+    openBrowser('https://example.com/auth?x=a|b<c>d^e')
+
+    expect(vi.mocked(execFile)).toHaveBeenCalled()
+    const [[, args]] = vi.mocked(execFile).mock.calls
+    expect(args).toContain('https://example.com/auth?x=a^|b^<c^>d^^e')
+  })
+
+  it('should use xdg-open on non-macOS non-Windows platforms', () => {
+    vi.mocked(platform).mockReturnValue('linux')
+
+    openBrowser('https://example.com')
+
+    expect(vi.mocked(execFile)).toHaveBeenCalled()
+    const [[command, args]] = vi.mocked(execFile).mock.calls
+    expect(command).toBe('xdg-open')
+    expect(args).toContain('https://example.com')
+  })
+
+  it('should not call execFile for non-HTTP URLs', () => {
+    openBrowser('ftp://example.com')
+
+    expect(vi.mocked(execFile)).not.toHaveBeenCalled()
+  })
+
+  it('should not call execFile for invalid URLs', () => {
+    openBrowser('not a url at all')
+
+    expect(vi.mocked(execFile)).not.toHaveBeenCalled()
   })
 })
 

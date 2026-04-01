@@ -283,9 +283,10 @@ describe('screen() render function', () => {
     const { screen } = await import('./screen.js')
     const cmd = screen({ render: StubComponent })
     const ctx = makeContext()
-    const ctxWithReport = Object.assign(ctx, {
+    const ctxWithReport = {
+      ...ctx,
       report: { check: vi.fn(), finding: vi.fn(), summary: vi.fn() },
-    })
+    }
 
     await cmd.render!(ctxWithReport)
 
@@ -321,11 +322,7 @@ describe('screen() render function', () => {
     const { screen } = await import('./screen.js')
     const cmd = screen({ fullscreen: true, render: StubComponent })
 
-    try {
-      await cmd.render!(makeContext())
-    } catch {
-      // expected
-    }
+    await expect(cmd.render!(makeContext())).rejects.toThrow('exit error')
 
     expect(writeSpy).toHaveBeenCalledWith('\u001B[?1049l')
     writeSpy.mockRestore()

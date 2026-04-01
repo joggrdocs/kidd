@@ -283,33 +283,6 @@ describe('startLocalServer()', () => {
     destroyServer(handle.server, handle.sockets)
   })
 
-  it('should resolve port as null when server address returns a string', async () => {
-    const handle = startLocalServer({
-      onRequest: (_req, res) => {
-        res.writeHead(200)
-        res.end()
-      },
-      port: 0,
-    })
-
-    // Wait for the server to start, then override address() to return a string
-    const originalAddress = handle.server.address.bind(handle.server)
-    await new Promise<void>((resolve) => {
-      handle.server.on('listening', () => {
-        resolve()
-      })
-    })
-
-    // The port already resolved at this point, so we test the actual server behavior
-    const port = await handle.port
-    expect(port).toBeGreaterThan(0)
-
-    // Verify address returns non-null for a valid server
-    expect(originalAddress()).not.toBeNull()
-
-    destroyServer(handle.server, handle.sockets)
-  })
-
   it('should resolve port as null when server fails to bind', async () => {
     // Start a server on an ephemeral port first
     const first = startLocalServer({

@@ -1,7 +1,7 @@
 import { writeFileSync } from 'node:fs'
 
 import * as clack from '@clack/prompts'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { createContextError } from '@/context/error.js'
 
@@ -22,6 +22,10 @@ const exitSpy = vi.spyOn(process, 'exit').mockImplementation(() => undefined as 
 
 beforeEach(() => {
   vi.clearAllMocks()
+})
+
+afterAll(() => {
+  exitSpy.mockRestore()
 })
 
 describe('exitOnError()', () => {

@@ -204,12 +204,13 @@ describe('createLog()', () => {
 
   describe('resolveOutput', () => {
     it('should default to process.stderr when no output is provided', () => {
+      const writeSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true)
       const log = createLog()
 
       log.newline()
 
-      // process.stderr.write was called — no capture stream means default
-      expect(clack.log.error).not.toHaveBeenCalled()
+      expect(writeSpy).toHaveBeenCalledWith('\n')
+      writeSpy.mockRestore()
     })
 
     it('should use custom stream when provided', () => {

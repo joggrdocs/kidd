@@ -60,10 +60,6 @@ describe('installNerdFont()', () => {
     vi.clearAllMocks()
   })
 
-  afterEach(() => {
-    vi.restoreAllMocks()
-  })
-
   describe('font validation', () => {
     it('should return error for font names with shell metacharacters', async () => {
       const ctx = createMockCtx()
@@ -269,11 +265,11 @@ describe('installNerdFont()', () => {
     const originalPlatform = process.platform
 
     beforeEach(() => {
-      Object.defineProperty(process, 'platform', { value: 'win32' })
+      Object.defineProperty(process, 'platform', { value: 'win32', configurable: true })
     })
 
     afterEach(() => {
-      Object.defineProperty(process, 'platform', { value: originalPlatform })
+      Object.defineProperty(process, 'platform', { value: originalPlatform, configurable: true })
     })
 
     it('should display download URL for unsupported platforms', async () => {
@@ -297,11 +293,11 @@ describe('installNerdFont()', () => {
     const originalPlatform = process.platform
 
     beforeEach(() => {
-      Object.defineProperty(process, 'platform', { value: 'linux' })
+      Object.defineProperty(process, 'platform', { value: 'linux', configurable: true })
     })
 
     afterEach(() => {
-      Object.defineProperty(process, 'platform', { value: originalPlatform })
+      Object.defineProperty(process, 'platform', { value: originalPlatform, configurable: true })
     })
 
     it('should display linux install commands with fc-cache', async () => {
@@ -323,11 +319,11 @@ describe('installNerdFont()', () => {
     const originalPlatform = process.platform
 
     beforeEach(() => {
-      Object.defineProperty(process, 'platform', { value: 'darwin' })
+      Object.defineProperty(process, 'platform', { value: 'darwin', configurable: true })
     })
 
     afterEach(() => {
-      Object.defineProperty(process, 'platform', { value: originalPlatform })
+      Object.defineProperty(process, 'platform', { value: originalPlatform, configurable: true })
     })
 
     it('should install via brew when brew is available', async () => {
@@ -397,11 +393,11 @@ describe('installNerdFont()', () => {
     const originalPlatform = process.platform
 
     beforeEach(() => {
-      Object.defineProperty(process, 'platform', { value: 'linux' })
+      Object.defineProperty(process, 'platform', { value: 'linux', configurable: true })
     })
 
     afterEach(() => {
-      Object.defineProperty(process, 'platform', { value: originalPlatform })
+      Object.defineProperty(process, 'platform', { value: originalPlatform, configurable: true })
     })
 
     it('should install via download on linux', async () => {
@@ -445,11 +441,11 @@ describe('installNerdFont()', () => {
     const originalPlatform = process.platform
 
     beforeEach(() => {
-      Object.defineProperty(process, 'platform', { value: 'win32' })
+      Object.defineProperty(process, 'platform', { value: 'win32', configurable: true })
     })
 
     afterEach(() => {
-      Object.defineProperty(process, 'platform', { value: originalPlatform })
+      Object.defineProperty(process, 'platform', { value: originalPlatform, configurable: true })
     })
 
     it('should return error for unsupported platforms', async () => {

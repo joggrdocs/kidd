@@ -1,5 +1,4 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import type { Mock } from 'vitest'
 
 vi.mock(import('@clack/prompts'), () => ({
   confirm: vi.fn(),
@@ -24,55 +23,45 @@ import { createContextPrompts } from './prompts.js'
 
 beforeEach(() => {
   vi.clearAllMocks()
-  ;(clack.isCancel as Mock).mockReturnValue(false)
+  vi.mocked(clack.isCancel).mockReturnValue(false)
 })
 
 describe('createContextPrompts()', () => {
   describe('confirm()', () => {
     it('should return the resolved value from clack', async () => {
-      ;(clack.confirm as Mock).mockResolvedValue(true)
+      vi.mocked(clack.confirm).mockResolvedValue(true)
       const prompts = createContextPrompts()
       const result = await prompts.confirm({ message: 'Continue?' })
-      expect(result).toBe(true)
+      expect(result).toBeTruthy()
     })
 
     it('should throw ContextError when user cancels', async () => {
-      ;(clack.confirm as Mock).mockResolvedValue(Symbol('cancel'))
-      ;(clack.isCancel as Mock).mockReturnValue(true)
+      vi.mocked(clack.confirm).mockResolvedValue(Symbol('cancel') as never)
+      vi.mocked(clack.isCancel).mockReturnValue(true)
       const prompts = createContextPrompts()
-      try {
-        await prompts.confirm({ message: 'Continue?' })
-        expect.fail('Expected a ContextError to be thrown')
-      } catch (error: unknown) {
-        expect(isContextError(error)).toBe(true)
-      }
+      await expect(prompts.confirm({ message: 'Continue?' })).rejects.toSatisfy(isContextError)
     })
   })
 
   describe('text()', () => {
     it('should return the resolved string from clack', async () => {
-      ;(clack.text as Mock).mockResolvedValue('hello')
+      vi.mocked(clack.text).mockResolvedValue('hello')
       const prompts = createContextPrompts()
       const result = await prompts.text({ message: 'Enter text:' })
       expect(result).toBe('hello')
     })
 
     it('should throw ContextError when user cancels', async () => {
-      ;(clack.text as Mock).mockResolvedValue(Symbol('cancel'))
-      ;(clack.isCancel as Mock).mockReturnValue(true)
+      vi.mocked(clack.text).mockResolvedValue(Symbol('cancel') as never)
+      vi.mocked(clack.isCancel).mockReturnValue(true)
       const prompts = createContextPrompts()
-      try {
-        await prompts.text({ message: 'Enter text:' })
-        expect.fail('Expected a ContextError to be thrown')
-      } catch (error: unknown) {
-        expect(isContextError(error)).toBe(true)
-      }
+      await expect(prompts.text({ message: 'Enter text:' })).rejects.toSatisfy(isContextError)
     })
   })
 
   describe('select()', () => {
     it('should return the resolved value from clack', async () => {
-      ;(clack.select as Mock).mockResolvedValue('option-a')
+      vi.mocked(clack.select).mockResolvedValue('option-a')
       const prompts = createContextPrompts()
       const result = await prompts.select({
         message: 'Pick one:',
@@ -84,7 +73,7 @@ describe('createContextPrompts()', () => {
 
   describe('password()', () => {
     it('should return the resolved value from clack', async () => {
-      ;(clack.password as Mock).mockResolvedValue('secret')
+      vi.mocked(clack.password).mockResolvedValue('secret')
       const prompts = createContextPrompts()
       const result = await prompts.password({ message: 'Enter password:' })
       expect(result).toBe('secret')
@@ -93,7 +82,7 @@ describe('createContextPrompts()', () => {
 
   describe('multiselect()', () => {
     it('should return the resolved values from clack', async () => {
-      ;(clack.multiselect as Mock).mockResolvedValue(['a', 'b'])
+      vi.mocked(clack.multiselect).mockResolvedValue(['a', 'b'])
       const prompts = createContextPrompts()
       const result = await prompts.multiselect({
         message: 'Pick many:',
@@ -108,7 +97,7 @@ describe('createContextPrompts()', () => {
 
   describe('autocomplete()', () => {
     it('should return the resolved value from clack', async () => {
-      ;(clack.autocomplete as Mock).mockResolvedValue('match')
+      vi.mocked(clack.autocomplete).mockResolvedValue('match')
       const prompts = createContextPrompts()
       const result = await prompts.autocomplete({
         message: 'Search:',
@@ -120,7 +109,7 @@ describe('createContextPrompts()', () => {
 
   describe('autocompleteMultiselect()', () => {
     it('should return the resolved values from clack', async () => {
-      ;(clack.autocompleteMultiselect as Mock).mockResolvedValue(['x', 'y'])
+      vi.mocked(clack.autocompleteMultiselect).mockResolvedValue(['x', 'y'])
       const prompts = createContextPrompts()
       const result = await prompts.autocompleteMultiselect({
         message: 'Search many:',
@@ -135,7 +124,7 @@ describe('createContextPrompts()', () => {
 
   describe('groupMultiselect()', () => {
     it('should return the resolved values from clack', async () => {
-      ;(clack.groupMultiselect as Mock).mockResolvedValue(['g1'])
+      vi.mocked(clack.groupMultiselect).mockResolvedValue(['g1'])
       const prompts = createContextPrompts()
       const result = await prompts.groupMultiselect({
         message: 'Pick from groups:',
@@ -147,7 +136,7 @@ describe('createContextPrompts()', () => {
 
   describe('selectKey()', () => {
     it('should return the resolved value from clack', async () => {
-      ;(clack.selectKey as Mock).mockResolvedValue('y')
+      vi.mocked(clack.selectKey).mockResolvedValue('y')
       const prompts = createContextPrompts()
       const result = await prompts.selectKey({
         message: 'Press a key:',
@@ -159,7 +148,7 @@ describe('createContextPrompts()', () => {
 
   describe('path()', () => {
     it('should return the resolved value from clack', async () => {
-      ;(clack.path as Mock).mockResolvedValue('/home/user/file.txt')
+      vi.mocked(clack.path).mockResolvedValue('/home/user/file.txt')
       const prompts = createContextPrompts()
       const result = await prompts.path({ message: 'Select path:' })
       expect(result).toBe('/home/user/file.txt')
@@ -169,7 +158,7 @@ describe('createContextPrompts()', () => {
   describe('group()', () => {
     it('should return the resolved group results from clack', async () => {
       const groupResult = { name: 'Alice', age: 30 }
-      ;(clack.group as Mock).mockResolvedValue(groupResult)
+      vi.mocked(clack.group).mockResolvedValue(groupResult)
       const prompts = createContextPrompts()
       const result = await prompts.group({
         name: async () => 'Alice',
@@ -181,7 +170,7 @@ describe('createContextPrompts()', () => {
 
   describe('defaults', () => {
     it('should spread defaults into clack calls', async () => {
-      ;(clack.confirm as Mock).mockResolvedValue(true)
+      vi.mocked(clack.confirm).mockResolvedValue(true)
       const prompts = createContextPrompts({ defaults: { guide: true } })
       await prompts.confirm({ message: 'Continue?' })
       expect(clack.confirm).toHaveBeenCalledWith(

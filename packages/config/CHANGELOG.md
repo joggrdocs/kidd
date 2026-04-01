@@ -1,5 +1,16 @@
 # @kidd-cli/config
 
+## 0.3.0
+
+### Minor Changes
+
+- 221aa01: Add `engines` field requiring Node.js >=24 and Bun >=1.3
+
+### Patch Changes
+
+- Updated dependencies [221aa01]
+  - @kidd-cli/utils@0.4.0
+
 ## 0.2.0
 
 ### Minor Changes

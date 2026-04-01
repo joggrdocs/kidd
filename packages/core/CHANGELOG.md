@@ -1,5 +1,18 @@
 # kidd
 
+## 0.21.0
+
+### Minor Changes
+
+- 221aa01: Surface `z.enum()` choices in `--help` output by extracting enum entries and passing them as yargs `choices`
+- 0c90056: Add crash handlers that catch uncaught exceptions and unhandled rejections, displaying a clean fatal error message and writing a debug log to `/tmp` instead of showing raw runtime stack traces.
+
+### Patch Changes
+
+- Updated dependencies [221aa01]
+  - @kidd-cli/config@0.3.0
+  - @kidd-cli/utils@0.4.0
+
 ## 0.20.0
 
 ### Minor Changes

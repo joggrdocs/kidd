@@ -84,6 +84,7 @@ interface ZodDef {
   type?: string
   innerType?: z.ZodTypeAny
   defaultValue?: unknown
+  entries?: Readonly<Record<string, string>>
 }
 
 interface ZodTypeInfo {
@@ -254,6 +255,22 @@ export function resolvePositionalType(
 }
 
 /**
+ * Extract enum choices from a zod definition when it represents a ZodEnum.
+ *
+ * @private
+ * @param def - The zod definition to inspect.
+ * @returns An object with `choices` if the def is an enum, otherwise empty.
+ */
+function resolveEnumChoices(
+  def: ZodDef
+): { readonly choices: readonly string[] } | Record<string, never> {
+  if (def.type === 'enum' && def.entries) {
+    return { choices: Object.values(def.entries) }
+  }
+  return {}
+}
+
+/**
  * Build a base yargs option from a zod schema's description and default.
  *
  * @private
@@ -292,6 +309,7 @@ function buildZodFieldOption(
   const innerDef = (inner as { _def: ZodDef })._def
   const base = {
     ...buildBaseOption(inner, defaultValue),
+    ...resolveEnumChoices(innerDef),
     type: typeResolver(innerDef.type),
   }
   if (!isOptional) {

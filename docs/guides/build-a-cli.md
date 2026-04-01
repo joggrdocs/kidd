@@ -4,8 +4,20 @@ Define commands, middleware, configuration, and use kidd's sub-exports to build 
 
 ## Prerequisites
 
-- Node.js 22+
+- Node.js 24+
+- Bun 1.3+ (required if compiling to standalone binaries)
 - `@kidd-cli/core` installed (`pnpm add @kidd-cli/core`)
+
+Declare runtime constraints in your CLI's `package.json` so consumers get clear errors on incompatible runtimes:
+
+```json
+{
+  "engines": {
+    "node": ">=24",
+    "bun": ">=1.3"
+  }
+}
+```
 
 ## Steps
 

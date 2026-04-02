@@ -6,6 +6,7 @@ import type { CompileTarget, KiddConfig } from '@kidd-cli/config'
 import { loadConfig } from '@kidd-cli/config/utils'
 import { command } from '@kidd-cli/core'
 import type { Command, CommandContext } from '@kidd-cli/core'
+import { match } from 'ts-pattern'
 import { z } from 'zod'
 
 import { extractConfig } from '../lib/config-helpers.js'
@@ -42,9 +43,10 @@ const buildCommand: Command = command({
       targets: ctx.args.targets,
     })
 
-    const mergedConfig = shouldCompile
-      ? mergeCompileTargets({ config, targets: ctx.args.targets })
-      : config
+    const mergedConfig = match(shouldCompile)
+      .with(true, () => mergeCompileTargets({ config, targets: ctx.args.targets }))
+      .with(false, () => config)
+      .exhaustive()
 
     const bundler = await createBundler({
       config: mergedConfig,

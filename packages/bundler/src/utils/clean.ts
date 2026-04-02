@@ -2,6 +2,7 @@ import { join } from 'node:path'
 
 import { compileTargets } from '@kidd-cli/config/utils'
 import { fs } from '@kidd-cli/utils/node'
+import { match } from 'ts-pattern'
 
 import { BUILD_ARTIFACT_EXTENSIONS } from '../constants.js'
 import type { ResolvedBundlerConfig } from '../types.js'
@@ -39,9 +40,10 @@ export async function clean(params: {
     return { foreign: [], removed: [] }
   }
 
-  const binaryNames = params.compile
-    ? buildBinaryNames(params.resolved.compile.name, params.resolved.compile.targets)
-    : new Set<string>()
+  const binaryNames = match(params.compile)
+    .with(true, () => buildBinaryNames(params.resolved.compile.name, params.resolved.compile.targets))
+    .with(false, () => new Set<string>())
+    .exhaustive()
 
   const results = await Promise.all(
     entries.map(async (name) => {
@@ -86,20 +88,23 @@ function buildBinaryNames(
   name: string,
   targets: readonly string[]
 ): ReadonlySet<string> {
-  const resolvedTargets = targets.length > 0
-    ? targets
-    : compileTargets.filter((t) => t.default).map((t) => t.target)
+  const resolvedTargets = match(targets.length > 0)
+    .with(true, () => targets)
+    .with(false, () => compileTargets.filter((t) => t.default).map((t) => t.target))
+    .exhaustive()
 
   const isMultiTarget = resolvedTargets.length > 1
 
-  const names = new Set<string>()
-  resolvedTargets.map((target) => {
-    const binaryName = isMultiTarget ? `${name}-${target}` : name
+  return resolvedTargets.reduce<Set<string>>((names, target) => {
+    const binaryName = match(isMultiTarget)
+      .with(true, () => `${name}-${target}`)
+      .with(false, () => name)
+      .exhaustive()
+
     names.add(binaryName)
     if (target.startsWith('windows')) {
       names.add(`${binaryName}.exe`)
     }
-  })
-
-  return names
+    return names
+  }, new Set<string>())
 }

@@ -45,7 +45,8 @@ export async function cli<TSchema extends z.ZodType = z.ZodType>(
       return versionError
     }
 
-    const program = yargs(process.argv.slice(ARGV_SLICE_START))
+    const rawTokens = process.argv.slice(ARGV_SLICE_START)
+    const program = yargs(rawTokens)
       .scriptName(options.name)
       .version(version)
       .alias('version', 'v')
@@ -100,7 +101,7 @@ export async function cli<TSchema extends z.ZodType = z.ZodType>(
 
     applyDisplayGlobals(options.display)
 
-    const normalizedArgv = [String(argv.$0), ...process.argv.slice(ARGV_SLICE_START)]
+    const normalizedArgv = [String(argv.$0), ...rawTokens]
 
     const [runtimeError, runtime] = await createRuntime({
       argv: normalizedArgv,

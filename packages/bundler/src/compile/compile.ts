@@ -53,6 +53,7 @@ export async function compile(params: {
 
   const results = await compileTargetsSequentially({
     bundledEntry,
+    cwd: params.resolved.cwd,
     isMultiTarget,
     lifecycle: params.lifecycle,
     name: params.resolved.compile.name,
@@ -99,6 +100,7 @@ export function resolveTargetLabel(target: CompileTarget): string {
  */
 async function compileTargetsSequentially(params: {
   readonly bundledEntry: string
+  readonly cwd: string
   readonly isMultiTarget: boolean
   readonly lifecycle: BundlerLifecycle
   readonly name: string
@@ -117,6 +119,7 @@ async function compileTargetsSequentially(params: {
 
     const result = await compileSingleTarget({
       bundledEntry: params.bundledEntry,
+      cwd: params.cwd,
       isMultiTarget: params.isMultiTarget,
       name: params.name,
       outDir: params.outDir,
@@ -124,7 +127,7 @@ async function compileTargetsSequentially(params: {
       verbose: params.verbose,
     })
 
-    if (result[0] === null && params.lifecycle.onStepFinish) {
+    if (params.lifecycle.onStepFinish) {
       await params.lifecycle.onStepFinish({ phase: 'compile', step: 'target', meta })
     }
 
@@ -141,6 +144,7 @@ async function compileTargetsSequentially(params: {
  */
 async function compileSingleTarget(params: {
   readonly bundledEntry: string
+  readonly cwd: string
   readonly outDir: string
   readonly name: string
   readonly target: CompileTarget
@@ -165,7 +169,7 @@ async function compileSingleTarget(params: {
     bunTarget,
   ]
 
-  const [execError] = await process.exec({ cmd: 'bun', args })
+  const [execError] = await process.exec({ cmd: 'bun', args, cwd: params.cwd })
   if (execError) {
     return err(
       new Error(formatCompileError(params.target, execError, params.verbose), { cause: execError })

@@ -112,7 +112,8 @@ describe('build config mapping', () => {
     const output = toTsdownBuildConfig({ config, compile: true })
     const deps = output.deps as { alwaysBundle: RegExp[] }
     expect(deps.alwaysBundle).toStrictEqual([/./])
-    const pluginNames = output.plugins?.map((p) => p.name)
+    const plugins = output.plugins as { name: string }[]
+    const pluginNames = plugins.map((p) => p.name)
     expect(pluginNames).toContain('kidd-stub-packages')
   })
 })

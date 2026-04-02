@@ -156,6 +156,7 @@ describe('compile operation', () => {
     expect(mockProcessExec).toHaveBeenCalledWith({
       cmd: 'bun',
       args: expect.arrayContaining(['--target', 'bun-linux-x64']),
+      cwd: '/project',
     })
   })
 
@@ -168,6 +169,7 @@ describe('compile operation', () => {
     expect(mockProcessExec).toHaveBeenCalledWith({
       cmd: 'bun',
       args: expect.arrayContaining(['--target', 'bun-linux-x64-musl']),
+      cwd: '/project',
     })
   })
 
@@ -256,6 +258,7 @@ describe('compile operation', () => {
     expect(mockProcessExec).toHaveBeenCalledWith({
       cmd: 'bun',
       args: expect.arrayContaining(['build', '--compile', '--outfile']),
+      cwd: '/project',
     })
   })
 })

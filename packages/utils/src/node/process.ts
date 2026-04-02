@@ -25,10 +25,11 @@ export interface ExecOutput {
 export function exec(params: {
   readonly cmd: string
   readonly args?: readonly string[]
+  readonly cwd?: string
 }): ResultAsync<ExecOutput> {
-  const { cmd, args = [] } = params
+  const { cmd, args = [], cwd } = params
   return new Promise((resolve) => {
-    execFile(cmd, [...args], (error, stdout, stderr) => {
+    execFile(cmd, [...args], { cwd }, (error, stdout, stderr) => {
       if (error) {
         const enriched = new Error(`${cmd} failed: ${error.message}`, { cause: error })
         Object.defineProperty(enriched, 'stderr', { enumerable: true, value: stderr })

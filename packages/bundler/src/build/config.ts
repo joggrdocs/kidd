@@ -97,7 +97,7 @@ function buildDeps(
 ): { alwaysBundle: RegExp[]; neverBundle: (string | RegExp)[] } {
   const alwaysBundle = match(compile)
     .with(true, () => [/./])
-    .with(false, () => ALWAYS_BUNDLE)
+    .with(false, () => [...ALWAYS_BUNDLE])
     .exhaustive()
 
   return {

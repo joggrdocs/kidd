@@ -1,3 +1,4 @@
+import type { CompileTarget } from '@kidd-cli/config'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const mockProcessExec = vi.fn()
@@ -34,7 +35,7 @@ function makeResolved(overrides?: {
     compileOutDir: '/project/dist',
     build: { target: 'node18', minify: false, sourcemap: true, external: [], clean: false },
     compile: {
-      targets: (overrides?.targets ?? []) as never,
+      targets: (overrides?.targets ?? []) as readonly CompileTarget[],
       name: overrides?.name ?? 'cli',
     },
     include: [],

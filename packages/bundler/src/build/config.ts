@@ -136,11 +136,10 @@ function buildDefine(version: string | undefined): Record<string, string> {
  * @returns An array of rolldown plugins (empty when not compiling).
  */
 function buildPlugins(compile: boolean): Rolldown.Plugin[] {
-  if (compile) {
-    return [createStubPlugin(STUB_PACKAGES)]
-  }
-
-  return []
+  return match(compile)
+    .with(true, () => [createStubPlugin(STUB_PACKAGES)])
+    .with(false, () => [])
+    .exhaustive()
 }
 
 /**
@@ -162,18 +161,16 @@ function createStubPlugin(packages: readonly string[]): Rolldown.Plugin {
   return {
     name: 'kidd-stub-packages',
     resolveId(source) {
-      if (stubbed.has(source)) {
-        return `${STUB_PREFIX}${source}`
-      }
-
-      return null
+      return match(stubbed.has(source))
+        .with(true, () => `${STUB_PREFIX}${source}`)
+        .with(false, () => null)
+        .exhaustive()
     },
     load(id) {
-      if (id.startsWith(STUB_PREFIX)) {
-        return 'export default undefined;'
-      }
-
-      return null
+      return match(id.startsWith(STUB_PREFIX))
+        .with(true, () => 'export default undefined;')
+        .with(false, () => null)
+        .exhaustive()
     },
   }
 }

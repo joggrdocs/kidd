@@ -1,6 +1,6 @@
 benchmarks:
   - name: 'icons --help'
-    exec: node examples/icons/dist/index.js --help
+    exec: node examples/icons/dist/index.mjs --help
 
   - name: 'icons status'
-    exec: node examples/icons/dist/index.js status
+    exec: node examples/icons/dist/index.mjs status

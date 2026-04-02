@@ -319,6 +319,9 @@ importers:
       react:
         specifier: ^19.2.4
         version: 19.2.4
+      tsdown:
+        specifier: 'catalog:'
+        version: 0.21.7(@emnapi/core@1.9.2)(@emnapi/runtime@1.9.2)(@typescript/native-preview@7.0.0-dev.20260401.1)(typescript@6.0.2)
       yaml:
         specifier: ^2.8.3
         version: 2.8.3
@@ -332,9 +335,6 @@ importers:
       '@types/react':
         specifier: ^19.2.14
         version: 19.2.14
-      tsdown:
-        specifier: 'catalog:'
-        version: 0.21.7(@emnapi/core@1.9.2)(@emnapi/runtime@1.9.2)(@typescript/native-preview@7.0.0-dev.20260401.1)(typescript@6.0.2)
       typescript:
         specifier: 'catalog:'
         version: 6.0.2

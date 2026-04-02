@@ -24,7 +24,6 @@ import { isCommandsConfig } from './command.js'
 import { createRuntime, registerCommands } from './runtime/index.js'
 import type { ErrorRef, ResolvedRef } from './runtime/index.js'
 
-
 /**
  * Bootstrap and run the CLI application.
  *

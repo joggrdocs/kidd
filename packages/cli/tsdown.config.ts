@@ -2,6 +2,13 @@ import { defineConfig } from 'tsdown'
 
 export default defineConfig({
   clean: true,
+  deps: {
+    // Bundle @kidd-cli/* packages so the published CLI is self-contained and
+    // does not depend on workspace packages being published with correct exports.
+    alwaysBundle: [/^@kidd-cli\//],
+    // Keep packages with native bindings external — they cannot be inlined.
+    neverBundle: ['tsdown', /^@rolldown\//, /^rolldown/],
+  },
   dts: true,
   fixedExtension: false,
   outDir: 'dist',

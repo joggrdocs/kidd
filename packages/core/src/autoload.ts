@@ -6,6 +6,7 @@ import { isPlainObject, isString } from '@kidd-cli/utils/fp'
 import { hasTag, withTag } from '@kidd-cli/utils/tag'
 import { match } from 'ts-pattern'
 
+import { isDebug } from './lib/debug.js'
 import type { AutoloadOptions, Command, CommandMap } from './types/index.js'
 
 const VALID_EXTENSIONS = new Set(['.ts', '.js', '.mjs', '.tsx', '.jsx'])
@@ -141,7 +142,10 @@ async function importCommand(filePath: string): Promise<Command | undefined> {
       return mod.default
     }
     return undefined
-  } catch {
+  } catch (error: unknown) {
+    if (isDebug()) {
+      console.warn(`[kidd] failed to import command from ${filePath}:`, error)
+    }
     return undefined
   }
 }

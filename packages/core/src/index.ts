@@ -5,7 +5,7 @@ export { autoload } from './autoload.js'
 export { decorateContext } from './context/decorate.js'
 export { middleware } from './middleware.js'
 export { defineConfig } from '@kidd-cli/config'
-export { screen, useScreenContext } from './screen/index.js'
+export { render, renderToString, screen, useScreenContext } from './screen/index.js'
 export type { ScreenDef, ScreenExit } from './screen/index.js'
 export type {
   CliConfig,

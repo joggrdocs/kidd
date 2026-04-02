@@ -40,6 +40,7 @@ export function createTestContext<
 
   const ctx = createContext<TArgs, TConfig>({
     args: (opts.args ?? {}) as TArgs,
+    argv: [meta.name, ...meta.command],
     config: (opts.config ?? {}) as TConfig,
     log,
     meta,

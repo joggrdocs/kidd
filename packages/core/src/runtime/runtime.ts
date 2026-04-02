@@ -41,6 +41,7 @@ export async function createRuntime<TSchema extends z.ZodType>(
 
       const ctx = createContext({
         args: validatedArgs,
+        argv: options.argv,
         config,
         display: options.display,
         log: options.log,

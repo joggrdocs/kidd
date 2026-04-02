@@ -100,7 +100,10 @@ export async function cli<TSchema extends z.ZodType = z.ZodType>(
 
     applyDisplayGlobals(options.display)
 
+    const normalizedArgv = [String(argv.$0), ...process.argv.slice(ARGV_SLICE_START)]
+
     const [runtimeError, runtime] = await createRuntime({
+      argv: normalizedArgv,
       config: options.config,
       dirs,
       display: options.display,

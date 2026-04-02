@@ -58,6 +58,7 @@ interface Organization {
 function createTestContext(): CommandContext {
   return createContext({
     args: {},
+    argv: ['test-app', 'test'],
     config: {},
     meta: {
       command: ['test'],

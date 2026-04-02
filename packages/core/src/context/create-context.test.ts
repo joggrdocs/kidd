@@ -6,6 +6,7 @@ import { isContextError } from './error.js'
 
 function defaultOptions(): {
   args: { name: string; verbose: boolean }
+  argv: readonly string[]
   config: { debug: boolean }
   meta: {
     command: string[]
@@ -16,6 +17,7 @@ function defaultOptions(): {
 } {
   return {
     args: { name: 'test', verbose: true },
+    argv: ['my-cli', 'deploy', 'preview', '--verbose'],
     config: { debug: false },
     meta: {
       command: ['deploy', 'preview'],
@@ -64,6 +66,38 @@ describe('createContext()', () => {
     it('has the correct command path', () => {
       const ctx = createContext(defaultOptions())
       expect(ctx.meta.command).toEqual(['deploy', 'preview'])
+    })
+  })
+
+  // ---------------------------------------------------------------------------
+  // Raw
+  // ---------------------------------------------------------------------------
+
+  describe('raw', () => {
+    it('should contain the normalized argv', () => {
+      const ctx = createContext(defaultOptions())
+      expect(ctx.raw.argv).toEqual(['my-cli', 'deploy', 'preview', '--verbose'])
+    })
+
+    it('should have argv[0] as the CLI name', () => {
+      const ctx = createContext(defaultOptions())
+      expect(ctx.raw.argv[0]).toBe('my-cli')
+    })
+
+    it('should freeze the argv array', () => {
+      const ctx = createContext(defaultOptions())
+      expect(Object.isFrozen(ctx.raw.argv)).toBeTruthy()
+    })
+
+    it('should freeze the raw object', () => {
+      const ctx = createContext(defaultOptions())
+      expect(Object.isFrozen(ctx.raw)).toBeTruthy()
+    })
+
+    it('should not share references with the input array', () => {
+      const argv = ['my-cli', 'deploy']
+      const ctx = createContext({ ...defaultOptions(), argv })
+      expect(ctx.raw.argv).not.toBe(argv)
     })
   })
 

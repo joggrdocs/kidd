@@ -16,6 +16,7 @@ import type {
 export interface RuntimeOptions<TSchema extends z.ZodType = z.ZodType> {
   readonly name: string
   readonly version: string
+  readonly argv: readonly string[]
   readonly dirs: ResolvedDirs
   readonly config?: CliConfigOptions<TSchema>
   readonly middleware?: Middleware[]

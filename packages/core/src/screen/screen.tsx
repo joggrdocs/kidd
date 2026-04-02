@@ -1,5 +1,6 @@
 import process from 'node:process'
 
+import { isFunction } from '@kidd-cli/utils/fp'
 import { withTag } from '@kidd-cli/utils/tag'
 import type { ComponentType } from 'react'
 import React from 'react'
@@ -83,8 +84,13 @@ export interface ScreenDef<
    * When `true`, the screen renders in the terminal's alternate screen
    * buffer (fullscreen mode). Preserves the user's scrollback history
    * and restores it on exit.
+   *
+   * Accepts a static boolean or a resolver function that receives the
+   * {@link ScreenContext} and returns a boolean (sync or async). The
+   * resolver runs after middleware, so `ctx.args` and `ctx.config` are
+   * available for conditional fullscreen decisions.
    */
-  readonly fullscreen?: boolean
+  readonly fullscreen?: boolean | ((ctx: ScreenContext) => boolean | Promise<boolean>)
 
   /**
    * When `true` (inherited default), yargs rejects unknown flags for this screen.
@@ -123,12 +129,17 @@ export function screen<
   TPositionalsDef extends ArgsDef = ArgsDef,
 >(def: ScreenDef<TOptionsDef, TPositionalsDef>): Command {
   const exitMode = def.exit ?? 'manual'
-  const isFullscreen = def.fullscreen === true
   const ScreenComponent = def.render as ComponentType<Record<string, unknown>>
 
   const renderFn = async (ctx: CommandContext): Promise<void> => {
     const { render: inkRender } = await import('ink')
     const screenCtx = toScreenContext(ctx)
+    const isFullscreen = await match(isFunction(def.fullscreen))
+      .with(true, () =>
+        (def.fullscreen as (ctx: ScreenContext) => boolean | Promise<boolean>)(screenCtx)
+      )
+      .with(false, () => def.fullscreen === true)
+      .exhaustive()
 
     const children = match(isFullscreen)
       .with(true, () => (
@@ -198,11 +209,10 @@ const STRIPPED_KEYS: ReadonlySet<ImperativeContextKeys> = new Set([
  * entries to the store. The store is attached via {@link OUTPUT_STORE_KEY}
  * (a private symbol) so `<Output />` can subscribe to it.
  *
- * @private
  * @param ctx - The full command context.
  * @returns A ScreenContext with React-backed I/O.
  */
-function toScreenContext(ctx: CommandContext): ScreenContext {
+export function toScreenContext(ctx: CommandContext): ScreenContext {
   const store = createOutputStore()
   const screenLog = createScreenLog(store)
   const screenSpinner = createScreenSpinner(store)
@@ -236,8 +246,8 @@ function toScreenContext(ctx: CommandContext): ScreenContext {
  * @private
  */
 function resolveValue<T>(value: Resolvable<T> | undefined): T | undefined {
-  if (typeof value === 'function') {
-    return (value as () => T)()
-  }
-  return value
+  return match(isFunction(value))
+    .with(true, () => (value as () => T)())
+    .with(false, () => value as T | undefined)
+    .exhaustive()
 }

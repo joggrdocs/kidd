@@ -48,6 +48,7 @@ function makeContext(overrides?: Partial<CommandContext>): CommandContext {
     log: {} as CommandContext['log'],
     meta: baseMeta,
     prompts: {} as CommandContext['prompts'],
+    raw: Object.freeze({ argv: Object.freeze(['test-cli', 'test']) }),
     status: {} as CommandContext['status'],
     store: makeStore(),
     ...overrides,
@@ -309,6 +310,90 @@ describe('screen() render function', () => {
     const rendered = mockedInkRender.mock.calls[0]![0] as React.ReactElement
     const providerValue = rendered.props.value as ScreenContext
     expect(providerValue).not.toHaveProperty('report')
+  })
+
+  it('should resolve fullscreen from a sync function', async () => {
+    mockedInkRender.mockReturnValue({
+      unmount: vi.fn(),
+      waitUntilExit: vi.fn().mockResolvedValue(undefined),
+    } as never)
+
+    const writeSpy = vi.spyOn(process.stdout, 'write').mockReturnValue(true)
+
+    const { screen } = await import('./screen.js')
+    const cmd = screen({
+      fullscreen: () => true,
+      render: StubComponent,
+    })
+
+    await cmd.render!(makeContext())
+
+    expect(writeSpy).toHaveBeenCalledWith('\u001B[?1049l')
+    writeSpy.mockRestore()
+  })
+
+  it('should resolve fullscreen from an async function', async () => {
+    mockedInkRender.mockReturnValue({
+      unmount: vi.fn(),
+      waitUntilExit: vi.fn().mockResolvedValue(undefined),
+    } as never)
+
+    const writeSpy = vi.spyOn(process.stdout, 'write').mockReturnValue(true)
+
+    const { screen } = await import('./screen.js')
+    const cmd = screen({
+      fullscreen: async () => true,
+      render: StubComponent,
+    })
+
+    await cmd.render!(makeContext())
+
+    expect(writeSpy).toHaveBeenCalledWith('\u001B[?1049l')
+    writeSpy.mockRestore()
+  })
+
+  it('should not enter fullscreen when resolver returns false', async () => {
+    mockedInkRender.mockReturnValue({
+      unmount: vi.fn(),
+      waitUntilExit: vi.fn().mockResolvedValue(undefined),
+    } as never)
+
+    const writeSpy = vi.spyOn(process.stdout, 'write').mockReturnValue(true)
+
+    const { screen } = await import('./screen.js')
+    const cmd = screen({
+      fullscreen: () => false,
+      render: StubComponent,
+    })
+
+    await cmd.render!(makeContext())
+
+    expect(writeSpy).not.toHaveBeenCalledWith('\u001B[?1049l')
+    writeSpy.mockRestore()
+  })
+
+  it('should pass ScreenContext to fullscreen resolver', async () => {
+    mockedInkRender.mockReturnValue({
+      unmount: vi.fn(),
+      waitUntilExit: vi.fn().mockResolvedValue(undefined),
+    } as never)
+
+    const resolver = vi.fn().mockReturnValue(false)
+
+    const { screen } = await import('./screen.js')
+    const cmd = screen({
+      fullscreen: resolver,
+      render: StubComponent,
+    })
+
+    const ctx = makeContext({ args: { compact: true } })
+    await cmd.render!(ctx)
+
+    expect(resolver).toHaveBeenCalledOnce()
+    const receivedCtx = resolver.mock.calls[0]![0] as ScreenContext
+    expect(receivedCtx.args).toMatchObject({ compact: true })
+    expect(receivedCtx).not.toHaveProperty('fail')
+    expect(receivedCtx).not.toHaveProperty('prompts')
   })
 
   it('should write LEAVE_ALT_SCREEN even when waitUntilExit rejects in fullscreen mode', async () => {

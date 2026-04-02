@@ -119,7 +119,7 @@ export type { OutputStore } from '../screen/output/index.js'
 // Screen
 // ---------------------------------------------------------------------------
 
-export { screen, useScreenContext } from '../screen/index.js'
+export { render, renderToString, screen, useScreenContext } from '../screen/index.js'
 export type { ScreenDef, ScreenExit } from '../screen/index.js'
 export type { ScreenContext } from '../context/types.js'
 

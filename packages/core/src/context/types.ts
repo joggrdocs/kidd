@@ -806,4 +806,16 @@ export interface CommandContext<
    * CLI metadata (name, version, resolved command path). Deeply immutable.
    */
   readonly meta: DeepReadonly<Meta>
+
+  /**
+   * Raw invocation data not processed by the arg parser.
+   *
+   * `argv` is a normalized token array where `argv[0]` is always the CLI
+   * name regardless of invocation mode (`node script.js …` vs compiled
+   * binary). Middleware can inspect the full invocation without guessing
+   * the preamble offset.
+   */
+  readonly raw: {
+    readonly argv: readonly string[]
+  }
 }

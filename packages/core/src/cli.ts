@@ -5,6 +5,7 @@ import { P, attemptAsync, err, isNil, isPlainObject, isString, match, ok } from 
 import type { Result } from '@kidd-cli/utils/fp'
 import yargs from 'yargs'
 import type { Argv } from 'yargs'
+import { hideBin } from 'yargs/helpers'
 import { z } from 'zod'
 
 import type { DisplayConfig } from '@/context/types.js'
@@ -23,7 +24,6 @@ import { isCommandsConfig } from './command.js'
 import { createRuntime, registerCommands } from './runtime/index.js'
 import type { ErrorRef, ResolvedRef } from './runtime/index.js'
 
-const ARGV_SLICE_START = 2
 
 /**
  * Bootstrap and run the CLI application.
@@ -45,7 +45,8 @@ export async function cli<TSchema extends z.ZodType = z.ZodType>(
       return versionError
     }
 
-    const program = yargs(process.argv.slice(ARGV_SLICE_START))
+    const rawTokens = hideBin(process.argv)
+    const program = yargs(rawTokens)
       .scriptName(options.name)
       .version(version)
       .alias('version', 'v')
@@ -100,7 +101,10 @@ export async function cli<TSchema extends z.ZodType = z.ZodType>(
 
     applyDisplayGlobals(options.display)
 
+    const normalizedArgv = [String(argv.$0), ...rawTokens]
+
     const [runtimeError, runtime] = await createRuntime({
+      argv: normalizedArgv,
       config: options.config,
       dirs,
       display: options.display,

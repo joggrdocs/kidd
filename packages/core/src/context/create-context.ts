@@ -32,6 +32,7 @@ import type {
  */
 export interface CreateContextOptions<TArgs extends AnyRecord, TConfig extends AnyRecord> {
   readonly args: TArgs
+  readonly argv: readonly string[]
   readonly config: TConfig
   readonly meta: {
     readonly name: string
@@ -105,6 +106,7 @@ export function createContext<TArgs extends AnyRecord, TConfig extends AnyRecord
     log: ctxLog,
     meta: ctxMeta as CommandContext<TArgs, TConfig>['meta'],
     prompts: ctxPrompts,
+    raw: Object.freeze({ argv: Object.freeze([...options.argv]) }),
     status: ctxStatus,
     store: ctxStore,
   } as CommandContext<TArgs, TConfig>

@@ -38,6 +38,7 @@ vi.mock(import('@clack/prompts'), async (importOriginal) => ({
 function createTestContext(cliName: string): ReturnType<typeof createContext> {
   return createContext({
     args: {},
+    argv: [cliName, 'test'],
     config: {},
     meta: {
       command: ['test'],

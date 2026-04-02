@@ -26,6 +26,7 @@ vi.mock(import('@clack/prompts'), async (importOriginal) => ({
 
 function defaultOptions(): {
   args: { name: string }
+  argv: readonly string[]
   config: Record<string, never>
   meta: {
     command: string[]
@@ -36,6 +37,7 @@ function defaultOptions(): {
 } {
   return {
     args: { name: 'test' },
+    argv: ['my-cli', 'test'],
     config: {},
     meta: {
       command: ['test'],

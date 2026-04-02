@@ -1,6 +1,6 @@
 export { err, ok, toError } from './fp/index.js'
-export type { AsyncResult, Result } from './fp/index.js'
-export { fileExists } from './fs.js'
+export type { Result, ResultAsync } from './fp/index.js'
+export { exists, list, read, remove, write } from './node/fs.js'
 export { jsonParse, jsonStringify } from './json.js'
 export type { JsonStringifyOptions } from './json.js'
 export { readManifest } from './manifest.js'

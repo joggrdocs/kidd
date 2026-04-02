@@ -2,7 +2,7 @@ import { readdir, readFile } from 'node:fs/promises'
 import { join, relative } from 'node:path'
 
 import { attemptAsync, ok, toError } from '@kidd-cli/utils/fp'
-import type { AsyncResult } from '@kidd-cli/utils/fp'
+import type { ResultAsync } from '@kidd-cli/utils/fp'
 import { Liquid } from 'liquidjs'
 
 import type { GenerateError, RenderedFile, RenderTemplateParams } from './types.js'
@@ -19,7 +19,7 @@ import type { GenerateError, RenderedFile, RenderTemplateParams } from './types.
  */
 export async function renderTemplate(
   params: RenderTemplateParams
-): AsyncResult<readonly RenderedFile[], GenerateError> {
+): ResultAsync<readonly RenderedFile[], GenerateError> {
   const engine = new Liquid({ root: params.templateDir })
 
   const entries = await collectLiquidFiles(params.templateDir)
@@ -81,7 +81,7 @@ async function renderSingleFile(
   engine: Liquid,
   absolutePath: string,
   variables: Record<string, unknown>
-): AsyncResult<string, GenerateError> {
+): ResultAsync<string, GenerateError> {
   const [renderError, content] = await attemptAsync(async () => {
     const template = await readFile(absolutePath, 'utf8')
     return engine.parseAndRender(template, variables)

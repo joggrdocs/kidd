@@ -1,18 +1,17 @@
 import { err, ok } from '@kidd-cli/utils/fp'
-import { attempt, attemptAsync } from 'es-toolkit'
+import { attemptAsync } from 'es-toolkit'
 import { build as tsdownBuild } from 'tsdown'
 
 import { clean } from './clean.js'
 import { toTsdownBuildConfig } from './config.js'
-import { readVersion } from '../config/read-version.js'
-import { detectBuildEntry } from '../config/resolve-config.js'
+import { resolveBuildEntry } from '../utils/resolve-build-entry.js'
 import type { AsyncBundlerResult, BuildOutput, ResolvedBundlerConfig } from '../types.js'
 
 /**
  * Run the tsdown build with a resolved config.
  *
- * Cleans artifacts when enabled, reads the project version, maps to a tsdown
- * InlineConfig, and invokes tsdown's build API.
+ * Cleans artifacts when enabled, maps to a tsdown InlineConfig, and invokes
+ * tsdown's build API.
  *
  * @param params - The resolved config and whether compile mode is active.
  * @returns A result tuple with build output on success or an Error on failure.
@@ -22,23 +21,13 @@ export async function build(params: {
   readonly compile: boolean
 }): AsyncBundlerResult<BuildOutput> {
   if (params.resolved.build.clean) {
-    const [cleanError] = attempt(() =>
-      clean({ compile: params.compile, outDir: params.resolved.buildOutDir })
-    )
-    if (cleanError) {
-      return err(
-        new Error(`failed to clean build artifacts in ${params.resolved.buildOutDir}`, { cause: cleanError })
-      )
-    }
+    await clean({ compile: params.compile, outDir: params.resolved.buildOutDir })
   }
-
-  const [, versionResult] = await readVersion(params.resolved.cwd)
-  const version = versionResult ?? undefined
 
   const inlineConfig = toTsdownBuildConfig({
     compile: params.compile,
     config: params.resolved,
-    version,
+    version: params.resolved.version,
   })
 
   const [buildError] = await attemptAsync(() => tsdownBuild(inlineConfig))
@@ -46,7 +35,7 @@ export async function build(params: {
     return err(new Error('tsdown build failed', { cause: buildError }))
   }
 
-  const entryFile = detectBuildEntry(params.resolved.buildOutDir)
+  const entryFile = await resolveBuildEntry(params.resolved.buildOutDir)
 
   if (!entryFile) {
     return err(new Error(`build produced no entry file in ${params.resolved.buildOutDir}`))
@@ -55,6 +44,6 @@ export async function build(params: {
   return ok({
     entryFile,
     outDir: params.resolved.buildOutDir,
-    version,
+    version: params.resolved.version,
   })
 }

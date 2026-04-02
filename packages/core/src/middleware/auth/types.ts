@@ -1,4 +1,4 @@
-import type { AsyncResult } from '@kidd-cli/utils/fp'
+import type { ResultAsync } from '@kidd-cli/utils/fp'
 
 import type { DirsConfig } from '@/types/index.js'
 
@@ -159,7 +159,7 @@ export type StrategyConfig =
  */
 export type ValidateCredential = (
   credential: AuthCredential
-) => AsyncResult<AuthCredential, AuthError>
+) => ResultAsync<AuthCredential, AuthError>
 
 // ---------------------------------------------------------------------------
 // Auth error
@@ -200,15 +200,15 @@ export interface LoginOptions {
  *
  * `login()` runs the configured interactive strategies (OAuth, prompt,
  * etc.), persists the resulting credential to disk, and returns a
- * {@link AsyncResult}.
+ * {@link ResultAsync}.
  *
  * `logout()` removes the stored credential from disk.
  */
 export interface AuthContext {
   readonly credential: () => AuthCredential | null
   readonly authenticated: () => boolean
-  readonly login: (options?: LoginOptions) => AsyncResult<AuthCredential, AuthError>
-  readonly logout: () => AsyncResult<string, AuthError>
+  readonly login: (options?: LoginOptions) => ResultAsync<AuthCredential, AuthError>
+  readonly logout: () => ResultAsync<string, AuthError>
 }
 
 // ---------------------------------------------------------------------------

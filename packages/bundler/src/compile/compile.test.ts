@@ -1,15 +1,17 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-vi.mock(import('node:child_process'))
-vi.mock(import('node:fs'))
+const mockProcessExec = vi.fn()
+const mockProcessExists = vi.fn()
+const mockFsExists = vi.fn()
+const mockFsList = vi.fn()
+const mockFsRemove = vi.fn()
 
-const { execFile } = await import('node:child_process')
-const { existsSync, readdirSync } = await import('node:fs')
+vi.mock(import('@kidd-cli/utils/node'), () => ({
+  fs: { exists: mockFsExists, list: mockFsList, remove: mockFsRemove },
+  process: { exec: mockProcessExec, exists: mockProcessExists },
+}))
+
 const { compile } = await import('./compile.js')
-
-const mockExecFile = vi.mocked(execFile)
-const mockExistsSync = vi.mocked(existsSync)
-const mockReaddirSync = vi.mocked(readdirSync)
 
 const noopLifecycle = {
   onStart: vi.fn(),
@@ -40,28 +42,17 @@ function makeResolved(overrides?: {
   }
 }
 
-/**
- * @private
- */
-function mockExecFileSuccess() {
-  mockExecFile.mockImplementation(
-    // @ts-expect-error -- callback signature mismatch with overloaded execFile
-    (_cmd: string, _args: string[], cb: (err: Error | null, stdout: string) => void) => {
-      cb(null, '')
-    }
-  )
-}
-
 beforeEach(() => {
   vi.clearAllMocks()
-  mockReaddirSync.mockReturnValue([])
-  mockExecFileSuccess()
+  mockProcessExists.mockResolvedValue(true)
+  mockProcessExec.mockResolvedValue([null, { stdout: '', stderr: '' }])
+  mockFsExists.mockResolvedValue(true)
+  mockFsList.mockResolvedValue([null, []])
+  mockFsRemove.mockResolvedValue([null, undefined])
 })
 
 describe('compile operation', () => {
   it('should return ok with binaries for all default targets when none specified', async () => {
-    mockExistsSync.mockReturnValue(true)
-
     const [error, output] = await compile({
       resolved: makeResolved(),
       lifecycle: noopLifecycle,
@@ -79,12 +70,7 @@ describe('compile operation', () => {
   })
 
   it('should return err when bun is not installed', async () => {
-    mockExecFile.mockImplementation(
-      // @ts-expect-error -- callback signature mismatch with overloaded execFile
-      (_cmd: string, _args: string[], cb: (err: Error | null, stdout: string) => void) => {
-        cb(new Error('spawn bun ENOENT'), '')
-      }
-    )
+    mockProcessExists.mockResolvedValue(false)
 
     const [error, output] = await compile({
       resolved: makeResolved(),
@@ -99,7 +85,7 @@ describe('compile operation', () => {
   })
 
   it('should return err when bundled entry does not exist', async () => {
-    mockExistsSync.mockReturnValue(false)
+    mockFsExists.mockResolvedValue(false)
 
     const [error, output] = await compile({
       resolved: makeResolved(),
@@ -112,20 +98,7 @@ describe('compile operation', () => {
   })
 
   it('should return err when bun build fails', async () => {
-    mockExistsSync.mockReturnValue(true)
-    mockExecFile
-      .mockImplementationOnce(
-        // @ts-expect-error -- callback signature mismatch with overloaded execFile
-        (_cmd: string, _args: string[], cb: (err: Error | null, stdout: string) => void) => {
-          cb(null, '1.0.0')
-        }
-      )
-      .mockImplementation(
-        // @ts-expect-error -- callback signature mismatch with overloaded execFile
-        (_cmd: string, _args: string[], cb: (err: Error | null, stdout: string) => void) => {
-          cb(new Error('bun build crashed'), '')
-        }
-      )
+    mockProcessExec.mockResolvedValue([new Error('bun build crashed'), null])
 
     const [error, output] = await compile({
       resolved: makeResolved(),
@@ -138,24 +111,9 @@ describe('compile operation', () => {
   })
 
   it('should include stderr in error message when verbose is true', async () => {
-    mockExistsSync.mockReturnValue(true)
-    mockExecFile
-      .mockImplementationOnce(
-        // @ts-expect-error -- callback signature mismatch with overloaded execFile
-        (_cmd: string, _args: string[], cb: (err: Error | null, stdout: string) => void) => {
-          cb(null, '1.0.0')
-        }
-      )
-      .mockImplementation(
-        // @ts-expect-error -- callback signature mismatch with overloaded execFile
-        (
-          _cmd: string,
-          _args: string[],
-          cb: (err: Error | null, stdout: string, stderr: string) => void
-        ) => {
-          cb(new Error('bun build crashed'), '', 'error: could not resolve "chokidar"')
-        }
-      )
+    const execError = new Error('bun build crashed')
+    Object.defineProperty(execError, 'stderr', { value: 'error: could not resolve "chokidar"', enumerable: true })
+    mockProcessExec.mockResolvedValue([execError, null])
 
     const [error] = await compile({
       resolved: makeResolved({ targets: ['linux-x64'], name: 'my-app' }),
@@ -169,24 +127,9 @@ describe('compile operation', () => {
   })
 
   it('should not include stderr in error message when verbose is false', async () => {
-    mockExistsSync.mockReturnValue(true)
-    mockExecFile
-      .mockImplementationOnce(
-        // @ts-expect-error -- callback signature mismatch with overloaded execFile
-        (_cmd: string, _args: string[], cb: (err: Error | null, stdout: string) => void) => {
-          cb(null, '1.0.0')
-        }
-      )
-      .mockImplementation(
-        // @ts-expect-error -- callback signature mismatch with overloaded execFile
-        (
-          _cmd: string,
-          _args: string[],
-          cb: (err: Error | null, stdout: string, stderr: string) => void
-        ) => {
-          cb(new Error('bun build crashed'), '', 'error: could not resolve "chokidar"')
-        }
-      )
+    const execError = new Error('bun build crashed')
+    Object.defineProperty(execError, 'stderr', { value: 'error: could not resolve "chokidar"', enumerable: true })
+    mockProcessExec.mockResolvedValue([execError, null])
 
     const [error] = await compile({
       resolved: makeResolved({ targets: ['linux-x64'], name: 'my-app' }),
@@ -199,38 +142,30 @@ describe('compile operation', () => {
   })
 
   it('should pass correct --target arg for cross-compilation', async () => {
-    mockExistsSync.mockReturnValue(true)
-
     await compile({
       resolved: makeResolved({ targets: ['linux-x64'], name: 'my-app' }),
       lifecycle: noopLifecycle,
     })
 
-    expect(mockExecFile).toHaveBeenCalledWith(
+    expect(mockProcessExec).toHaveBeenCalledWith(
       'bun',
       expect.arrayContaining(['--target', 'bun-linux-x64']),
-      expect.any(Function)
     )
   })
 
   it('should map linux-x64-musl to bun-linux-x64', async () => {
-    mockExistsSync.mockReturnValue(true)
-
     await compile({
       resolved: makeResolved({ targets: ['linux-x64-musl'], name: 'my-app' }),
       lifecycle: noopLifecycle,
     })
 
-    expect(mockExecFile).toHaveBeenCalledWith(
+    expect(mockProcessExec).toHaveBeenCalledWith(
       'bun',
       expect.arrayContaining(['--target', 'bun-linux-x64']),
-      expect.any(Function)
     )
   })
 
   it('should append target suffix to binary name for multi-target builds', async () => {
-    mockExistsSync.mockReturnValue(true)
-
     const [error, output] = await compile({
       resolved: makeResolved({ targets: ['darwin-arm64', 'linux-x64'], name: 'my-app' }),
       lifecycle: noopLifecycle,
@@ -252,8 +187,6 @@ describe('compile operation', () => {
   })
 
   it('should append target suffix for default multi-target build', async () => {
-    mockExistsSync.mockReturnValue(true)
-
     const [error, output] = await compile({
       resolved: makeResolved(),
       lifecycle: noopLifecycle,
@@ -269,8 +202,6 @@ describe('compile operation', () => {
   })
 
   it('should include human-readable labels on compiled binaries', async () => {
-    mockExistsSync.mockReturnValue(true)
-
     const [, output] = await compile({
       resolved: makeResolved({ targets: ['darwin-arm64', 'linux-x64', 'windows-x64'], name: 'my-app' }),
       lifecycle: noopLifecycle,
@@ -286,8 +217,6 @@ describe('compile operation', () => {
   })
 
   it('should invoke onStepStart and onStepFinish for each target', async () => {
-    mockExistsSync.mockReturnValue(true)
-
     const stepStarts: unknown[] = []
     const stepFinishes: unknown[] = []
 
@@ -310,17 +239,14 @@ describe('compile operation', () => {
   })
 
   it('should invoke bun with --compile and --outfile args', async () => {
-    mockExistsSync.mockReturnValue(true)
-
     await compile({
       resolved: makeResolved({ name: 'my-app' }),
       lifecycle: noopLifecycle,
     })
 
-    expect(mockExecFile).toHaveBeenCalledWith(
+    expect(mockProcessExec).toHaveBeenCalledWith(
       'bun',
       expect.arrayContaining(['build', '--compile', '--outfile']),
-      expect.any(Function)
     )
   })
 })

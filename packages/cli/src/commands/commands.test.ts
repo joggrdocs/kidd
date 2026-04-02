@@ -1,8 +1,10 @@
 import type { CommandContext } from '@kidd-cli/core'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-vi.mock(import('node:fs'), () => ({
-  existsSync: vi.fn(),
+const mockFsExists = vi.fn()
+
+vi.mock(import('@kidd-cli/utils/node'), () => ({
+  fs: { exists: mockFsExists },
 }))
 
 vi.mock(import('@kidd-cli/config/utils'), () => ({
@@ -14,10 +16,8 @@ vi.mock(import('@kidd-cli/core'), () => ({
   command: vi.fn((def) => def),
 }))
 
-const { existsSync } = await import('node:fs')
 const { loadConfig } = await import('@kidd-cli/config/utils')
 const { autoload } = await import('@kidd-cli/core')
-const mockedExistsSync = vi.mocked(existsSync)
 const mockedLoadConfig = vi.mocked(loadConfig)
 const mockedAutoload = vi.mocked(autoload)
 
@@ -63,7 +63,7 @@ describe('commands command', () => {
   it('should fail when commands directory not found', async () => {
     const ctx = makeContext()
     mockedLoadConfig.mockResolvedValue([null, { config: {} }] as never)
-    mockedExistsSync.mockReturnValue(false)
+    mockFsExists.mockResolvedValue(false)
 
     const mod = await import('./commands.js')
 
@@ -73,7 +73,7 @@ describe('commands command', () => {
   it('should display "No commands found" when autoload returns empty map', async () => {
     const ctx = makeContext()
     mockedLoadConfig.mockResolvedValue([null, { config: {} }] as never)
-    mockedExistsSync.mockReturnValue(true)
+    mockFsExists.mockResolvedValue(true)
     mockedAutoload.mockResolvedValue({})
 
     const mod = await import('./commands.js')
@@ -85,7 +85,7 @@ describe('commands command', () => {
   it('should render single command with description', async () => {
     const ctx = makeContext()
     mockedLoadConfig.mockResolvedValue([null, { config: {} }] as never)
-    mockedExistsSync.mockReturnValue(true)
+    mockFsExists.mockResolvedValue(true)
     mockedAutoload.mockResolvedValue({
       deploy: { description: 'Deploy the app' },
     } as never)
@@ -99,7 +99,7 @@ describe('commands command', () => {
   it('should render command without description', async () => {
     const ctx = makeContext()
     mockedLoadConfig.mockResolvedValue([null, { config: {} }] as never)
-    mockedExistsSync.mockReturnValue(true)
+    mockFsExists.mockResolvedValue(true)
     mockedAutoload.mockResolvedValue({
       build: {},
     } as never)
@@ -113,7 +113,7 @@ describe('commands command', () => {
   it('should render multiple commands sorted alphabetically', async () => {
     const ctx = makeContext()
     mockedLoadConfig.mockResolvedValue([null, { config: {} }] as never)
-    mockedExistsSync.mockReturnValue(true)
+    mockFsExists.mockResolvedValue(true)
     mockedAutoload.mockResolvedValue({
       add: { description: 'Add' },
       build: { description: 'Build' },
@@ -130,7 +130,7 @@ describe('commands command', () => {
   it('should use continuation connector for non-final entries', async () => {
     const ctx = makeContext()
     mockedLoadConfig.mockResolvedValue([null, { config: {} }] as never)
-    mockedExistsSync.mockReturnValue(true)
+    mockFsExists.mockResolvedValue(true)
     mockedAutoload.mockResolvedValue({
       alpha: { description: 'First' },
       beta: { description: 'Second' },
@@ -146,7 +146,7 @@ describe('commands command', () => {
   it('should use last-item connector for final entry', async () => {
     const ctx = makeContext()
     mockedLoadConfig.mockResolvedValue([null, { config: {} }] as never)
-    mockedExistsSync.mockReturnValue(true)
+    mockFsExists.mockResolvedValue(true)
     mockedAutoload.mockResolvedValue({
       alpha: { description: 'First' },
       beta: { description: 'Second' },
@@ -162,7 +162,7 @@ describe('commands command', () => {
   it('should render nested subcommands with tree connectors', async () => {
     const ctx = makeContext()
     mockedLoadConfig.mockResolvedValue([null, { config: {} }] as never)
-    mockedExistsSync.mockReturnValue(true)
+    mockFsExists.mockResolvedValue(true)
     mockedAutoload.mockResolvedValue({
       parent: {
         commands: {
@@ -187,7 +187,7 @@ describe('commands command', () => {
   it('should handle deeply nested commands with three levels', async () => {
     const ctx = makeContext()
     mockedLoadConfig.mockResolvedValue([null, { config: {} }] as never)
-    mockedExistsSync.mockReturnValue(true)
+    mockFsExists.mockResolvedValue(true)
     mockedAutoload.mockResolvedValue({
       root: {
         commands: {
@@ -214,7 +214,7 @@ describe('commands command', () => {
   it('should use config commands directory when available', async () => {
     const ctx = makeContext()
     mockedLoadConfig.mockResolvedValue([null, { config: { commands: 'src/cmds' } }] as never)
-    mockedExistsSync.mockReturnValue(true)
+    mockFsExists.mockResolvedValue(true)
     mockedAutoload.mockResolvedValue({})
 
     const mod = await import('./commands.js')
@@ -227,7 +227,7 @@ describe('commands command', () => {
   it('should default to commands directory when config has no commands field', async () => {
     const ctx = makeContext()
     mockedLoadConfig.mockResolvedValue([null, { config: {} }] as never)
-    mockedExistsSync.mockReturnValue(true)
+    mockFsExists.mockResolvedValue(true)
     mockedAutoload.mockResolvedValue({})
 
     const mod = await import('./commands.js')
@@ -240,7 +240,7 @@ describe('commands command', () => {
   it('should handle config load error gracefully with defaults', async () => {
     const ctx = makeContext()
     mockedLoadConfig.mockResolvedValue([new Error('no config'), null] as never)
-    mockedExistsSync.mockReturnValue(true)
+    mockFsExists.mockResolvedValue(true)
     mockedAutoload.mockResolvedValue({})
 
     const mod = await import('./commands.js')
@@ -252,7 +252,7 @@ describe('commands command', () => {
   it('should render sibling and nested commands with correct prefixes', async () => {
     const ctx = makeContext()
     mockedLoadConfig.mockResolvedValue([null, { config: {} }] as never)
-    mockedExistsSync.mockReturnValue(true)
+    mockFsExists.mockResolvedValue(true)
     mockedAutoload.mockResolvedValue({
       alpha: {
         commands: {
@@ -273,7 +273,7 @@ describe('commands command', () => {
   it('should respect subcommand order when specified', async () => {
     const ctx = makeContext()
     mockedLoadConfig.mockResolvedValue([null, { config: {} }] as never)
-    mockedExistsSync.mockReturnValue(true)
+    mockFsExists.mockResolvedValue(true)
     mockedAutoload.mockResolvedValue({
       deploy: {
         commands: {
@@ -302,7 +302,7 @@ describe('commands command', () => {
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
     const ctx = makeContext()
     mockedLoadConfig.mockResolvedValue([null, { config: {} }] as never)
-    mockedExistsSync.mockReturnValue(true)
+    mockFsExists.mockResolvedValue(true)
     mockedAutoload.mockResolvedValue({
       parent: {
         commands: {
@@ -330,7 +330,7 @@ describe('commands command', () => {
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
     const ctx = makeContext()
     mockedLoadConfig.mockResolvedValue([null, { config: {} }] as never)
-    mockedExistsSync.mockReturnValue(true)
+    mockFsExists.mockResolvedValue(true)
     mockedAutoload.mockResolvedValue({
       parent: {
         commands: {

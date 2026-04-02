@@ -5,7 +5,7 @@ const mockBuild = vi.fn()
 const mockCompile = vi.fn()
 
 vi.mock(import('@kidd-cli/bundler'), () => ({
-  createBundler: vi.fn(() => ({
+  createBundler: vi.fn(async () => ({
     build: mockBuild,
     compile: mockCompile,
     watch: vi.fn(),
@@ -94,7 +94,7 @@ describe('build command', () => {
       null,
       { config: {}, configFile: '/project/kidd.config.ts' },
     ] as never)
-    mockedCreateBundler.mockReturnValue({
+    mockedCreateBundler.mockResolvedValue({
       build: mockBuild,
       compile: mockCompile,
       watch: vi.fn(),

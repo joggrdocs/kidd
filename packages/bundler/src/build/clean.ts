@@ -1,5 +1,6 @@
-import { existsSync, readdirSync, rmSync } from 'node:fs'
 import { extname, join } from 'node:path'
+
+import { fs } from '@kidd-cli/utils/node'
 
 import { BUILD_ARTIFACT_EXTENSIONS } from '../constants.js'
 
@@ -45,33 +46,36 @@ export function isCompiledBinary(filename: string): boolean {
  * extensions (`.js`, `.mjs`, `.js.map`, `.mjs.map`). When `compile` is
  * true, compiled binaries (extensionless or `.exe`) are also removed.
  *
- * Only regular files and symbolic links are considered for removal.
- * Directories are always treated as foreign entries.
- *
  * @param params - The output directory and whether compile mode is active.
  * @returns A {@link CleanResult} describing what was removed and what was skipped.
  */
-export function clean(params: {
+export async function clean(params: {
   readonly outDir: string
   readonly compile?: boolean
-}): CleanResult {
-  if (!existsSync(params.outDir)) {
+}): Promise<CleanResult> {
+  const dirExists = await fs.exists(params.outDir)
+  if (!dirExists) {
     return { foreign: [], removed: [] }
   }
 
-  const entries = readdirSync(params.outDir, { withFileTypes: true })
+  const [listError, entries] = await fs.list(params.outDir)
+  if (listError) {
+    return { foreign: [], removed: [] }
+  }
 
-  return entries.reduce<{ readonly removed: string[]; readonly foreign: string[] }>(
-    (acc, entry) => {
-      const name = entry.name
-      const isRemovable = entry.isFile() || entry.isSymbolicLink()
+  const results = await Promise.all(
+    entries.map(async (name) => {
       const isArtifact = isBuildArtifact(name) || (!!params.compile && isCompiledBinary(name))
-      if (isRemovable && isArtifact) {
-        rmSync(join(params.outDir, name), { force: true })
-        return { ...acc, removed: [...acc.removed, name] }
+      if (isArtifact) {
+        await fs.remove(join(params.outDir, name))
+        return { type: 'removed' as const, name }
       }
-      return { ...acc, foreign: [...acc.foreign, name] }
-    },
-    { foreign: [], removed: [] },
+      return { type: 'foreign' as const, name }
+    })
   )
+
+  return {
+    removed: results.filter((r) => r.type === 'removed').map((r) => r.name),
+    foreign: results.filter((r) => r.type === 'foreign').map((r) => r.name),
+  }
 }

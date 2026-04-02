@@ -21,7 +21,7 @@ const devCommand: Command = command({
 
     ctx.status.spinner.start('Starting dev server...')
 
-    const bundler = createBundler({ config, cwd })
+    const bundler = await createBundler({ config, cwd })
     const onSuccess = createOnSuccess(ctx)
 
     const [watchError] = await bundler.watch({ onSuccess })

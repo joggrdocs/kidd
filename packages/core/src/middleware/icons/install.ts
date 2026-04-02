@@ -5,7 +5,7 @@ import { join } from 'node:path'
 import { promisify } from 'node:util'
 
 import { attemptAsync, ok } from '@kidd-cli/utils/fp'
-import type { AsyncResult, Result } from '@kidd-cli/utils/fp'
+import type { ResultAsync, Result } from '@kidd-cli/utils/fp'
 import { match } from 'ts-pattern'
 import { z } from 'zod'
 
@@ -124,7 +124,7 @@ export interface InstallFontOptions {
  */
 export async function installNerdFont(
   options: InstallFontOptions
-): AsyncResult<boolean, IconsError> {
+): ResultAsync<boolean, IconsError> {
   const { ctx, font } = options
 
   if (font !== undefined) {
@@ -189,7 +189,7 @@ interface SlugSpinnerParams {
  * @param ctx - The icons context with the unified log API.
  * @returns A Result with true on success or an IconsError on failure.
  */
-async function installWithSelection(ctx: IconsCtx): AsyncResult<boolean, IconsError> {
+async function installWithSelection(ctx: IconsCtx): ResultAsync<boolean, IconsError> {
   ctx.status.spinner.start('Detecting installed fonts...')
   const matches = await detectMatchingFonts()
   ctx.status.spinner.stop('Font detection complete')
@@ -243,7 +243,7 @@ async function installWithSelection(ctx: IconsCtx): AsyncResult<boolean, IconsEr
 async function installWithConfirmation({
   ctx,
   fontName,
-}: CtxFontParams): AsyncResult<boolean, IconsError> {
+}: CtxFontParams): ResultAsync<boolean, IconsError> {
   const confirmed = await ctx.prompts.confirm({
     message: `Nerd Fonts not detected. Install ${fontName} Nerd Font?`,
   })
@@ -320,7 +320,7 @@ function buildFontChoices(
 async function showInstallCommands({
   ctx,
   fontName,
-}: CtxFontParams): AsyncResult<boolean, IconsError> {
+}: CtxFontParams): ResultAsync<boolean, IconsError> {
   const slug = fontNameToSlug(fontName)
   const url = `https://github.com/ryanoasis/nerd-fonts/releases/latest/download/${fontName}.zip`
   const fontDir = match(process.platform)
@@ -381,7 +381,7 @@ async function showInstallCommands({
 async function installFontWithSpinner({
   ctx,
   fontName,
-}: CtxFontParams): AsyncResult<boolean, IconsError> {
+}: CtxFontParams): ResultAsync<boolean, IconsError> {
   ctx.status.spinner.start(`Installing ${fontName} Nerd Font...`)
 
   const result = await installFont({ fontName, spinner: ctx.status.spinner })
@@ -406,7 +406,7 @@ async function installFontWithSpinner({
 async function installFont({
   fontName,
   spinner,
-}: FontSpinnerParams): AsyncResult<boolean, IconsError> {
+}: FontSpinnerParams): ResultAsync<boolean, IconsError> {
   return match(process.platform)
     .with('darwin', () => installDarwin({ fontName, spinner }))
     .with('linux', () => installLinux({ fontName, spinner }))
@@ -427,7 +427,7 @@ async function installFont({
 async function installDarwin({
   fontName,
   spinner,
-}: FontSpinnerParams): AsyncResult<boolean, IconsError> {
+}: FontSpinnerParams): ResultAsync<boolean, IconsError> {
   const slug = fontNameToSlug(fontName)
   const hasBrew = await checkBrewAvailable()
 
@@ -448,7 +448,7 @@ async function installDarwin({
 async function installLinux({
   fontName,
   spinner,
-}: FontSpinnerParams): AsyncResult<boolean, IconsError> {
+}: FontSpinnerParams): ResultAsync<boolean, IconsError> {
   return installViaDownload({ fontName, spinner })
 }
 
@@ -473,7 +473,7 @@ async function checkBrewAvailable(): Promise<boolean> {
 async function installViaBrew({
   slug,
   spinner,
-}: SlugSpinnerParams): AsyncResult<boolean, IconsError> {
+}: SlugSpinnerParams): ResultAsync<boolean, IconsError> {
   try {
     spinner.message(`Installing font-${slug}-nerd-font via Homebrew...`)
     await execAsync(`brew install --cask font-${slug}-nerd-font`)
@@ -499,7 +499,7 @@ async function installViaBrew({
 async function installViaDownload({
   fontName,
   spinner,
-}: FontSpinnerParams): AsyncResult<boolean, IconsError> {
+}: FontSpinnerParams): ResultAsync<boolean, IconsError> {
   const fontDir = match(process.platform)
     .with('darwin', () => join(homedir(), 'Library', 'Fonts'))
     .otherwise(() => join(homedir(), '.local', 'share', 'fonts'))

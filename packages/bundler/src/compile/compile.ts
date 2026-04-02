@@ -1,15 +1,13 @@
-import { execFile as execFileCb } from 'node:child_process'
-import { readdir, unlink } from 'node:fs/promises'
 import { join } from 'node:path'
 
 import type { CompileTarget } from '@kidd-cli/config'
 import { compileTargets } from '@kidd-cli/config/utils'
 import { err, ok } from '@kidd-cli/utils/fp'
-import type { AsyncResult, Result } from '@kidd-cli/utils/fp'
-import { attemptAsync } from 'es-toolkit'
+import type { Result, ResultAsync } from '@kidd-cli/utils/fp'
+import { fs, process } from '@kidd-cli/utils/node'
 import { match } from 'ts-pattern'
 
-import { detectBuildEntry } from '../config/resolve-config.js'
+import { resolveBuildEntry } from '../utils/resolve-build-entry.js'
 import type {
   AsyncBundlerResult,
   BundlerLifecycle,
@@ -33,12 +31,12 @@ export async function compile(params: {
   readonly lifecycle: BundlerLifecycle
   readonly verbose?: boolean
 }): AsyncBundlerResult<CompileOutput> {
-  const [bunCheckError] = await checkBunExists()
-  if (bunCheckError) {
-    return err(bunCheckError)
+  const bunExists = await process.exists('bun')
+  if (!bunExists) {
+    return err(new Error('bun is not installed or not found in PATH. Install it from https://bun.sh to use compile.'))
   }
 
-  const bundledEntry = detectBuildEntry(params.resolved.buildOutDir)
+  const bundledEntry = await resolveBuildEntry(params.resolved.buildOutDir)
 
   if (!bundledEntry) {
     return err(new Error(`bundled entry not found in ${params.resolved.buildOutDir} — run build() first`))
@@ -86,7 +84,6 @@ export function resolveTargetLabel(target: CompileTarget): string {
   return target
 }
 
-// ---------------------------------------------------------------------------
 
 /**
  * Compile targets one at a time to avoid overwhelming bun with concurrent processes.
@@ -144,7 +141,7 @@ async function compileSingleTarget(params: {
   readonly target: CompileTarget
   readonly isMultiTarget: boolean
   readonly verbose: boolean
-}): AsyncResult<CompiledBinary> {
+}): ResultAsync<CompiledBinary> {
   const binaryName = resolveBinaryName(params.name, params.target, params.isMultiTarget)
   const outfile = join(params.outDir, binaryName)
 
@@ -163,7 +160,7 @@ async function compileSingleTarget(params: {
     bunTarget,
   ]
 
-  const [execError] = await execBunBuild(args)
+  const [execError] = await process.exec('bun', args)
   if (execError) {
     return err(
       new Error(formatCompileError(params.target, execError, params.verbose), { cause: execError })
@@ -172,6 +169,14 @@ async function compileSingleTarget(params: {
 
   return ok({ label: resolveTargetLabel(params.target), path: outfile, target: params.target })
 }
+
+/**
+ * Resolve the list of compile targets, falling back to the default set.
+ *
+ * @private
+ * @param explicit - User-specified targets (may be empty).
+ * @returns The targets to compile for.
+ */
 
 /**
  * Resolve the list of compile targets, falling back to the default set.
@@ -253,61 +258,14 @@ function formatCompileError(target: CompileTarget, execError: Error, verbose: bo
 }
 
 /**
- * Check whether the `bun` binary is available on the system PATH.
- *
- * @private
- * @returns A result tuple with `null` on success or an Error when `bun` is not found.
- */
-function checkBunExists(): AsyncResult<null> {
-  return new Promise((resolve) => {
-    execFileCb('bun', ['--version'], (error) => {
-      if (error) {
-        resolve(
-          err(
-            new Error(
-              'bun is not installed or not found in PATH. Install it from https://bun.sh to use compile.'
-            )
-          )
-        )
-        return
-      }
-
-      resolve(ok(null))
-    })
-  })
-}
-
-/**
- * Promisified wrapper around `execFile` to invoke `bun build`.
- *
- * @private
- * @param args - Arguments to pass to `bun`.
- * @returns A result tuple with stdout on success or an Error on failure.
- */
-function execBunBuild(args: readonly string[]): AsyncResult<string> {
-  return new Promise((resolve) => {
-    execFileCb('bun', [...args], (error, stdout, stderr) => {
-      if (error) {
-        const enriched = new Error(error.message, { cause: error })
-        Object.defineProperty(enriched, 'stderr', { enumerable: true, value: stderr })
-        resolve(err(enriched))
-        return
-      }
-
-      resolve(ok(stdout))
-    })
-  })
-}
-
-/**
  * Remove temporary `.bun-build` files that `bun build --compile` leaves behind.
  *
  * @private
  * @param cwd - The working directory to clean.
  */
 async function cleanBunBuildArtifacts(cwd: string): Promise<void> {
-  const [readError, entries] = await attemptAsync(() => readdir(cwd))
-  if (readError || !entries) {
+  const [listError, entries] = await fs.list(cwd)
+  if (listError) {
     return
   }
 
@@ -315,5 +273,5 @@ async function cleanBunBuildArtifacts(cwd: string): Promise<void> {
     .filter((name) => name.endsWith('.bun-build'))
     .map((name) => join(cwd, name))
 
-  await Promise.allSettled(artifacts.map((filePath) => unlink(filePath)))
+  await Promise.allSettled(artifacts.map(fs.remove))
 }

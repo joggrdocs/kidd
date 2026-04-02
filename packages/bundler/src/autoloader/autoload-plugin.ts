@@ -78,7 +78,6 @@ export function createAutoloadPlugin(params: CreateAutoloadPluginParams): Rolldo
   }
 }
 
-// ---------------------------------------------------------------------------
 
 /**
  * Build the replacement autoloader region that delegates to the virtual module.

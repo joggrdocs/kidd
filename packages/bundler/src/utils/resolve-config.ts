@@ -1,10 +1,8 @@
-import { existsSync } from 'node:fs'
-import { join, resolve } from 'node:path'
+import { resolve } from 'node:path'
 
 import type { CompileOptions, KiddConfig } from '@kidd-cli/config'
 
 import {
-  DEFAULT_BINARY_NAME,
   DEFAULT_CLEAN,
   DEFAULT_COMMANDS,
   DEFAULT_ENTRY,
@@ -14,11 +12,6 @@ import {
   DEFAULT_TARGET,
 } from '../constants.js'
 import type { ResolvedBundlerConfig } from '../types.js'
-
-/**
- * Known entry file names produced by tsdown for ESM builds, in preference order.
- */
-const ENTRY_CANDIDATES = ['index.mjs', 'index.js'] as const
 
 /**
  * Normalize the `compile` config field from `boolean | CompileOptions | undefined` to `CompileOptions`.
@@ -52,6 +45,8 @@ export function normalizeCompileOptions(
 export function resolveConfig(params: {
   readonly config: KiddConfig
   readonly cwd: string
+  readonly version: string | undefined
+  readonly binaryName: string
 }): ResolvedBundlerConfig {
   const { config, cwd } = params
 
@@ -75,26 +70,14 @@ export function resolveConfig(params: {
     buildOutDir,
     commands,
     compile: {
-      name: compileOpts.name ?? DEFAULT_BINARY_NAME,
+      name: compileOpts.name ?? params.binaryName,
       targets: compileOpts.targets ?? [],
     },
     compileOutDir,
     cwd,
     entry,
     include: config.include ?? [],
+    version: params.version,
   }
 }
 
-/**
- * Detect the bundled entry file in a build output directory.
- *
- * tsdown may produce `index.mjs` or `index.js` depending on the project's
- * `package.json` `type` field and tsdown configuration. This function checks
- * for both candidates and returns the first one that exists on disk.
- *
- * @param outDir - Absolute path to the build output directory.
- * @returns The absolute path to the entry file, or `undefined` when none is found.
- */
-export function detectBuildEntry(outDir: string): string | undefined {
-  return ENTRY_CANDIDATES.map((name) => join(outDir, name)).find(existsSync)
-}

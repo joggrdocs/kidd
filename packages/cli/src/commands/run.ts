@@ -1,4 +1,3 @@
-import { spawn } from 'node:child_process'
 import { resolve } from 'node:path'
 
 import { createBundler } from '@kidd-cli/bundler'
@@ -9,6 +8,8 @@ import { command } from '@kidd-cli/core'
 import type { Command, CommandContext } from '@kidd-cli/core'
 import { match } from 'ts-pattern'
 import { z } from 'zod'
+
+import { process as proc } from '@kidd-cli/utils/node'
 
 import { extractConfig } from '../lib/config-helpers.js'
 
@@ -104,7 +105,7 @@ export default runCommand
  * @returns The exit code of the spawned process.
  */
 async function runWithNode(params: EngineParams): Promise<number> {
-  const bundler = createBundler({ config: params.config, cwd: params.cwd })
+  const bundler = await createBundler({ config: params.config, cwd: params.cwd })
   const buildOutput = await buildProject({ bundler, ctx: params.ctx })
   const inspectFlags = buildInspectFlags(params.args)
 
@@ -158,7 +159,7 @@ async function runWithBinary(params: EngineParams): Promise<number> {
     )
   }
 
-  const bundler = createBundler({ config: configWithTarget, cwd: params.cwd })
+  const bundler = await createBundler({ config: configWithTarget, cwd: params.cwd })
 
   await buildProject({ bundler, ctx: params.ctx })
 
@@ -636,8 +637,6 @@ function formatInspectFlag(flag: string, port: number | undefined): string {
 /**
  * Spawn a process with the given command and arguments, inheriting stdio.
  *
- * Returns a promise that resolves to the exit code of the child process.
- *
  * @private
  * @param params - The command, arguments, and working directory.
  * @returns The exit code of the spawned process.
@@ -647,19 +646,5 @@ function spawnProcess(params: {
   readonly args: readonly string[]
   readonly cwd: string
 }): Promise<number> {
-  return new Promise((_resolve) => {
-    const child = spawn(params.cmd, [...params.args], {
-      cwd: params.cwd,
-      stdio: 'inherit',
-    })
-
-    child.on('error', (spawnError) => {
-      console.error(`Failed to spawn "${params.cmd}": ${spawnError.message}`)
-      _resolve(1)
-    })
-
-    child.on('close', (code) => {
-      _resolve(code ?? 1)
-    })
-  })
+  return proc.spawn(params)
 }

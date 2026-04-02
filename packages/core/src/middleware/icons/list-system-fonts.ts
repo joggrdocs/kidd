@@ -13,7 +13,7 @@ import { homedir } from 'node:os'
 import { join } from 'node:path'
 
 import { err, ok } from '@kidd-cli/utils/fp'
-import type { AsyncResult } from '@kidd-cli/utils/fp'
+import type { ResultAsync } from '@kidd-cli/utils/fp'
 import { match } from 'ts-pattern'
 
 // ---------------------------------------------------------------------------
@@ -45,7 +45,7 @@ const FONT_EXTENSIONS: ReadonlySet<string> = new Set(['.ttf', '.otf', '.ttc', '.
  *
  * @returns A Result tuple with font file paths on success, or an Error on failure.
  */
-export async function listSystemFonts(): AsyncResult<readonly string[]> {
+export async function listSystemFonts(): ResultAsync<readonly string[]> {
   const dirs = getFontDirectories()
 
   try {

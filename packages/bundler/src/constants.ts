@@ -45,10 +45,6 @@ export const DEFAULT_CLEAN = true
  */
 export const BUILD_ARTIFACT_EXTENSIONS: readonly string[] = ['.js', '.mjs', '.js.map', '.mjs.map']
 
-/**
- * Default binary name for compiled SEA output.
- */
-export const DEFAULT_BINARY_NAME = 'cli'
 
 /**
  * Packages that must always be bundled into the output.

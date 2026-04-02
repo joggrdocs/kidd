@@ -4,7 +4,7 @@ import { resolve } from 'node:path'
 import { attemptAsync } from 'es-toolkit'
 import { z } from 'zod'
 
-import type { AsyncResult } from './fp/result.js'
+import type { ResultAsync } from './fp/result.js'
 import { err, ok } from './fp/result.js'
 import { jsonParse } from './json.js'
 
@@ -56,7 +56,7 @@ export interface Manifest {
 /**
  * Result type for manifest operations. Error is a plain message string.
  */
-export type ManifestResult = AsyncResult<Manifest>
+export type ManifestResult = ResultAsync<Manifest>
 
 /**
  * Read a package.json file and extract common manifest fields.
@@ -94,7 +94,7 @@ export async function readManifest(dir?: string): ManifestResult {
  * @param filePath - Absolute path to the package.json.
  * @returns A Result tuple with the file contents or an error message.
  */
-async function readManifestFile(filePath: string): AsyncResult<string> {
+async function readManifestFile(filePath: string): ResultAsync<string> {
   const [error, content] = await attemptAsync<string, Error>(() => readFile(filePath, 'utf8'))
   if (error) {
     return err(`Failed to read ${filePath}: ${error.message}`)

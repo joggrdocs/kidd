@@ -1,17 +1,17 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-vi.mock(import('node:fs'))
-vi.mock(import('tsdown'))
-vi.mock(import('../config/read-version.js'))
+const mockFsExists = vi.fn()
 
-const { existsSync } = await import('node:fs')
+vi.mock(import('@kidd-cli/utils/node'), () => ({
+  fs: { exists: mockFsExists },
+}))
+
+vi.mock(import('tsdown'))
+
 const { build: tsdownBuild } = await import('tsdown')
-const { readVersion } = await import('../config/read-version.js')
 const { build } = await import('./build.js')
 
-const mockExistsSync = vi.mocked(existsSync)
 const mockTsdownBuild = vi.mocked(tsdownBuild)
-const mockReadVersion = vi.mocked(readVersion)
 
 const resolved = {
   entry: '/project/src/index.ts',
@@ -28,17 +28,17 @@ const resolved = {
   compile: { targets: [], name: 'cli' },
   include: [],
   cwd: '/project',
+  version: '1.0.0',
 } as const
 
 beforeEach(() => {
   vi.clearAllMocks()
-  mockReadVersion.mockResolvedValue([null, '1.0.0'])
 })
 
 describe('build operation', () => {
   it('should return ok with build output on success', async () => {
     mockTsdownBuild.mockResolvedValueOnce([])
-    mockExistsSync.mockImplementation((p) => String(p).endsWith('index.mjs'))
+    mockFsExists.mockImplementation((p: string) => Promise.resolve(p.endsWith('index.mjs')))
 
     const [error, output] = await build({ resolved, compile: false })
 
@@ -61,7 +61,7 @@ describe('build operation', () => {
 
   it('should return err when no entry file is produced', async () => {
     mockTsdownBuild.mockResolvedValueOnce([])
-    mockExistsSync.mockReturnValue(false)
+    mockFsExists.mockResolvedValue(false)
 
     const [error, output] = await build({ resolved, compile: false })
 
@@ -72,7 +72,7 @@ describe('build operation', () => {
 
   it('should pass inline config to tsdown build', async () => {
     mockTsdownBuild.mockResolvedValueOnce([])
-    mockExistsSync.mockImplementation((p) => String(p).endsWith('index.mjs'))
+    mockFsExists.mockImplementation((p: string) => Promise.resolve(p.endsWith('index.mjs')))
 
     const minifyResolved = { ...resolved, build: { ...resolved.build, minify: true } }
     await build({ resolved: minifyResolved, compile: false })
@@ -80,33 +80,33 @@ describe('build operation', () => {
     expect(mockTsdownBuild).toHaveBeenCalledWith(expect.objectContaining({ minify: true }))
   })
 
-  it('should include version in build output', async () => {
-    mockReadVersion.mockResolvedValueOnce([null, '2.5.0'])
+  it('should include version from resolved config in build output', async () => {
     mockTsdownBuild.mockResolvedValueOnce([])
-    mockExistsSync.mockImplementation((p) => String(p).endsWith('index.mjs'))
+    mockFsExists.mockImplementation((p: string) => Promise.resolve(p.endsWith('index.mjs')))
 
-    const [, output] = await build({ resolved, compile: false })
+    const versionResolved = { ...resolved, version: '2.5.0' }
+    const [, output] = await build({ resolved: versionResolved, compile: false })
 
     expect(output).toMatchObject({ version: '2.5.0' })
   })
 
-  it('should continue with undefined version when readVersion fails', async () => {
-    mockReadVersion.mockResolvedValueOnce([new Error('ENOENT'), null])
+  it('should handle undefined version in resolved config', async () => {
     mockTsdownBuild.mockResolvedValueOnce([])
-    mockExistsSync.mockImplementation((p) => String(p).endsWith('index.mjs'))
+    mockFsExists.mockImplementation((p: string) => Promise.resolve(p.endsWith('index.mjs')))
 
-    const [error, output] = await build({ resolved, compile: false })
+    const noVersionResolved = { ...resolved, version: undefined }
+    const [error, output] = await build({ resolved: noVersionResolved, compile: false })
 
     expect(error).toBeNull()
     expect(output).toHaveProperty('version', undefined)
   })
 
   it('should inject __KIDD_VERSION__ define when version is available', async () => {
-    mockReadVersion.mockResolvedValueOnce([null, '4.0.0'])
     mockTsdownBuild.mockResolvedValueOnce([])
-    mockExistsSync.mockImplementation((p) => String(p).endsWith('index.mjs'))
+    mockFsExists.mockImplementation((p: string) => Promise.resolve(p.endsWith('index.mjs')))
 
-    await build({ resolved, compile: false })
+    const versionResolved = { ...resolved, version: '4.0.0' }
+    await build({ resolved: versionResolved, compile: false })
 
     expect(mockTsdownBuild).toHaveBeenCalledWith(
       expect.objectContaining({ define: { __KIDD_VERSION__: '"4.0.0"' } })

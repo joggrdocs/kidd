@@ -61,18 +61,18 @@ describe('clean', () => {
     rmSync(testDir, { force: true, recursive: true })
   })
 
-  it('should return empty result for non-existent directory', () => {
-    const result = clean({ outDir: '/non/existent/path' })
+  it('should return empty result for non-existent directory', async () => {
+    const result = await clean({ outDir: '/non/existent/path' })
 
     expect(result.removed).toStrictEqual([])
     expect(result.foreign).toStrictEqual([])
   })
 
-  it('should remove build artifacts', () => {
+  it('should remove build artifacts', async () => {
     writeFileSync(join(testDir, 'index.js'), '')
     writeFileSync(join(testDir, 'index.js.map'), '')
 
-    const result = clean({ outDir: testDir })
+    const result = await clean({ outDir: testDir })
 
     expect(result.removed).toContain('index.js')
     expect(result.removed).toContain('index.js.map')
@@ -80,12 +80,12 @@ describe('clean', () => {
     expect(existsSync(join(testDir, 'index.js.map'))).toBe(false)
   })
 
-  it('should preserve foreign files and report them', () => {
+  it('should preserve foreign files and report them', async () => {
     writeFileSync(join(testDir, 'index.js'), '')
     writeFileSync(join(testDir, 'README.md'), '')
     writeFileSync(join(testDir, 'cli-darwin-arm64'), '')
 
-    const result = clean({ outDir: testDir })
+    const result = await clean({ outDir: testDir })
 
     expect(result.removed).toContain('index.js')
     expect(result.foreign).toContain('README.md')
@@ -94,14 +94,14 @@ describe('clean', () => {
     expect(existsSync(join(testDir, 'cli-darwin-arm64'))).toBe(true)
   })
 
-  it('should remove compiled binaries when compile is true', () => {
+  it('should remove compiled binaries when compile is true', async () => {
     writeFileSync(join(testDir, 'index.mjs'), '')
     writeFileSync(join(testDir, 'cli-darwin-arm64'), '')
     writeFileSync(join(testDir, 'cli-linux-x64'), '')
     writeFileSync(join(testDir, 'cli-windows-x64.exe'), '')
     writeFileSync(join(testDir, 'README.md'), '')
 
-    const result = clean({ compile: true, outDir: testDir })
+    const result = await clean({ compile: true, outDir: testDir })
 
     expect(result.removed).toContain('index.mjs')
     expect(result.removed).toContain('cli-darwin-arm64')
@@ -115,8 +115,8 @@ describe('clean', () => {
     expect(existsSync(join(testDir, 'README.md'))).toBe(true)
   })
 
-  it('should return empty result for empty directory', () => {
-    const result = clean({ outDir: testDir })
+  it('should return empty result for empty directory', async () => {
+    const result = await clean({ outDir: testDir })
 
     expect(result.removed).toStrictEqual([])
     expect(result.foreign).toStrictEqual([])

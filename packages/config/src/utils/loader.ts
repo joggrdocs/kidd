@@ -1,4 +1,4 @@
-import type { AsyncResult } from '@kidd-cli/utils'
+import type { ResultAsync } from '@kidd-cli/utils'
 import { err, ok, toError } from '@kidd-cli/utils/fp'
 import type { Tagged } from '@kidd-cli/utils/tag'
 import { withTag } from '@kidd-cli/utils/tag'
@@ -54,7 +54,7 @@ export interface LoadConfigResult {
  */
 export async function loadConfig(
   options?: LoadConfigOptions
-): AsyncResult<LoadConfigResult, Error> {
+): ResultAsync<LoadConfigResult, Error> {
   const { cwd, defaults, overrides } = options ?? {}
 
   const [loadError, loaded] = await attemptAsync(() =>

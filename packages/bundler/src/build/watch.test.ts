@@ -1,14 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock(import('tsdown'))
-vi.mock(import('../config/read-version.js'))
 
 const { build: tsdownBuild } = await import('tsdown')
-const { readVersion } = await import('../config/read-version.js')
 const { watch } = await import('./watch.js')
 
 const mockTsdownBuild = vi.mocked(tsdownBuild)
-const mockReadVersion = vi.mocked(readVersion)
 
 const resolved = {
   entry: '/project/src/index.ts',
@@ -25,11 +22,11 @@ const resolved = {
   compile: { targets: [], name: 'cli' },
   include: [],
   cwd: '/project',
+  version: '1.0.0',
 } as const
 
 beforeEach(() => {
   vi.clearAllMocks()
-  mockReadVersion.mockResolvedValue([null, '1.0.0'])
 })
 
 describe('watch operation', () => {
@@ -66,22 +63,13 @@ describe('watch operation', () => {
   })
 
   it('should pass version define to tsdown config', async () => {
-    mockReadVersion.mockResolvedValueOnce([null, '2.0.0'])
     mockTsdownBuild.mockResolvedValueOnce([])
 
-    await watch({ resolved })
+    const versionResolved = { ...resolved, version: '2.0.0' }
+    await watch({ resolved: versionResolved })
 
     expect(mockTsdownBuild).toHaveBeenCalledWith(
       expect.objectContaining({ define: { __KIDD_VERSION__: '"2.0.0"' } })
     )
-  })
-
-  it('should continue when readVersion fails', async () => {
-    mockReadVersion.mockResolvedValueOnce([new Error('ENOENT'), null])
-    mockTsdownBuild.mockResolvedValueOnce([])
-
-    const [error] = await watch({ resolved })
-
-    expect(error).toBeNull()
   })
 })

@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 const mockWatch = vi.fn()
 
 vi.mock(import('@kidd-cli/bundler'), () => ({
-  createBundler: vi.fn(() => ({
+  createBundler: vi.fn(async () => ({
     build: vi.fn(),
     compile: vi.fn(),
     watch: mockWatch,
@@ -59,7 +59,7 @@ function makeContext(): CommandContext {
 describe('dev command', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    mockedCreateBundler.mockReturnValue({
+    mockedCreateBundler.mockResolvedValue({
       build: vi.fn(),
       compile: vi.fn(),
       watch: mockWatch,

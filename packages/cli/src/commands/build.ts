@@ -46,7 +46,7 @@ const buildCommand: Command = command({
       ? mergeCompileTargets({ config, targets: ctx.args.targets })
       : config
 
-    const bundler = createBundler({
+    const bundler = await createBundler({
       config: mergedConfig,
       cwd,
       onStepStart: ({ meta }) =>

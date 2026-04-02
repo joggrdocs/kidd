@@ -1,3 +1,5 @@
+import { createRequire } from 'node:module'
+
 import { match } from 'ts-pattern'
 import type { Rolldown } from 'tsdown'
 import type { InlineConfig } from 'tsdown'
@@ -42,7 +44,7 @@ export function toTsdownBuildConfig(params: {
     plugins: [
       createAutoloadPlugin({
         commandsDir: params.config.commands,
-        tagModulePath: '@kidd-cli/utils/tag',
+        tagModulePath: createRequire(import.meta.url).resolve('@kidd-cli/utils/tag'),
       }),
       ...buildPlugins(params.compile ?? false),
     ],
@@ -73,7 +75,6 @@ export function toTsdownWatchConfig(params: {
   }
 }
 
-// ---------------------------------------------------------------------------
 
 /**
  * Build the `deps` configuration for tsdown.
@@ -94,9 +95,13 @@ function buildDeps(
   userExternals: readonly string[],
   compile: boolean
 ): { alwaysBundle: RegExp[]; neverBundle: (string | RegExp)[] } {
+  const alwaysBundle = match(compile)
+    .with(true, () => [/./])
+    .with(false, () => ALWAYS_BUNDLE)
+    .exhaustive()
+
   return {
-    // oxlint-disable-next-line no-ternary
-    alwaysBundle: compile ? [/./] : ALWAYS_BUNDLE,
+    alwaysBundle,
     neverBundle: [...NODE_BUILTINS, ...userExternals],
   }
 }
@@ -135,7 +140,7 @@ function buildPlugins(compile: boolean): Rolldown.Plugin[] {
     return [createStubPlugin(STUB_PACKAGES)]
   }
 
-  return [] 
+  return []
 }
 
 /**

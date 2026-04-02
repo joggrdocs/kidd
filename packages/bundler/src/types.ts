@@ -1,9 +1,7 @@
 import type { BuildOptions, CompileOptions, CompileTarget, KiddConfig } from '@kidd-cli/config'
-import type { AsyncResult, Result } from '@kidd-cli/utils/fp'
+import type { ResultAsync, Result } from '@kidd-cli/utils/fp'
 
-// ---------------------------------------------------------------------------
 // Resolved config types (all fields required, paths absolute)
-// ---------------------------------------------------------------------------
 
 /**
  * Fully resolved build options with all defaults applied.
@@ -36,11 +34,10 @@ export interface ResolvedBundlerConfig {
   readonly compile: ResolvedCompileOptions
   readonly include: readonly string[]
   readonly cwd: string
+  readonly version: string | undefined
 }
 
-// ---------------------------------------------------------------------------
 // Result aliases
-// ---------------------------------------------------------------------------
 
 /**
  * Synchronous result from a bundler operation.
@@ -50,11 +47,9 @@ export type BundlerResult<T> = Result<T, Error>
 /**
  * Asynchronous result from a bundler operation.
  */
-export type AsyncBundlerResult<T> = AsyncResult<T, Error>
+export type AsyncBundlerResult<T> = ResultAsync<T, Error>
 
-// ---------------------------------------------------------------------------
 // Lifecycle types
-// ---------------------------------------------------------------------------
 
 /**
  * Bundler operation phase.
@@ -92,9 +87,7 @@ export interface BundlerLifecycle {
   readonly onStepFinish?: (event: StepEvent) => void | Promise<void>
 }
 
-// ---------------------------------------------------------------------------
 // Factory types
-// ---------------------------------------------------------------------------
 
 /**
  * Parameters for creating a bundler instance.
@@ -127,9 +120,7 @@ export interface CompileOverrides extends BundlerLifecycle {
   readonly verbose?: boolean
 }
 
-// ---------------------------------------------------------------------------
 // Output types
-// ---------------------------------------------------------------------------
 
 /**
  * Output of a successful build operation.
@@ -156,9 +147,7 @@ export interface CompileOutput {
   readonly binaries: readonly CompiledBinary[]
 }
 
-// ---------------------------------------------------------------------------
 // Scan types (used by the autoload plugin)
-// ---------------------------------------------------------------------------
 
 /**
  * A single command file discovered during a directory scan.
@@ -186,8 +175,6 @@ export interface ScanResult {
   readonly dirs: readonly ScannedDir[]
 }
 
-// ---------------------------------------------------------------------------
 // Re-exports from @kidd-cli/config for convenience
-// ---------------------------------------------------------------------------
 
 export type { BuildOptions, CompileOptions, CompileTarget, KiddConfig }

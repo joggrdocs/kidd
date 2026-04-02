@@ -3,7 +3,6 @@ import { attemptAsync } from 'es-toolkit'
 import { build as tsdownBuild } from 'tsdown'
 
 import { toTsdownWatchConfig } from './config.js'
-import { readVersion } from '../config/read-version.js'
 import type { AsyncBundlerResult, ResolvedBundlerConfig } from '../types.js'
 
 /**
@@ -18,13 +17,10 @@ export async function watch(params: {
   readonly resolved: ResolvedBundlerConfig
   readonly onSuccess?: () => void | Promise<void>
 }): AsyncBundlerResult<void> {
-  const [, versionResult] = await readVersion(params.resolved.cwd)
-  const version = versionResult ?? undefined
-
   const watchConfig = toTsdownWatchConfig({
     config: params.resolved,
     onSuccess: params.onSuccess,
-    version,
+    version: params.resolved.version,
   })
 
   const [watchError] = await attemptAsync(() => tsdownBuild(watchConfig))

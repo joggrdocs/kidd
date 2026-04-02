@@ -9,7 +9,8 @@ export type Result<TValue, TError = Error> = readonly [TError, null] | readonly 
 /**
  * A Promise that resolves to a {@link Result} tuple.
  */
-export type AsyncResult<TValue, TError = Error> = Promise<Result<TValue, TError>>
+export type ResultAsync<TValue, TError = Error> = Promise<Result<TValue, TError>>
+
 
 /**
  * Construct a success Result tuple.

@@ -1,9 +1,8 @@
-import { mkdir, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 
-import { attemptAsync, ok, toError } from '@kidd-cli/utils/fp'
-import type { AsyncResult } from '@kidd-cli/utils/fp'
-import { fileExists } from '@kidd-cli/utils/fs'
+import { ok } from '@kidd-cli/utils/fp'
+import type { ResultAsync } from '@kidd-cli/utils/fp'
+import { fs } from '@kidd-cli/utils/node'
 
 import type { GenerateError, RenderedFile, WriteFilesParams, WriteResult } from './types.js'
 
@@ -19,7 +18,7 @@ import type { GenerateError, RenderedFile, WriteFilesParams, WriteResult } from 
  */
 export async function writeFiles(
   params: WriteFilesParams
-): AsyncResult<WriteResult, GenerateError> {
+): ResultAsync<WriteResult, GenerateError> {
   const results = await Promise.all(
     params.files.map((file) => writeSingleFile(file, params.outputDir, params.overwrite))
   )
@@ -41,10 +40,6 @@ export async function writeFiles(
 
   return ok({ skipped, written })
 }
-
-// ---------------------------------------------------------------------------
-// Private helpers
-// ---------------------------------------------------------------------------
 
 /**
  * Status of a single file write operation.
@@ -69,20 +64,19 @@ async function writeSingleFile(
   file: RenderedFile,
   outputDir: string,
   overwrite: boolean
-): AsyncResult<FileWriteStatus, GenerateError> {
+): ResultAsync<FileWriteStatus, GenerateError> {
   const targetPath = join(outputDir, file.relativePath)
 
-  const exists = await fileExists(targetPath)
-  if (exists && !overwrite) {
+  const pathExists = await fs.exists(targetPath)
+  if (pathExists && !overwrite) {
     return ok({ action: 'skipped' as const, path: file.relativePath })
   }
 
-  const parentDir = dirname(targetPath)
-  const [mkdirError] = await attemptAsync(() => mkdir(parentDir, { recursive: true }))
+  const [mkdirError] = await fs.mkdir(dirname(targetPath))
   if (mkdirError) {
     return [
       {
-        message: `Failed to write file: ${toError(mkdirError).message}`,
+        message: `Failed to write file: ${mkdirError.message}`,
         path: targetPath,
         type: 'write_error' as const,
       },
@@ -90,11 +84,11 @@ async function writeSingleFile(
     ]
   }
 
-  const [writeError] = await attemptAsync(() => writeFile(targetPath, file.content, 'utf8'))
+  const [writeError] = await fs.write(targetPath, file.content)
   if (writeError) {
     return [
       {
-        message: `Failed to write file: ${toError(writeError).message}`,
+        message: `Failed to write file: ${writeError.message}`,
         path: targetPath,
         type: 'write_error' as const,
       },

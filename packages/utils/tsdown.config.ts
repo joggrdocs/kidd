@@ -7,8 +7,8 @@ export default defineConfig({
   outDir: 'dist',
   entry: {
     fp: 'src/fp/index.ts',
-    fs: 'src/fs.ts',
     index: 'src/index.ts',
+    node: 'src/node/index.ts',
     json: 'src/json.ts',
     manifest: 'src/manifest.ts',
     tag: 'src/tag.ts',

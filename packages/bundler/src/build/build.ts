@@ -2,8 +2,8 @@ import { err, ok } from '@kidd-cli/utils/fp'
 import { attemptAsync } from 'es-toolkit'
 import { build as tsdownBuild } from 'tsdown'
 
-import { clean } from './clean.js'
 import { toTsdownBuildConfig } from './config.js'
+import { clean } from '../utils/clean.js'
 import { resolveBuildEntry } from '../utils/resolve-build-entry.js'
 import type { AsyncBundlerResult, BuildOutput, ResolvedBundlerConfig } from '../types.js'
 
@@ -21,7 +21,7 @@ export async function build(params: {
   readonly compile: boolean
 }): AsyncBundlerResult<BuildOutput> {
   if (params.resolved.build.clean) {
-    await clean({ compile: params.compile, outDir: params.resolved.buildOutDir })
+    await clean({ resolved: params.resolved, compile: params.compile })
   }
 
   const inlineConfig = toTsdownBuildConfig({

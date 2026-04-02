@@ -78,7 +78,7 @@
     "@kidd-cli/utils": "workspace:*",
     "@pinojs/redact": "^0.4.0",
     "c12": "4.0.0-beta.4",
-    "dotenv": "^17.3.1",
+    "dotenv": "^17.4.0",
     "es-toolkit": "catalog:",
     "figures": "^6.1.0",
     "liquidjs": "catalog:",

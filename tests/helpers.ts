@@ -69,7 +69,7 @@ type SubprocessRunner = (...args: readonly string[]) => string
  */
 export function createNodeRunner({
   example,
-  distPath = 'dist/index.js',
+  distPath = 'dist/index.mjs',
 }: NodeRunnerOptions): SubprocessRunner {
   const cwd = `${EXAMPLES_DIR}/${example}`
 
@@ -102,9 +102,13 @@ interface BinaryRunnerOptions {
   readonly example: string
   /**
    * Relative path to the dist directory (default: `dist`).
-   * The binary name `cli-<host-target>` is appended automatically.
    */
   readonly distDir?: string
+  /**
+   * Binary base name (default: same as `example`).
+   * The host target suffix is appended automatically.
+   */
+  readonly name?: string
 }
 
 /**
@@ -119,9 +123,11 @@ interface BinaryRunnerOptions {
 export function createBinaryRunner({
   example,
   distDir = 'dist',
+  name,
 }: BinaryRunnerOptions): SubprocessRunner {
   const cwd = `${EXAMPLES_DIR}/${example}`
-  const binary = `${cwd}/${distDir}/cli-${resolveHostTarget()}`
+  const binaryName = name ?? example
+  const binary = `${cwd}/${distDir}/${binaryName}-${resolveHostTarget()}`
 
   return (...args: readonly string[]): string => {
     const result = spawnSync(binary, [...args], {

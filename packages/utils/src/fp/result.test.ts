@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { err, ok } from '../fp/index.js'
-import type { AsyncResult, Result } from '../fp/index.js'
+import type { ResultAsync, Result } from '../fp/index.js'
 
 describe(ok, () => {
   describe('void overload', () => {
@@ -111,9 +111,9 @@ describe('Result destructuring', () => {
   })
 })
 
-describe('AsyncResult type', () => {
+describe('ResultAsync type', () => {
   it('should resolve to a success Result', async () => {
-    const asyncResult: AsyncResult<string> = Promise.resolve(ok('async value'))
+    const asyncResult: ResultAsync<string> = Promise.resolve(ok('async value'))
     const [error, value] = await asyncResult
 
     expect(error).toBeNull()
@@ -121,7 +121,7 @@ describe('AsyncResult type', () => {
   })
 
   it('should resolve to a failure Result', async () => {
-    const asyncResult: AsyncResult<string> = Promise.resolve(err(new Error('async fail')))
+    const asyncResult: ResultAsync<string> = Promise.resolve(err(new Error('async fail')))
     const [error, value] = await asyncResult
 
     expect(error).toBeInstanceOf(Error)

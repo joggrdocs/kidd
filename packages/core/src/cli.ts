@@ -252,7 +252,7 @@ async function resolveCommandsConfig(config: CommandsConfig): Promise<ResolvedCo
 async function resolveCommandsFromConfig(): Promise<ResolvedCommands> {
   const DEFAULT_COMMANDS_DIR = './commands'
 
-  const { loadConfig } = await import('@kidd-cli/config/loader')
+  const { loadConfig } = await import('@kidd-cli/config/utils')
   const [configError, configResult] = await loadConfig()
   if (configError || !configResult) {
     return { commands: await autoload({ dir: DEFAULT_COMMANDS_DIR }) }

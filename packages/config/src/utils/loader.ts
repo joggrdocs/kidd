@@ -1,12 +1,12 @@
-import type { AsyncResult } from '@kidd-cli/utils'
+import type { ResultAsync } from '@kidd-cli/utils'
 import { err, ok, toError } from '@kidd-cli/utils/fp'
 import type { Tagged } from '@kidd-cli/utils/tag'
 import { withTag } from '@kidd-cli/utils/tag'
 import { loadConfig as c12LoadConfig } from 'c12'
 import { attemptAsync } from 'es-toolkit'
 
+import type { KiddConfig } from '../types.js'
 import { validateConfig } from './schema.js'
-import type { KiddConfig } from './types.js'
 
 export { KiddConfigSchema, validateConfig } from './schema.js'
 
@@ -54,7 +54,7 @@ export interface LoadConfigResult {
  */
 export async function loadConfig(
   options?: LoadConfigOptions
-): AsyncResult<LoadConfigResult, Error> {
+): ResultAsync<LoadConfigResult, Error> {
   const { cwd, defaults, overrides } = options ?? {}
 
   const [loadError, loaded] = await attemptAsync(() =>

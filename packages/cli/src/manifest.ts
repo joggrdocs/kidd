@@ -1,6 +1,6 @@
 import { join } from 'node:path'
 
-import type { AsyncResult } from '@kidd-cli/utils/fp'
+import type { ResultAsync } from '@kidd-cli/utils/fp'
 import { err, ok } from '@kidd-cli/utils/fp'
 import { readManifest } from '@kidd-cli/utils/manifest'
 
@@ -24,7 +24,7 @@ export interface CLIManifest {
  * @param baseDir - The directory the CLI entry file lives in (typically `import.meta.dirname`).
  * @returns A Result tuple: error on failure, validated {@link CLIManifest} on success.
  */
-export async function readCLIManifest(baseDir: string): AsyncResult<CLIManifest> {
+export async function readCLIManifest(baseDir: string): ResultAsync<CLIManifest> {
   const [manifestError, manifest] = await readManifest(join(baseDir, '..'))
 
   if (manifestError) {

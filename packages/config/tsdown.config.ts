@@ -7,7 +7,7 @@ export default defineConfig({
   outDir: 'dist',
   entry: {
     index: 'src/index.ts',
-    loader: 'src/loader.ts',
+    utils: 'src/utils/index.ts',
   },
   format: 'esm',
 })

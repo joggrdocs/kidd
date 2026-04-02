@@ -1,3 +1,5 @@
+import type { CompileTarget } from './utils/compile.js'
+
 /**
  * Build options passed to tsdown during `kidd build`.
  */
@@ -30,6 +32,16 @@ export interface BuildOptions {
    * and a warning is printed.
    */
   readonly clean?: boolean
+  /**
+   * Compile-time constants injected via rolldown `define`.
+   *
+   * Keys are replaced in source code at build time with the corresponding
+   * string values. Values should be JSON-stringified when embedding strings
+   * (e.g. `JSON.stringify('my-value')`).
+   *
+   * Merged with auto-resolved `KIDD_PUBLIC_*` env vars (explicit takes precedence).
+   */
+  define?: Record<string, string>
 }
 
 /**
@@ -49,18 +61,6 @@ export interface CompileOptions {
    */
   name?: string
 }
-
-/**
- * Supported cross-compilation targets for `kidd compile`.
- */
-export type CompileTarget =
-  | 'darwin-arm64'
-  | 'darwin-x64'
-  | 'linux-x64'
-  | 'linux-arm64'
-  | 'linux-x64-musl'
-  | 'windows-x64'
-  | 'windows-arm64'
 
 /**
  * Configuration for kidd.config.ts.

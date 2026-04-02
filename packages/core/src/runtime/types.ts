@@ -1,4 +1,4 @@
-import type { AsyncResult, Result } from '@kidd-cli/utils/fp'
+import type { ResultAsync, Result } from '@kidd-cli/utils/fp'
 import type { z } from 'zod'
 
 import type { CommandContext, DisplayConfig, Log, Prompts, Status } from '@/context/types.js'
@@ -42,7 +42,7 @@ export interface ResolvedExecution {
  * A runtime instance that orchestrates config and middleware execution.
  */
 export interface Runtime {
-  readonly execute: (command: ResolvedExecution) => AsyncResult<void, Error>
+  readonly execute: (command: ResolvedExecution) => ResultAsync<void, Error>
 }
 
 /**

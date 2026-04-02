@@ -1,5 +1,5 @@
 import { ok } from '@kidd-cli/utils/fp'
-import type { AsyncResult, Result } from '@kidd-cli/utils/fp'
+import type { ResultAsync, Result } from '@kidd-cli/utils/fp'
 
 import type { Prompts } from '@/context/types.js'
 import { createStore } from '@/lib/store/create-store.js'
@@ -72,7 +72,7 @@ export function createAuthContext(options: CreateAuthContextOptions): AuthContex
    * @param loginOptions - Optional overrides for the login attempt.
    * @returns A Result with the credential on success or an AuthError on failure.
    */
-  async function login(loginOptions?: LoginOptions): AsyncResult<AuthCredential, AuthError> {
+  async function login(loginOptions?: LoginOptions): ResultAsync<AuthCredential, AuthError> {
     const activeStrategies = resolveLoginStrategies(loginOptions, strategies)
 
     const resolved = await runStrategyChain({
@@ -118,7 +118,7 @@ export function createAuthContext(options: CreateAuthContextOptions): AuthContex
    * @private
    * @returns A Result with the removed file path on success or an AuthError on failure.
    */
-  async function logout(): AsyncResult<string, AuthError> {
+  async function logout(): ResultAsync<string, AuthError> {
     // Writes/deletes always target global. A project-local auth file is an
     // Explicit per-project override (similar to a .env) and is intentionally
     // Not removed by logout — only the user-scoped global credential is
@@ -214,7 +214,7 @@ function resolveLoginValidate(
 async function runValidation(
   validateFn: ValidateCredential | undefined,
   credential: AuthCredential
-): AsyncResult<AuthCredential, AuthError> {
+): ResultAsync<AuthCredential, AuthError> {
   if (validateFn === undefined) {
     return ok(credential)
   }

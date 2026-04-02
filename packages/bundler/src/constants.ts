@@ -1,7 +1,5 @@
 import { builtinModules } from 'node:module'
 
-import type { CompileTarget } from '@kidd-cli/config'
-
 /**
  * Shebang line prepended to CLI entry files.
  */
@@ -46,24 +44,6 @@ export const DEFAULT_CLEAN = true
  * File extensions produced by kidd builds that are safe to remove during clean.
  */
 export const BUILD_ARTIFACT_EXTENSIONS: readonly string[] = ['.js', '.mjs', '.js.map', '.mjs.map']
-
-/**
- * Default binary name for compiled SEA output.
- */
-export const DEFAULT_BINARY_NAME = 'cli'
-
-/**
- * Default compile targets when none are explicitly configured.
- *
- * Covers Linux servers/CI, modern and Intel Macs, and Windows — roughly 95%
- * of developer environments.
- */
-export const DEFAULT_COMPILE_TARGETS: readonly CompileTarget[] = [
-  'darwin-arm64',
-  'darwin-x64',
-  'linux-x64',
-  'windows-x64',
-]
 
 /**
  * Packages that must always be bundled into the output.

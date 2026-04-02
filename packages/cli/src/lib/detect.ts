@@ -1,10 +1,9 @@
-import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 
-import { attemptAsync, ok, toError } from '@kidd-cli/utils/fp'
-import type { AsyncResult } from '@kidd-cli/utils/fp'
-import { fileExists } from '@kidd-cli/utils/fs'
+import { ok } from '@kidd-cli/utils/fp'
+import type { ResultAsync } from '@kidd-cli/utils/fp'
 import { jsonParse } from '@kidd-cli/utils/json'
+import { fs } from '@kidd-cli/utils/node'
 
 import type { GenerateError, ProjectInfo } from './types.js'
 
@@ -17,10 +16,10 @@ import type { GenerateError, ProjectInfo } from './types.js'
  * @param cwd - The directory to inspect.
  * @returns An async Result containing project info or null when no kidd project is found.
  */
-export async function detectProject(cwd: string): AsyncResult<ProjectInfo | null, GenerateError> {
+export async function detectProject(cwd: string): ResultAsync<ProjectInfo | null, GenerateError> {
   const packageJsonPath = join(cwd, 'package.json')
-  const exists = await fileExists(packageJsonPath)
-  if (!exists) {
+  const packageExists = await fs.exists(packageJsonPath)
+  if (!packageExists) {
     return ok(null)
   }
 
@@ -38,7 +37,7 @@ export async function detectProject(cwd: string): AsyncResult<ProjectInfo | null
   }
 
   const commandsPath = join(cwd, 'src', 'commands')
-  const commandsDirExists = await fileExists(commandsPath)
+  const commandsDirExists = await fs.exists(commandsPath)
 
   if (commandsDirExists) {
     return ok({
@@ -55,14 +54,10 @@ export async function detectProject(cwd: string): AsyncResult<ProjectInfo | null
   })
 }
 
-// ---------------------------------------------------------------------------
-// Private helpers
-// ---------------------------------------------------------------------------
-
 /**
  * Minimal package.json shape needed for detection.
  *
- * Only includes dependency fields used during project detection.
+ * @private
  */
 interface PackageJson {
   readonly dependencies?: Record<string, string>
@@ -76,12 +71,12 @@ interface PackageJson {
  * @returns A Result tuple with the parsed package data or a GenerateError.
  * @private
  */
-async function readPackageJson(filePath: string): AsyncResult<PackageJson, GenerateError> {
-  const [readError, content] = await attemptAsync(() => readFile(filePath, 'utf8'))
+async function readPackageJson(filePath: string): ResultAsync<PackageJson, GenerateError> {
+  const [readError, content] = await fs.read(filePath)
   if (readError) {
     return [
       {
-        message: `Failed to read package.json: ${toError(readError).message}`,
+        message: `Failed to read package.json: ${readError.message}`,
         path: filePath,
         type: 'read_error' as const,
       },
@@ -89,11 +84,11 @@ async function readPackageJson(filePath: string): AsyncResult<PackageJson, Gener
     ]
   }
 
-  const [parseError, data] = jsonParse(content as string)
+  const [parseError, data] = jsonParse(content)
   if (parseError) {
     return [
       {
-        message: `Failed to parse package.json: ${toError(parseError).message}`,
+        message: `Failed to parse package.json: ${parseError.message}`,
         path: filePath,
         type: 'read_error' as const,
       },

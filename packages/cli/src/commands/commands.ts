@@ -1,9 +1,9 @@
-import { existsSync } from 'node:fs'
 import { join } from 'node:path'
 
-import { loadConfig } from '@kidd-cli/config/loader'
+import { loadConfig } from '@kidd-cli/config/utils'
 import { autoload, command } from '@kidd-cli/core'
 import type { Command as KiddCommand, CommandContext } from '@kidd-cli/core'
+import { fs } from '@kidd-cli/utils/node'
 
 import { extractConfig } from '../lib/config-helpers.js'
 
@@ -33,7 +33,7 @@ const commandsCommand: KiddCommand = command({
 
     const commandsDir = join(cwd, config.commands ?? 'commands')
 
-    if (!existsSync(commandsDir)) {
+    if (!(await fs.exists(commandsDir))) {
       return ctx.fail(`Commands directory not found: ${commandsDir}`)
     }
 

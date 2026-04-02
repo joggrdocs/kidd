@@ -1,5 +1,5 @@
 import { ok } from '@kidd-cli/utils/fp'
-import type { AsyncResult } from '@kidd-cli/utils/fp'
+import type { ResultAsync } from '@kidd-cli/utils/fp'
 import { match } from 'ts-pattern'
 
 import type { CommandContext } from '@/context/types.js'
@@ -66,7 +66,7 @@ export function createIconsContext(options: CreateIconsContextOptions): IconsCon
       match(forceSetup)
         .with(true, () => false)
         .otherwise(() => state.isInstalled),
-    setup: async (): AsyncResult<boolean, IconsError> => {
+    setup: async (): ResultAsync<boolean, IconsError> => {
       const [error, result] = await installNerdFont({ ctx, font })
 
       if (error) {

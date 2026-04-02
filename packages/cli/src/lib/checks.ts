@@ -1,26 +1,12 @@
-import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { dirname, join, relative } from 'node:path'
 
-import type { LoadConfigResult } from '@kidd-cli/config/loader'
-import { attemptAsync, err, ok } from '@kidd-cli/utils/fp'
-import type { AsyncResult } from '@kidd-cli/utils/fp'
-import { fileExists } from '@kidd-cli/utils/fs'
+import { DEFAULT_COMMANDS, DEFAULT_ENTRY } from '@kidd-cli/bundler'
+import type { LoadConfigResult } from '@kidd-cli/config/utils'
+import { err, ok } from '@kidd-cli/utils/fp'
+import type { ResultAsync } from '@kidd-cli/utils/fp'
 import { jsonParse, jsonStringify } from '@kidd-cli/utils/json'
 import type { Manifest } from '@kidd-cli/utils/manifest'
-
-// ---------------------------------------------------------------------------
-// Constants
-// ---------------------------------------------------------------------------
-
-/**
- * Default entry point for the CLI source.
- */
-const DEFAULT_ENTRY = './src/index.ts'
-
-/**
- * Default directory for CLI commands.
- */
-const DEFAULT_COMMANDS = './commands'
+import { fs } from '@kidd-cli/utils/node'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -326,7 +312,7 @@ async function checkEntryPoint(context: CheckContext): Promise<CheckResult> {
   const entryPath = resolveEntryPath(config)
 
   const absolutePath = join(context.cwd, entryPath)
-  const exists = await fileExists(absolutePath)
+  const exists = await fs.exists(absolutePath)
 
   if (exists) {
     return checkResult({ message: `Found: ${entryPath}`, name: 'entry point', status: 'pass' })
@@ -361,7 +347,7 @@ async function checkCommandsDirectory(context: CheckContext): Promise<CheckResul
   const commandsPath = resolveCommandsPath(config)
 
   const absolutePath = join(context.cwd, commandsPath)
-  const exists = await fileExists(absolutePath)
+  const exists = await fs.exists(absolutePath)
 
   if (exists) {
     return checkResult({
@@ -396,7 +382,7 @@ async function checkCommandsDirectory(context: CheckContext): Promise<CheckResul
  * @returns A CheckResult indicating pass or warn.
  */
 async function checkTsconfig(context: CheckContext): Promise<CheckResult> {
-  const exists = await fileExists(join(context.cwd, 'tsconfig.json'))
+  const exists = await fs.exists(join(context.cwd, 'tsconfig.json'))
 
   if (exists) {
     return checkResult({ message: 'Found', name: 'tsconfig.json', status: 'pass' })
@@ -478,10 +464,7 @@ async function fixEntryPoint(context: CheckContext): Promise<FixResult> {
   const entryPath = resolveEntryPath(config)
   const absolutePath = join(context.cwd, entryPath)
 
-  const [mkdirError] = await attemptAsync<string | undefined, Error>(() =>
-    mkdir(dirname(absolutePath), { recursive: true })
-  )
-
+  const [mkdirError] = await fs.mkdir(dirname(absolutePath))
   if (mkdirError) {
     return fixResult({
       fixed: false,
@@ -491,10 +474,7 @@ async function fixEntryPoint(context: CheckContext): Promise<FixResult> {
   }
 
   const content = `import { create } from '@kidd-cli/core'\n`
-  const [writeError] = await attemptAsync<void, Error>(() =>
-    writeFile(absolutePath, content, 'utf8')
-  )
-
+  const [writeError] = await fs.write(absolutePath, content)
   if (writeError) {
     return fixResult({
       fixed: false,
@@ -518,10 +498,7 @@ async function fixCommandsDirectory(context: CheckContext): Promise<FixResult> {
   const commandsPath = resolveCommandsPath(config)
   const absolutePath = join(context.cwd, commandsPath)
 
-  const [mkdirError] = await attemptAsync<string | undefined, Error>(() =>
-    mkdir(absolutePath, { recursive: true })
-  )
-
+  const [mkdirError] = await fs.mkdir(absolutePath)
   if (mkdirError) {
     return fixResult({
       fixed: false,
@@ -560,10 +537,9 @@ export const CHECKS: readonly DiagnosticCheck[] = [
  * @param cwd - The directory to read from.
  * @returns A Result tuple with the raw package.json data or an error message.
  */
-export async function readRawPackageJson(cwd: string): AsyncResult<RawPackageJson> {
+export async function readRawPackageJson(cwd: string): ResultAsync<RawPackageJson> {
   const filePath = join(cwd, 'package.json')
-  const [readError, content] = await attemptAsync<string, Error>(() => readFile(filePath, 'utf8'))
-
+  const [readError, content] = await fs.read(filePath)
   if (readError) {
     return err(`Failed to read package.json: ${readError.message}`)
   }
@@ -637,17 +613,15 @@ function resolveCommandsPath(config: LoadConfigResult['config'] | null): string 
 async function updatePackageJson(
   cwd: string,
   transform: (data: Record<string, unknown>) => Record<string, unknown>
-): AsyncResult<void> {
+): ResultAsync<void> {
   const filePath = join(cwd, 'package.json')
 
-  const [readError, content] = await attemptAsync<string, Error>(() => readFile(filePath, 'utf8'))
-
+  const [readError, content] = await fs.read(filePath)
   if (readError) {
     return err(`Failed to read package.json: ${readError.message}`)
   }
 
   const [parseError, data] = jsonParse(content)
-
   if (parseError) {
     return err(parseError)
   }
@@ -655,15 +629,11 @@ async function updatePackageJson(
   const updated = transform(data as Record<string, unknown>)
 
   const [stringifyError, json] = jsonStringify(updated, { pretty: true })
-
   if (stringifyError) {
     return err(stringifyError)
   }
 
-  const [writeError] = await attemptAsync<void, Error>(() =>
-    writeFile(filePath, `${json}\n`, 'utf8')
-  )
-
+  const [writeError] = await fs.write(filePath, `${json}\n`)
   if (writeError) {
     return err(`Failed to write package.json: ${writeError.message}`)
   }

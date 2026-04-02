@@ -1,13 +1,22 @@
 import type { CommandContext } from '@kidd-cli/core'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-vi.mock(import('@kidd-cli/bundler'), () => ({
-  build: vi.fn(),
-  compile: vi.fn(),
-  resolveTargetLabel: vi.fn((t: string) => t),
-}))
+const mockBuild = vi.fn()
+const mockCompile = vi.fn()
 
-vi.mock(import('@kidd-cli/config/loader'), () => ({
+vi.mock(import('@kidd-cli/bundler'), async (importOriginal) => {
+  const actual = await importOriginal()
+  return {
+    ...actual,
+    createBundler: vi.fn(async () => ({
+      build: mockBuild,
+      compile: mockCompile,
+      watch: vi.fn(),
+    })),
+  }
+})
+
+vi.mock(import('@kidd-cli/config/utils'), () => ({
   loadConfig: vi.fn(),
 }))
 
@@ -15,11 +24,10 @@ vi.mock(import('@kidd-cli/core'), () => ({
   command: vi.fn((def) => def),
 }))
 
-const { build, compile } = await import('@kidd-cli/bundler')
-const { loadConfig } = await import('@kidd-cli/config/loader')
+const { createBundler } = await import('@kidd-cli/bundler')
+const { loadConfig } = await import('@kidd-cli/config/utils')
 
-const mockedBuild = vi.mocked(build)
-const mockedCompile = vi.mocked(compile)
+const mockedCreateBundler = vi.mocked(createBundler)
 const mockedLoadConfig = vi.mocked(loadConfig)
 
 function makeContext(argOverrides: Record<string, unknown> = {}): CommandContext {
@@ -61,14 +69,14 @@ function makeContext(argOverrides: Record<string, unknown> = {}): CommandContext
 }
 
 function setupBuildSuccess(): void {
-  mockedBuild.mockResolvedValue([
+  mockBuild.mockResolvedValue([
     null,
-    { entryFile: '/project/dist/index.js', outDir: '/project/dist', version: '1.0.0' },
+    { entryFile: '/project/dist/index.js', outDir: '/project/dist', version: '1.0.0', define: {} },
   ])
 }
 
 function setupCompileSuccess(): void {
-  mockedCompile.mockResolvedValue([
+  mockCompile.mockResolvedValue([
     null,
     {
       binaries: [
@@ -90,6 +98,11 @@ describe('build command', () => {
       null,
       { config: {}, configFile: '/project/kidd.config.ts' },
     ] as never)
+    mockedCreateBundler.mockResolvedValue({
+      build: mockBuild,
+      compile: mockCompile,
+      watch: vi.fn(),
+    })
   })
 
   describe('resolveCompileIntent', () => {
@@ -100,7 +113,7 @@ describe('build command', () => {
       const mod = await import('./build.js')
       await mod.default.handler!(ctx)
 
-      expect(mockedCompile).not.toHaveBeenCalled()
+      expect(mockCompile).not.toHaveBeenCalled()
       expect(ctx.status.spinner.stop).toHaveBeenCalledWith('Build complete')
     })
 
@@ -112,7 +125,7 @@ describe('build command', () => {
       const mod = await import('./build.js')
       await mod.default.handler!(ctx)
 
-      expect(mockedCompile).toHaveBeenCalled()
+      expect(mockCompile).toHaveBeenCalled()
     })
 
     it('should compile when --compile is true', async () => {
@@ -123,7 +136,7 @@ describe('build command', () => {
       const mod = await import('./build.js')
       await mod.default.handler!(ctx)
 
-      expect(mockedCompile).toHaveBeenCalled()
+      expect(mockCompile).toHaveBeenCalled()
     })
 
     it('should not compile when --compile is false', async () => {
@@ -133,7 +146,7 @@ describe('build command', () => {
       const mod = await import('./build.js')
       await mod.default.handler!(ctx)
 
-      expect(mockedCompile).not.toHaveBeenCalled()
+      expect(mockCompile).not.toHaveBeenCalled()
     })
 
     it('should compile when config.compile is true', async () => {
@@ -148,7 +161,7 @@ describe('build command', () => {
       const mod = await import('./build.js')
       await mod.default.handler!(ctx)
 
-      expect(mockedCompile).toHaveBeenCalled()
+      expect(mockCompile).toHaveBeenCalled()
     })
 
     it('should compile when config.compile is an object', async () => {
@@ -166,7 +179,7 @@ describe('build command', () => {
       const mod = await import('./build.js')
       await mod.default.handler!(ctx)
 
-      expect(mockedCompile).toHaveBeenCalled()
+      expect(mockCompile).toHaveBeenCalled()
     })
   })
 
@@ -186,8 +199,8 @@ describe('build command', () => {
       const mod = await import('./build.js')
       await mod.default.handler!(ctx)
 
-      const compileCall = mockedCompile.mock.calls[0]![0]!
-      expect(compileCall.config).toMatchObject({
+      const bundlerCall = mockedCreateBundler.mock.calls[0]![0]!
+      expect(bundlerCall.config).toMatchObject({
         compile: { targets: ['linux-x64'] },
       })
     })
@@ -207,8 +220,8 @@ describe('build command', () => {
       const mod = await import('./build.js')
       await mod.default.handler!(ctx)
 
-      const compileCall = mockedCompile.mock.calls[0]![0]!
-      expect(compileCall.config).toMatchObject({
+      const bundlerCall = mockedCreateBundler.mock.calls[0]![0]!
+      expect(bundlerCall.config).toMatchObject({
         compile: { targets: ['darwin-arm64', 'linux-x64'] },
       })
     })
@@ -238,7 +251,7 @@ describe('build command', () => {
         { config: { compile: true }, configFile: '/project/kidd.config.ts' },
       ] as never)
       setupBuildSuccess()
-      mockedCompile.mockResolvedValue([
+      mockCompile.mockResolvedValue([
         null,
         {
           binaries: [
@@ -285,7 +298,7 @@ describe('build command', () => {
       const mod = await import('./build.js')
       await mod.default.handler!(ctx)
 
-      expect(mockedBuild).toHaveBeenCalledWith(
+      expect(mockedCreateBundler).toHaveBeenCalledWith(
         expect.objectContaining({ config: { entry: './src/main.ts' } })
       )
     })
@@ -298,14 +311,14 @@ describe('build command', () => {
       const mod = await import('./build.js')
       await mod.default.handler!(ctx)
 
-      expect(mockedBuild).toHaveBeenCalledWith(expect.objectContaining({ config: {} }))
+      expect(mockedCreateBundler).toHaveBeenCalledWith(expect.objectContaining({ config: {} }))
     })
   })
 
   describe('error handling', () => {
     it('should call fail when build returns an error', async () => {
       const ctx = makeContext()
-      mockedBuild.mockResolvedValue([new Error('tsdown build failed'), null])
+      mockBuild.mockResolvedValue([new Error('tsdown build failed'), null])
 
       const mod = await import('./build.js')
       await expect(mod.default.handler!(ctx)).rejects.toThrow('tsdown build failed')
@@ -316,7 +329,7 @@ describe('build command', () => {
     it('should call fail when compile returns an error', async () => {
       const ctx = makeContext({ compile: true })
       setupBuildSuccess()
-      mockedCompile.mockResolvedValue([new Error('bun compile failed'), null])
+      mockCompile.mockResolvedValue([new Error('bun compile failed'), null])
 
       const mod = await import('./build.js')
       await expect(mod.default.handler!(ctx)).rejects.toThrow('bun compile failed')

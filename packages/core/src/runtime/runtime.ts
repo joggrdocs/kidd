@@ -1,5 +1,5 @@
 import { attemptAsync, err, ok } from '@kidd-cli/utils/fp'
-import type { AsyncResult } from '@kidd-cli/utils/fp'
+import type { ResultAsync } from '@kidd-cli/utils/fp'
 import type { z } from 'zod'
 
 import { createContext } from '@/context/index.js'
@@ -18,18 +18,18 @@ import type { ResolvedExecution, Runtime, RuntimeOptions } from './types.js'
  * and middleware chain execution for each command invocation.
  *
  * @param options - Runtime configuration including name, version, config, and middleware.
- * @returns An AsyncResult containing the runtime or an error.
+ * @returns An ResultAsync containing the runtime or an error.
  */
 export async function createRuntime<TSchema extends z.ZodType>(
   options: RuntimeOptions<TSchema>
-): AsyncResult<Runtime, Error> {
+): ResultAsync<Runtime, Error> {
   const config = await resolveConfig(options.config, options.name)
 
   const middleware: Middleware[] = options.middleware ?? []
   const runner = createMiddlewareExecutor(middleware)
 
   const runtime = {
-    async execute(command: ResolvedExecution): AsyncResult<void, Error> {
+    async execute(command: ResolvedExecution): ResultAsync<void, Error> {
       const parser = createArgsParser({
         options: command.options,
         positionals: command.positionals,

@@ -1,30 +1,24 @@
-import { spawn } from 'node:child_process'
 import { resolve } from 'node:path'
 
-import { build, compile } from '@kidd-cli/bundler'
-import type { BuildOutput, CompileOutput, CompiledBinary } from '@kidd-cli/bundler'
+import { createBundler, DEFAULT_ENTRY, normalizeCompileOptions } from '@kidd-cli/bundler'
+import type { BuildOutput, Bundler, CompileOutput, CompiledBinary } from '@kidd-cli/bundler'
 import type { CompileTarget, KiddConfig } from '@kidd-cli/config'
-import { loadConfig } from '@kidd-cli/config/loader'
+import { compileTargets, loadConfig } from '@kidd-cli/config/utils'
 import { command } from '@kidd-cli/core'
 import type { Command, CommandContext } from '@kidd-cli/core'
+import { process as proc } from '@kidd-cli/utils/node'
 import { match } from 'ts-pattern'
 import { z } from 'zod'
 
 import { extractConfig } from '../lib/config-helpers.js'
 
-const DEFAULT_ENTRY = './src/index.ts'
-
 const EngineSchema = z.enum(['node', 'tsx', 'binary'])
 
-const TargetSchema = z.enum([
-  'darwin-arm64',
-  'darwin-x64',
-  'linux-arm64',
-  'linux-x64',
-  'linux-x64-musl',
-  'windows-arm64',
-  'windows-x64',
-])
+const compileTargetValues = compileTargets.map((entry) => entry.target) as [
+  CompileTarget,
+  ...CompileTarget[],
+]
+const TargetSchema = z.enum(compileTargetValues)
 
 const options = z.object({
   engine: EngineSchema.default('node').describe(
@@ -78,7 +72,7 @@ const runCommand: Command = command({
       )
     }
 
-    const passthroughArgs = extractPassthroughArgs({ knownArgs: ctx.args })
+    const passthroughArgs = extractPassthroughArgs()
 
     const exitCode = await match(ctx.args.engine)
       .with('node', () => runWithNode({ args: ctx.args, config, cwd, passthroughArgs, ctx }))
@@ -104,7 +98,8 @@ export default runCommand
  * @returns The exit code of the spawned process.
  */
 async function runWithNode(params: EngineParams): Promise<number> {
-  const buildOutput = await buildProject(params)
+  const bundler = await createBundler({ config: params.config, cwd: params.cwd })
+  const buildOutput = await buildProject({ bundler, ctx: params.ctx })
   const inspectFlags = buildInspectFlags(params.args)
 
   return spawnProcess({
@@ -157,15 +152,13 @@ async function runWithBinary(params: EngineParams): Promise<number> {
     )
   }
 
-  await buildProject({ ...params, config: configWithTarget })
+  const bundler = await createBundler({ config: configWithTarget, cwd: params.cwd })
+
+  await buildProject({ bundler, ctx: params.ctx })
 
   params.ctx.status.spinner.message('Compiling binary...')
 
-  const compileOutput = await compileProject({
-    config: configWithTarget,
-    ctx: params.ctx,
-    cwd: params.cwd,
-  })
+  const compileOutput = await compileProject({ bundler, ctx: params.ctx })
 
   const binary = resolveBinary({
     compileOutput,
@@ -201,17 +194,16 @@ interface EngineParams {
  * Starts a spinner, invokes the build, and fails the command on error.
  *
  * @private
- * @param params - The config, cwd, and command context.
+ * @param params - The bundler instance and command context.
  * @returns The successful build output.
  */
 async function buildProject(params: {
-  readonly config: KiddConfig
+  readonly bundler: Bundler
   readonly ctx: CommandContext<RunArgs>
-  readonly cwd: string
 }): Promise<BuildOutput> {
   params.ctx.status.spinner.start('Building...')
 
-  const [buildError, buildOutput] = await build({ config: params.config, cwd: params.cwd })
+  const [buildError, buildOutput] = await params.bundler.build()
 
   if (buildError) {
     params.ctx.status.spinner.stop('Build failed')
@@ -227,18 +219,14 @@ async function buildProject(params: {
  * Compile the project into standalone binaries.
  *
  * @private
- * @param params - The config, cwd, and command context.
+ * @param params - The bundler instance and command context.
  * @returns The successful compile output.
  */
 async function compileProject(params: {
-  readonly config: KiddConfig
+  readonly bundler: Bundler
   readonly ctx: CommandContext<RunArgs>
-  readonly cwd: string
 }): Promise<CompileOutput> {
-  const [compileError, compileOutput] = await compile({
-    config: params.config,
-    cwd: params.cwd,
-  })
+  const [compileError, compileOutput] = await params.bundler.compile()
 
   if (compileError) {
     params.ctx.status.spinner.stop('Compile failed')
@@ -429,7 +417,7 @@ function applyTargetOverride(params: {
     return params.config
   }
 
-  const existingCompile = resolveExistingCompile(params.config.compile)
+  const existingCompile = normalizeCompileOptions(params.config.compile)
 
   return {
     ...params.config,
@@ -438,26 +426,6 @@ function applyTargetOverride(params: {
       targets: [params.target],
     },
   }
-}
-
-/**
- * Extract compile options from the config's compile field.
- *
- * Returns the object as-is when it is an object, or an empty object
- * for boolean / undefined values.
- *
- * @private
- * @param value - The raw compile config value.
- * @returns A compile options object.
- */
-function resolveExistingCompile(
-  value: KiddConfig['compile']
-): Exclude<KiddConfig['compile'], boolean | undefined> {
-  if (typeof value === 'object') {
-    return value
-  }
-
-  return {}
 }
 
 /**
@@ -470,11 +438,9 @@ function resolveExistingCompile(
  * consume user CLI arguments that happen to match a known flag's value.
  *
  * @private
- * @param params - The known parsed args (unused but kept for API stability).
  * @returns An array of arguments to forward to the user's CLI.
  */
-function extractPassthroughArgs(params: { readonly knownArgs: RunArgs }): readonly string[] {
-  void params.knownArgs
+function extractPassthroughArgs(): readonly string[] {
   const argv = process.argv.slice(2)
   const runIndex = argv.indexOf('run')
 
@@ -642,8 +608,6 @@ function formatInspectFlag(flag: string, port: number | undefined): string {
 /**
  * Spawn a process with the given command and arguments, inheriting stdio.
  *
- * Returns a promise that resolves to the exit code of the child process.
- *
  * @private
  * @param params - The command, arguments, and working directory.
  * @returns The exit code of the spawned process.
@@ -653,19 +617,5 @@ function spawnProcess(params: {
   readonly args: readonly string[]
   readonly cwd: string
 }): Promise<number> {
-  return new Promise((_resolve) => {
-    const child = spawn(params.cmd, [...params.args], {
-      cwd: params.cwd,
-      stdio: 'inherit',
-    })
-
-    child.on('error', (spawnError) => {
-      console.error(`Failed to spawn "${params.cmd}": ${spawnError.message}`)
-      _resolve(1)
-    })
-
-    child.on('close', (code) => {
-      _resolve(code ?? 1)
-    })
-  })
+  return proc.spawn(params)
 }

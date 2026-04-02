@@ -33,9 +33,9 @@
       "types": "./dist/fp.d.ts",
       "default": "./dist/fp.js"
     },
-    "./fs": {
-      "types": "./dist/fs.d.ts",
-      "default": "./dist/fs.js"
+    "./node": {
+      "types": "./dist/node.d.ts",
+      "default": "./dist/node.js"
     },
     "./json": {
       "types": "./dist/json.d.ts",

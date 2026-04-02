@@ -1,4 +1,4 @@
-import type { AsyncResult } from '@kidd-cli/utils/fp'
+import type { ResultAsync } from '@kidd-cli/utils/fp'
 
 import type { Middleware } from '@/types/index.js'
 
@@ -93,7 +93,7 @@ export interface IconsContext {
    *
    * @returns A Result with true on success or an IconsError on failure.
    */
-  readonly setup: () => AsyncResult<boolean, IconsError>
+  readonly setup: () => ResultAsync<boolean, IconsError>
 
   /**
    * Get all resolved icons for a given category.

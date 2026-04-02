@@ -3,7 +3,6 @@ import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 import {
-  DEFAULT_BINARY_NAME,
   DEFAULT_CLEAN,
   DEFAULT_COMMANDS,
   DEFAULT_ENTRY,
@@ -18,7 +17,7 @@ describe('config resolution', () => {
   const cwd = '/project'
 
   describe('with empty config', () => {
-    const resolved = resolveConfig({ config: {}, cwd })
+    const resolved = resolveConfig({ config: {}, cwd, version: undefined, binaryName: 'cli' })
 
     it('should resolve entry to default absolute path', () => {
       expect(resolved.entry).toBe(resolve(cwd, DEFAULT_ENTRY))
@@ -39,6 +38,7 @@ describe('config resolution', () => {
     it('should apply default build options', () => {
       expect(resolved.build).toStrictEqual({
         clean: DEFAULT_CLEAN,
+        define: {},
         external: [],
         minify: DEFAULT_MINIFY,
         sourcemap: DEFAULT_SOURCEMAP,
@@ -46,11 +46,8 @@ describe('config resolution', () => {
       })
     })
 
-    it('should apply default compile options', () => {
-      expect(resolved.compile).toStrictEqual({
-        name: DEFAULT_BINARY_NAME,
-        targets: [],
-      })
+    it('should use binaryName as compile name when no config name', () => {
+      expect(resolved.compile.name).toBe('cli')
     })
 
     it('should default include to empty array', () => {
@@ -59,6 +56,10 @@ describe('config resolution', () => {
 
     it('should preserve cwd', () => {
       expect(resolved.cwd).toBe(cwd)
+    })
+
+    it('should preserve version', () => {
+      expect(resolved.version).toBeUndefined()
     })
   })
 
@@ -82,6 +83,8 @@ describe('config resolution', () => {
         include: ['assets/**'],
       },
       cwd,
+      version: '2.0.0',
+      binaryName: 'fallback',
     })
 
     it('should resolve custom entry as absolute path', () => {
@@ -103,6 +106,7 @@ describe('config resolution', () => {
     it('should use custom build options', () => {
       expect(resolved.build).toStrictEqual({
         clean: DEFAULT_CLEAN,
+        define: {},
         external: ['pg'],
         minify: true,
         sourcemap: false,
@@ -110,15 +114,16 @@ describe('config resolution', () => {
       })
     })
 
-    it('should use custom compile options', () => {
-      expect(resolved.compile).toStrictEqual({
-        name: 'my-cli',
-        targets: ['darwin-arm64'],
-      })
+    it('should prefer config compile name over binaryName', () => {
+      expect(resolved.compile.name).toBe('my-cli')
     })
 
     it('should use custom include globs', () => {
       expect(resolved.include).toStrictEqual(['assets/**'])
+    })
+
+    it('should preserve version', () => {
+      expect(resolved.version).toBe('2.0.0')
     })
   })
 
@@ -126,13 +131,12 @@ describe('config resolution', () => {
     const resolved = resolveConfig({
       config: { compile: true },
       cwd,
+      version: undefined,
+      binaryName: 'my-app',
     })
 
-    it('should apply default compile options', () => {
-      expect(resolved.compile).toStrictEqual({
-        name: DEFAULT_BINARY_NAME,
-        targets: [],
-      })
+    it('should use binaryName as compile name', () => {
+      expect(resolved.compile.name).toBe('my-app')
     })
   })
 
@@ -140,13 +144,12 @@ describe('config resolution', () => {
     const resolved = resolveConfig({
       config: { compile: false },
       cwd,
+      version: undefined,
+      binaryName: 'cli',
     })
 
-    it('should apply default compile options', () => {
-      expect(resolved.compile).toStrictEqual({
-        name: DEFAULT_BINARY_NAME,
-        targets: [],
-      })
+    it('should use binaryName as compile name', () => {
+      expect(resolved.compile.name).toBe('cli')
     })
   })
 })

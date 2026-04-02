@@ -1,4 +1,4 @@
-import { loadConfig } from '@kidd-cli/config/loader'
+import { loadConfig } from '@kidd-cli/config/utils'
 import { command } from '@kidd-cli/core'
 import type { Command, CommandContext } from '@kidd-cli/core'
 import { match } from '@kidd-cli/utils/fp'

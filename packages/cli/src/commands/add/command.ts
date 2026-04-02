@@ -1,7 +1,7 @@
 import { join } from 'node:path'
 
-import { loadConfig } from '@kidd-cli/config/loader'
-import type { LoadConfigResult } from '@kidd-cli/config/loader'
+import { loadConfig } from '@kidd-cli/config/utils'
+import type { LoadConfigResult } from '@kidd-cli/config/utils'
 import { command } from '@kidd-cli/core'
 import type { Command, CommandContext } from '@kidd-cli/core'
 import { z } from 'zod'

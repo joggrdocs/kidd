@@ -1,11 +1,13 @@
 import { relative } from 'node:path'
 
-import { build, compile, resolveTargetLabel } from '@kidd-cli/bundler'
+import { createBundler, normalizeCompileOptions } from '@kidd-cli/bundler'
 import type { CompiledBinary } from '@kidd-cli/bundler'
 import type { CompileTarget, KiddConfig } from '@kidd-cli/config'
-import { loadConfig } from '@kidd-cli/config/loader'
+import { loadConfig } from '@kidd-cli/config/utils'
 import { command } from '@kidd-cli/core'
 import type { Command, CommandContext } from '@kidd-cli/core'
+import pc from 'picocolors'
+import { match } from 'ts-pattern'
 import { z } from 'zod'
 
 import { extractConfig } from '../lib/config-helpers.js'
@@ -32,18 +34,10 @@ const buildCommand: Command = command({
   description: 'Build a kidd CLI project for production',
   handler: async (ctx: CommandContext<BuildArgs>) => {
     const cwd = process.cwd()
+    const startTime = Date.now()
 
     const [, configResult] = await loadConfig({ cwd })
     const config = mergeCleanOption({ config: extractConfig(configResult), clean: ctx.args.clean })
-
-    ctx.status.spinner.start('Bundling...')
-
-    const [buildError, buildOutput] = await build({ config, cwd })
-
-    if (buildError) {
-      ctx.status.spinner.stop('Bundle failed')
-      return ctx.fail(buildError.message)
-    }
 
     const shouldCompile = resolveCompileIntent({
       compileFlag: ctx.args.compile,
@@ -51,30 +45,48 @@ const buildCommand: Command = command({
       targets: ctx.args.targets,
     })
 
+    const mergedConfig = match(shouldCompile)
+      .with(true, () => mergeCompileTargets({ config, targets: ctx.args.targets }))
+      .with(false, () => config)
+      .exhaustive()
+
+    const bundler = await createBundler({
+      config: mergedConfig,
+      cwd,
+      onStepStart: ({ meta }) =>
+        ctx.status.spinner.message(`Compiling ${String(meta.label ?? 'target')}...`),
+      onStepFinish: ({ meta }) =>
+        ctx.status.spinner.message(`Compiled ${String(meta.label ?? 'target')}`),
+    })
+
+    ctx.status.spinner.start('Bundling...')
+
+    const [buildError, buildOutput] = await bundler.build()
+
+    if (buildError) {
+      ctx.status.spinner.stop('Bundle failed')
+      return ctx.fail(buildError.message)
+    }
+
     if (!shouldCompile) {
       ctx.status.spinner.stop('Build complete')
       ctx.log.note(
         formatBuildNote({
           cwd,
+          define: buildOutput.define,
           entryFile: buildOutput.entryFile,
           outDir: buildOutput.outDir,
           version: buildOutput.version,
         }),
         'Bundle'
       )
+      ctx.log.outro(formatOutroSummary({ binaries: 0, duration: Date.now() - startTime }))
       return
     }
 
     ctx.status.spinner.message('Bundled, compiling binaries...')
 
-    const mergedConfig = mergeCompileTargets({ config, targets: ctx.args.targets })
-    const [compileError, compileOutput] = await compile({
-      config: mergedConfig,
-      cwd,
-      onTargetComplete: (target) =>
-        ctx.status.spinner.message(`Compiled ${resolveTargetLabel(target)}`),
-      onTargetStart: (target) =>
-        ctx.status.spinner.message(`Compiling ${resolveTargetLabel(target)}...`),
+    const [compileError, compileOutput] = await bundler.compile({
       verbose: ctx.args.verbose,
     })
 
@@ -87,6 +99,7 @@ const buildCommand: Command = command({
     ctx.log.note(
       formatBuildNote({
         cwd,
+        define: buildOutput.define,
         entryFile: buildOutput.entryFile,
         outDir: buildOutput.outDir,
         version: buildOutput.version,
@@ -94,6 +107,12 @@ const buildCommand: Command = command({
       'Bundle'
     )
     ctx.log.note(formatBinariesNote({ binaries: compileOutput.binaries, cwd }), 'Binaries')
+    ctx.log.outro(
+      formatOutroSummary({
+        binaries: compileOutput.binaries.length,
+        duration: Date.now() - startTime,
+      })
+    )
   },
 })
 
@@ -140,9 +159,6 @@ function resolveCompileIntent(params: {
 /**
  * Merge CLI `--targets` into the config's compile options.
  *
- * When targets are provided via CLI, they override whatever is in config.
- * Otherwise the config is returned unchanged.
- *
  * @private
  * @param params - The config and optional CLI targets.
  * @returns A config with compile targets merged in.
@@ -155,7 +171,7 @@ function mergeCompileTargets(params: {
     return params.config
   }
 
-  const existingCompile = resolveExistingCompile(params.config.compile)
+  const existingCompile = normalizeCompileOptions(params.config.compile)
 
   return {
     ...params.config,
@@ -167,30 +183,7 @@ function mergeCompileTargets(params: {
 }
 
 /**
- * Extract compile options object from the config's compile field.
- *
- * Returns the object as-is when it is an object, or an empty object
- * for boolean / undefined values.
- *
- * @private
- * @param value - The raw compile config value.
- * @returns A compile options object.
- */
-function resolveExistingCompile(
-  value: boolean | KiddConfig['compile']
-): Exclude<KiddConfig['compile'], boolean | undefined> {
-  if (typeof value === 'object') {
-    return value
-  }
-
-  return {}
-}
-
-/**
  * Merge the CLI `--clean` / `--no-clean` flag into the loaded config.
- *
- * When the flag is provided it overrides whatever is in config.
- * Otherwise the config value is used unchanged.
  *
  * @private
  * @param params - The loaded config and optional CLI clean flag.
@@ -225,11 +218,13 @@ function formatBuildNote(params: {
   readonly outDir: string
   readonly cwd: string
   readonly version: string | undefined
+  readonly define: Readonly<Record<string, string>>
 }): string {
   return [
     `entry    ${relative(params.cwd, params.entryFile)}`,
     `output   ${relative(params.cwd, params.outDir)}`,
     ...formatVersionLine(params.version),
+    ...formatDefineLines(params.define),
   ].join('\n')
 }
 
@@ -246,6 +241,56 @@ function formatVersionLine(version: string | undefined): string[] {
   }
 
   return [`version  ${version}`]
+}
+
+/**
+ * Format define constants into display lines.
+ *
+ * Omits `__KIDD_VERSION__` (already shown as `version`) and returns
+ * remaining entries as `define   key = value` lines.
+ *
+ * @private
+ * @param define - The resolved define map.
+ * @returns An array of formatted lines (empty when no user-defined constants).
+ */
+/**
+ * Format the outro summary line with build stats.
+ *
+ * @private
+ * @param params - Build stats for the summary.
+ * @returns A formatted inline summary string.
+ */
+function formatOutroSummary(params: {
+  readonly binaries: number
+  readonly duration: number
+}): string {
+  const stats = [
+    ...match(params.binaries > 0)
+      .with(true, () => [`${params.binaries} binaries compiled`])
+      .with(false, () => [])
+      .exhaustive(),
+    `finished in ${formatDuration(params.duration)}`,
+  ]
+
+  return stats.join(pc.gray(' · '))
+}
+
+/**
+ * Format a millisecond duration into a human-readable string.
+ *
+ * @private
+ * @param ms - Duration in milliseconds.
+ * @returns A formatted duration string (e.g. "1.2s", "350ms").
+ */
+function formatDuration(ms: number): string {
+  return match(ms >= 1000)
+    .with(true, () => `${(ms / 1000).toFixed(1)}s`)
+    .with(false, () => `${ms}ms`)
+    .exhaustive()
+}
+
+function formatDefineLines(define: Readonly<Record<string, string>>): string[] {
+  return Object.entries(define).map(([key, value]) => `build_var ${key} = ${value}`)
 }
 
 /**

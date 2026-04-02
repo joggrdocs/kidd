@@ -1,9 +1,7 @@
 import type { BuildOptions, CompileOptions, CompileTarget, KiddConfig } from '@kidd-cli/config'
-import type { AsyncResult, Result } from '@kidd-cli/utils/fp'
+import type { ResultAsync, Result } from '@kidd-cli/utils/fp'
 
-// ---------------------------------------------------------------------------
 // Resolved config types (all fields required, paths absolute)
-// ---------------------------------------------------------------------------
 
 /**
  * Fully resolved build options with all defaults applied.
@@ -14,6 +12,7 @@ export interface ResolvedBuildOptions {
   readonly sourcemap: boolean
   readonly external: readonly string[]
   readonly clean: boolean
+  readonly define: Readonly<Record<string, string>>
 }
 
 /**
@@ -36,11 +35,10 @@ export interface ResolvedBundlerConfig {
   readonly compile: ResolvedCompileOptions
   readonly include: readonly string[]
   readonly cwd: string
+  readonly version: string | undefined
 }
 
-// ---------------------------------------------------------------------------
 // Result aliases
-// ---------------------------------------------------------------------------
 
 /**
  * Synchronous result from a bundler operation.
@@ -50,11 +48,80 @@ export type BundlerResult<T> = Result<T, Error>
 /**
  * Asynchronous result from a bundler operation.
  */
-export type AsyncBundlerResult<T> = AsyncResult<T, Error>
+export type AsyncBundlerResult<T> = ResultAsync<T, Error>
 
-// ---------------------------------------------------------------------------
+// Lifecycle types
+
+/**
+ * Bundler operation phase.
+ */
+export type Phase = 'build' | 'watch' | 'compile'
+
+/**
+ * Granular step within a phase.
+ */
+export type Step = 'target'
+
+/**
+ * Event fired at phase boundaries (start/finish).
+ */
+export interface PhaseEvent {
+  readonly phase: Phase
+}
+
+/**
+ * Event fired at step boundaries within a phase.
+ */
+export interface StepEvent {
+  readonly phase: Phase
+  readonly step: Step
+  readonly meta: Readonly<Record<string, unknown>>
+}
+
+/**
+ * Lifecycle hooks for bundler operations.
+ */
+export interface BundlerLifecycle {
+  readonly onStart?: (event: PhaseEvent) => void | Promise<void>
+  readonly onFinish?: (event: PhaseEvent) => void | Promise<void>
+  readonly onStepStart?: (event: StepEvent) => void | Promise<void>
+  readonly onStepFinish?: (event: StepEvent) => void | Promise<void>
+}
+
+// Factory types
+
+/**
+ * Parameters for creating a bundler instance.
+ */
+export interface CreateBundlerParams extends BundlerLifecycle {
+  readonly config: KiddConfig
+  readonly cwd: string
+}
+
+/**
+ * A bundler instance with build, watch, and compile methods.
+ */
+export interface Bundler {
+  readonly build: () => AsyncBundlerResult<BuildOutput>
+  readonly watch: (params?: WatchOverrides) => AsyncBundlerResult<void>
+  readonly compile: (params?: CompileOverrides) => AsyncBundlerResult<CompileOutput>
+}
+
+/**
+ * Per-call overrides for watch.
+ */
+export interface WatchOverrides extends BundlerLifecycle {
+  readonly onSuccess?: () => void | Promise<void>
+}
+
+/**
+ * Per-call overrides for compile.
+ */
+export interface CompileOverrides extends BundlerLifecycle {
+  readonly verbose?: boolean
+}
+
 // Output types
-// ---------------------------------------------------------------------------
 
 /**
  * Output of a successful build operation.
@@ -63,6 +130,7 @@ export interface BuildOutput {
   readonly outDir: string
   readonly entryFile: string
   readonly version: string | undefined
+  readonly define: Readonly<Record<string, string>>
 }
 
 /**
@@ -81,41 +149,7 @@ export interface CompileOutput {
   readonly binaries: readonly CompiledBinary[]
 }
 
-// ---------------------------------------------------------------------------
-// Param types
-// ---------------------------------------------------------------------------
-
-/**
- * Parameters for the build function.
- */
-export interface BuildParams {
-  readonly config: KiddConfig
-  readonly cwd: string
-}
-
-/**
- * Parameters for the watch function.
- */
-export interface WatchParams {
-  readonly config: KiddConfig
-  readonly cwd: string
-  readonly onSuccess?: () => void | Promise<void>
-}
-
-/**
- * Parameters for the compile function.
- */
-export interface CompileParams {
-  readonly config: KiddConfig
-  readonly cwd: string
-  readonly verbose?: boolean
-  readonly onTargetStart?: (target: CompileTarget) => void | Promise<void>
-  readonly onTargetComplete?: (target: CompileTarget) => void | Promise<void>
-}
-
-// ---------------------------------------------------------------------------
 // Scan types (used by the autoload plugin)
-// ---------------------------------------------------------------------------
 
 /**
  * A single command file discovered during a directory scan.
@@ -143,8 +177,6 @@ export interface ScanResult {
   readonly dirs: readonly ScannedDir[]
 }
 
-// ---------------------------------------------------------------------------
 // Re-exports from @kidd-cli/config for convenience
-// ---------------------------------------------------------------------------
 
 export type { BuildOptions, CompileOptions, CompileTarget, KiddConfig }

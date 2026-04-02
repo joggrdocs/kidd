@@ -1,18 +1,18 @@
 import type { ReactElement } from 'react'
 import React from 'react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import type { CommandContext, ScreenContext, Store } from '../context/types.js'
 
 vi.mock(import('ink'), () => ({
-  render: vi.fn(() => ({
-    cleanup: vi.fn(),
-    clear: vi.fn(),
-    rerender: vi.fn(),
-    unmount: vi.fn(),
-    waitUntilExit: vi.fn().mockResolvedValue(undefined),
+  render: vi.fn<() => unknown>(() => ({
+    cleanup: vi.fn<() => void>(),
+    clear: vi.fn<() => void>(),
+    rerender: vi.fn<() => void>(),
+    unmount: vi.fn<() => void>(),
+    waitUntilExit: vi.fn<() => Promise<undefined>>().mockResolvedValue(undefined),
   })),
-  renderToString: vi.fn(() => 'rendered-output'),
+  renderToString: vi.fn<() => string>(() => 'rendered-output'),
 }))
 
 const ink = await import('ink')
@@ -60,12 +60,9 @@ function makeContext(overrides?: Partial<CommandContext>): CommandContext {
   } as CommandContext
 }
 
-describe('render()', () => {
-  beforeEach(() => {
-    vi.clearAllMocks()
-  })
-
+describe('render() helper', () => {
   it('should call ink render and return an instance', async () => {
+    vi.clearAllMocks()
     const { render } = await import('./render.js')
     const instance = await render(<StubComponent />, makeContext())
 
@@ -75,20 +72,23 @@ describe('render()', () => {
   })
 
   it('should wrap node in KiddProvider with ScreenContext', async () => {
+    vi.clearAllMocks()
     const { render } = await import('./render.js')
     const ctx = makeContext({ config: { debug: true } })
 
     await render(<StubComponent />, ctx)
 
-    const rendered = mockedInkRender.mock.calls[0]![0] as ReactElement
+    const [firstCall] = mockedInkRender.mock.calls
+    const [rendered] = firstCall as [ReactElement]
     const providerValue = rendered.props.value as ScreenContext
-    expect(providerValue.config).toEqual({ debug: true })
+    expect(providerValue.config).toStrictEqual({ debug: true })
     expect(providerValue).toHaveProperty('log')
     expect(providerValue).not.toHaveProperty('fail')
     expect(providerValue).not.toHaveProperty('prompts')
   })
 
   it('should pass render options through to ink', async () => {
+    vi.clearAllMocks()
     const { render } = await import('./render.js')
     const options = { debug: true }
 
@@ -98,12 +98,9 @@ describe('render()', () => {
   })
 })
 
-describe('renderToString()', () => {
-  beforeEach(() => {
-    vi.clearAllMocks()
-  })
-
+describe('renderToString() helper', () => {
   it('should call ink renderToString and return a string', async () => {
+    vi.clearAllMocks()
     const { renderToString } = await import('./render.js')
     const result = await renderToString(<StubComponent />, makeContext())
 
@@ -112,19 +109,22 @@ describe('renderToString()', () => {
   })
 
   it('should wrap node in KiddProvider with ScreenContext', async () => {
+    vi.clearAllMocks()
     const { renderToString } = await import('./render.js')
     const ctx = makeContext({ config: { theme: 'dark' } })
 
     await renderToString(<StubComponent />, ctx)
 
-    const rendered = mockedInkRenderToString.mock.calls[0]![0] as ReactElement
+    const [firstCall] = mockedInkRenderToString.mock.calls
+    const [rendered] = firstCall as [ReactElement]
     const providerValue = rendered.props.value as ScreenContext
-    expect(providerValue.config).toEqual({ theme: 'dark' })
+    expect(providerValue.config).toStrictEqual({ theme: 'dark' })
     expect(providerValue).not.toHaveProperty('colors')
     expect(providerValue).not.toHaveProperty('format')
   })
 
   it('should pass options through to ink renderToString', async () => {
+    vi.clearAllMocks()
     const { renderToString } = await import('./render.js')
     const options = { columns: 120 }
 

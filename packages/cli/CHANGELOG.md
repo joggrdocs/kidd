@@ -1,5 +1,17 @@
 # kidd-cli
 
+## 0.11.1
+
+### Patch Changes
+
+- Updated dependencies [c904d99]
+- Updated dependencies [c904d99]
+- Updated dependencies [501110e]
+- Updated dependencies [c904d99]
+- Updated dependencies [97beb1e]
+  - @kidd-cli/core@0.22.0
+  - @kidd-cli/bundler@0.7.0
+
 ## 0.11.0
 
 ### Minor Changes

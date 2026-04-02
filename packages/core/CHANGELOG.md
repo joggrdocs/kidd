@@ -1,5 +1,23 @@
 # kidd
 
+## 0.22.0
+
+### Minor Changes
+
+- c904d99: feat(core): expose `ctx.raw.argv` — a normalized argv where `argv[0]` is always the CLI name (via yargs `$0`), regardless of invocation mode. Middleware can inspect the full invocation without guessing preamble offsets.
+
+  Fixes #146
+
+- c904d99: feat(core): allow `screen({ fullscreen })` to accept a resolver function `(ctx: ScreenContext) => boolean | Promise<boolean>` for runtime fullscreen decisions based on args, config, or terminal capabilities.
+
+  Fixes #148
+
+- c904d99: feat(core): export `render()` and `renderToString()` helpers that wrap Ink's render methods with kidd's `KiddProvider` (screen context, output store, screen-backed log/spinner/report). Enables full lifecycle control from normal `command()` handlers.
+
+  Fixes #147
+
+- 97beb1e: Upgrade `@clack/prompts` from 1.1.0 to 1.2.0
+
 ## 0.21.0
 
 ### Minor Changes

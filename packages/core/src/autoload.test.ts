@@ -241,6 +241,28 @@ describe('autoload()', () => {
     expect(result).toEqual({})
   })
 
+  it('should log import errors when KIDD_DEBUG is enabled', async () => {
+    process.env.KIDD_DEBUG = 'true'
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
+
+    mockedReaddir.mockResolvedValue([makeDirent('broken.ts', true)] as unknown as Dirent[])
+
+    vi.doMock('/tmp/commands/broken.ts', () =>
+      Promise.reject(new Error('Module has no valid export'))
+    )
+
+    const result = await autoload({ dir: '/tmp/commands' })
+
+    expect(result).toEqual({})
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining('[kidd] failed to import command from'),
+      expect.any(Error)
+    )
+
+    delete process.env.KIDD_DEBUG
+    warnSpy.mockRestore()
+  })
+
   it('should ignore non-ts/js files', async () => {
     mockedReaddir.mockResolvedValue([
       makeDirent('readme.md', true),

@@ -20,7 +20,6 @@ export async function watch(params: {
   const watchConfig = toTsdownWatchConfig({
     config: params.resolved,
     onSuccess: params.onSuccess,
-    version: params.resolved.version,
   })
 
   const [watchError] = await attemptAsync(() => tsdownBuild(watchConfig))

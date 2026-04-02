@@ -45,7 +45,6 @@ export const DEFAULT_CLEAN = true
  */
 export const BUILD_ARTIFACT_EXTENSIONS: readonly string[] = ['.js', '.mjs', '.js.map', '.mjs.map']
 
-
 /**
  * Packages that must always be bundled into the output.
  *

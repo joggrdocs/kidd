@@ -2,8 +2,8 @@ import { join } from 'node:path'
 
 import { ok } from '@kidd-cli/utils/fp'
 import type { ResultAsync } from '@kidd-cli/utils/fp'
-import { fs } from '@kidd-cli/utils/node'
 import { jsonParse } from '@kidd-cli/utils/json'
+import { fs } from '@kidd-cli/utils/node'
 
 import type { GenerateError, ProjectInfo } from './types.js'
 

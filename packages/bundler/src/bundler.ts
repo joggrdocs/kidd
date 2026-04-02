@@ -1,12 +1,10 @@
-import { isNil } from 'es-toolkit'
-import { match, P } from 'ts-pattern'
-
 import { readManifest } from '@kidd-cli/utils/manifest'
+import { isNil, noop } from 'es-toolkit'
+import { match, P } from 'ts-pattern'
 
 import { build } from './build/build.js'
 import { watch } from './build/watch.js'
 import { compile } from './compile/compile.js'
-import { resolveConfig } from './utils/resolve-config.js'
 import type {
   AsyncBundlerResult,
   BuildOutput,
@@ -17,6 +15,7 @@ import type {
   CreateBundlerParams,
   WatchOverrides,
 } from './types.js'
+import { resolveConfig } from './utils/resolve-config.js'
 
 /**
  * Create a bundler instance for a kidd CLI project.
@@ -108,13 +107,6 @@ function stripScope(name: string): string {
 
   return name
 }
-
-/**
- * No-op async function used as default lifecycle hook.
- *
- * @private
- */
-const noop = async (): Promise<void> => {}
 
 /**
  * Merge base lifecycle hooks with per-call overrides.

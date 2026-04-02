@@ -6,6 +6,7 @@ import type { CompileTarget, KiddConfig } from '@kidd-cli/config'
 import { loadConfig } from '@kidd-cli/config/utils'
 import { command } from '@kidd-cli/core'
 import type { Command, CommandContext } from '@kidd-cli/core'
+import pc from 'picocolors'
 import { match } from 'ts-pattern'
 import { z } from 'zod'
 
@@ -33,6 +34,7 @@ const buildCommand: Command = command({
   description: 'Build a kidd CLI project for production',
   handler: async (ctx: CommandContext<BuildArgs>) => {
     const cwd = process.cwd()
+    const startTime = Date.now()
 
     const [, configResult] = await loadConfig({ cwd })
     const config = mergeCleanOption({ config: extractConfig(configResult), clean: ctx.args.clean })
@@ -78,6 +80,7 @@ const buildCommand: Command = command({
         }),
         'Bundle'
       )
+      ctx.log.outro(formatOutroSummary({ binaries: 0, duration: Date.now() - startTime }))
       return
     }
 
@@ -104,6 +107,12 @@ const buildCommand: Command = command({
       'Bundle'
     )
     ctx.log.note(formatBinariesNote({ binaries: compileOutput.binaries, cwd }), 'Binaries')
+    ctx.log.outro(
+      formatOutroSummary({
+        binaries: compileOutput.binaries.length,
+        duration: Date.now() - startTime,
+      })
+    )
   },
 })
 
@@ -244,10 +253,44 @@ function formatVersionLine(version: string | undefined): string[] {
  * @param define - The resolved define map.
  * @returns An array of formatted lines (empty when no user-defined constants).
  */
-function formatDefineLines(define: Readonly<Record<string, string>>): string[] {
-  const entries = Object.entries(define).filter(([key]) => key !== '__KIDD_VERSION__')
+/**
+ * Format the outro summary line with build stats.
+ *
+ * @private
+ * @param params - Build stats for the summary.
+ * @returns A formatted inline summary string.
+ */
+function formatOutroSummary(params: {
+  readonly binaries: number
+  readonly duration: number
+}): string {
+  const stats = [
+    ...match(params.binaries > 0)
+      .with(true, () => [`${params.binaries} binaries compiled`])
+      .with(false, () => [])
+      .exhaustive(),
+    `finished in ${formatDuration(params.duration)}`,
+  ]
 
-  return entries.map(([key, value]) => `define   ${key} = ${value}`)
+  return stats.join(pc.gray(' · '))
+}
+
+/**
+ * Format a millisecond duration into a human-readable string.
+ *
+ * @private
+ * @param ms - Duration in milliseconds.
+ * @returns A formatted duration string (e.g. "1.2s", "350ms").
+ */
+function formatDuration(ms: number): string {
+  return match(ms >= 1000)
+    .with(true, () => `${(ms / 1000).toFixed(1)}s`)
+    .with(false, () => `${ms}ms`)
+    .exhaustive()
+}
+
+function formatDefineLines(define: Readonly<Record<string, string>>): string[] {
+  return Object.entries(define).map(([key, value]) => `build_var ${key} = ${value}`)
 }
 
 /**

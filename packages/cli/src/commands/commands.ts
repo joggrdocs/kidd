@@ -1,9 +1,9 @@
 import { join } from 'node:path'
 
 import { loadConfig } from '@kidd-cli/config/utils'
-import { fs } from '@kidd-cli/utils/node'
 import { autoload, command } from '@kidd-cli/core'
 import type { Command as KiddCommand, CommandContext } from '@kidd-cli/core'
+import { fs } from '@kidd-cli/utils/node'
 
 import { extractConfig } from '../lib/config-helpers.js'
 

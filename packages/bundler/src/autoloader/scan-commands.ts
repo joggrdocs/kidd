@@ -29,8 +29,6 @@ export async function scanCommandsDir(dir: string): Promise<ScanResult> {
   return { dirs, files }
 }
 
-// ---------------------------------------------------------------------------
-
 /**
  * Recursively scan a subdirectory into a ScannedDir.
  *

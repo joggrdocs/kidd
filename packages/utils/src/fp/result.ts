@@ -11,7 +11,6 @@ export type Result<TValue, TError = Error> = readonly [TError, null] | readonly 
  */
 export type ResultAsync<TValue, TError = Error> = Promise<Result<TValue, TError>>
 
-
 /**
  * Construct a success Result tuple.
  *

@@ -110,10 +110,10 @@ function buildDeps(
 }
 
 /**
- * Build the `define` map for compile-time constants.
+ * Build the `define` map for tsdown/rolldown.
  *
  * Merges three sources (lowest to highest precedence):
- * 1. `KIDD_PUBLIC_*` env vars — auto-resolved from `process.env`
+ * 1. `KIDD_PUBLIC_*` env vars — prefixed with `process.env.` for rolldown replacement
  * 2. `__KIDD_VERSION__` — injected when a version string is available
  * 3. Explicit `define` from `kidd.config.ts` — user overrides win
  *
@@ -125,14 +125,17 @@ function buildDefine(params: {
   readonly version: string | undefined
   readonly define: Readonly<Record<string, string>>
 }): Record<string, string> {
-  const publicEnvVars = resolveBuildVars()
+  const envVars = resolveBuildVars()
+  const envDefines = Object.fromEntries(
+    Object.entries(envVars).map(([key, value]) => [`process.env.${key}`, value])
+  )
 
   const versionDefine = match(params.version)
     .with(undefined, () => ({}))
     .otherwise((v) => ({ __KIDD_VERSION__: JSON.stringify(v) }))
 
   return {
-    ...publicEnvVars,
+    ...envDefines,
     ...versionDefine,
     ...params.define,
   }
@@ -141,17 +144,19 @@ function buildDefine(params: {
 /**
  * Resolve `KIDD_PUBLIC_*` environment variables into a define map.
  *
- * Scans `process.env` for keys prefixed with `KIDD_PUBLIC_` and maps them
- * to `process.env.KIDD_PUBLIC_*` replacements with JSON-stringified values.
+ * Scans `process.env` for keys prefixed with `KIDD_PUBLIC_` and returns
+ * clean key-value pairs with JSON-stringified values.
  *
- * @private
- * @returns A define map for `KIDD_PUBLIC_*` env vars.
+ * @param env - The environment variables to scan (defaults to `process.env`).
+ * @returns A define map with clean keys (no `process.env.` prefix).
  */
-function resolveBuildVars(): Record<string, string> {
+export function resolveBuildVars(
+  env: Readonly<Record<string, string | undefined>> = process.env
+): Record<string, string> {
   return Object.fromEntries(
-    Object.entries(process.env)
+    Object.entries(env)
       .filter(([key]) => key.startsWith('KIDD_PUBLIC_'))
-      .map(([key, value]) => [`process.env.${key}`, JSON.stringify(value ?? '')])
+      .map(([key, value]) => [key, JSON.stringify(value ?? '')])
   )
 }
 

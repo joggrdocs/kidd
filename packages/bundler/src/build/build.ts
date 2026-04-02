@@ -2,7 +2,7 @@ import { err, ok } from '@kidd-cli/utils/fp'
 import { attemptAsync } from 'es-toolkit'
 import { build as tsdownBuild } from 'tsdown'
 
-import { toTsdownBuildConfig } from './config.js'
+import { resolveBuildVars, toTsdownBuildConfig } from './config.js'
 import { clean } from '../utils/clean.js'
 import { resolveBuildEntry } from '../utils/resolve-build-entry.js'
 import type { AsyncBundlerResult, BuildOutput, ResolvedBundlerConfig } from '../types.js'
@@ -41,7 +41,7 @@ export async function build(params: {
   }
 
   return ok({
-    define: inlineConfig.define ?? {},
+    define: { ...resolveBuildVars(), ...params.resolved.build.define },
     entryFile,
     outDir: params.resolved.buildOutDir,
     version: params.resolved.version,

@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "kidd dev",
-    "build": "kidd build",
+    "build": "KIDD_PUBLIC_APP_ENV=development KIDD_PUBLIC_ANALYTICS_KEY=client-abc123 kidd build",
     "routes": "kidd routes",
     "typecheck": "tsgo --noEmit"
   },

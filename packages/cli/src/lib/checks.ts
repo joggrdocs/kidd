@@ -1,25 +1,12 @@
 import { dirname, join, relative } from 'node:path'
 
+import { DEFAULT_COMMANDS, DEFAULT_ENTRY } from '@kidd-cli/bundler'
 import type { LoadConfigResult } from '@kidd-cli/config/utils'
 import { err, ok } from '@kidd-cli/utils/fp'
 import type { ResultAsync } from '@kidd-cli/utils/fp'
-import { fs } from '@kidd-cli/utils/node'
 import { jsonParse, jsonStringify } from '@kidd-cli/utils/json'
 import type { Manifest } from '@kidd-cli/utils/manifest'
-
-// ---------------------------------------------------------------------------
-// Constants
-// ---------------------------------------------------------------------------
-
-/**
- * Default entry point for the CLI source.
- */
-const DEFAULT_ENTRY = './src/index.ts'
-
-/**
- * Default directory for CLI commands.
- */
-const DEFAULT_COMMANDS = './commands'
+import { fs } from '@kidd-cli/utils/node'
 
 // ---------------------------------------------------------------------------
 // Types

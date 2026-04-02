@@ -1,31 +1,24 @@
 import { resolve } from 'node:path'
 
-import { createBundler } from '@kidd-cli/bundler'
+import { createBundler, DEFAULT_ENTRY, normalizeCompileOptions } from '@kidd-cli/bundler'
 import type { BuildOutput, Bundler, CompileOutput, CompiledBinary } from '@kidd-cli/bundler'
 import type { CompileTarget, KiddConfig } from '@kidd-cli/config'
-import { loadConfig } from '@kidd-cli/config/utils'
+import { compileTargets, loadConfig } from '@kidd-cli/config/utils'
 import { command } from '@kidd-cli/core'
 import type { Command, CommandContext } from '@kidd-cli/core'
+import { process as proc } from '@kidd-cli/utils/node'
 import { match } from 'ts-pattern'
 import { z } from 'zod'
 
-import { process as proc } from '@kidd-cli/utils/node'
-
 import { extractConfig } from '../lib/config-helpers.js'
-
-const DEFAULT_ENTRY = './src/index.ts'
 
 const EngineSchema = z.enum(['node', 'tsx', 'binary'])
 
-const TargetSchema = z.enum([
-  'darwin-arm64',
-  'darwin-x64',
-  'linux-arm64',
-  'linux-x64',
-  'linux-x64-musl',
-  'windows-arm64',
-  'windows-x64',
-])
+const compileTargetValues = compileTargets.map((entry) => entry.target) as [
+  CompileTarget,
+  ...CompileTarget[],
+]
+const TargetSchema = z.enum(compileTargetValues)
 
 const options = z.object({
   engine: EngineSchema.default('node').describe(
@@ -79,7 +72,7 @@ const runCommand: Command = command({
       )
     }
 
-    const passthroughArgs = extractPassthroughArgs({ knownArgs: ctx.args })
+    const passthroughArgs = extractPassthroughArgs()
 
     const exitCode = await match(ctx.args.engine)
       .with('node', () => runWithNode({ args: ctx.args, config, cwd, passthroughArgs, ctx }))
@@ -424,7 +417,7 @@ function applyTargetOverride(params: {
     return params.config
   }
 
-  const existingCompile = resolveExistingCompile(params.config.compile)
+  const existingCompile = normalizeCompileOptions(params.config.compile)
 
   return {
     ...params.config,
@@ -433,26 +426,6 @@ function applyTargetOverride(params: {
       targets: [params.target],
     },
   }
-}
-
-/**
- * Extract compile options from the config's compile field.
- *
- * Returns the object as-is when it is an object, or an empty object
- * for boolean / undefined values.
- *
- * @private
- * @param value - The raw compile config value.
- * @returns A compile options object.
- */
-function resolveExistingCompile(
-  value: KiddConfig['compile']
-): Exclude<KiddConfig['compile'], boolean | undefined> {
-  if (typeof value === 'object') {
-    return value
-  }
-
-  return {}
 }
 
 /**
@@ -465,11 +438,9 @@ function resolveExistingCompile(
  * consume user CLI arguments that happen to match a known flag's value.
  *
  * @private
- * @param params - The known parsed args (unused but kept for API stability).
  * @returns An array of arguments to forward to the user's CLI.
  */
-function extractPassthroughArgs(params: { readonly knownArgs: RunArgs }): readonly string[] {
-  void params.knownArgs
+function extractPassthroughArgs(): readonly string[] {
   const argv = process.argv.slice(2)
   const runIndex = argv.indexOf('run')
 

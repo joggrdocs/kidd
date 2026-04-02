@@ -25,7 +25,10 @@ export function toTsdownBuildConfig(params: {
     clean: false,
     config: false,
     cwd: params.config.cwd,
-    define: buildDefine(params.config.version),
+    define: buildDefine({
+      define: params.config.build.define,
+      version: params.config.version,
+    }),
     deps: buildDeps(params.config.build.external, params.compile ?? false),
     dts: false,
     entry: { index: params.config.entry },
@@ -109,19 +112,47 @@ function buildDeps(
 /**
  * Build the `define` map for compile-time constants.
  *
- * Injects `__KIDD_VERSION__` when a version string is available so that
- * the runtime can auto-detect the CLI version without reading package.json.
+ * Merges three sources (lowest to highest precedence):
+ * 1. `KIDD_PUBLIC_*` env vars — auto-resolved from `process.env`
+ * 2. `__KIDD_VERSION__` — injected when a version string is available
+ * 3. Explicit `define` from `kidd.config.ts` — user overrides win
  *
  * @private
- * @param version - The version string from package.json, or undefined.
+ * @param params - The version and user-defined constants.
  * @returns A define map for tsdown/rolldown.
  */
-function buildDefine(version: string | undefined): Record<string, string> {
-  return match(version)
+function buildDefine(params: {
+  readonly version: string | undefined
+  readonly define: Readonly<Record<string, string>>
+}): Record<string, string> {
+  const publicEnvVars = resolveBuildVars()
+
+  const versionDefine = match(params.version)
     .with(undefined, () => ({}))
-    .otherwise((resolvedVersion) => ({
-      __KIDD_VERSION__: JSON.stringify(resolvedVersion),
-    }))
+    .otherwise((v) => ({ __KIDD_VERSION__: JSON.stringify(v) }))
+
+  return {
+    ...publicEnvVars,
+    ...versionDefine,
+    ...params.define,
+  }
+}
+
+/**
+ * Resolve `KIDD_PUBLIC_*` environment variables into a define map.
+ *
+ * Scans `process.env` for keys prefixed with `KIDD_PUBLIC_` and maps them
+ * to `process.env.KIDD_PUBLIC_*` replacements with JSON-stringified values.
+ *
+ * @private
+ * @returns A define map for `KIDD_PUBLIC_*` env vars.
+ */
+function resolveBuildVars(): Record<string, string> {
+  return Object.fromEntries(
+    Object.entries(process.env)
+      .filter(([key]) => key.startsWith('KIDD_PUBLIC_'))
+      .map(([key, value]) => [`process.env.${key}`, JSON.stringify(value ?? '')])
+  )
 }
 
 /**

@@ -7,6 +7,7 @@ import type { ResolvedBundlerConfig } from '../types.js'
 const config: ResolvedBundlerConfig = {
   build: {
     clean: true,
+    define: {},
     external: ['pg'],
     minify: false,
     sourcemap: true,
@@ -97,15 +98,53 @@ describe('build config mapping', () => {
     expect(neverBundle.neverBundle).toEqual(expect.arrayContaining(NODE_BUILTINS))
   })
 
-  it('should set empty define when version is undefined', () => {
+  it('should not include __KIDD_VERSION__ when version is undefined', () => {
     const output = toTsdownBuildConfig({ config })
-    expect(output.define).toStrictEqual({})
+    expect(output.define).not.toHaveProperty('__KIDD_VERSION__')
   })
 
   it('should set __KIDD_VERSION__ define when version is provided', () => {
     const configWithVersion = { ...config, version: '3.2.1' }
     const output = toTsdownBuildConfig({ config: configWithVersion })
-    expect(output.define).toStrictEqual({ __KIDD_VERSION__: '"3.2.1"' })
+    expect(output.define).toMatchObject({ __KIDD_VERSION__: '"3.2.1"' })
+  })
+
+  it('should merge user define into the define map', () => {
+    const configWithDefine = {
+      ...config,
+      build: { ...config.build, define: { __MY_KEY__: '"abc"' } },
+    }
+    const output = toTsdownBuildConfig({ config: configWithDefine })
+    expect(output.define).toMatchObject({ __MY_KEY__: '"abc"' })
+  })
+
+  it('should resolve KIDD_PUBLIC_* env vars into define map', () => {
+    process.env.KIDD_PUBLIC_TEST_KEY = 'test-value'
+
+    const output = toTsdownBuildConfig({ config })
+    expect(output.define).toMatchObject({
+      'process.env.KIDD_PUBLIC_TEST_KEY': '"test-value"',
+    })
+
+    delete process.env.KIDD_PUBLIC_TEST_KEY
+  })
+
+  it('should let user define override KIDD_PUBLIC_* env vars', () => {
+    process.env.KIDD_PUBLIC_TEST_KEY = 'env-value'
+
+    const configWithDefine = {
+      ...config,
+      build: {
+        ...config.build,
+        define: { 'process.env.KIDD_PUBLIC_TEST_KEY': '"override"' },
+      },
+    }
+    const output = toTsdownBuildConfig({ config: configWithDefine })
+    expect(output.define).toMatchObject({
+      'process.env.KIDD_PUBLIC_TEST_KEY': '"override"',
+    })
+
+    delete process.env.KIDD_PUBLIC_TEST_KEY
   })
 
   it('should bundle all deps and add stub plugin when compile is true', () => {
@@ -144,6 +183,6 @@ describe('watch config mapping', () => {
   it('should pass version define through to build config', () => {
     const configWithVersion = { ...config, version: '1.0.0' }
     const result = toTsdownWatchConfig({ config: configWithVersion })
-    expect(result.define).toStrictEqual({ __KIDD_VERSION__: '"1.0.0"' })
+    expect(result.define).toMatchObject({ __KIDD_VERSION__: '"1.0.0"' })
   })
 })

@@ -32,6 +32,16 @@ export interface BuildOptions {
    * and a warning is printed.
    */
   readonly clean?: boolean
+  /**
+   * Compile-time constants injected via rolldown `define`.
+   *
+   * Keys are replaced in source code at build time with the corresponding
+   * string values. Values should be JSON-stringified when embedding strings
+   * (e.g. `JSON.stringify('my-value')`).
+   *
+   * Merged with auto-resolved `KIDD_PUBLIC_*` env vars (explicit takes precedence).
+   */
+  define?: Record<string, string>
 }
 
 /**

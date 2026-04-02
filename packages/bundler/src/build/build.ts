@@ -27,7 +27,6 @@ export async function build(params: {
   const inlineConfig = toTsdownBuildConfig({
     compile: params.compile,
     config: params.resolved,
-    version: params.resolved.version,
   })
 
   const [buildError] = await attemptAsync(() => tsdownBuild(inlineConfig))
@@ -42,6 +41,7 @@ export async function build(params: {
   }
 
   return ok({
+    define: inlineConfig.define ?? {},
     entryFile,
     outDir: params.resolved.buildOutDir,
     version: params.resolved.version,

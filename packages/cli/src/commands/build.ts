@@ -71,6 +71,7 @@ const buildCommand: Command = command({
       ctx.log.note(
         formatBuildNote({
           cwd,
+          define: buildOutput.define,
           entryFile: buildOutput.entryFile,
           outDir: buildOutput.outDir,
           version: buildOutput.version,
@@ -95,6 +96,7 @@ const buildCommand: Command = command({
     ctx.log.note(
       formatBuildNote({
         cwd,
+        define: buildOutput.define,
         entryFile: buildOutput.entryFile,
         outDir: buildOutput.outDir,
         version: buildOutput.version,
@@ -207,11 +209,13 @@ function formatBuildNote(params: {
   readonly outDir: string
   readonly cwd: string
   readonly version: string | undefined
+  readonly define: Readonly<Record<string, string>>
 }): string {
   return [
     `entry    ${relative(params.cwd, params.entryFile)}`,
     `output   ${relative(params.cwd, params.outDir)}`,
     ...formatVersionLine(params.version),
+    ...formatDefineLines(params.define),
   ].join('\n')
 }
 
@@ -228,6 +232,22 @@ function formatVersionLine(version: string | undefined): string[] {
   }
 
   return [`version  ${version}`]
+}
+
+/**
+ * Format define constants into display lines.
+ *
+ * Omits `__KIDD_VERSION__` (already shown as `version`) and returns
+ * remaining entries as `define   key = value` lines.
+ *
+ * @private
+ * @param define - The resolved define map.
+ * @returns An array of formatted lines (empty when no user-defined constants).
+ */
+function formatDefineLines(define: Readonly<Record<string, string>>): string[] {
+  const entries = Object.entries(define).filter(([key]) => key !== '__KIDD_VERSION__')
+
+  return entries.map(([key, value]) => `define   ${key} = ${value}`)
 }
 
 /**

@@ -38,6 +38,7 @@ describe('config resolution', () => {
     it('should apply default build options', () => {
       expect(resolved.build).toStrictEqual({
         clean: DEFAULT_CLEAN,
+        define: {},
         external: [],
         minify: DEFAULT_MINIFY,
         sourcemap: DEFAULT_SOURCEMAP,
@@ -105,6 +106,7 @@ describe('config resolution', () => {
     it('should use custom build options', () => {
       expect(resolved.build).toStrictEqual({
         clean: DEFAULT_CLEAN,
+        define: {},
         external: ['pg'],
         minify: true,
         sourcemap: false,

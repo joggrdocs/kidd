@@ -62,6 +62,7 @@ export function resolveConfig(params: {
   return {
     build: {
       clean: buildOpts.clean ?? DEFAULT_CLEAN,
+      define: buildOpts.define ?? {},
       external: buildOpts.external ?? [],
       minify: buildOpts.minify ?? DEFAULT_MINIFY,
       sourcemap: buildOpts.sourcemap ?? DEFAULT_SOURCEMAP,
@@ -80,4 +81,3 @@ export function resolveConfig(params: {
     version: params.version,
   }
 }
-

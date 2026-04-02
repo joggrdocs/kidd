@@ -2,9 +2,9 @@ import type { Result } from '@kidd-cli/utils'
 import { validate } from '@kidd-cli/utils/validate'
 import { z } from 'zod'
 
+import type { KiddConfig } from '../types.js'
 import type { CompileTarget } from './compile.js'
 import { compileTargets } from './compile.js'
-import type { KiddConfig } from '../types.js'
 
 /**
  * @private
@@ -25,6 +25,7 @@ const CompileTargetSchema = z.enum(compileTargetValues)
 const BuildOptionsSchema = z
   .object({
     clean: z.boolean().optional(),
+    define: z.record(z.string(), z.string()).optional(),
     external: z.array(z.string()).optional(),
     minify: z.boolean().optional(),
     out: z.string().optional(),

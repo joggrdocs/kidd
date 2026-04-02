@@ -12,6 +12,7 @@ export interface ResolvedBuildOptions {
   readonly sourcemap: boolean
   readonly external: readonly string[]
   readonly clean: boolean
+  readonly define: Readonly<Record<string, string>>
 }
 
 /**
@@ -129,6 +130,7 @@ export interface BuildOutput {
   readonly outDir: string
   readonly entryFile: string
   readonly version: string | undefined
+  readonly define: Readonly<Record<string, string>>
 }
 
 /**

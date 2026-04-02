@@ -4,13 +4,17 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 const mockBuild = vi.fn()
 const mockCompile = vi.fn()
 
-vi.mock(import('@kidd-cli/bundler'), () => ({
-  createBundler: vi.fn(async () => ({
-    build: mockBuild,
-    compile: mockCompile,
-    watch: vi.fn(),
-  })),
-}))
+vi.mock(import('@kidd-cli/bundler'), async (importOriginal) => {
+  const actual = await importOriginal()
+  return {
+    ...actual,
+    createBundler: vi.fn(async () => ({
+      build: mockBuild,
+      compile: mockCompile,
+      watch: vi.fn(),
+    })),
+  }
+})
 
 vi.mock(import('@kidd-cli/config/utils'), () => ({
   loadConfig: vi.fn(),
@@ -67,7 +71,7 @@ function makeContext(argOverrides: Record<string, unknown> = {}): CommandContext
 function setupBuildSuccess(): void {
   mockBuild.mockResolvedValue([
     null,
-    { entryFile: '/project/dist/index.js', outDir: '/project/dist', version: '1.0.0' },
+    { entryFile: '/project/dist/index.js', outDir: '/project/dist', version: '1.0.0', define: {} },
   ])
 }
 

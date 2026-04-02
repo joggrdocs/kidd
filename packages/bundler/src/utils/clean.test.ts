@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs'
-import { join } from 'node:path'
 import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
@@ -8,17 +8,26 @@ import { clean } from './clean.js'
 
 const testDir = join(tmpdir(), `kidd-clean-test-${Date.now()}`)
 
-function makeResolved(overrides: {
-  readonly buildOutDir?: string
-  readonly compileName?: string
-  readonly compileTargets?: readonly string[]
-} = {}): Parameters<typeof clean>[0]['resolved'] {
+function makeResolved(
+  overrides: {
+    readonly buildOutDir?: string
+    readonly compileName?: string
+    readonly compileTargets?: readonly string[]
+  } = {}
+): Parameters<typeof clean>[0]['resolved'] {
   return {
     entry: '/project/src/index.ts',
     commands: '/project/commands',
     buildOutDir: overrides.buildOutDir ?? testDir,
     compileOutDir: testDir,
-    build: { target: 'node18', minify: false, sourcemap: true, external: [], clean: true },
+    build: {
+      target: 'node18',
+      minify: false,
+      sourcemap: true,
+      external: [],
+      clean: true,
+      define: {},
+    },
     compile: {
       name: overrides.compileName ?? 'cli',
       targets: (overrides.compileTargets ?? []) as never,

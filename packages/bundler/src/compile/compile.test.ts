@@ -33,7 +33,14 @@ function makeResolved(overrides?: {
     commands: '/project/commands',
     buildOutDir: '/project/dist',
     compileOutDir: '/project/dist',
-    build: { target: 'node18', minify: false, sourcemap: true, external: [], clean: false },
+    build: {
+      target: 'node18',
+      minify: false,
+      sourcemap: true,
+      external: [],
+      clean: false,
+      define: {},
+    },
     compile: {
       targets: (overrides?.targets ?? []) as readonly CompileTarget[],
       name: overrides?.name ?? 'cli',

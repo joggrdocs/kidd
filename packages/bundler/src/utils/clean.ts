@@ -30,18 +30,15 @@ export async function clean(params: {
   readonly resolved: ResolvedBundlerConfig
   readonly compile: boolean
 }): Promise<CleanResult> {
-  const dirExists = await fs.exists(params.resolved.buildOutDir)
-  if (!dirExists) {
-    return { foreign: [], removed: [] }
-  }
-
   const [listError, entries] = await fs.list(params.resolved.buildOutDir)
   if (listError) {
     return { foreign: [], removed: [] }
   }
 
   const binaryNames = match(params.compile)
-    .with(true, () => buildBinaryNames(params.resolved.compile.name, params.resolved.compile.targets))
+    .with(true, () =>
+      buildBinaryNames(params.resolved.compile.name, params.resolved.compile.targets)
+    )
     .with(false, () => new Set<string>())
     .exhaustive()
 
@@ -49,7 +46,10 @@ export async function clean(params: {
     entries.map(async (name) => {
       const shouldRemove = isBuildArtifact(name) || binaryNames.has(name)
       if (shouldRemove) {
-        await fs.remove(join(params.resolved.buildOutDir, name))
+        const [removeError] = await fs.remove(join(params.resolved.buildOutDir, name))
+        if (removeError) {
+          return { type: 'foreign' as const, name }
+        }
         return { type: 'removed' as const, name }
       }
       return { type: 'foreign' as const, name }
@@ -84,10 +84,7 @@ function isBuildArtifact(filename: string): boolean {
  * @param targets - The resolved compile targets (may be empty → defaults used).
  * @returns A set of filenames to remove.
  */
-function buildBinaryNames(
-  name: string,
-  targets: readonly string[]
-): ReadonlySet<string> {
+function buildBinaryNames(name: string, targets: readonly string[]): ReadonlySet<string> {
   const resolvedTargets = match(targets.length > 0)
     .with(true, () => targets)
     .with(false, () => compileTargets.filter((t) => t.default).map((t) => t.target))
@@ -95,16 +92,18 @@ function buildBinaryNames(
 
   const isMultiTarget = resolvedTargets.length > 1
 
-  return resolvedTargets.reduce<Set<string>>((names, target) => {
+  const names = resolvedTargets.flatMap((target) => {
     const binaryName = match(isMultiTarget)
       .with(true, () => `${name}-${target}`)
       .with(false, () => name)
       .exhaustive()
 
-    names.add(binaryName)
     if (target.startsWith('windows')) {
-      names.add(`${binaryName}.exe`)
+      return [binaryName, `${binaryName}.exe`]
     }
-    return names
-  }, new Set<string>())
+
+    return [binaryName]
+  })
+
+  return new Set(names)
 }

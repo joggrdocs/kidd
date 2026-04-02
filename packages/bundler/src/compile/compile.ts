@@ -7,7 +7,6 @@ import type { Result, ResultAsync } from '@kidd-cli/utils/fp'
 import { fs, process } from '@kidd-cli/utils/node'
 import { match } from 'ts-pattern'
 
-import { resolveBuildEntry } from '../utils/resolve-build-entry.js'
 import type {
   AsyncBundlerResult,
   BundlerLifecycle,
@@ -15,6 +14,7 @@ import type {
   CompiledBinary,
   ResolvedBundlerConfig,
 } from '../types.js'
+import { resolveBuildEntry } from '../utils/resolve-build-entry.js'
 
 /**
  * Compile a kidd CLI tool into standalone binaries using `bun build --compile`.
@@ -33,13 +33,19 @@ export async function compile(params: {
 }): AsyncBundlerResult<CompileOutput> {
   const bunExists = await process.exists('bun')
   if (!bunExists) {
-    return err(new Error('bun is not installed or not found in PATH. Install it from https://bun.sh to use compile.'))
+    return err(
+      new Error(
+        'bun is not installed or not found in PATH. Install it from https://bun.sh to use compile.'
+      )
+    )
   }
 
   const bundledEntry = await resolveBuildEntry(params.resolved.buildOutDir)
 
   if (!bundledEntry) {
-    return err(new Error(`bundled entry not found in ${params.resolved.buildOutDir} — run build() first`))
+    return err(
+      new Error(`bundled entry not found in ${params.resolved.buildOutDir} — run build() first`)
+    )
   }
 
   const targets: readonly CompileTarget[] = resolveTargets(params.resolved.compile.targets)
@@ -83,7 +89,6 @@ export function resolveTargetLabel(target: CompileTarget): string {
 
   return target
 }
-
 
 /**
  * Compile targets one at a time to avoid overwhelming bun with concurrent processes.
@@ -160,7 +165,7 @@ async function compileSingleTarget(params: {
     bunTarget,
   ]
 
-  const [execError] = await process.exec('bun', args)
+  const [execError] = await process.exec({ cmd: 'bun', args })
   if (execError) {
     return err(
       new Error(formatCompileError(params.target, execError, params.verbose), { cause: execError })
@@ -169,14 +174,6 @@ async function compileSingleTarget(params: {
 
   return ok({ label: resolveTargetLabel(params.target), path: outfile, target: params.target })
 }
-
-/**
- * Resolve the list of compile targets, falling back to the default set.
- *
- * @private
- * @param explicit - User-specified targets (may be empty).
- * @returns The targets to compile for.
- */
 
 /**
  * Resolve the list of compile targets, falling back to the default set.
@@ -227,7 +224,7 @@ function mapCompileTarget(target: CompileTarget): Result<string> {
     .with('darwin-x64', () => ok('bun-darwin-x64'))
     .with('linux-arm64', () => ok('bun-linux-arm64'))
     .with('linux-x64', () => ok('bun-linux-x64'))
-    .with('linux-x64-musl', () => ok('bun-linux-x64'))
+    .with('linux-x64-musl', () => ok('bun-linux-x64-musl'))
     .with('windows-arm64', () => ok('bun-windows-arm64'))
     .with('windows-x64', () => ok('bun-windows-x64'))
     .otherwise(() => err(new Error(`unknown compile target: ${target}`)))

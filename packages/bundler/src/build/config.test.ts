@@ -22,10 +22,11 @@ const config: ResolvedBundlerConfig = {
   cwd: '/project',
   entry: '/project/src/index.ts',
   include: [],
+  version: undefined,
 }
 
 describe('build config mapping', () => {
-  const result = toTsdownBuildConfig({ config, version: undefined })
+  const result = toTsdownBuildConfig({ config })
 
   it('should set entry as object with index key', () => {
     expect(result.entry).toStrictEqual({ index: '/project/src/index.ts' })
@@ -97,41 +98,51 @@ describe('build config mapping', () => {
   })
 
   it('should set empty define when version is undefined', () => {
-    const output = toTsdownBuildConfig({ config, version: undefined })
+    const output = toTsdownBuildConfig({ config })
     expect(output.define).toStrictEqual({})
   })
 
   it('should set __KIDD_VERSION__ define when version is provided', () => {
-    const output = toTsdownBuildConfig({ config, version: '3.2.1' })
+    const configWithVersion = { ...config, version: '3.2.1' }
+    const output = toTsdownBuildConfig({ config: configWithVersion })
     expect(output.define).toStrictEqual({ __KIDD_VERSION__: '"3.2.1"' })
+  })
+
+  it('should bundle all deps and add stub plugin when compile is true', () => {
+    const output = toTsdownBuildConfig({ config, compile: true })
+    const deps = output.deps as { alwaysBundle: RegExp[] }
+    expect(deps.alwaysBundle).toStrictEqual([/./])
+    const pluginNames = output.plugins?.map((p) => p.name)
+    expect(pluginNames).toContain('kidd-stub-packages')
   })
 })
 
 describe('watch config mapping', () => {
   it('should spread build config and enable watch', () => {
-    const result = toTsdownWatchConfig({ config, version: undefined })
+    const result = toTsdownWatchConfig({ config })
     expect(result.watch).toBeTruthy()
     expect(result.format).toBe('esm')
   })
 
   it('should override logLevel to error for watch mode', () => {
-    const result = toTsdownWatchConfig({ config, version: undefined })
+    const result = toTsdownWatchConfig({ config })
     expect(result.logLevel).toBe('error')
   })
 
   it('should pass through onSuccess callback', () => {
     const onSuccess = vi.fn()
-    const result = toTsdownWatchConfig({ config, onSuccess, version: undefined })
+    const result = toTsdownWatchConfig({ config, onSuccess })
     expect(result.onSuccess).toBe(onSuccess)
   })
 
   it('should leave onSuccess undefined when not provided', () => {
-    const result = toTsdownWatchConfig({ config, version: undefined })
+    const result = toTsdownWatchConfig({ config })
     expect(result.onSuccess).toBeUndefined()
   })
 
   it('should pass version define through to build config', () => {
-    const result = toTsdownWatchConfig({ config, version: '1.0.0' })
+    const configWithVersion = { ...config, version: '1.0.0' }
+    const result = toTsdownWatchConfig({ config: configWithVersion })
     expect(result.define).toStrictEqual({ __KIDD_VERSION__: '"1.0.0"' })
   })
 })

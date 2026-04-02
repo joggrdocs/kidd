@@ -112,7 +112,10 @@ describe('compile operation', () => {
 
   it('should include stderr in error message when verbose is true', async () => {
     const execError = new Error('bun build crashed')
-    Object.defineProperty(execError, 'stderr', { value: 'error: could not resolve "chokidar"', enumerable: true })
+    Object.defineProperty(execError, 'stderr', {
+      value: 'error: could not resolve "chokidar"',
+      enumerable: true,
+    })
     mockProcessExec.mockResolvedValue([execError, null])
 
     const [error] = await compile({
@@ -128,7 +131,10 @@ describe('compile operation', () => {
 
   it('should not include stderr in error message when verbose is false', async () => {
     const execError = new Error('bun build crashed')
-    Object.defineProperty(execError, 'stderr', { value: 'error: could not resolve "chokidar"', enumerable: true })
+    Object.defineProperty(execError, 'stderr', {
+      value: 'error: could not resolve "chokidar"',
+      enumerable: true,
+    })
     mockProcessExec.mockResolvedValue([execError, null])
 
     const [error] = await compile({
@@ -147,22 +153,22 @@ describe('compile operation', () => {
       lifecycle: noopLifecycle,
     })
 
-    expect(mockProcessExec).toHaveBeenCalledWith(
-      'bun',
-      expect.arrayContaining(['--target', 'bun-linux-x64']),
-    )
+    expect(mockProcessExec).toHaveBeenCalledWith({
+      cmd: 'bun',
+      args: expect.arrayContaining(['--target', 'bun-linux-x64']),
+    })
   })
 
-  it('should map linux-x64-musl to bun-linux-x64', async () => {
+  it('should map linux-x64-musl to bun-linux-x64-musl', async () => {
     await compile({
       resolved: makeResolved({ targets: ['linux-x64-musl'], name: 'my-app' }),
       lifecycle: noopLifecycle,
     })
 
-    expect(mockProcessExec).toHaveBeenCalledWith(
-      'bun',
-      expect.arrayContaining(['--target', 'bun-linux-x64']),
-    )
+    expect(mockProcessExec).toHaveBeenCalledWith({
+      cmd: 'bun',
+      args: expect.arrayContaining(['--target', 'bun-linux-x64-musl']),
+    })
   })
 
   it('should append target suffix to binary name for multi-target builds', async () => {
@@ -203,7 +209,10 @@ describe('compile operation', () => {
 
   it('should include human-readable labels on compiled binaries', async () => {
     const [, output] = await compile({
-      resolved: makeResolved({ targets: ['darwin-arm64', 'linux-x64', 'windows-x64'], name: 'my-app' }),
+      resolved: makeResolved({
+        targets: ['darwin-arm64', 'linux-x64', 'windows-x64'],
+        name: 'my-app',
+      }),
       lifecycle: noopLifecycle,
     })
 
@@ -244,9 +253,9 @@ describe('compile operation', () => {
       lifecycle: noopLifecycle,
     })
 
-    expect(mockProcessExec).toHaveBeenCalledWith(
-      'bun',
-      expect.arrayContaining(['build', '--compile', '--outfile']),
-    )
+    expect(mockProcessExec).toHaveBeenCalledWith({
+      cmd: 'bun',
+      args: expect.arrayContaining(['build', '--compile', '--outfile']),
+    })
   })
 })

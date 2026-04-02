@@ -19,11 +19,14 @@ export interface ExecOutput {
  * Wraps `child_process.execFile` into an async Result tuple. On failure,
  * the error includes stderr as a property for diagnostic access.
  *
- * @param cmd - The command to execute.
- * @param args - Arguments to pass to the command.
+ * @param params - The command and arguments to execute.
  * @returns A result tuple with stdout/stderr on success or an Error on failure.
  */
-export function exec(cmd: string, args: readonly string[] = []): ResultAsync<ExecOutput> {
+export function exec(params: {
+  readonly cmd: string
+  readonly args?: readonly string[]
+}): ResultAsync<ExecOutput> {
+  const { cmd, args = [] } = params
   return new Promise((resolve) => {
     execFile(cmd, [...args], (error, stdout, stderr) => {
       if (error) {

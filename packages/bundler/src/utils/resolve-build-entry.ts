@@ -1,6 +1,7 @@
 import { join } from 'node:path'
 
 import { fs } from '@kidd-cli/utils/node'
+import { match } from 'ts-pattern'
 
 /**
  * Known entry file names produced by tsdown for ESM builds, in preference order.
@@ -25,9 +26,8 @@ export async function resolveBuildEntry(outDir: string): Promise<string | undefi
   )
 
   const found = results.find((r) => r.found)
-  if (found) {
-    return found.path
-  }
 
-  return undefined
+  return match(found)
+    .with(undefined, () => undefined)
+    .otherwise((entry) => entry.path)
 }

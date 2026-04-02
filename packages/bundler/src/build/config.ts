@@ -8,6 +8,8 @@ import { createAutoloadPlugin } from '../autoloader/autoload-plugin.js'
 import { ALWAYS_BUNDLE, NODE_BUILTINS, SHEBANG, STUB_PACKAGES } from '../constants.js'
 import type { ResolvedBundlerConfig } from '../types.js'
 
+const TAG_MODULE_PATH = createRequire(import.meta.url).resolve('@kidd-cli/utils/tag')
+
 /**
  * Convert a resolved bundler config to a tsdown InlineConfig for production builds.
  *
@@ -16,7 +18,6 @@ import type { ResolvedBundlerConfig } from '../types.js'
  */
 export function toTsdownBuildConfig(params: {
   readonly config: ResolvedBundlerConfig
-  readonly version?: string
   readonly compile?: boolean
 }): InlineConfig {
   return {
@@ -24,7 +25,7 @@ export function toTsdownBuildConfig(params: {
     clean: false,
     config: false,
     cwd: params.config.cwd,
-    define: buildDefine(params.version),
+    define: buildDefine(params.config.version),
     deps: buildDeps(params.config.build.external, params.compile ?? false),
     dts: false,
     entry: { index: params.config.entry },
@@ -44,7 +45,7 @@ export function toTsdownBuildConfig(params: {
     plugins: [
       createAutoloadPlugin({
         commandsDir: params.config.commands,
-        tagModulePath: createRequire(import.meta.url).resolve('@kidd-cli/utils/tag'),
+        tagModulePath: TAG_MODULE_PATH,
       }),
       ...buildPlugins(params.compile ?? false),
     ],
@@ -62,10 +63,9 @@ export function toTsdownBuildConfig(params: {
  */
 export function toTsdownWatchConfig(params: {
   readonly config: ResolvedBundlerConfig
-  readonly version?: string
   readonly onSuccess?: () => void | Promise<void>
 }): InlineConfig {
-  const buildConfig = toTsdownBuildConfig({ config: params.config, version: params.version })
+  const buildConfig = toTsdownBuildConfig({ config: params.config })
 
   return {
     ...buildConfig,

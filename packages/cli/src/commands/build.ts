@@ -1,6 +1,6 @@
 import { relative } from 'node:path'
 
-import { createBundler } from '@kidd-cli/bundler'
+import { createBundler, normalizeCompileOptions } from '@kidd-cli/bundler'
 import type { CompiledBinary } from '@kidd-cli/bundler'
 import type { CompileTarget, KiddConfig } from '@kidd-cli/config'
 import { loadConfig } from '@kidd-cli/config/utils'
@@ -52,9 +52,9 @@ const buildCommand: Command = command({
       config: mergedConfig,
       cwd,
       onStepStart: ({ meta }) =>
-        ctx.status.spinner.message(`Compiling ${meta.label}...`),
+        ctx.status.spinner.message(`Compiling ${String(meta.label ?? 'target')}...`),
       onStepFinish: ({ meta }) =>
-        ctx.status.spinner.message(`Compiled ${meta.label}`),
+        ctx.status.spinner.message(`Compiled ${String(meta.label ?? 'target')}`),
     })
 
     ctx.status.spinner.start('Bundling...')
@@ -160,7 +160,7 @@ function mergeCompileTargets(params: {
     return params.config
   }
 
-  const existingCompile = resolveExistingCompile(params.config.compile)
+  const existingCompile = normalizeCompileOptions(params.config.compile)
 
   return {
     ...params.config,
@@ -169,23 +169,6 @@ function mergeCompileTargets(params: {
       targets: params.targets as CompileTarget[],
     },
   }
-}
-
-/**
- * Extract compile options object from the config's compile field.
- *
- * @private
- * @param value - The raw compile config value.
- * @returns A compile options object.
- */
-function resolveExistingCompile(
-  value: boolean | KiddConfig['compile']
-): Exclude<KiddConfig['compile'], boolean | undefined> {
-  if (typeof value === 'object') {
-    return value
-  }
-
-  return {}
 }
 
 /**

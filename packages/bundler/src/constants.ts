@@ -28,7 +28,7 @@ export const DEFAULT_TARGET = 'node18'
 /**
  * Default minification setting.
  */
-export const DEFAULT_MINIFY = false
+export const DEFAULT_MINIFY = true
 
 /**
  * Default source map generation setting.

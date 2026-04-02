@@ -1,5 +1,24 @@
 # kidd
 
+## 0.22.1
+
+### Patch Changes
+
+- 1aee09e: fix(cli): bundle @kidd-cli/\* deps so published CLI is self-contained
+
+  The published CLI had bare imports to workspace packages whose npm exports maps
+  were stale (renamed subpaths like `./loader` → `./utils`, `./fs` → `./node`).
+  Commands silently disappeared because the autoloader swallowed import errors.
+
+  - Bundle all `@kidd-cli/*` packages into CLI dist via `deps.alwaysBundle`
+  - Add `KIDD_DEBUG` env var support to surface autoload import failures
+  - Add integration test asserting all commands appear in `--help` output
+  - Republish all packages to sync npm exports maps with source
+
+- Updated dependencies [1aee09e]
+  - @kidd-cli/config@0.3.1
+  - @kidd-cli/utils@0.4.1
+
 ## 0.22.0
 
 ### Minor Changes

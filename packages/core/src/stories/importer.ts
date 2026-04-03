@@ -1,5 +1,7 @@
 import Module from 'node:module'
 
+import type { createJiti } from 'jiti'
+
 import { toError } from '@kidd-cli/utils/fp'
 import { hasTag } from '@kidd-cli/utils/tag'
 
@@ -71,10 +73,10 @@ export function createStoryImporter(): [Error, null] | [null, StoryImporter] {
  * @private
  * @returns A Result with the `createJiti` factory or an {@link Error}.
  */
-function resolveJiti(): [Error, null] | [null, typeof import('jiti').createJiti] {
+function resolveJiti(): [Error, null] | [null, typeof createJiti] {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const mod = require('jiti') as { createJiti: typeof import('jiti').createJiti }
+    const esmRequire = Module.createRequire(import.meta.url)
+    const mod = esmRequire('jiti') as { readonly createJiti: typeof createJiti }
     return [null, mod.createJiti]
   } catch {
     return [

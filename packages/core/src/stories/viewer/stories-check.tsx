@@ -46,7 +46,15 @@ export function StoriesCheck({ include }: StoriesCheckProps): ReactElement {
     }
     started.current = true
 
-    const importer = createStoryImporter()
+    const [importerError, importer] = createStoryImporter()
+
+    if (importerError) {
+      process.exitCode = 1
+      ctx.log.error(importerError.message)
+      exit()
+      return
+    }
+
     const cwd = process.cwd()
     const includePatterns = buildIncludePatterns(include)
 

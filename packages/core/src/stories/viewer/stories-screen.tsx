@@ -1,10 +1,11 @@
 import process from 'node:process'
 
-import { Text } from 'ink'
+import { Box, Text } from 'ink'
 import type { ReactElement } from 'react'
 import { useEffect, useState } from 'react'
 import { P, match } from 'ts-pattern'
 
+import type { DiscoverError } from '../discover.js'
 import { discoverStories } from '../discover.js'
 import { createStoryImporter } from '../importer.js'
 import { createStoryRegistry } from '../registry.js'
@@ -36,7 +37,8 @@ interface StoriesScreenProps {
  */
 type DiscoveryState =
   | { readonly phase: 'loading' }
-  | { readonly phase: 'empty'; readonly warningCount: number }
+  | { readonly phase: 'error'; readonly message: string }
+  | { readonly phase: 'empty'; readonly errors: readonly DiscoverError[] }
   | { readonly phase: 'ready' }
 
 // ---------------------------------------------------------------------------
@@ -81,7 +83,13 @@ function StoriesViewer({ include }: { readonly include?: string }): ReactElement
   const { isReloading, onReloadStart, onReloadEnd } = useReloadState()
 
   useEffect(() => {
-    const importer = createStoryImporter()
+    const [importerError, importer] = createStoryImporter()
+
+    if (importerError) {
+      setState({ phase: 'error', message: importerError.message })
+      return () => {}
+    }
+
     const cwd = process.cwd()
     const includePatterns = buildIncludePatterns(include)
 
@@ -96,7 +104,7 @@ function StoriesViewer({ include }: { readonly include?: string }): ReactElement
       entries.map(([name, entry]) => registry.set(name, entry))
 
       if (entries.length === 0) {
-        setState({ phase: 'empty', warningCount: result.errors.length })
+        setState({ phase: 'empty', errors: result.errors })
         return
       }
 
@@ -104,7 +112,7 @@ function StoriesViewer({ include }: { readonly include?: string }): ReactElement
     }
 
     run().catch(() => {
-      setState({ phase: 'empty', warningCount: 0 })
+      setState({ phase: 'empty', errors: [] })
     })
 
     const [watchError, watcher] = createStoryWatcher({
@@ -126,11 +134,23 @@ function StoriesViewer({ include }: { readonly include?: string }): ReactElement
 
   return match(state)
     .with({ phase: 'loading' }, () => <Text>Discovering stories...</Text>)
-    .with({ phase: 'empty' }, ({ warningCount }) => (
-      <Text>
-        No stories found ({warningCount} warnings). Create a .stories.tsx file in your src/
-        directory to get started.
-      </Text>
+    .with({ phase: 'error' }, ({ message }) => <Text color="red">{message}</Text>)
+    .with({ phase: 'empty' }, ({ errors }) => (
+      <Box flexDirection="column">
+        <Text>
+          No stories found. Create a .stories.tsx file in your src/ directory to get started.
+        </Text>
+        {errors.length > 0 && (
+          <Box flexDirection="column" marginTop={1}>
+            <Text color="yellow">{errors.length} file(s) failed to import:</Text>
+            {errors.map((e) => (
+              <Text key={e.filePath} dimColor>
+                {'  '}{e.filePath}: {e.message}
+              </Text>
+            ))}
+          </Box>
+        )}
+      </Box>
     ))
     .with({ phase: 'ready' }, () => <StoriesApp registry={registry} isReloading={isReloading} />)
     .exhaustive()

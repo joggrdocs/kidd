@@ -78,18 +78,27 @@ function resolveJiti(): [Error, null] | [null, typeof createJiti] {
     const esmRequire = Module.createRequire(import.meta.url)
     const mod = esmRequire('jiti') as { readonly createJiti: typeof createJiti }
     return [null, mod.createJiti]
-  } catch {
-    return [
-      new Error(
-        [
-          'The "jiti" package is required to run stories but was not found.',
-          '',
-          'Install it with:',
-          '  pnpm add jiti',
-        ].join('\n')
-      ),
-      null,
-    ]
+  } catch (error) {
+    const isModuleNotFound =
+      error instanceof Error &&
+      (error as NodeJS.ErrnoException).code === 'MODULE_NOT_FOUND' &&
+      ((error as { requireStack?: readonly string[] }).requireStack ?? []).length === 0
+
+    if (isModuleNotFound) {
+      return [
+        new Error(
+          [
+            'The "jiti" package is required to run stories but was not found.',
+            '',
+            'Install it with:',
+            '  pnpm add jiti',
+          ].join('\n')
+        ),
+        null,
+      ]
+    }
+
+    return [toError(error), null]
   }
 }
 

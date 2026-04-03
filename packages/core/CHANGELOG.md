@@ -1,5 +1,11 @@
 # kidd
 
+## 0.22.2
+
+### Patch Changes
+
+- da87a23: Surface helpful error when `jiti` peer dependency is missing for stories, and display import errors instead of silent warning count when story discovery fails
+
 ## 0.22.1
 
 ### Patch Changes

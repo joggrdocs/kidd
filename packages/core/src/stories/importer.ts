@@ -1,8 +1,9 @@
 import Module from 'node:module'
 
+import type { createJiti } from 'jiti'
+
 import { toError } from '@kidd-cli/utils/fp'
 import { hasTag } from '@kidd-cli/utils/tag'
-import { createJiti } from 'jiti'
 
 import type { StoryEntry } from './types.js'
 
@@ -10,7 +11,7 @@ import type { StoryEntry } from './types.js'
  * A story importer that can load `.stories.{tsx,ts,jsx,js}` files.
  */
 export interface StoryImporter {
-  readonly importStory: (filePath: string) => Promise<[Error, null] | [null, StoryEntry]>
+  readonly importStory: (filePath: string) => Promise<readonly [Error, null] | readonly [null, StoryEntry]>
 }
 
 /**
@@ -19,37 +20,93 @@ export interface StoryImporter {
  * Installs a TypeScript extension resolution hook so that ESM-style `.js`
  * imports (e.g. `from './alert.js'`) resolve to `.ts` / `.tsx` source files.
  *
- * @returns A frozen {@link StoryImporter} instance.
+ * Returns an error Result when the `jiti` peer dependency is not installed.
+ *
+ * @returns A Result with a frozen {@link StoryImporter} or an {@link Error}.
  */
-export function createStoryImporter(): StoryImporter {
-  installTsExtensionResolution()
+export function createStoryImporter(): readonly [Error, null] | readonly [null, StoryImporter] {
+  const [jitiError, jitiCreateFn] = resolveJiti()
 
-  const jiti = createJiti(import.meta.url, {
-    fsCache: false,
-    moduleCache: false,
-    interopDefault: true,
-    jsx: { runtime: 'automatic' },
-  })
+  if (jitiError) {
+    return [jitiError, null]
+  }
 
-  return Object.freeze({
-    importStory: async (filePath: string): Promise<[Error, null] | [null, StoryEntry]> => {
-      try {
-        const mod = (await jiti.import(filePath)) as Record<string, unknown>
-        const entry = (mod.default ?? mod) as unknown
+  try {
+    installTsExtensionResolution()
 
-        if (!isStoryEntry(entry)) {
-          return [new Error(`File ${filePath} does not export a valid Story or StoryGroup`), null]
-        }
+    const jiti = jitiCreateFn(import.meta.url, {
+      fsCache: false,
+      moduleCache: false,
+      interopDefault: true,
+      jsx: { runtime: 'automatic' },
+    })
 
-        return [null, entry]
-      } catch (error) {
-        return [toError(error), null]
-      }
-    },
-  })
+    return [
+      null,
+      Object.freeze({
+        importStory: async (
+          filePath: string
+        ): Promise<readonly [Error, null] | readonly [null, StoryEntry]> => {
+          try {
+            const mod = (await jiti.import(filePath)) as Record<string, unknown>
+            const entry = (mod.default ?? mod) as unknown
+
+            if (!isStoryEntry(entry)) {
+              return [new Error(`File ${filePath} does not export a valid Story or StoryGroup`), null]
+            }
+
+            return [null, entry]
+          } catch (error) {
+            return [toError(error), null]
+          }
+        },
+      }),
+    ]
+  } catch (error) {
+    return [toError(error), null]
+  }
 }
 
 // ---------------------------------------------------------------------------
+
+/**
+ * Attempt to resolve the `jiti` package at runtime.
+ *
+ * `jiti` is an optional peer dependency of `@kidd-cli/core`, but the stories
+ * subsystem cannot function without it. Returns a Result tuple so callers can
+ * surface a helpful message instead of crashing with a cryptic import error.
+ *
+ * @private
+ * @returns A Result with the `createJiti` factory or an {@link Error}.
+ */
+function resolveJiti(): readonly [Error, null] | readonly [null, typeof createJiti] {
+  try {
+    const esmRequire = Module.createRequire(import.meta.url)
+    const mod = esmRequire('jiti') as { readonly createJiti: typeof createJiti }
+    return [null, mod.createJiti]
+  } catch (error) {
+    const isModuleNotFound =
+      error instanceof Error &&
+      (error as NodeJS.ErrnoException).code === 'MODULE_NOT_FOUND' &&
+      ((error as { requireStack?: readonly string[] }).requireStack ?? []).length === 0
+
+    if (isModuleNotFound) {
+      return [
+        new Error(
+          [
+            'The "jiti" package is required to run stories but was not found.',
+            '',
+            'Install it with:',
+            '  pnpm add jiti',
+          ].join('\n')
+        ),
+        null,
+      ]
+    }
+
+    return [toError(error), null]
+  }
+}
 
 /**
  * TypeScript extensions to try when a `.js` import fails to resolve.

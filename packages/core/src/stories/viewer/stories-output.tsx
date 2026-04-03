@@ -64,7 +64,13 @@ export function StoriesOutput({ filter, include }: StoriesOutputProps): ReactEle
   const { exit } = useApp()
 
   useEffect(() => {
-    const importer = createStoryImporter()
+    const [importerError, importer] = createStoryImporter()
+
+    if (importerError) {
+      setState({ phase: 'error', message: importerError.message })
+      return
+    }
+
     const cwd = process.cwd()
     const includePatterns = buildIncludePatterns(include)
 

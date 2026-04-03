@@ -11,7 +11,7 @@ import type { StoryEntry } from './types.js'
  * A story importer that can load `.stories.{tsx,ts,jsx,js}` files.
  */
 export interface StoryImporter {
-  readonly importStory: (filePath: string) => Promise<[Error, null] | [null, StoryEntry]>
+  readonly importStory: (filePath: string) => Promise<readonly [Error, null] | readonly [null, StoryEntry]>
 }
 
 /**
@@ -24,41 +24,47 @@ export interface StoryImporter {
  *
  * @returns A Result with a frozen {@link StoryImporter} or an {@link Error}.
  */
-export function createStoryImporter(): [Error, null] | [null, StoryImporter] {
-  const [jitiError, createJiti] = resolveJiti()
+export function createStoryImporter(): readonly [Error, null] | readonly [null, StoryImporter] {
+  const [jitiError, jitiCreateFn] = resolveJiti()
 
   if (jitiError) {
     return [jitiError, null]
   }
 
-  installTsExtensionResolution()
+  try {
+    installTsExtensionResolution()
 
-  const jiti = createJiti(import.meta.url, {
-    fsCache: false,
-    moduleCache: false,
-    interopDefault: true,
-    jsx: { runtime: 'automatic' },
-  })
+    const jiti = jitiCreateFn(import.meta.url, {
+      fsCache: false,
+      moduleCache: false,
+      interopDefault: true,
+      jsx: { runtime: 'automatic' },
+    })
 
-  return [
-    null,
-    Object.freeze({
-      importStory: async (filePath: string): Promise<[Error, null] | [null, StoryEntry]> => {
-        try {
-          const mod = (await jiti.import(filePath)) as Record<string, unknown>
-          const entry = (mod.default ?? mod) as unknown
+    return [
+      null,
+      Object.freeze({
+        importStory: async (
+          filePath: string
+        ): Promise<readonly [Error, null] | readonly [null, StoryEntry]> => {
+          try {
+            const mod = (await jiti.import(filePath)) as Record<string, unknown>
+            const entry = (mod.default ?? mod) as unknown
 
-          if (!isStoryEntry(entry)) {
-            return [new Error(`File ${filePath} does not export a valid Story or StoryGroup`), null]
+            if (!isStoryEntry(entry)) {
+              return [new Error(`File ${filePath} does not export a valid Story or StoryGroup`), null]
+            }
+
+            return [null, entry]
+          } catch (error) {
+            return [toError(error), null]
           }
-
-          return [null, entry]
-        } catch (error) {
-          return [toError(error), null]
-        }
-      },
-    }),
-  ]
+        },
+      }),
+    ]
+  } catch (error) {
+    return [toError(error), null]
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -73,7 +79,7 @@ export function createStoryImporter(): [Error, null] | [null, StoryImporter] {
  * @private
  * @returns A Result with the `createJiti` factory or an {@link Error}.
  */
-function resolveJiti(): [Error, null] | [null, typeof createJiti] {
+function resolveJiti(): readonly [Error, null] | readonly [null, typeof createJiti] {
   try {
     const esmRequire = Module.createRequire(import.meta.url)
     const mod = esmRequire('jiti') as { readonly createJiti: typeof createJiti }

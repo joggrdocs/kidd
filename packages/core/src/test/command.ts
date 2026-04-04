@@ -40,7 +40,6 @@ export async function runCommand(options: RunCommandOptions): Promise<CommandRes
 
     const cliOptions: CliOptions = {
       commands: options.commands,
-      config: options.config,
       middleware: options.middleware,
       name: options.name ?? 'test-cli',
       version: options.version ?? '0.0.0',

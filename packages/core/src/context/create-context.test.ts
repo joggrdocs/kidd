@@ -7,7 +7,6 @@ import { isContextError } from './error.js'
 function defaultOptions(): {
   args: { name: string; verbose: boolean }
   argv: readonly string[]
-  config: { debug: boolean }
   meta: {
     command: string[]
     dirs: { global: string; local: string }
@@ -18,7 +17,6 @@ function defaultOptions(): {
   return {
     args: { name: 'test', verbose: true },
     argv: ['my-cli', 'deploy', 'preview', '--verbose'],
-    config: { debug: false },
     meta: {
       command: ['deploy', 'preview'],
       dirs: { global: '.my-cli', local: '.my-cli' },
@@ -30,7 +28,7 @@ function defaultOptions(): {
 
 describe('createContext()', () => {
   // ---------------------------------------------------------------------------
-  // Args, config
+  // Args
   // ---------------------------------------------------------------------------
 
   describe('args', () => {
@@ -38,13 +36,6 @@ describe('createContext()', () => {
       const ctx = createContext(defaultOptions())
       expect(ctx.args.verbose).toBeTruthy()
       expect(ctx.args.name).toBe('test')
-    })
-  })
-
-  describe('config', () => {
-    it('contains the provided config', () => {
-      const ctx = createContext(defaultOptions())
-      expect(ctx.config.debug).toBeFalsy()
     })
   })
 

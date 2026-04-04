@@ -30,6 +30,10 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
+    "./config": {
+      "types": "./dist/middleware/config.d.ts",
+      "default": "./dist/middleware/config.js"
+    },
     "./auth": {
       "types": "./dist/middleware/auth.d.ts",
       "default": "./dist/middleware/auth.js"

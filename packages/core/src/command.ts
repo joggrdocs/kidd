@@ -45,10 +45,9 @@ export function isCommandsConfig(value: unknown): value is CommandsConfig {
 export function command<
   TOptionsDef extends ArgsDef = ArgsDef,
   TPositionalsDef extends ArgsDef = ArgsDef,
-  TConfig extends Record<string, unknown> = Record<string, unknown>,
   const TMiddleware extends readonly Middleware<MiddlewareEnv>[] =
     readonly Middleware<MiddlewareEnv>[],
->(def: CommandDef<TOptionsDef, TPositionalsDef, TConfig, TMiddleware>): CommandType {
+>(def: CommandDef<TOptionsDef, TPositionalsDef, TMiddleware>): CommandType {
   const resolved = {
     ...def,
     deprecated: resolveValue(def.deprecated),

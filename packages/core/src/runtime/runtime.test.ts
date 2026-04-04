@@ -8,10 +8,6 @@ vi.mock(import('@/context/index.js'), () => ({
   createContext: vi.fn(() => ({ mock: 'context' })),
 }))
 
-vi.mock(import('@/lib/config/index.js'), () => ({
-  createConfigClient: vi.fn(),
-}))
-
 vi.mock(import('./args/index.js'), () => ({
   createArgsParser: vi.fn(),
 }))
@@ -21,12 +17,10 @@ vi.mock(import('./runner.js'), () => ({
 }))
 
 const { createContext } = await import('@/context/index.js')
-const { createConfigClient } = await import('@/lib/config/index.js')
 const { createArgsParser } = await import('./args/index.js')
 const { createMiddlewareExecutor } = await import('./runner.js')
 
 const mockedCreateContext = vi.mocked(createContext)
-const mockedCreateConfigClient = vi.mocked(createConfigClient)
 const mockedCreateArgsParser = vi.mocked(createArgsParser)
 const mockedCreateRunner = vi.mocked(createMiddlewareExecutor)
 
@@ -70,88 +64,6 @@ describe('createRuntime()', () => {
     expect(error).toBeNull()
     expect(runtime).toBeDefined()
     expect(runtime).toHaveProperty('execute')
-  })
-
-  it('should use empty config when no config options provided', async () => {
-    setupDefaults()
-
-    const { createRuntime } = await import('./runtime.js')
-    const [, runtime] = await createRuntime({
-      dirs: { global: '.my-cli', local: '.my-cli' },
-      name: 'my-cli',
-      version: '1.0.0',
-    })
-
-    const execution = makeExecution()
-    await runtime!.execute(execution)
-
-    expect(mockedCreateContext).toHaveBeenCalledWith(expect.objectContaining({ config: {} }))
-  })
-
-  it('should use empty config when config schema is undefined', async () => {
-    setupDefaults()
-
-    const { createRuntime } = await import('./runtime.js')
-    const [, runtime] = await createRuntime({
-      config: {} as never,
-      dirs: { global: '.my-cli', local: '.my-cli' },
-      name: 'my-cli',
-      version: '1.0.0',
-    })
-
-    const execution = makeExecution()
-    await runtime!.execute(execution)
-
-    expect(mockedCreateConfigClient).not.toHaveBeenCalled()
-    expect(mockedCreateContext).toHaveBeenCalledWith(expect.objectContaining({ config: {} }))
-  })
-
-  it('should use empty config when config client load returns error', async () => {
-    setupDefaults()
-    const mockLoad = vi.fn().mockResolvedValue([new Error('config not found'), null])
-    mockedCreateConfigClient.mockReturnValue({ load: mockLoad } as never)
-
-    const { z } = await import('zod')
-    const schema = z.object({ debug: z.boolean() })
-
-    const { createRuntime } = await import('./runtime.js')
-    const [, runtime] = await createRuntime({
-      config: { schema },
-      dirs: { global: '.my-cli', local: '.my-cli' },
-      name: 'my-cli',
-      version: '1.0.0',
-    })
-
-    const execution = makeExecution()
-    await runtime!.execute(execution)
-
-    expect(mockedCreateConfigClient).toHaveBeenCalled()
-    expect(mockedCreateContext).toHaveBeenCalledWith(expect.objectContaining({ config: {} }))
-  })
-
-  it('should use loaded config when config client load succeeds', async () => {
-    setupDefaults()
-    const loadedConfig = { debug: true }
-    const mockLoad = vi.fn().mockResolvedValue([null, { config: loadedConfig }])
-    mockedCreateConfigClient.mockReturnValue({ load: mockLoad } as never)
-
-    const { z } = await import('zod')
-    const schema = z.object({ debug: z.boolean() })
-
-    const { createRuntime } = await import('./runtime.js')
-    const [, runtime] = await createRuntime({
-      config: { schema },
-      dirs: { global: '.my-cli', local: '.my-cli' },
-      name: 'my-cli',
-      version: '1.0.0',
-    })
-
-    const execution = makeExecution()
-    await runtime!.execute(execution)
-
-    expect(mockedCreateContext).toHaveBeenCalledWith(
-      expect.objectContaining({ config: loadedConfig })
-    )
   })
 
   it('should return err when arg parsing fails', async () => {
@@ -241,7 +153,6 @@ describe('createRuntime()', () => {
 
     expect(mockedCreateContext).toHaveBeenCalledWith({
       args: validatedArgs,
-      config: {},
       meta: {
         command: ['build', 'all'],
         dirs: { global: '.my-cli', local: '.my-cli' },

@@ -27,21 +27,19 @@ import type { PromptResponses, TestContextOptions, TestContextResult } from './t
  * @param overrides - Optional overrides for args, config, meta, log, prompts, or status.
  * @returns A TestContextResult with the context and a stdout accessor.
  */
-export function createTestContext<
-  TArgs extends AnyRecord = AnyRecord,
-  TConfig extends AnyRecord = AnyRecord,
->(overrides?: TestContextOptions<TArgs, TConfig>): TestContextResult<TArgs, TConfig> {
-  const opts = overrides ?? ({} as TestContextOptions<TArgs, TConfig>)
+export function createTestContext<TArgs extends AnyRecord = AnyRecord>(
+  overrides?: TestContextOptions<TArgs>
+): TestContextResult<TArgs> {
+  const opts = overrides ?? ({} as TestContextOptions<TArgs>)
   const { output, stream } = createWritableCapture()
   const log = resolveLog(opts, stream)
   const prompts = resolvePrompts(opts)
   const status = resolveStatus(opts)
   const meta = resolveMeta(opts)
 
-  const ctx = createContext<TArgs, TConfig>({
+  const ctx = createContext<TArgs>({
     args: (opts.args ?? {}) as TArgs,
     argv: [meta.name, ...meta.command],
-    config: (opts.config ?? {}) as TConfig,
     log,
     meta,
     prompts,

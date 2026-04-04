@@ -1,14 +1,7 @@
 import type { vi } from 'vitest'
 
 import type { CommandContext, Log, Prompts, Status } from '@/context/types.js'
-import type {
-  AnyRecord,
-  CliConfigOptions,
-  Command,
-  CommandMap,
-  Middleware,
-  ResolvedDirs,
-} from '@/types/index.js'
+import type { AnyRecord, Command, CommandMap, Middleware, ResolvedDirs } from '@/types/index.js'
 
 /**
  * Overrides for constructing a test context via {@link createTestContext}.
@@ -16,14 +9,9 @@ import type {
  * All fields are optional — sensible defaults are provided for each.
  *
  * @typeParam TArgs - Parsed args type for the context.
- * @typeParam TConfig - Config type for the context.
  */
-export interface TestContextOptions<
-  TArgs extends AnyRecord = AnyRecord,
-  TConfig extends AnyRecord = AnyRecord,
-> {
+export interface TestContextOptions<TArgs extends AnyRecord = AnyRecord> {
   readonly args?: TArgs
-  readonly config?: TConfig
   readonly meta?: {
     readonly name?: string
     readonly version?: string
@@ -39,13 +27,9 @@ export interface TestContextOptions<
  * Result of {@link createTestContext}.
  *
  * @typeParam TArgs - Parsed args type for the context.
- * @typeParam TConfig - Config type for the context.
  */
-export interface TestContextResult<
-  TArgs extends AnyRecord = AnyRecord,
-  TConfig extends AnyRecord = AnyRecord,
-> {
-  readonly ctx: CommandContext<TArgs, TConfig>
+export interface TestContextResult<TArgs extends AnyRecord = AnyRecord> {
+  readonly ctx: CommandContext<TArgs>
   readonly stdout: () => string
 }
 
@@ -53,13 +37,9 @@ export interface TestContextResult<
  * Result of {@link runHandler}.
  *
  * @typeParam TArgs - Parsed args type for the context.
- * @typeParam TConfig - Config type for the context.
  */
-export interface HandlerResult<
-  TArgs extends AnyRecord = AnyRecord,
-  TConfig extends AnyRecord = AnyRecord,
-> {
-  readonly ctx: CommandContext<TArgs, TConfig>
+export interface HandlerResult<TArgs extends AnyRecord = AnyRecord> {
+  readonly ctx: CommandContext<TArgs>
   readonly stdout: () => string
   readonly error: Error | undefined
 }
@@ -68,13 +48,9 @@ export interface HandlerResult<
  * Result of {@link runMiddleware}.
  *
  * @typeParam TArgs - Parsed args type for the context.
- * @typeParam TConfig - Config type for the context.
  */
-export interface MiddlewareResult<
-  TArgs extends AnyRecord = AnyRecord,
-  TConfig extends AnyRecord = AnyRecord,
-> {
-  readonly ctx: CommandContext<TArgs, TConfig>
+export interface MiddlewareResult<TArgs extends AnyRecord = AnyRecord> {
+  readonly ctx: CommandContext<TArgs>
   readonly stdout: () => string
 }
 
@@ -100,28 +76,20 @@ export interface PromptResponses {
  * Options for {@link runHandler}.
  *
  * @typeParam TArgs - Parsed args type for the context.
- * @typeParam TConfig - Config type for the context.
  */
-export interface RunHandlerOptions<
-  TArgs extends AnyRecord = AnyRecord,
-  TConfig extends AnyRecord = AnyRecord,
-> {
+export interface RunHandlerOptions<TArgs extends AnyRecord = AnyRecord> {
   readonly cmd: Command
-  readonly overrides?: TestContextOptions<TArgs, TConfig>
+  readonly overrides?: TestContextOptions<TArgs>
 }
 
 /**
  * Options for {@link runMiddleware}.
  *
  * @typeParam TArgs - Parsed args type for the context.
- * @typeParam TConfig - Config type for the context.
  */
-export interface RunMiddlewareOptions<
-  TArgs extends AnyRecord = AnyRecord,
-  TConfig extends AnyRecord = AnyRecord,
-> {
+export interface RunMiddlewareOptions<TArgs extends AnyRecord = AnyRecord> {
   readonly middlewares: readonly Middleware[]
-  readonly overrides?: TestContextOptions<TArgs, TConfig>
+  readonly overrides?: TestContextOptions<TArgs>
 }
 
 /**
@@ -133,7 +101,6 @@ export interface RunCommandOptions {
   readonly name?: string
   readonly version?: string
   readonly middleware?: Middleware[]
-  readonly config?: CliConfigOptions
 }
 
 /**

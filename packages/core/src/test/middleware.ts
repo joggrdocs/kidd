@@ -12,14 +12,11 @@ import type { MiddlewareResult, RunMiddlewareOptions } from './types.js'
  * @param options - The middlewares and optional test context overrides.
  * @returns A MiddlewareResult with the context and captured stdout.
  */
-export async function runMiddleware<
-  TArgs extends AnyRecord = AnyRecord,
-  TConfig extends AnyRecord = AnyRecord,
->({
+export async function runMiddleware<TArgs extends AnyRecord = AnyRecord>({
   middlewares,
   overrides,
-}: RunMiddlewareOptions<TArgs, TConfig>): Promise<MiddlewareResult<TArgs, TConfig>> {
-  const { ctx, stdout } = createTestContext<TArgs, TConfig>(overrides)
+}: RunMiddlewareOptions<TArgs>): Promise<MiddlewareResult<TArgs>> {
+  const { ctx, stdout } = createTestContext<TArgs>(overrides)
 
   await executeChain(middlewares, 0, ctx, async () => {})
 

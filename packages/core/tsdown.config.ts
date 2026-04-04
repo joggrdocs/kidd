@@ -11,6 +11,7 @@ export default defineConfig({
     'lib/format': 'src/lib/format/index.ts',
     'lib/project': 'src/lib/project/index.ts',
     'lib/store': 'src/lib/store/index.ts',
+    'middleware/config': 'src/middleware/config/index.ts',
     'middleware/auth': 'src/middleware/auth/index.ts',
     'middleware/http': 'src/middleware/http/index.ts',
     'middleware/figures': 'src/middleware/figures/index.ts',

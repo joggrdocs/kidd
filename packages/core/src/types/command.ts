@@ -107,14 +107,12 @@ type InferSingleArgsDef<TDef extends ArgsDef> =
  * Handler function for a command. Receives the fully typed context.
  *
  * @typeParam TArgs - Parsed args type.
- * @typeParam TConfig - Config type.
  * @typeParam TVars - Context variables contributed by typed middleware.
  */
 export type HandlerFn<
   TArgs extends AnyRecord = AnyRecord,
-  TConfig extends AnyRecord = AnyRecord,
   TVars = {}, // eslint-disable-line @typescript-eslint/ban-types -- empty intersection identity
-> = (ctx: CommandContext<TArgs, TConfig> & Readonly<TVars>) => Promise<void> | void
+> = (ctx: CommandContext<TArgs> & Readonly<TVars>) => Promise<void> | void
 
 /**
  * Internal render function signature used by `screen()` commands.
@@ -151,13 +149,11 @@ export interface CommandsConfig {
  *
  * @typeParam TOptionsDef - Option (flag) definitions type.
  * @typeParam TPositionalsDef - Positional argument definitions type.
- * @typeParam TConfig - Config type.
  * @typeParam TMiddleware - Tuple of typed middleware, preserving per-element `TEnv`.
  */
 export interface CommandDef<
   TOptionsDef extends ArgsDef = ArgsDef,
   TPositionalsDef extends ArgsDef = ArgsDef,
-  TConfig extends AnyRecord = AnyRecord,
   TMiddleware extends readonly Middleware<MiddlewareEnv>[] = readonly Middleware<MiddlewareEnv>[],
 > {
   /**
@@ -238,7 +234,6 @@ export interface CommandDef<
    */
   readonly handler?: HandlerFn<
     InferArgsMerged<TOptionsDef, TPositionalsDef>,
-    TConfig,
     InferVariables<TMiddleware>
   >
 }
@@ -249,7 +244,6 @@ export interface CommandDef<
 export type Command<
   TOptionsDef extends ArgsDef = ArgsDef,
   TPositionalsDef extends ArgsDef = ArgsDef,
-  TConfig extends AnyRecord = AnyRecord,
   TMiddleware extends readonly Middleware<MiddlewareEnv>[] = readonly Middleware<MiddlewareEnv>[],
 > = Tagged<
   {
@@ -267,7 +261,6 @@ export type Command<
     readonly help?: HelpOptions
     readonly handler?: HandlerFn<
       InferArgsMerged<TOptionsDef, TPositionalsDef>,
-      TConfig,
       InferVariables<TMiddleware>
     >
   },
@@ -297,9 +290,8 @@ export interface AutoloadOptions {
 export type CommandFn = <
   TOptionsDef extends ArgsDef = ArgsDef,
   TPositionalsDef extends ArgsDef = ArgsDef,
-  TConfig extends AnyRecord = AnyRecord,
   const TMiddleware extends readonly Middleware<MiddlewareEnv>[] =
     readonly Middleware<MiddlewareEnv>[],
 >(
-  def: CommandDef<TOptionsDef, TPositionalsDef, TConfig, TMiddleware>
+  def: CommandDef<TOptionsDef, TPositionalsDef, TMiddleware>
 ) => Command

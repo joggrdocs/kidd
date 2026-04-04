@@ -32,9 +32,7 @@ import type { ErrorRef, ResolvedRef } from './runtime/index.js'
  *
  * @param options - CLI configuration including name, version, commands, and middleware.
  */
-export async function cli<TSchema extends z.ZodType = z.ZodType>(
-  options: CliOptions<TSchema>
-): Promise<void> {
+export async function cli(options: CliOptions): Promise<void> {
   registerCrashHandlers(options.name)
 
   const [uncaughtError, result] = await attemptAsync(async () => {
@@ -104,7 +102,6 @@ export async function cli<TSchema extends z.ZodType = z.ZodType>(
 
     const [runtimeError, runtime] = await createRuntime({
       argv: normalizedArgv,
-      config: options.config,
       dirs,
       display: options.display,
       log: options.log,

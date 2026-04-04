@@ -3,7 +3,7 @@ import type { Colors } from 'picocolors/types'
 
 import { createDotDirectory } from '@/lib/dotdir/index.js'
 import { createLog } from '@/lib/log.js'
-import type { AnyRecord, KiddStore, Merge, ResolvedDirs } from '@/types/index.js'
+import type { AnyRecord, KiddStore, Merge } from '@/types/index.js'
 
 import { createContextError } from './error.js'
 import { createContextFormat } from './format.js'
@@ -25,20 +25,19 @@ import type {
 /**
  * Options for creating a {@link CommandContext} instance via {@link createContext}.
  *
- * Carries the parsed args, validated config, and CLI metadata needed to
- * assemble a fully-wired context. Optional overrides allow callers to inject
- * custom {@link Log}, {@link Prompts}, and {@link Status} implementations;
- * when omitted, default `@clack/prompts`-backed instances are used.
+ * Carries the parsed args and CLI metadata needed to assemble a fully-wired
+ * context. Optional overrides allow callers to inject custom {@link Log},
+ * {@link Prompts}, and {@link Status} implementations; when omitted, default
+ * `@clack/prompts`-backed instances are used.
  */
-export interface CreateContextOptions<TArgs extends AnyRecord, TConfig extends AnyRecord> {
+export interface CreateContextOptions<TArgs extends AnyRecord> {
   readonly args: TArgs
   readonly argv: readonly string[]
-  readonly config: TConfig
   readonly meta: {
     readonly name: string
     readonly version: string
     readonly command: string[]
-    readonly dirs: ResolvedDirs
+    readonly dirs: { readonly local: string; readonly global: string }
   }
   readonly display?: DisplayConfig
   readonly log?: Log
@@ -60,9 +59,9 @@ export interface CreateContextOptions<TArgs extends AnyRecord, TConfig extends A
  * @param options - Args, config, and meta for the current invocation.
  * @returns A fully constructed CommandContext.
  */
-export function createContext<TArgs extends AnyRecord, TConfig extends AnyRecord>(
-  options: CreateContextOptions<TArgs, TConfig>
-): CommandContext<TArgs, TConfig> {
+export function createContext<TArgs extends AnyRecord>(
+  options: CreateContextOptions<TArgs>
+): CommandContext<TArgs> {
   const dc = options.display ?? {}
   const commonDefaults = resolveCommonDefaults(dc)
 
@@ -93,9 +92,8 @@ export function createContext<TArgs extends AnyRecord, TConfig extends AnyRecord
   // Middleware-augmented properties (e.g. `report`, `auth`) are added at runtime.
   // See `decorateContext` — they are intentionally absent here.
   return {
-    args: options.args as CommandContext<TArgs, TConfig>['args'],
+    args: options.args as CommandContext<TArgs>['args'],
     colors: Object.freeze({ ...pc }) as Colors,
-    config: options.config as CommandContext<TArgs, TConfig>['config'],
     dotdir: ctxDotdir,
     fail(message: string, failOptions?: { code?: string; exitCode?: number }): never {
       // Accepted exception: ctx.fail() is typed `never` and caught by the CLI boundary.
@@ -104,12 +102,12 @@ export function createContext<TArgs extends AnyRecord, TConfig extends AnyRecord
     },
     format: ctxFormat,
     log: ctxLog,
-    meta: ctxMeta as CommandContext<TArgs, TConfig>['meta'],
+    meta: ctxMeta as CommandContext<TArgs>['meta'],
     prompts: ctxPrompts,
     raw: Object.freeze({ argv: Object.freeze([...options.argv]) }),
     status: ctxStatus,
     store: ctxStore,
-  } as CommandContext<TArgs, TConfig>
+  } as CommandContext<TArgs>
 }
 
 // ---------------------------------------------------------------------------
@@ -144,8 +142,8 @@ function resolveCommonDefaults(dc: DisplayConfig): {
  * @param commonDefaults - Common per-call defaults from display config.
  * @returns A Status instance.
  */
-function resolveStatus<TArgs extends AnyRecord, TConfig extends AnyRecord>(
-  options: CreateContextOptions<TArgs, TConfig>,
+function resolveStatus<TArgs extends AnyRecord>(
+  options: CreateContextOptions<TArgs>,
   dc: DisplayConfig,
   commonDefaults: { readonly guide?: boolean; readonly output?: DisplayConfig['output'] }
 ): Status {

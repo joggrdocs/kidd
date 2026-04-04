@@ -1,6 +1,5 @@
 export type {
   AnyRecord,
-  ConfigType,
   DeepReadonly,
   InferSchema,
   IsAny,
@@ -37,8 +36,6 @@ export type {
 } from './command.js'
 
 export type {
-  CliConfig,
-  CliConfigOptions,
   CliFn,
   CliOptions,
   DirsConfig,

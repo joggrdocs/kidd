@@ -2,7 +2,7 @@ import { join } from 'node:path'
 
 import { isPlainObject, merge } from '@kidd-cli/utils/fp'
 import { validate } from '@kidd-cli/utils/validate'
-import type { ZodTypeAny, output } from 'zod'
+import type { ZodTypeAny } from 'zod'
 
 import { decorateContext } from '@/context/decorate.js'
 import type { CommandContext } from '@/context/types.js'
@@ -51,6 +51,9 @@ export function config<TSchema extends ZodTypeAny>(
 /**
  * Load config from a single directory (cwd) and decorate ctx.
  *
+ * Surfaces load errors via `ctx.fail()`. Falls back to empty config only
+ * when no config file is found.
+ *
  * @private
  * @param ctx - The command context.
  * @param configName - The config file base name.
@@ -64,7 +67,11 @@ async function loadSingle(
   const client = createConfigClient({ name: configName, schema })
   const [loadError, result] = await client.load()
 
-  if (loadError || !result) {
+  if (loadError) {
+    ctx.fail(`Failed to load config: ${loadError.message}`)
+  }
+
+  if (!result) {
     decorateContext(ctx, 'config', Object.freeze({}))
     return
   }
@@ -74,6 +81,9 @@ async function loadSingle(
 
 /**
  * Load config from global, project, and local directories, merge, and decorate ctx.
+ *
+ * Always attaches `configLayers` to ctx (via decorateContext) on every code path.
+ * Surfaces validation errors via `ctx.fail()`.
  *
  * @private
  * @param ctx - The command context.
@@ -99,6 +109,8 @@ async function loadLayered<TSchema extends ZodTypeAny>(
   const client = createConfigClient({ name: configName, schema })
   const layerResults = await Promise.all(layerDirs.map((entry) => loadLayer(client.load, entry)))
 
+  decorateContext(ctx, 'configLayers', Object.freeze(layerResults))
+
   const foundConfigs = layerResults
     .filter((layer) => layer.config !== null)
     .map((layer) => layer.config as Record<string, unknown>)
@@ -120,23 +132,18 @@ async function loadLayered<TSchema extends ZodTypeAny>(
   })
 
   if (validationError) {
-    decorateContext(ctx, 'config', Object.freeze({}))
-    return
+    ctx.fail(`Config validation failed: ${validationError.message}`)
   }
 
   decorateContext(ctx, 'config', Object.freeze(validated as Record<string, unknown>))
-
-  // Attach layer metadata to raw — use defineProperty to extend the frozen raw object
-  Object.defineProperty(ctx.raw, 'configLayers', {
-    configurable: false,
-    enumerable: true,
-    value: Object.freeze(layerResults),
-    writable: false,
-  })
 }
 
 /**
  * Load config from a single layer directory.
+ *
+ * Per-layer load errors are captured in the layer metadata rather than
+ * halting the entire middleware — a broken layer still participates in
+ * the merge with a null config.
  *
  * @private
  * @param load - The config client's load function.

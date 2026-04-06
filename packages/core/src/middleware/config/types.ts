@@ -1,3 +1,5 @@
+import type { ZodType, ZodTypeAny, infer as ZodInfer } from 'zod'
+
 import type { ConfigFormat } from '@/lib/config/types.js'
 import type { DeepReadonly } from '@/types/index.js'
 
@@ -33,7 +35,7 @@ export interface ConfigLayer {
  *
  * @typeParam TSchema - Zod schema type used to validate the loaded config.
  */
-export interface ConfigMiddlewareOptions<TSchema extends import('zod').ZodTypeAny> {
+export interface ConfigMiddlewareOptions<TSchema extends ZodTypeAny> {
   /**
    * Zod schema to validate the loaded config. Infers `ctx.config` type.
    */
@@ -66,21 +68,32 @@ export interface ConfigMiddlewareOptions<TSchema extends import('zod').ZodTypeAn
 /**
  * Derive the config type from a Zod schema for use in module augmentation.
  *
- * Use this in a `declare module` block to type `ctx.config`:
+ * Use this in a `declare module` block to type `ctx.config` via the registry:
  *
  * ```ts
  * import type { ConfigType } from '@kidd-cli/core/config'
  *
- * declare module '@kidd-cli/core' {
- *   interface CommandContext {
- *     readonly config: ConfigType<typeof configSchema>
- *   }
+ * declare module '@kidd-cli/core/config' {
+ *   interface ConfigRegistry extends ConfigType<typeof configSchema> {}
  * }
  * ```
  */
-export type ConfigType<TSchema extends import('zod').ZodType> = DeepReadonly<
-  import('zod').infer<TSchema>
->
+export type ConfigType<TSchema extends ZodType> = DeepReadonly<ZodInfer<TSchema>>
+
+/**
+ * Registry interface for typed config. Consumers augment this to narrow `ctx.config`.
+ *
+ * When empty (no augmentation), `ctx.config` defaults to `DeepReadonly<Record<string, unknown>>`.
+ * When augmented, `ctx.config` resolves to the augmented type.
+ */
+export interface ConfigRegistry {}
+
+/**
+ * Resolved config type. Falls back to a generic record when no augmentation is provided.
+ */
+export type ResolvedConfig = keyof ConfigRegistry extends never
+  ? DeepReadonly<Record<string, unknown>>
+  : ConfigRegistry[keyof ConfigRegistry]
 
 // ---------------------------------------------------------------------------
 // Module augmentation
@@ -92,6 +105,11 @@ declare module '@kidd-cli/core' {
      * Runtime config validated against the zod schema. Deeply immutable.
      * Added by the config middleware (`@kidd-cli/core/config`).
      */
-    readonly config: DeepReadonly<Record<string, unknown>>
+    readonly config: ResolvedConfig
+    /**
+     * Per-layer config resolution metadata. Only present when layered
+     * config resolution is enabled via `config({ layers: true })`.
+     */
+    readonly configLayers: readonly ConfigLayer[]
   }
 }

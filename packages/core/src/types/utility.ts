@@ -1,3 +1,5 @@
+import type { ZodType } from 'zod'
+
 // ---------------------------------------------------------------------------
 // Generic type utilities
 // ---------------------------------------------------------------------------
@@ -56,6 +58,4 @@ export type UnionToIntersection<U> = (U extends unknown ? (x: U) => void : never
 /**
  * Extract the inferred output type from a zod schema, or fall back to a plain object.
  */
-export type InferSchema<TSchema> = TSchema extends import('zod').ZodType<infer TOutput>
-  ? TOutput
-  : AnyRecord
+export type InferSchema<TSchema> = TSchema extends ZodType<infer TOutput> ? TOutput : AnyRecord

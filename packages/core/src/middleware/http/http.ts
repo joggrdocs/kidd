@@ -24,8 +24,8 @@ import type { HttpOptions } from './types.js'
 export function http(options: HttpOptions): Middleware {
   const { namespace, baseUrl, headers } = options
 
-  return middleware((ctx, next) => {
-    const resolvedHeaders = resolveHeaders(ctx, headers)
+  return middleware(async (ctx, next) => {
+    const resolvedHeaders = await resolveHeaders(ctx, headers)
 
     const client = createHttpClient({
       baseUrl,
@@ -45,18 +45,19 @@ export function http(options: HttpOptions): Middleware {
 /**
  * Resolve headers from the options value.
  *
- * Calls the function form with ctx when provided, returns static headers
- * directly, or returns undefined when no headers are configured.
+ * Calls the function form with ctx when provided (awaiting if it returns a
+ * Promise), returns static headers directly, or returns undefined when no
+ * headers are configured.
  *
  * @private
  * @param ctx - The context object.
- * @param headers - The headers option (static, function, or undefined).
+ * @param headers - The headers option (static, sync/async function, or undefined).
  * @returns The resolved headers record or undefined.
  */
-function resolveHeaders(
+async function resolveHeaders(
   ctx: CommandContext,
   headers: HttpOptions['headers']
-): Readonly<Record<string, string>> | undefined {
+): Promise<Readonly<Record<string, string>> | undefined> {
   if (headers === undefined) {
     return undefined
   }

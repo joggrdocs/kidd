@@ -1,9 +1,8 @@
 import Module from 'node:module'
 
-import type { createJiti } from 'jiti'
-
 import { toError } from '@kidd-cli/utils/fp'
 import { hasTag } from '@kidd-cli/utils/tag'
+import type { createJiti } from 'jiti'
 
 import type { StoryEntry } from './types.js'
 
@@ -11,7 +10,9 @@ import type { StoryEntry } from './types.js'
  * A story importer that can load `.stories.{tsx,ts,jsx,js}` files.
  */
 export interface StoryImporter {
-  readonly importStory: (filePath: string) => Promise<readonly [Error, null] | readonly [null, StoryEntry]>
+  readonly importStory: (
+    filePath: string
+  ) => Promise<readonly [Error, null] | readonly [null, StoryEntry]>
 }
 
 /**
@@ -52,7 +53,10 @@ export function createStoryImporter(): readonly [Error, null] | readonly [null, 
             const entry = (mod.default ?? mod) as unknown
 
             if (!isStoryEntry(entry)) {
-              return [new Error(`File ${filePath} does not export a valid Story or StoryGroup`), null]
+              return [
+                new Error(`File ${filePath} does not export a valid Story or StoryGroup`),
+                null,
+              ]
             }
 
             return [null, entry]

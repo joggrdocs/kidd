@@ -4,19 +4,19 @@ The central API surface threaded through every handler and middleware. Provides 
 
 ## Properties
 
-| Property  | Type                                      | Description                                                                  |
-| --------- | ----------------------------------------- | ---------------------------------------------------------------------------- |
-| `args`    | `DeepReadonly<Merge<KiddArgs, TArgs>>`    | Parsed and validated command args                                            |
-| `colors`  | `Colors`                                  | Color formatting utilities (picocolors)                                      |
-| `config`  | `DeepReadonly<Merge<CliConfig, TConfig>>` | Validated runtime config                                                     |
-| `format`  | `Format`                                  | Pure string formatters (no I/O)                                              |
-| `log`     | `Log`                                     | Logging methods (info, success, error, warn, etc.)                           |
-| `prompts` | `Prompts`                                 | Interactive prompts (confirm, text, select, etc.)                            |
-| `spinner` | `Spinner`                                 | Spinner for long-running operations (start, stop, message)                   |
-| `store`   | `Store`                                   | Typed in-memory key-value store                                              |
-| `fail`    | `(message, options?) => never`            | Throw a user-facing error                                                    |
-| `meta`    | `Meta`                                    | CLI metadata                                                                 |
-| `auth`    | `AuthContext`                             | Auth credential and login (when `@kidd-cli/core/auth` middleware registered) |
+| Property  | Type                                   | Description                                                                  |
+| --------- | -------------------------------------- | ---------------------------------------------------------------------------- |
+| `args`    | `DeepReadonly<Merge<KiddArgs, TArgs>>` | Parsed and validated command args                                            |
+| `colors`  | `Colors`                               | Color formatting utilities (picocolors)                                      |
+| `config`  | `ConfigHandle`                         | Lazy config handle with `load()` method (when config middleware registered)  |
+| `format`  | `Format`                               | Pure string formatters (no I/O)                                              |
+| `log`     | `Log`                                  | Logging methods (info, success, error, warn, etc.)                           |
+| `prompts` | `Prompts`                              | Interactive prompts (confirm, text, select, etc.)                            |
+| `spinner` | `Spinner`                              | Spinner for long-running operations (start, stop, message)                   |
+| `store`   | `Store`                                | Typed in-memory key-value store                                              |
+| `fail`    | `(message, options?) => never`         | Throw a user-facing error                                                    |
+| `meta`    | `Meta`                                 | CLI metadata                                                                 |
+| `auth`    | `AuthContext`                          | Auth credential and login (when `@kidd-cli/core/auth` middleware registered) |
 
 ## `ctx.args`
 
@@ -35,13 +35,13 @@ const deploy = command({
 
 ## `ctx.config`
 
-Deeply readonly validated config loaded from the project's config file. The type is a merge of `CliConfig` (global augmentation) and the schema passed to `cli({ config: { schema } })`.
+A `ConfigHandle` decorated by the `config()` middleware from `@kidd-cli/core/config`. Only present when the config middleware is registered. Config loads lazily by default -- call `ctx.config.load()` to read and validate the config file, which returns a `Result` tuple.
 
-Use `ConfigType` with module augmentation to derive `CliConfig` from your Zod schema:
+Use `ConfigType` with module augmentation on `@kidd-cli/core/config` to derive `ConfigRegistry` from your Zod schema:
 
 ```ts
 // src/config.ts
-import type { ConfigType } from '@kidd-cli/core'
+import type { ConfigType } from '@kidd-cli/core/config'
 import { z } from 'zod'
 
 export const configSchema = z.object({
@@ -49,34 +49,48 @@ export const configSchema = z.object({
   org: z.string().min(1),
 })
 
-declare module '@kidd-cli/core' {
-  interface CliConfig extends ConfigType<typeof configSchema> {}
+declare module '@kidd-cli/core/config' {
+  interface ConfigRegistry extends ConfigType<typeof configSchema> {}
 }
 ```
 
-Then pass the schema to `cli()`:
+Then register the config middleware:
 
 ```ts
 import { cli } from '@kidd-cli/core'
+import { config } from '@kidd-cli/core/config'
 import { configSchema } from './config.js'
 
 cli({
   name: 'my-app',
   version: '1.0.0',
-  config: { schema: configSchema },
+  middleware: [config({ schema: configSchema })],
   commands: import.meta.dirname + '/commands',
 })
 ```
 
-Commands can now access typed config properties:
+Commands load and access config via the handle:
 
 ```ts
 export default command({
   async handler(ctx) {
-    ctx.config.apiUrl // string
-    ctx.config.org // string
+    const [error, result] = await ctx.config.load()
+    if (error) {
+      ctx.fail(error.message)
+      return
+    }
+    result.config.apiUrl // string
+    result.config.org // string
   },
 })
+```
+
+Pass `{ layers: true }` to `load()` to include layer metadata:
+
+```ts
+const [error, result] = await ctx.config.load({ layers: true })
+result.config.apiUrl // string
+result.layers // ConfigLayer[]
 ```
 
 Run `kidd add config` to scaffold this setup in an existing project, or pass `--config` to `kidd init` when creating a new project.
@@ -258,7 +272,7 @@ See [Authentication](./authentication.md) for the full auth system reference.
 
 kidd exposes empty interfaces that consumers extend via TypeScript declaration merging. This adds project-wide type safety without threading generics through every handler.
 
-For `CliConfig`, use the `ConfigType` utility to derive the type from your Zod schema (see [`ctx.config`](#ctxconfig) above). For other interfaces, extend them directly:
+For `ConfigRegistry`, use the `ConfigType` utility to derive the type from your Zod schema (see [`ctx.config`](#ctxconfig) above). Note that config augmentation targets `@kidd-cli/core/config`, while other interfaces target `@kidd-cli/core`:
 
 ```ts
 declare module '@kidd-cli/core' {
@@ -266,31 +280,33 @@ declare module '@kidd-cli/core' {
     verbose: boolean
   }
 
-  // Prefer ConfigType<typeof schema> over manual properties -- see ctx.config docs
-  interface CliConfig extends ConfigType<typeof configSchema> {}
-
   interface KiddStore {
     token: string
   }
 }
+
+// Config augmentation uses a separate module
+declare module '@kidd-cli/core/config' {
+  interface ConfigRegistry extends ConfigType<typeof configSchema> {}
+}
 ```
 
-| Interface   | Affects      | Description                                                                                      |
-| ----------- | ------------ | ------------------------------------------------------------------------------------------------ |
-| `KiddArgs`  | `ctx.args`   | Global args merged into every command's args                                                     |
-| `CliConfig` | `ctx.config` | Global config merged into every command's config                                                 |
-| `KiddStore` | `ctx.store`  | Global store keys merged into the store type                                                     |
-| `StoreMap`  | `ctx.store`  | The store's full key-value shape -- extend this to register typed keys (merges with `KiddStore`) |
+| Interface        | Module                  | Affects             | Description                                                                                      |
+| ---------------- | ----------------------- | ------------------- | ------------------------------------------------------------------------------------------------ |
+| `KiddArgs`       | `@kidd-cli/core`        | `ctx.args`          | Global args merged into every command's args                                                     |
+| `ConfigRegistry` | `@kidd-cli/core/config` | `ctx.config.load()` | Typed config returned by `load()` result                                                         |
+| `KiddStore`      | `@kidd-cli/core`        | `ctx.store`         | Global store keys merged into the store type                                                     |
+| `StoreMap`       | `@kidd-cli/core`        | `ctx.store`         | The store's full key-value shape -- extend this to register typed keys (merges with `KiddStore`) |
 
 ## Context in screen commands
 
 Screen commands defined with `screen()` do not receive a `CommandContext` object. Instead, parsed args are passed directly as props to the React component, and runtime values are accessed via hooks:
 
-| Hook          | Returns             | Context equivalent |
-| ------------- | ------------------- | ------------------ |
-| `useConfig()` | `Readonly<TConfig>` | `ctx.config`       |
-| `useMeta()`   | `Readonly<Meta>`    | `ctx.meta`         |
-| `useStore()`  | `Store`             | `ctx.store`        |
+| Hook          | Returns          | Context equivalent |
+| ------------- | ---------------- | ------------------ |
+| `useConfig()` | `ConfigHandle`   | `ctx.config`       |
+| `useMeta()`   | `Readonly<Meta>` | `ctx.meta`         |
+| `useStore()`  | `Store`          | `ctx.store`        |
 
 See [Screens](./screens.md) for details.
 

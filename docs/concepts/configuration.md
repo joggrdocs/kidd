@@ -35,34 +35,82 @@ export default defineConfig({
 })
 ```
 
-## CLI Config Options
+## Config Middleware
 
-The `config` option in `cli()` controls how runtime configuration is loaded and validated for your CLI's users.
+Configuration is purely opt-in via the `config()` middleware from `@kidd-cli/core/config`. Register it in the middleware array to make `ctx.config` available in handlers.
+
+### Lazy loading (default)
+
+By default, config is loaded lazily -- nothing is read from disk until the handler calls `ctx.config.load()`:
 
 ```ts
+import { cli } from '@kidd-cli/core'
+import { config } from '@kidd-cli/core/config'
+import { configSchema } from './config.js'
+
 cli({
   name: 'my-app',
   version: '1.0.0',
-  config: {
-    schema: MyConfigSchema,
-    name: 'myapp',
-  },
+  middleware: [config({ schema: configSchema })],
   commands: { deploy },
 })
 ```
 
-| Field    | Type      | Default             | Description                                                         |
-| -------- | --------- | ------------------- | ------------------------------------------------------------------- |
-| `schema` | `ZodType` | --                  | Zod schema to validate the loaded config. Infers `ctx.config` type. |
-| `name`   | `string`  | Derived from `name` | Override the config file name for file discovery                    |
+### Eager loading
+
+Pass `eager: true` to load and validate config during the middleware pass, before the handler runs:
+
+```ts
+config({ schema: configSchema, eager: true })
+```
+
+### Middleware options
+
+| Field    | Type      | Default             | Description                                                          |
+| -------- | --------- | ------------------- | -------------------------------------------------------------------- |
+| `schema` | `ZodType` | --                  | Zod schema to validate the loaded config. Infers `ctx.config` type.  |
+| `eager`  | `boolean` | `false`             | Load config during middleware pass instead of on first `load()` call |
+| `name`   | `string`  | Derived from `name` | Override the config file name for file discovery                     |
+
+## Using `ctx.config`
+
+The middleware decorates `ctx.config` as a `ConfigHandle` with a `load()` method that returns a Result tuple:
+
+```ts
+export default command({
+  async handler(ctx) {
+    const [error, result] = await ctx.config.load()
+    if (error) {
+      ctx.fail(error.message)
+      return
+    }
+    result.config.apiUrl // string
+    result.config.org // string
+  },
+})
+```
+
+### Loading with layers
+
+Pass `{ layers: true }` to `load()` to include layer metadata in the result:
+
+```ts
+const [error, result] = await ctx.config.load({ layers: true })
+if (error) {
+  ctx.fail(error.message)
+  return
+}
+result.config.apiUrl // string
+result.layers // ConfigLayer[]
+```
 
 ## Typing `ctx.config`
 
-The Zod schema validates config at runtime, but TypeScript cannot automatically propagate the schema type to `ctx.config` in command handlers (commands are defined in separate files and dynamically imported). Use `ConfigType` with module augmentation to get compile-time safety:
+The Zod schema validates config at runtime, but TypeScript cannot automatically propagate the schema type to `ctx.config` in command handlers (commands are defined in separate files and dynamically imported). Use `ConfigType` with module augmentation on `@kidd-cli/core/config` to get compile-time safety:
 
 ```ts
 // src/config.ts
-import type { ConfigType } from '@kidd-cli/core'
+import type { ConfigType } from '@kidd-cli/core/config'
 import { z } from 'zod'
 
 export const configSchema = z.object({
@@ -70,12 +118,12 @@ export const configSchema = z.object({
   org: z.string().min(1),
 })
 
-declare module '@kidd-cli/core' {
-  interface CliConfig extends ConfigType<typeof configSchema> {}
+declare module '@kidd-cli/core/config' {
+  interface ConfigRegistry extends ConfigType<typeof configSchema> {}
 }
 ```
 
-This keeps the schema as the single source of truth -- `CliConfig` is always derived from it, so they can never drift apart. Every command handler now sees `ctx.config.apiUrl` and `ctx.config.org` as fully typed properties.
+This keeps the schema as the single source of truth -- `ConfigRegistry` is always derived from it, so they can never drift apart. Every command handler now sees typed properties on the `result.config` object returned by `ctx.config.load()`.
 
 You can scaffold this setup automatically:
 
@@ -237,13 +285,17 @@ const setupCommand = command({
 Use different config file names for different environments:
 
 ```ts
+import { config } from '@kidd-cli/core/config'
+
 cli({
   name: 'my-app',
   version: '1.0.0',
-  config: {
-    schema: configSchema,
-    name: process.env['NODE_ENV'] === 'production' ? 'my-app-prod' : 'my-app',
-  },
+  middleware: [
+    config({
+      schema: configSchema,
+      name: process.env['NODE_ENV'] === 'production' ? 'my-app-prod' : 'my-app',
+    }),
+  ],
   commands: { deploy },
 })
 ```

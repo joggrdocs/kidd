@@ -13,7 +13,6 @@ cli({
   description: 'My CLI tool',
   commands: { deploy, migrate },
   middleware: [timing],
-  config: { schema: MyConfigSchema },
   help: {
     header: 'my-app - deploy and migrate with ease',
     footer: 'Docs: https://my-app.dev',
@@ -31,19 +30,11 @@ cli({
 | `description` | `string`                                                        | --      | Human-readable description                    |
 | `commands`    | `string \| CommandMap \| Promise<CommandMap> \| CommandsConfig` | --      | Commands source                               |
 | `middleware`  | `Middleware[]`                                                  | --      | Root middleware stack                         |
-| `config`      | `CliConfigOptions`                                              | --      | Config schema and file name override          |
 | `help`        | `CliHelpOptions`                                                | --      | Custom help header/footer                     |
 | `dirs`        | `DirsConfig`                                                    | --      | Directory name overrides                      |
 | `log`         | `Log`                                                           | --      | Custom log implementation                     |
 | `prompts`     | `Prompts`                                                       | --      | Custom prompts implementation                 |
 | `spinner`     | `Spinner`                                                       | --      | Custom spinner implementation                 |
-
-## CliConfigOptions
-
-| Field    | Type      | Default             | Description                                      |
-| -------- | --------- | ------------------- | ------------------------------------------------ |
-| `schema` | `ZodType` | --                  | Zod schema to validate the loaded config         |
-| `name`   | `string`  | Derived from `name` | Override the config file name for file discovery |
 
 ## CliHelpOptions
 
@@ -90,7 +81,7 @@ export default defineConfig({
 Extend kidd's interfaces via TypeScript declaration merging for project-wide type safety:
 
 ```ts
-import type { ConfigType } from '@kidd-cli/core'
+import type { ConfigType } from '@kidd-cli/core/config'
 import { z } from 'zod'
 
 export const configSchema = z.object({
@@ -102,19 +93,22 @@ declare module '@kidd-cli/core' {
   interface KiddArgs {
     verbose: boolean
   }
-  interface CliConfig extends ConfigType<typeof configSchema> {}
   interface KiddStore {
     token: string
   }
 }
+
+declare module '@kidd-cli/core/config' {
+  interface ConfigRegistry extends ConfigType<typeof configSchema> {}
+}
 ```
 
-| Interface   | Affects      | Description                                                                                 |
-| ----------- | ------------ | ------------------------------------------------------------------------------------------- |
-| `KiddArgs`  | `ctx.args`   | Global args merged into every command's args                                                |
-| `CliConfig` | `ctx.config` | Global config merged into every command's config                                            |
-| `KiddStore` | `ctx.store`  | Global store keys merged into the store type                                                |
-| `StoreMap`  | `ctx.store`  | The store's full key-value shape -- extend to register typed keys (merges with `KiddStore`) |
+| Interface        | Module                  | Affects             | Description                                                                                 |
+| ---------------- | ----------------------- | ------------------- | ------------------------------------------------------------------------------------------- |
+| `KiddArgs`       | `@kidd-cli/core`        | `ctx.args`          | Global args merged into every command's args                                                |
+| `ConfigRegistry` | `@kidd-cli/core/config` | `ctx.config.load()` | Typed config returned by `load()` result                                                    |
+| `KiddStore`      | `@kidd-cli/core`        | `ctx.store`         | Global store keys merged into the store type                                                |
+| `StoreMap`       | `@kidd-cli/core`        | `ctx.store`         | The store's full key-value shape -- extend to register typed keys (merges with `KiddStore`) |
 
 ## Sub-exports
 

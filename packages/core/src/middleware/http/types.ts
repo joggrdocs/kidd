@@ -83,5 +83,7 @@ export interface HttpOptions {
   readonly baseUrl: string
   readonly headers?:
     | Readonly<Record<string, string>>
-    | ((ctx: CommandContext) => Readonly<Record<string, string>>)
+    | ((
+        ctx: CommandContext
+      ) => Readonly<Record<string, string>> | Promise<Readonly<Record<string, string>>>)
 }

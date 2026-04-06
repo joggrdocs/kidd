@@ -155,6 +155,34 @@ describe('http()', () => {
     expect(next).toHaveBeenCalled()
   })
 
+  it('should resolve headers from an async function', async () => {
+    const ctx = createMockCtx()
+    const asyncHeadersFn = vi.fn(() => Promise.resolve({ 'X-Async': 'async-value' }))
+    const mw = http({
+      baseUrl: 'https://api.example.com',
+      headers: asyncHeadersFn,
+      namespace: 'api',
+    })
+    const next = vi.fn()
+
+    await mw.handler(ctx as never, next)
+
+    expect(asyncHeadersFn).toHaveBeenCalledWith(ctx)
+
+    const client = (ctx as Record<string, unknown>)['api'] as {
+      get: (path: string) => Promise<unknown>
+    }
+    await client.get('/test')
+
+    expect(fetchSpy).toHaveBeenCalledWith(
+      'https://api.example.com/test',
+      expect.objectContaining({
+        headers: expect.objectContaining({ 'X-Async': 'async-value' }),
+      })
+    )
+    expect(next).toHaveBeenCalled()
+  })
+
   it('should call next after decorating context', async () => {
     const ctx = createMockCtx()
     const mw = http({ baseUrl: 'https://api.example.com', namespace: 'api' })

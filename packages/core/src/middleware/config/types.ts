@@ -1,3 +1,4 @@
+import type { Result } from '@kidd-cli/utils/fp'
 import type { ZodType, ZodTypeAny, infer as ZodInfer } from 'zod'
 
 import type { ConfigFormat } from '@/lib/config/types.js'
@@ -27,6 +28,60 @@ export interface ConfigLayer {
 }
 
 // ---------------------------------------------------------------------------
+// Config load types
+// ---------------------------------------------------------------------------
+
+/**
+ * Options for `ctx.config.load()`.
+ *
+ * Controls how config is resolved: single cwd (default), layered merge,
+ * or a specific named layer.
+ */
+export interface ConfigLoadCallOptions {
+  /**
+   * Enable layered resolution (global > project > local merge).
+   * When true, returns layer metadata alongside the merged config.
+   */
+  readonly layers?: boolean
+  /**
+   * Load a specific named layer only. Validates against the full schema.
+   * Mutually exclusive with `layers`.
+   */
+  readonly layer?: ConfigLayerName
+}
+
+/**
+ * Result returned by `ctx.config.load()`.
+ *
+ * @typeParam TConfig - The validated config type.
+ */
+export interface ConfigLoadCallResult<TConfig> {
+  /** Validated config data. Deeply frozen. */
+  readonly config: TConfig
+  /** Per-layer metadata. Only present when `{ layers: true }` was passed. */
+  readonly layers?: readonly ConfigLayer[]
+}
+
+/**
+ * Config handle decorated onto `ctx.config` by the config middleware.
+ *
+ * Provides lazy, on-demand config loading with automatic caching.
+ * The first successful `load()` call reads from disk; subsequent calls
+ * return the cached result.
+ *
+ * @typeParam TConfig - The validated config type.
+ */
+export interface ConfigHandle<TConfig> {
+  /**
+   * Load and validate config from disk, or return the cached result.
+   *
+   * @param options - Controls resolution mode (single, layered, or named layer).
+   * @returns A Result tuple with the load result or an error.
+   */
+  readonly load: (options?: ConfigLoadCallOptions) => Promise<Result<ConfigLoadCallResult<TConfig>>>
+}
+
+// ---------------------------------------------------------------------------
 // Middleware options
 // ---------------------------------------------------------------------------
 
@@ -45,13 +100,20 @@ export interface ConfigMiddlewareOptions<TSchema extends ZodTypeAny> {
    */
   readonly name?: string
   /**
+   * Load config eagerly during the middleware pass (before the handler runs).
+   * When true, the result is cached so subsequent `load()` calls are instant.
+   * Default: false (lazy — config loaded on first `load()` call).
+   */
+  readonly eager?: boolean
+  /**
    * Enable layered config resolution with global > project > local merging.
    * When true, config files are discovered at three locations and deep-merged
-   * with local-wins precedence. Default: false (single cwd resolution).
+   * with local-wins precedence. Only applies when `eager` is true; for lazy
+   * mode, pass `{ layers: true }` to `load()`. Default: false.
    */
   readonly layers?: boolean
   /**
-   * Override layer directories. Only applies when `layers` is true.
+   * Override layer directories. Only applies when layered resolution is used.
    */
   readonly dirs?: {
     /** Override the global directory name. Default: `ctx.meta.dirs.global`. */
@@ -102,14 +164,12 @@ export type ResolvedConfig = keyof ConfigRegistry extends never
 declare module '@kidd-cli/core' {
   interface CommandContext {
     /**
-     * Runtime config validated against the zod schema. Deeply immutable.
+     * Config handle for lazy, on-demand config loading.
      * Added by the config middleware (`@kidd-cli/core/config`).
+     *
+     * Call `ctx.config.load()` to read and validate config from disk.
+     * Results are cached after the first successful load.
      */
-    readonly config: ResolvedConfig
-    /**
-     * Per-layer config resolution metadata. Only present when layered
-     * config resolution is enabled via `config({ layers: true })`.
-     */
-    readonly configLayers: readonly ConfigLayer[]
+    readonly config: ConfigHandle<ResolvedConfig>
   }
 }

@@ -128,7 +128,6 @@ import { createTestContext } from '@kidd-cli/core/test'
 
 const { ctx, stdout } = createTestContext({
   args: { name: 'Alice', verbose: true },
-  config: { apiUrl: 'https://api.example.com' },
   meta: { command: ['deploy'], name: 'my-cli', version: '1.0.0' },
 })
 
@@ -213,25 +212,33 @@ describe('whoami', () => {
 
 ## Testing with Config
 
-Pass config values via the `overrides` to test commands that read `ctx.config`:
+Commands that use `ctx.config` expect a `ConfigHandle` with a `load()` method. Use `createTestContext` and `decorateContext` to attach a mock config handle:
 
 ```ts
 import { describe, expect, it } from 'vitest'
-import { command } from '@kidd-cli/core'
-import { runHandler } from '@kidd-cli/core/test'
+import { command, decorateContext } from '@kidd-cli/core'
+import { createTestContext } from '@kidd-cli/core/test'
 
 const status = command({
   async handler(ctx) {
-    ctx.logger.print(`API: ${ctx.config.apiUrl}`)
+    const [error, result] = await ctx.config.load()
+    if (error) {
+      ctx.fail(error.message)
+      return
+    }
+    ctx.logger.print(`API: ${result.config.apiUrl}`)
   },
 })
 
 describe('status', () => {
   it('should display the configured API URL', async () => {
-    const { stdout } = await runHandler({
-      cmd: status,
-      overrides: { config: { apiUrl: 'https://api.example.com' } },
+    const { ctx, stdout } = createTestContext()
+
+    decorateContext(ctx, 'config', {
+      load: async () => [null, { config: { apiUrl: 'https://api.example.com' } }],
     })
+
+    await status.handler(ctx)
     expect(stdout()).toContain('https://api.example.com')
   })
 })

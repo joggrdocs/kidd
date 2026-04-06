@@ -14,6 +14,12 @@ export default command({
   positionals,
   description: 'Deploy a preview environment',
   handler: async (ctx) => {
+    const [error, { config }] = await ctx.config.load()
+    if (error) {
+      ctx.fail(error.message)
+      return
+    }
+
     ctx.status.spinner.start(`Deploying preview from ${ctx.args.branch}`)
 
     if (ctx.args.clean) {
@@ -23,7 +29,7 @@ export default command({
     ctx.status.spinner.message('Uploading artifacts')
     ctx.status.spinner.message('Provisioning environment')
 
-    const deployUrl = `https://preview-${ctx.args.branch}.${ctx.config.org}.acme.dev`
+    const deployUrl = `https://preview-${ctx.args.branch}.${config.org}.acme.dev`
 
     ctx.status.spinner.stop('Preview deployed')
 
@@ -31,7 +37,7 @@ export default command({
       ctx.format.json({
         branch: ctx.args.branch,
         environment: 'preview',
-        org: ctx.config.org,
+        org: config.org,
         url: deployUrl,
       })
     )

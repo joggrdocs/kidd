@@ -43,7 +43,7 @@ const deploy = command({
 
 ### 2. Bootstrap the CLI
 
-`cli()` registers commands, parses arguments, loads config, runs middleware, and invokes the matched handler.
+`cli()` registers commands, parses arguments, runs middleware, and invokes the matched handler.
 
 ```ts
 import { cli } from '@kidd-cli/core'
@@ -54,7 +54,6 @@ cli({
   description: 'My CLI tool',
   commands: { deploy, migrate },
   middleware: [timing],
-  config: { schema: MyConfigSchema },
   help: { header: 'my-app - deploy and migrate with ease' },
 })
 ```
@@ -200,11 +199,11 @@ kidd init --config
 
 **Manual setup:**
 
-Create a config schema file with `ConfigType` to derive `CliConfig` from your Zod schema:
+Create a config schema file with `ConfigType` to derive `ConfigRegistry` from your Zod schema:
 
 ```ts
 // src/config.ts
-import type { ConfigType } from '@kidd-cli/core'
+import type { ConfigType } from '@kidd-cli/core/config'
 import { z } from 'zod'
 
 export const configSchema = z.object({
@@ -212,34 +211,46 @@ export const configSchema = z.object({
   region: z.string().default('us-east-1'),
 })
 
-declare module '@kidd-cli/core' {
-  interface CliConfig extends ConfigType<typeof configSchema> {}
+declare module '@kidd-cli/core/config' {
+  interface ConfigRegistry extends ConfigType<typeof configSchema> {}
 }
 ```
 
-Pass the schema to `cli()`:
+Register the config middleware in `cli()`:
 
 ```ts
 import { cli } from '@kidd-cli/core'
+import { config } from '@kidd-cli/core/config'
 import { configSchema } from './config.js'
 
 cli({
   name: 'my-app',
   version: '1.0.0',
-  config: { schema: configSchema },
+  middleware: [config({ schema: configSchema })],
   commands: import.meta.dirname + '/commands',
 })
 ```
 
-Commands now see fully typed `ctx.config`:
+Commands load config lazily via the `ctx.config` handle:
 
 ```ts
 export default command({
   async handler(ctx) {
-    ctx.config.apiUrl // string
-    ctx.config.region // string
+    const [error, result] = await ctx.config.load()
+    if (error) {
+      ctx.fail(error.message)
+      return
+    }
+    result.config.apiUrl // string
+    result.config.region // string
   },
 })
+```
+
+To load config eagerly (during middleware pass), use `eager: true`:
+
+```ts
+config({ schema: configSchema, eager: true })
 ```
 
 **Standalone config client:**

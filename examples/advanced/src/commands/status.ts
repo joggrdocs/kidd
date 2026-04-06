@@ -2,16 +2,22 @@ import { command } from '@kidd-cli/core'
 
 export default command({
   description: 'Show project status',
-  handler: (ctx) => {
+  handler: async (ctx) => {
+    const [error, result] = await ctx.config.load()
+    if (error) {
+      ctx.fail(error.message)
+      return
+    }
+
     const status = {
       cli: {
         name: ctx.meta.name,
         version: ctx.meta.version,
       },
       config: {
-        apiUrl: ctx.config.apiUrl,
-        environment: ctx.config.defaultEnvironment,
-        org: ctx.config.org,
+        apiUrl: result.config.apiUrl,
+        environment: result.config.defaultEnvironment,
+        org: result.config.org,
       },
     }
 

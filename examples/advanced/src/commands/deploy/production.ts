@@ -10,9 +10,11 @@ export default command({
   options,
   description: 'Deploy to production',
   handler: async (ctx) => {
+    const { config } = await ctx.config.load({ exitOnError: true })
+
     if (!ctx.args.force) {
       const confirmed = await ctx.prompts.confirm({
-        message: `Deploy ${ctx.args.tag} to production for ${ctx.config.org}?`,
+        message: `Deploy ${ctx.args.tag} to production for ${config.org}?`,
       })
 
       if (!confirmed) {
@@ -29,9 +31,9 @@ export default command({
     process.stdout.write(
       ctx.format.json({
         environment: 'production',
-        org: ctx.config.org,
+        org: config.org,
         tag: ctx.args.tag,
-        url: `https://${ctx.config.org}.acme.dev`,
+        url: `https://${config.org}.acme.dev`,
       })
     )
   },

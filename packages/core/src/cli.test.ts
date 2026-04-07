@@ -205,31 +205,10 @@ describe('context properties', () => {
     expect(handler).toHaveBeenCalledTimes(1)
     const ctx = handler.mock.calls[0]![0] as CommandContext
     expect(ctx).toHaveProperty('args')
-    expect(ctx).toHaveProperty('config')
     expect(ctx).toHaveProperty('format')
     expect(ctx).toHaveProperty('store')
     expect(ctx).toHaveProperty('fail')
     expect(ctx).toHaveProperty('meta')
-  })
-
-  it('provides empty config when no config option is given', async () => {
-    const handler = vi.fn()
-    const commands: CommandMap = {
-      run: command({
-        description: 'Run',
-        handler,
-      }),
-    }
-
-    setArgv('run')
-    await runTestCli({
-      commands,
-      name: 'test-cli',
-      version: '1.0.0',
-    })
-
-    const ctx = handler.mock.calls[0]![0] as CommandContext
-    expect(ctx.config).toEqual({})
   })
 })
 

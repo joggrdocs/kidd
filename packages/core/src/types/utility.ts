@@ -1,4 +1,4 @@
-import type { z } from 'zod'
+import type { ZodType } from 'zod'
 
 // ---------------------------------------------------------------------------
 // Generic type utilities
@@ -58,20 +58,4 @@ export type UnionToIntersection<U> = (U extends unknown ? (x: U) => void : never
 /**
  * Extract the inferred output type from a zod schema, or fall back to a plain object.
  */
-export type InferSchema<TSchema> = TSchema extends z.ZodType<infer TOutput> ? TOutput : AnyRecord
-
-/**
- * Derive the config type from a Zod schema for use in module augmentation.
- *
- * Use this in a `declare module` block to keep `CliConfig` in sync with
- * your Zod config schema, eliminating manual type duplication:
- *
- * ```ts
- * import type { ConfigType } from '@kidd-cli/core'
- *
- * declare module '@kidd-cli/core' {
- *   interface CliConfig extends ConfigType<typeof configSchema> {}
- * }
- * ```
- */
-export type ConfigType<TSchema extends z.ZodType> = z.infer<TSchema>
+export type InferSchema<TSchema> = TSchema extends ZodType<infer TOutput> ? TOutput : AnyRecord

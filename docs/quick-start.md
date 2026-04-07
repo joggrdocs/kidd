@@ -81,27 +81,28 @@ Every command now logs its execution time automatically.
 
 ## Add configuration
 
-kidd discovers and validates configuration files using Zod. Define a config schema and use module augmentation to make the types available on `ctx.config`:
+kidd discovers and validates configuration files using Zod. Define a config schema and use module augmentation to type the config handle:
 
 ```ts
 // src/config.ts
-import type { ConfigType } from '@kidd-cli/core'
+import type { ConfigType } from '@kidd-cli/core/config'
 import { z } from 'zod'
 
 export const configSchema = z.object({
   greeting: z.string().default('Hello'),
 })
 
-declare module '@kidd-cli/core' {
-  interface CliConfig extends ConfigType<typeof configSchema> {}
+declare module '@kidd-cli/core/config' {
+  interface ConfigRegistry extends ConfigType<typeof configSchema> {}
 }
 ```
 
-Pass the schema to `cli()`:
+Register the `config()` middleware in `cli()`:
 
 ```ts
 // src/index.ts
 import { cli } from '@kidd-cli/core'
+import { config } from '@kidd-cli/core/config'
 import greet from './commands/greet.js'
 import { timing } from './middleware/timing.js'
 import { configSchema } from './config.js'
@@ -109,13 +110,12 @@ import { configSchema } from './config.js'
 cli({
   name: 'my-app',
   version: '0.1.0',
-  config: { schema: configSchema },
-  middleware: [timing],
+  middleware: [config({ schema: configSchema }), timing],
   commands: { greet },
 })
 ```
 
-Now update the command to read from config:
+Now update the command to load config lazily via the handle:
 
 ```ts
 // src/commands/greet.ts
@@ -128,12 +128,17 @@ export default command({
     name: z.string().describe('Who to greet'),
   }),
   async handler(ctx) {
-    ctx.logger.success(`${ctx.config.greeting}, ${ctx.args.name}!`)
+    const [error, result] = await ctx.config.load()
+    if (error) {
+      ctx.fail(error.message)
+      return
+    }
+    ctx.logger.success(`${result.config.greeting}, ${ctx.args.name}!`)
   },
 })
 ```
 
-kidd will look for `my-app.config.ts`, `my-app.config.js`, `.my-apprc.json`, and other common config file patterns -- all validated against your Zod schema at startup.
+kidd will look for `.my-app.jsonc`, `.my-app.json`, and `.my-app.yaml` -- all validated against your Zod schema when `load()` is called.
 
 ## Build for production
 

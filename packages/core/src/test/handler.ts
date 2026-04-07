@@ -16,11 +16,11 @@ import type { HandlerResult, RunHandlerOptions } from './types.js'
  * @param options - The command and optional test context overrides.
  * @returns A HandlerResult with the context, captured stdout, and any error.
  */
-export async function runHandler<
-  TArgs extends AnyRecord = AnyRecord,
-  TConfig extends AnyRecord = AnyRecord,
->({ cmd, overrides }: RunHandlerOptions<TArgs, TConfig>): Promise<HandlerResult<TArgs, TConfig>> {
-  const { ctx, stdout } = createTestContext<TArgs, TConfig>(overrides)
+export async function runHandler<TArgs extends AnyRecord = AnyRecord>({
+  cmd,
+  overrides,
+}: RunHandlerOptions<TArgs>): Promise<HandlerResult<TArgs>> {
+  const { ctx, stdout } = createTestContext<TArgs>(overrides)
 
   if (!cmd.handler) {
     return { ctx, error: undefined, stdout }

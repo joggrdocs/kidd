@@ -1,5 +1,7 @@
 import { cli } from '@kidd-cli/core'
-import type { ConfigType, DisplayConfig } from '@kidd-cli/core'
+import type { DisplayConfig } from '@kidd-cli/core'
+import { config } from '@kidd-cli/core/config'
+import type { ConfigType } from '@kidd-cli/core/config'
 import { http } from '@kidd-cli/core/http'
 import type { HttpClient } from '@kidd-cli/core/http'
 import { z } from 'zod'
@@ -17,8 +19,10 @@ declare module '@kidd-cli/core' {
   interface CommandContext {
     readonly api: HttpClient
   }
+}
 
-  interface CliConfig extends ConfigType<typeof configSchema> {}
+declare module '@kidd-cli/core/config' {
+  interface ConfigRegistry extends ConfigType<typeof configSchema> {}
 }
 
 const display: DisplayConfig = {
@@ -51,9 +55,6 @@ const display: DisplayConfig = {
 
 cli({
   commands: `${import.meta.dirname}/commands`,
-  config: {
-    schema: configSchema,
-  },
   description: 'Acme platform CLI',
   display,
   help: {
@@ -61,12 +62,19 @@ cli({
     order: ['deploy', 'status', 'ping', 'whoami'],
   },
   middleware: [
+    config({ schema: configSchema, eager: true }),
     http({
       baseUrl: 'https://api.acme.dev',
-      headers: (ctx) => ({
-        'X-Environment': String(ctx.config.defaultEnvironment),
-        'X-Org': String(ctx.config.org),
-      }),
+      headers: async (ctx) => {
+        const result = await ctx.config.load()
+        if (!result) {
+          return {}
+        }
+        return {
+          'X-Environment': String(result.config.defaultEnvironment),
+          'X-Org': String(result.config.org),
+        }
+      },
       namespace: 'api',
     }),
     timing,

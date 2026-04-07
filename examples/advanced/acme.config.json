@@ -1,0 +1,5 @@
+{
+  "apiUrl": "https://api.acme.dev",
+  "defaultEnvironment": "staging",
+  "org": "acme"
+}

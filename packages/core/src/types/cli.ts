@@ -1,5 +1,3 @@
-import type { z } from 'zod'
-
 import type { DisplayConfig, Log, Prompts, Status } from '@/context/types.js'
 
 import type { CommandMap, CommandsConfig } from './command.js'
@@ -13,20 +11,6 @@ import type { Middleware } from './middleware.js'
  * Global args merged into every ctx.args.
  */
 export interface KiddArgs {}
-
-/**
- * Global config merged into every ctx.config.
- *
- * Extend via module augmentation with {@link ConfigType} to derive the
- * shape from your Zod schema:
- *
- * ```ts
- * declare module '@kidd-cli/core' {
- *   interface CliConfig extends ConfigType<typeof configSchema> {}
- * }
- * ```
- */
-export interface CliConfig {}
 
 /**
  * Global store keys merged into every ctx.store.
@@ -62,20 +46,6 @@ export interface ResolvedDirs {
 }
 
 /**
- * Config loading options nested inside {@link CliOptions}.
- */
-export interface CliConfigOptions<TSchema extends z.ZodType = z.ZodType> {
-  /**
-   * Zod schema to validate the loaded config. Infers `ctx.config` type.
-   */
-  readonly schema?: TSchema
-  /**
-   * Override the config file name. Default: derived from `name` in CliOptions.
-   */
-  readonly name?: string
-}
-
-/**
  * Help output customization options.
  *
  * Used at both the CLI level and per-command level to control how help
@@ -103,7 +73,7 @@ export interface HelpOptions {
 /**
  * Options passed to `cli()`.
  */
-export interface CliOptions<TSchema extends z.ZodType = z.ZodType> {
+export interface CliOptions {
   /**
    * CLI name. Used for help text and config file discovery.
    */
@@ -120,10 +90,6 @@ export interface CliOptions<TSchema extends z.ZodType = z.ZodType> {
    * Human-readable description shown in help text.
    */
   readonly description?: string
-  /**
-   * Runtime config options (schema, config file name override).
-   */
-  readonly config?: CliConfigOptions<TSchema>
   /**
    * Middleware stack. Executed in order before each command handler.
    */
@@ -179,6 +145,4 @@ export interface CliOptions<TSchema extends z.ZodType = z.ZodType> {
 /**
  * Signature of the `cli()` entry point function.
  */
-export type CliFn = <TSchema extends z.ZodType = z.ZodType>(
-  options: CliOptions<TSchema>
-) => Promise<void>
+export type CliFn = (options: CliOptions) => Promise<void>

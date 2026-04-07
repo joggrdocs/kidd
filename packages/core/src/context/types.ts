@@ -7,7 +7,6 @@ import type {
   AnyRecord,
   DeepReadonly,
   KiddArgs,
-  CliConfig,
   KiddStore,
   Merge,
   ResolvedDirs,
@@ -717,39 +716,34 @@ export type ImperativeContextKeys = 'colors' | 'fail' | 'format' | 'prompts'
  * Context subset available inside `screen()` components via `useScreenContext()`.
  *
  * Retains `log` and `status` (swapped with React-backed implementations),
- * data properties (`args`, `config`, `meta`, `store`), and any
- * middleware-decorated properties (`auth`, `http`, `report`, etc.).
+ * data properties (`args`, `meta`, `store`), and any
+ * middleware-decorated properties (`auth`, `http`, `report`, `config`, etc.).
  *
  * Omits `colors`, `fail`, `format`, and `prompts` which have no
  * screen-safe equivalent.
  *
  * @typeParam TArgs - Parsed args type.
- * @typeParam TConfig - Config type.
  */
-export type ScreenContext<
-  TArgs extends AnyRecord = AnyRecord,
-  TConfig extends AnyRecord = AnyRecord,
-> = Omit<CommandContext<TArgs, TConfig>, ImperativeContextKeys>
+export type ScreenContext<TArgs extends AnyRecord = AnyRecord> = Omit<
+  CommandContext<TArgs>,
+  ImperativeContextKeys
+>
 
 /**
  * The context object threaded through every handler, middleware, and hook.
  *
- * Contains framework-level primitives: parsed args, validated config, CLI
- * metadata, a key-value store, formatting helpers, logging, prompts,
- * status indicators, and a fail function. Additional capabilities (e.g.
- * `report`, `auth`) are added by middleware via `decorateContext`.
+ * Contains framework-level primitives: parsed args, CLI metadata, a key-value
+ * store, formatting helpers, logging, prompts, status indicators, and a fail
+ * function. Additional capabilities (e.g. `config`, `report`, `auth`) are
+ * added by middleware via `decorateContext`.
  *
- * All data properties (args, config, meta) are deeply readonly — attempting
- * to mutate any nested property produces a compile-time error. Use `ctx.store`
- * for mutable state that flows between middleware and handlers.
+ * All data properties (args, meta) are deeply readonly — attempting to mutate
+ * any nested property produces a compile-time error. Use `ctx.store` for
+ * mutable state that flows between middleware and handlers.
  *
  * @typeParam TArgs - Parsed args type (inferred from the command's zod/yargs args definition).
- * @typeParam TConfig - Config type (inferred from the zod schema passed to `cli({ config: { schema } })`).
  */
-export interface CommandContext<
-  TArgs extends AnyRecord = AnyRecord,
-  TConfig extends AnyRecord = AnyRecord,
-> {
+export interface CommandContext<TArgs extends AnyRecord = AnyRecord> {
   /**
    * Parsed and validated args for this command. Deeply immutable.
    */
@@ -760,11 +754,6 @@ export interface CommandContext<
    * values, diagnostic output, and other terminal text.
    */
   readonly colors: Colors
-
-  /**
-   * Runtime config validated against the zod schema. Deeply immutable.
-   */
-  readonly config: DeepReadonly<Merge<CliConfig, TConfig>>
 
   /**
    * Dot directory manager for reading/writing files in the CLI's

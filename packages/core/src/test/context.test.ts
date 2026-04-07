@@ -24,11 +24,6 @@ describe('test context factory', () => {
     expect(ctx.args.name).toBe('Alice')
   })
 
-  it('should accept config overrides', () => {
-    const { ctx } = createTestContext({ config: { debug: true } })
-    expect(ctx.config.debug).toBeTruthy()
-  })
-
   it('should accept meta overrides', () => {
     const { ctx } = createTestContext({
       meta: { command: ['deploy'], name: 'my-cli', version: '2.0.0' },

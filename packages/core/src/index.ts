@@ -8,10 +8,8 @@ export { defineConfig } from '@kidd-cli/config'
 export { render, renderToString, screen, useScreenContext } from './screen/index.js'
 export type { ScreenDef, ScreenExit } from './screen/index.js'
 export type {
-  CliConfig,
   Command,
   CommandsConfig,
-  ConfigType,
   HelpOptions,
   MiddlewareEnv,
   Resolvable,

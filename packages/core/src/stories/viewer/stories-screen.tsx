@@ -145,7 +145,8 @@ function StoriesViewer({ include }: { readonly include?: string }): ReactElement
             <Text color="yellow">{errors.length} file(s) failed to import:</Text>
             {errors.map((e) => (
               <Text key={e.filePath} dimColor>
-                {'  '}{e.filePath}: {e.message}
+                {'  '}
+                {e.filePath}: {e.message}
               </Text>
             ))}
           </Box>

@@ -10,11 +10,12 @@ export default command({
   options,
   description: 'Deploy to production',
   handler: async (ctx) => {
-    const [error, { config }] = await ctx.config.load()
+    const [error, result] = await ctx.config.load()
     if (error) {
       ctx.fail(error.message)
       return
     }
+    const { config } = result
 
     if (!ctx.args.force) {
       const confirmed = await ctx.prompts.confirm({

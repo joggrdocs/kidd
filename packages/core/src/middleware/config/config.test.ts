@@ -5,11 +5,10 @@ import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { z } from 'zod'
 
-import { decorateContext } from '@/context/decorate.js'
 import { createContext } from '@/context/index.js'
 
 import { config } from './config.js'
-import type { ConfigHandle, ConfigLoadCallResult } from './types.js'
+import type { ConfigHandle } from './types.js'
 
 const mockSpinnerInstance = vi.hoisted(() => ({
   message: vi.fn(),
@@ -316,23 +315,46 @@ describe('config middleware', () => {
     })
   })
 
-  describe('frozen data', () => {
-    it('should return deeply frozen config data', async () => {
+  describe('empty config validation', () => {
+    it('should validate empty config against schema when no file exists', async () => {
       const tmpDir = createTmpDir()
-      writeConfig(tmpDir, validConfig)
       process.chdir(tmpDir)
 
       const ctx = createTestContext()
-      const mw = config({ schema })
+      const strictSchema = z.object({ name: z.string() })
+      const mw = config({ schema: strictSchema })
       await mw.handler(
         ctx,
         vi.fn(() => Promise.resolve())
       )
 
-      const handle = (ctx as unknown as Record<string, unknown>).config as ConfigHandle<TestConfig>
-      const [, result] = await handle.load()
+      const handle = (ctx as unknown as Record<string, unknown>).config as ConfigHandle<unknown>
+      const [error] = await handle.load()
 
-      expect(Object.isFrozen(result!.config)).toBeTruthy()
+      expect(error).not.toBeNull()
+
+      rmSync(tmpDir, { force: true, recursive: true })
+    })
+
+    it('should apply schema defaults when no file exists', async () => {
+      const tmpDir = createTmpDir()
+      process.chdir(tmpDir)
+
+      const ctx = createTestContext()
+      const defaultSchema = z.object({ port: z.number().default(3000) })
+      const mw = config({ schema: defaultSchema })
+      await mw.handler(
+        ctx,
+        vi.fn(() => Promise.resolve())
+      )
+
+      const handle = (ctx as unknown as Record<string, unknown>).config as ConfigHandle<{
+        port: number
+      }>
+      const [error, result] = await handle.load()
+
+      expect(error).toBeNull()
+      expect(result!.config.port).toBe(3000)
 
       rmSync(tmpDir, { force: true, recursive: true })
     })

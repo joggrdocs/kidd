@@ -1,9 +1,10 @@
 import { join } from 'node:path'
 
-import { err, isPlainObject, match, merge, ok } from '@kidd-cli/utils/fp'
+import { P, err, isPlainObject, match, merge, ok } from '@kidd-cli/utils/fp'
 import type { Result } from '@kidd-cli/utils/fp'
 import { validate } from '@kidd-cli/utils/validate'
 import type { ZodTypeAny } from 'zod'
+import { z } from 'zod'
 
 import { decorateContext } from '@/context/decorate.js'
 import type { CommandContext } from '@/context/types.js'
@@ -21,6 +22,14 @@ import type {
   ConfigLoadCallResult,
   ConfigMiddlewareOptions,
 } from './types.js'
+
+/**
+ * Permissive schema used when loading raw layer data without per-layer validation.
+ * Layers are validated only after merging.
+ *
+ * @private
+ */
+const RAW_SCHEMA = z.object({}).passthrough()
 
 /**
  * Create a config middleware that decorates `ctx.config` with a lazy config handle.
@@ -80,7 +89,7 @@ interface ConfigHandleParams<TSchema extends ZodTypeAny> {
  *
  * @private
  * @param params - The config name, context, and middleware options.
- * @returns A frozen {@link ConfigHandle} instance.
+ * @returns A {@link ConfigHandle} instance.
  */
 function createConfigHandle<TSchema extends ZodTypeAny>(
   params: ConfigHandleParams<TSchema>
@@ -107,13 +116,7 @@ function createConfigHandle<TSchema extends ZodTypeAny>(
     }
 
     const result = await match(callOptions)
-      .with({ layer: 'global' }, (opts) =>
-        loadNamedLayer(configName, schema, opts.layer, ctx, options)
-      )
-      .with({ layer: 'project' }, (opts) =>
-        loadNamedLayer(configName, schema, opts.layer, ctx, options)
-      )
-      .with({ layer: 'local' }, (opts) =>
+      .with({ layer: P.union('global', 'project', 'local') }, (opts) =>
         loadNamedLayer(configName, schema, opts.layer, ctx, options)
       )
       .with({ layers: true }, () => loadLayered(configName, schema, ctx, options))
@@ -127,13 +130,14 @@ function createConfigHandle<TSchema extends ZodTypeAny>(
     return result
   }
 
-  return Object.freeze({ load })
+  return { load }
 }
 
 /**
  * Load config from a single directory (cwd) and validate.
  *
- * Falls back to an empty config when no config file is found.
+ * When no config file is found, validates an empty object against the schema
+ * to apply defaults and catch missing required fields.
  *
  * @private
  * @param configName - The config file base name.
@@ -152,17 +156,21 @@ async function loadSingle(
   }
 
   if (!result) {
-    return ok({ config: Object.freeze({}) })
+    return validateEmpty({}, schema)
   }
 
-  return ok({ config: Object.freeze(result.config as Record<string, unknown>) })
+  return ok({ config: result.config as Record<string, unknown> })
 }
 
 /**
  * Load config from all three layer directories, merge, validate, and return.
  *
- * Layers are merged with local-wins precedence. Per-layer errors are captured
- * in layer metadata rather than halting the entire operation.
+ * Layers are loaded without per-layer schema validation so that partial configs
+ * (valid only after composition) can participate in the merge. The merged result
+ * is validated once against the full schema.
+ *
+ * Per-layer load errors are captured in layer metadata rather than halting
+ * the entire operation.
  *
  * @private
  * @param configName - The config file base name.
@@ -186,15 +194,30 @@ async function loadLayered<TSchema extends ZodTypeAny>(
     { dir: join(process.cwd(), localDirName), name: 'local' },
   ]
 
-  const client = createConfigClient({ name: configName, schema })
-  const layerResults = await Promise.all(layerDirs.map((entry) => resolveLayer(client.load, entry)))
+  const rawClient = createConfigClient({ name: configName, schema: RAW_SCHEMA })
+  const layerResults = await Promise.all(
+    layerDirs.map((entry) => resolveLayer(rawClient.load, entry))
+  )
 
   const foundConfigs = layerResults
     .filter((layer) => layer.config !== null)
     .map((layer) => layer.config as Record<string, unknown>)
 
   if (foundConfigs.length === 0) {
-    return ok({ config: Object.freeze({}), layers: Object.freeze(layerResults) })
+    const [validationError, validated] = validate({
+      createError: ({ message }) => new Error(`Invalid merged config:\n${message}`),
+      params: {},
+      schema,
+    })
+
+    if (validationError) {
+      return err(validationError)
+    }
+
+    return ok({
+      config: validated as Record<string, unknown>,
+      layers: layerResults,
+    })
   }
 
   const merged = foundConfigs.reduce(
@@ -213,8 +236,8 @@ async function loadLayered<TSchema extends ZodTypeAny>(
   }
 
   return ok({
-    config: Object.freeze(validated as Record<string, unknown>),
-    layers: Object.freeze(layerResults),
+    config: validated as Record<string, unknown>,
+    layers: layerResults,
   })
 }
 
@@ -253,10 +276,37 @@ async function loadNamedLayer<TSchema extends ZodTypeAny>(
   }
 
   if (!result) {
-    return ok({ config: Object.freeze({}) })
+    return validateEmpty({}, schema)
   }
 
-  return ok({ config: Object.freeze(result.config as Record<string, unknown>) })
+  return ok({ config: result.config as Record<string, unknown> })
+}
+
+/**
+ * Validate an empty object against a schema to apply defaults and surface missing required fields.
+ *
+ * Used when no config file is found.
+ *
+ * @private
+ * @param data - The raw data to validate.
+ * @param schema - Zod schema for validation.
+ * @returns A Result tuple with the validated config.
+ */
+function validateEmpty(
+  data: Record<string, unknown>,
+  schema: ZodTypeAny
+): Result<ConfigLoadCallResult<unknown>> {
+  const [validationError, validated] = validate({
+    createError: ({ message }) => new Error(`Invalid config:\n${message}`),
+    params: data,
+    schema,
+  })
+
+  if (validationError) {
+    return err(validationError)
+  }
+
+  return ok({ config: validated as Record<string, unknown> })
 }
 
 /**

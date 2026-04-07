@@ -56,7 +56,7 @@ export interface ConfigLoadCallOptions {
  * @typeParam TConfig - The validated config type.
  */
 export interface ConfigLoadCallResult<TConfig> {
-  /** Validated config data. Deeply frozen. */
+  /** Validated config data. Deeply readonly. */
   readonly config: TConfig
   /** Per-layer metadata. Only present when `{ layers: true }` was passed. */
   readonly layers?: readonly ConfigLayer[]

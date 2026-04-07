@@ -1,4 +1,3 @@
-import type { Result } from '@kidd-cli/utils/fp'
 import type { ZodType, ZodTypeAny, infer as ZodInfer } from 'zod'
 
 import type { ConfigFormat } from '@/lib/config/types.js'
@@ -34,8 +33,7 @@ export interface ConfigLayer {
 /**
  * Options for `ctx.config.load()`.
  *
- * Controls how config is resolved: single cwd (default), layered merge,
- * or a specific named layer.
+ * Controls how config is resolved and how errors are handled.
  */
 export interface ConfigLoadCallOptions {
   /**
@@ -48,6 +46,11 @@ export interface ConfigLoadCallOptions {
    * Mutually exclusive with `layers`.
    */
   readonly layer?: ConfigLayerName
+  /**
+   * When true, calls `ctx.fail()` on load/validation errors instead of
+   * returning null. Guarantees a non-null return value.
+   */
+  readonly exitOnError?: boolean
 }
 
 /**
@@ -75,10 +78,18 @@ export interface ConfigHandle<TConfig> {
   /**
    * Load and validate config from disk, or return the cached result.
    *
-   * @param options - Controls resolution mode (single, layered, or named layer).
-   * @returns A Result tuple with the load result or an error.
+   * With `exitOnError: true`, calls `ctx.fail()` on error and guarantees
+   * a non-null return. Without it, returns `null` on error.
+   *
+   * @param options - Controls resolution mode and error handling.
+   * @returns The load result, or null on error (unless `exitOnError` is set).
    */
-  readonly load: (options?: ConfigLoadCallOptions) => Promise<Result<ConfigLoadCallResult<TConfig>>>
+  readonly load: {
+    (options: ConfigLoadCallOptions & { readonly exitOnError: true }): Promise<
+      ConfigLoadCallResult<TConfig>
+    >
+    (options?: ConfigLoadCallOptions): Promise<ConfigLoadCallResult<TConfig> | null>
+  }
 }
 
 // ---------------------------------------------------------------------------

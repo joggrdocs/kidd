@@ -14,12 +14,7 @@ export default command({
   positionals,
   description: 'Deploy a preview environment',
   handler: async (ctx) => {
-    const [error, result] = await ctx.config.load()
-    if (error) {
-      ctx.fail(error.message)
-      return
-    }
-    const { config } = result
+    const { config } = await ctx.config.load({ exitOnError: true })
 
     ctx.status.spinner.start(`Deploying preview from ${ctx.args.branch}`)
 

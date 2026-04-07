@@ -52,13 +52,9 @@ export function config<TSchema extends ZodTypeAny>(
 
     if (options.eager === true) {
       const loadOptions = match(options.layers)
-        .with(true, (): ConfigLoadCallOptions => ({ layers: true }))
-        .otherwise((): undefined => undefined)
-      const [loadError] = await handle.load(loadOptions)
-
-      if (loadError) {
-        ctx.fail(`Failed to load config: ${loadError.message}`)
-      }
+        .with(true, (): ConfigLoadCallOptions => ({ exitOnError: true, layers: true }))
+        .otherwise((): ConfigLoadCallOptions => ({ exitOnError: true }))
+      await handle.load(loadOptions)
     }
 
     return next()
@@ -98,39 +94,45 @@ function createConfigHandle<TSchema extends ZodTypeAny>(
   const { schema } = options
 
   /* eslint-disable -- closure-scoped mutable cache is intentional */
-  let cached: Result<ConfigLoadCallResult<unknown>> | null = null
+  let cached: ConfigLoadCallResult<unknown> | null = null
   /* eslint-enable */
 
   /**
    * Load config based on the provided options.
    *
+   * Returns the config result or null on error. When `exitOnError` is true,
+   * calls `ctx.fail()` on error instead of returning null.
+   *
    * @private
-   * @param callOptions - Resolution mode options.
-   * @returns A Result tuple with the load result or an error.
+   * @param callOptions - Resolution mode and error handling options.
+   * @returns The load result, or null on error.
    */
   async function load(
     callOptions?: ConfigLoadCallOptions
-  ): Promise<Result<ConfigLoadCallResult<unknown>>> {
+  ): Promise<ConfigLoadCallResult<unknown> | null> {
     if (cached !== null) {
       return cached
     }
 
-    const result = await match(callOptions)
+    const [resultError, result] = await match(callOptions)
       .with({ layer: P.union('global', 'project', 'local') }, (opts) =>
         loadNamedLayer(configName, schema, opts.layer, ctx, options)
       )
       .with({ layers: true }, () => loadLayered(configName, schema, ctx, options))
       .otherwise(() => loadSingle(configName, schema))
 
-    const [resultError] = result
-    if (resultError === null) {
-      cached = result
+    if (resultError) {
+      if (callOptions?.exitOnError === true) {
+        ctx.fail(`Failed to load config: ${resultError.message}`)
+      }
+      return null
     }
 
+    cached = result
     return result
   }
 
-  return { load }
+  return { load } as ConfigHandle<unknown>
 }
 
 /**

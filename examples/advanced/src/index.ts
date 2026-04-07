@@ -66,8 +66,8 @@ cli({
     http({
       baseUrl: 'https://api.acme.dev',
       headers: async (ctx) => {
-        const [error, result] = await ctx.config.load()
-        if (error) {
+        const result = await ctx.config.load()
+        if (!result) {
           return {}
         }
         return {

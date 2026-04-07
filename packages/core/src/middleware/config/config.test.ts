@@ -2,7 +2,7 @@ import { mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from 'nod
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { z } from 'zod'
 
 import { createContext } from '@/context/index.js'
@@ -63,6 +63,10 @@ function writeConfig(dir: string, data: Record<string, unknown>): void {
   writeFileSync(join(dir, 'my-cli.config.json'), JSON.stringify(data, null, 2))
 }
 
+function getHandle<T = TestConfig>(ctx: ReturnType<typeof createContext>): ConfigHandle<T> {
+  return (ctx as unknown as Record<string, unknown>).config as ConfigHandle<T>
+}
+
 describe('config middleware', () => {
   const originalCwd = process.cwd()
 
@@ -82,7 +86,7 @@ describe('config middleware', () => {
 
       await mw.handler(ctx, next)
 
-      const handle = (ctx as unknown as Record<string, unknown>).config as ConfigHandle<TestConfig>
+      const handle = getHandle(ctx)
       expect(handle).toBeDefined()
       expect(typeof handle.load).toBe('function')
       expect(next).toHaveBeenCalledOnce()
@@ -102,33 +106,69 @@ describe('config middleware', () => {
         vi.fn(() => Promise.resolve())
       )
 
-      const handle = (ctx as unknown as Record<string, unknown>).config as ConfigHandle<TestConfig>
-      const [error, result] = await handle.load()
+      const result = await getHandle(ctx).load()
 
-      expect(error).toBeNull()
-      expect(result).toBeDefined()
+      expect(result).not.toBeNull()
       expect(result!.config).toMatchObject({ name: 'test-app', port: 8080 })
 
       rmSync(tmpDir, { force: true, recursive: true })
     })
 
-    it('should return empty config when no config file exists', async () => {
+    it('should return null when config validation fails', async () => {
       const tmpDir = createTmpDir()
+      writeConfig(tmpDir, { invalid: true })
       process.chdir(tmpDir)
 
       const ctx = createTestContext()
-      const mw = config({ schema: z.object({ name: z.string().optional() }) })
+      const mw = config({ schema })
       await mw.handler(
         ctx,
         vi.fn(() => Promise.resolve())
       )
 
-      const handle = (ctx as unknown as Record<string, unknown>).config as ConfigHandle<unknown>
-      const [error, result] = await handle.load()
+      const result = await getHandle(ctx).load()
 
-      expect(error).toBeNull()
-      expect(result).toBeDefined()
-      expect(result!.config).toEqual({})
+      expect(result).toBeNull()
+
+      rmSync(tmpDir, { force: true, recursive: true })
+    })
+  })
+
+  describe('exitOnError', () => {
+    it('should return config directly with exitOnError', async () => {
+      const tmpDir = createTmpDir()
+      writeConfig(tmpDir, validConfig)
+      process.chdir(tmpDir)
+
+      const ctx = createTestContext()
+      const mw = config({ schema })
+      await mw.handler(
+        ctx,
+        vi.fn(() => Promise.resolve())
+      )
+
+      const result = await getHandle(ctx).load({ exitOnError: true })
+
+      expect(result.config).toMatchObject({ name: 'test-app', port: 8080 })
+
+      rmSync(tmpDir, { force: true, recursive: true })
+    })
+
+    it('should call ctx.fail() when exitOnError and load fails', async () => {
+      const tmpDir = createTmpDir()
+      writeConfig(tmpDir, { invalid: true })
+      process.chdir(tmpDir)
+
+      const ctx = createTestContext()
+      const mw = config({ schema })
+      await mw.handler(
+        ctx,
+        vi.fn(() => Promise.resolve())
+      )
+
+      await expect(getHandle(ctx).load({ exitOnError: true })).rejects.toThrow(
+        'Failed to load config'
+      )
 
       rmSync(tmpDir, { force: true, recursive: true })
     })
@@ -147,11 +187,33 @@ describe('config middleware', () => {
         vi.fn(() => Promise.resolve())
       )
 
-      const handle = (ctx as unknown as Record<string, unknown>).config as ConfigHandle<TestConfig>
-      const [, first] = await handle.load()
-      const [, second] = await handle.load()
+      const handle = getHandle(ctx)
+      const first = await handle.load()
+      const second = await handle.load()
 
       expect(first).toBe(second)
+
+      rmSync(tmpDir, { force: true, recursive: true })
+    })
+
+    it('should not cache null results', async () => {
+      const tmpDir = createTmpDir()
+      writeConfig(tmpDir, { invalid: true })
+      process.chdir(tmpDir)
+
+      const ctx = createTestContext()
+      const mw = config({ schema })
+      await mw.handler(
+        ctx,
+        vi.fn(() => Promise.resolve())
+      )
+
+      const handle = getHandle(ctx)
+      const first = await handle.load()
+      expect(first).toBeNull()
+
+      const second = await handle.load()
+      expect(second).toBeNull()
 
       rmSync(tmpDir, { force: true, recursive: true })
     })
@@ -170,10 +232,9 @@ describe('config middleware', () => {
         vi.fn(() => Promise.resolve())
       )
 
-      const handle = (ctx as unknown as Record<string, unknown>).config as ConfigHandle<TestConfig>
-      const [error, result] = await handle.load()
+      const result = await getHandle(ctx).load()
 
-      expect(error).toBeNull()
+      expect(result).not.toBeNull()
       expect(result!.config).toMatchObject({ name: 'test-app', port: 8080 })
 
       rmSync(tmpDir, { force: true, recursive: true })
@@ -187,7 +248,6 @@ describe('config middleware', () => {
       const ctx = createTestContext()
       const mw = config({ eager: true, schema })
 
-      // Ctx.fail() throws a ContextError, so we expect it to propagate
       await expect(
         mw.handler(
           ctx,
@@ -212,35 +272,12 @@ describe('config middleware', () => {
         vi.fn(() => Promise.resolve())
       )
 
-      const handle = (ctx as unknown as Record<string, unknown>).config as ConfigHandle<TestConfig>
-      const [error, result] = await handle.load({ layers: true })
+      const result = await getHandle(ctx).load({ layers: true })
 
-      expect(error).toBeNull()
-      expect(result).toBeDefined()
+      expect(result).not.toBeNull()
       expect(result!.layers).toBeDefined()
       expect(result!.layers).toHaveLength(3)
       expect(result!.layers!.map((l) => l.name)).toEqual(['global', 'project', 'local'])
-
-      rmSync(tmpDir, { force: true, recursive: true })
-    })
-
-    it('should return empty config when no layers have config files', async () => {
-      const tmpDir = createTmpDir()
-      process.chdir(tmpDir)
-
-      const ctx = createTestContext()
-      const mw = config({ schema: z.object({ name: z.string().optional() }) })
-      await mw.handler(
-        ctx,
-        vi.fn(() => Promise.resolve())
-      )
-
-      const handle = (ctx as unknown as Record<string, unknown>).config as ConfigHandle<unknown>
-      const [error, result] = await handle.load({ layers: true })
-
-      expect(error).toBeNull()
-      expect(result!.config).toEqual({})
-      expect(result!.layers).toBeDefined()
 
       rmSync(tmpDir, { force: true, recursive: true })
     })
@@ -259,64 +296,17 @@ describe('config middleware', () => {
         vi.fn(() => Promise.resolve())
       )
 
-      const handle = (ctx as unknown as Record<string, unknown>).config as ConfigHandle<TestConfig>
-      const [error, result] = await handle.load({ layer: 'project' })
+      const result = await getHandle(ctx).load({ layer: 'project' })
 
-      expect(error).toBeNull()
+      expect(result).not.toBeNull()
       expect(result!.config).toMatchObject({ name: 'test-app', port: 8080 })
 
       rmSync(tmpDir, { force: true, recursive: true })
     })
   })
 
-  describe('error handling', () => {
-    it('should return error result for invalid config', async () => {
-      const tmpDir = createTmpDir()
-      writeConfig(tmpDir, { invalid: true })
-      process.chdir(tmpDir)
-
-      const ctx = createTestContext()
-      const mw = config({ schema })
-      await mw.handler(
-        ctx,
-        vi.fn(() => Promise.resolve())
-      )
-
-      const handle = (ctx as unknown as Record<string, unknown>).config as ConfigHandle<TestConfig>
-      const [error] = await handle.load()
-
-      expect(error).toBeDefined()
-      expect(error).not.toBeNull()
-
-      rmSync(tmpDir, { force: true, recursive: true })
-    })
-
-    it('should not cache error results', async () => {
-      const tmpDir = createTmpDir()
-      writeConfig(tmpDir, { invalid: true })
-      process.chdir(tmpDir)
-
-      const ctx = createTestContext()
-      const mw = config({ schema })
-      await mw.handler(
-        ctx,
-        vi.fn(() => Promise.resolve())
-      )
-
-      const handle = (ctx as unknown as Record<string, unknown>).config as ConfigHandle<TestConfig>
-      const [firstError] = await handle.load()
-      expect(firstError).not.toBeNull()
-
-      // Second call should also attempt to load (not return a cached success)
-      const [secondError] = await handle.load()
-      expect(secondError).not.toBeNull()
-
-      rmSync(tmpDir, { force: true, recursive: true })
-    })
-  })
-
   describe('empty config validation', () => {
-    it('should validate empty config against schema when no file exists', async () => {
+    it('should return null when empty config fails schema validation', async () => {
       const tmpDir = createTmpDir()
       process.chdir(tmpDir)
 
@@ -328,10 +318,9 @@ describe('config middleware', () => {
         vi.fn(() => Promise.resolve())
       )
 
-      const handle = (ctx as unknown as Record<string, unknown>).config as ConfigHandle<unknown>
-      const [error] = await handle.load()
+      const result = await getHandle<unknown>(ctx).load()
 
-      expect(error).not.toBeNull()
+      expect(result).toBeNull()
 
       rmSync(tmpDir, { force: true, recursive: true })
     })
@@ -348,12 +337,9 @@ describe('config middleware', () => {
         vi.fn(() => Promise.resolve())
       )
 
-      const handle = (ctx as unknown as Record<string, unknown>).config as ConfigHandle<{
-        port: number
-      }>
-      const [error, result] = await handle.load()
+      const result = await getHandle<{ port: number }>(ctx).load()
 
-      expect(error).toBeNull()
+      expect(result).not.toBeNull()
       expect(result!.config.port).toBe(3000)
 
       rmSync(tmpDir, { force: true, recursive: true })

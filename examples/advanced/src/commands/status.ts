@@ -3,11 +3,7 @@ import { command } from '@kidd-cli/core'
 export default command({
   description: 'Show project status',
   handler: async (ctx) => {
-    const [error, result] = await ctx.config.load()
-    if (error) {
-      ctx.fail(error.message)
-      return
-    }
+    const { config } = await ctx.config.load({ exitOnError: true })
 
     const status = {
       cli: {
@@ -15,9 +11,9 @@ export default command({
         version: ctx.meta.version,
       },
       config: {
-        apiUrl: result.config.apiUrl,
-        environment: result.config.defaultEnvironment,
-        org: result.config.org,
+        apiUrl: config.apiUrl,
+        environment: config.defaultEnvironment,
+        org: config.org,
       },
     }
 

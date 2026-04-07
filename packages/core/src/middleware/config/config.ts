@@ -94,14 +94,15 @@ function createConfigHandle<TSchema extends ZodTypeAny>(
   const { schema } = options
 
   /* eslint-disable -- closure-scoped mutable cache is intentional */
-  let cached: ConfigLoadCallResult<unknown> | null = null
+  const cache = new Map<string, ConfigLoadCallResult<unknown>>()
   /* eslint-enable */
 
   /**
    * Load config based on the provided options.
    *
    * Returns the config result or null on error. When `exitOnError` is true,
-   * calls `ctx.fail()` on error instead of returning null.
+   * calls `ctx.fail()` on error instead of returning null. Results are cached
+   * per resolution mode so that different call signatures don't collide.
    *
    * @private
    * @param callOptions - Resolution mode and error handling options.
@@ -110,7 +111,9 @@ function createConfigHandle<TSchema extends ZodTypeAny>(
   async function load(
     callOptions?: ConfigLoadCallOptions
   ): Promise<ConfigLoadCallResult<unknown> | null> {
-    if (cached !== null) {
+    const cacheKey = resolveCacheKey(callOptions)
+    const cached = cache.get(cacheKey)
+    if (cached) {
       return cached
     }
 
@@ -128,7 +131,7 @@ function createConfigHandle<TSchema extends ZodTypeAny>(
       return null
     }
 
-    cached = result
+    cache.set(cacheKey, result)
     return result
   }
 
@@ -158,7 +161,7 @@ async function loadSingle(
   }
 
   if (!result) {
-    return validateEmpty({}, schema)
+    return validateConfig({}, schema)
   }
 
   return ok({ config: result.config as Record<string, unknown> })
@@ -187,13 +190,11 @@ async function loadLayered<TSchema extends ZodTypeAny>(
   ctx: CommandContext,
   options: ConfigMiddlewareOptions<TSchema>
 ): Promise<Result<ConfigLoadCallResult<unknown>>> {
-  const globalDirName = options.dirs?.global ?? ctx.meta.dirs.global
-  const localDirName = options.dirs?.local ?? ctx.meta.dirs.local
-
+  const dirNames = resolveLayerDirNames(ctx, options)
   const layerDirs: readonly { readonly name: ConfigLayerName; readonly dir: string }[] = [
-    { dir: resolveGlobalPath({ dirName: globalDirName }), name: 'global' },
-    { dir: process.cwd(), name: 'project' },
-    { dir: join(process.cwd(), localDirName), name: 'local' },
+    { dir: resolveLayerDir('global', dirNames), name: 'global' },
+    { dir: resolveLayerDir('project', dirNames), name: 'project' },
+    { dir: resolveLayerDir('local', dirNames), name: 'local' },
   ]
 
   const rawClient = createConfigClient({ name: configName, schema: RAW_SCHEMA })
@@ -205,40 +206,19 @@ async function loadLayered<TSchema extends ZodTypeAny>(
     .filter((layer) => layer.config !== null)
     .map((layer) => layer.config as Record<string, unknown>)
 
-  if (foundConfigs.length === 0) {
-    const [validationError, validated] = validate({
-      createError: ({ message }) => new Error(`Invalid merged config:\n${message}`),
-      params: {},
-      schema,
-    })
-
-    if (validationError) {
-      return err(validationError)
-    }
-
-    return ok({
-      config: validated as Record<string, unknown>,
-      layers: layerResults,
-    })
-  }
-
-  const merged = foundConfigs.reduce(
+  const dataToValidate = foundConfigs.reduce(
     (acc, layerConfig) => merge(acc, layerConfig),
     {} as Record<string, unknown>
   )
 
-  const [validationError, validated] = validate({
-    createError: ({ message }) => new Error(`Invalid merged config:\n${message}`),
-    params: merged,
-    schema,
-  })
+  const [validationError, validatedResult] = validateConfig(dataToValidate, schema, 'merged')
 
   if (validationError) {
     return err(validationError)
   }
 
   return ok({
-    config: validated as Record<string, unknown>,
+    config: validatedResult.config as Record<string, unknown>,
     layers: layerResults,
   })
 }
@@ -261,14 +241,8 @@ async function loadNamedLayer<TSchema extends ZodTypeAny>(
   ctx: CommandContext,
   options: ConfigMiddlewareOptions<TSchema>
 ): Promise<Result<ConfigLoadCallResult<unknown>>> {
-  const globalDirName = options.dirs?.global ?? ctx.meta.dirs.global
-  const localDirName = options.dirs?.local ?? ctx.meta.dirs.local
-
-  const dir = match(layerName)
-    .with('global', () => resolveGlobalPath({ dirName: globalDirName }))
-    .with('project', () => process.cwd())
-    .with('local', () => join(process.cwd(), localDirName))
-    .exhaustive()
+  const dirNames = resolveLayerDirNames(ctx, options)
+  const dir = resolveLayerDir(layerName, dirNames)
 
   const client = createConfigClient({ name: configName, schema })
   const [loadError, result] = await client.load(dir)
@@ -278,28 +252,95 @@ async function loadNamedLayer<TSchema extends ZodTypeAny>(
   }
 
   if (!result) {
-    return validateEmpty({}, schema)
+    return validateConfig({}, schema)
   }
 
   return ok({ config: result.config as Record<string, unknown> })
 }
 
 /**
- * Validate an empty object against a schema to apply defaults and surface missing required fields.
+ * Derive a stable cache key from load call options.
  *
- * Used when no config file is found.
+ * Different resolution modes (single, layered, named layer) produce different
+ * results, so each mode gets its own cache slot.
+ *
+ * @private
+ * @param options - The load call options.
+ * @returns A string key for the cache map.
+ */
+function resolveCacheKey(options?: ConfigLoadCallOptions): string {
+  if (options?.layer) {
+    return `layer:${options.layer}`
+  }
+  if (options?.layers === true) {
+    return 'layers'
+  }
+  return 'single'
+}
+
+/**
+ * Resolved layer directory names for global and local paths.
+ *
+ * @private
+ */
+interface LayerDirNames {
+  readonly global: string
+  readonly local: string
+}
+
+/**
+ * Resolve global and local directory names from middleware options with context fallbacks.
+ *
+ * @private
+ * @param ctx - The command context.
+ * @param options - Middleware options with optional dir overrides.
+ * @returns Resolved directory names.
+ */
+function resolveLayerDirNames<TSchema extends ZodTypeAny>(
+  ctx: CommandContext,
+  options: ConfigMiddlewareOptions<TSchema>
+): LayerDirNames {
+  return {
+    global: options.dirs?.global ?? ctx.meta.dirs.global,
+    local: options.dirs?.local ?? ctx.meta.dirs.local,
+  }
+}
+
+/**
+ * Resolve the absolute directory path for a given layer name.
+ *
+ * @private
+ * @param layerName - The layer to resolve.
+ * @param dirNames - Resolved directory names.
+ * @returns Absolute path to the layer directory.
+ */
+function resolveLayerDir(layerName: ConfigLayerName, dirNames: LayerDirNames): string {
+  return match(layerName)
+    .with('global', () => resolveGlobalPath({ dirName: dirNames.global }))
+    .with('project', () => process.cwd())
+    .with('local', () => join(process.cwd(), dirNames.local))
+    .exhaustive()
+}
+
+/**
+ * Validate config data against a schema and return a Result tuple.
+ *
+ * Used for both empty-config defaults and merged-layer validation.
  *
  * @private
  * @param data - The raw data to validate.
  * @param schema - Zod schema for validation.
+ * @param context - Label for the error message (e.g. 'merged').
  * @returns A Result tuple with the validated config.
  */
-function validateEmpty(
+function validateConfig(
   data: Record<string, unknown>,
-  schema: ZodTypeAny
+  schema: ZodTypeAny,
+  context?: string
 ): Result<ConfigLoadCallResult<unknown>> {
+  const prefix = context ? `Invalid ${context} config` : 'Invalid config'
   const [validationError, validated] = validate({
-    createError: ({ message }) => new Error(`Invalid config:\n${message}`),
+    createError: ({ message }) => new Error(`${prefix}:\n${message}`),
     params: data,
     schema,
   })

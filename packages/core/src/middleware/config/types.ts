@@ -166,7 +166,7 @@ export interface ConfigRegistry {}
  */
 export type ResolvedConfig = keyof ConfigRegistry extends never
   ? DeepReadonly<Record<string, unknown>>
-  : ConfigRegistry[keyof ConfigRegistry]
+  : ConfigRegistry
 
 // ---------------------------------------------------------------------------
 // Module augmentation

@@ -76,18 +76,26 @@ config({ schema: configSchema, eager: true })
 
 ## Using `ctx.config`
 
-The middleware decorates `ctx.config` as a `ConfigHandle` with a `load()` method that returns a Result tuple:
+The middleware decorates `ctx.config` as a `ConfigHandle` with a `load()` method. It returns the load result or `null` on error:
 
 ```ts
 export default command({
   async handler(ctx) {
-    const [error, result] = await ctx.config.load()
-    if (error) {
-      ctx.fail(error.message)
-      return
-    }
+    const result = await ctx.config.load()
+    if (!result) return
     result.config.apiUrl // string
     result.config.org // string
+  },
+})
+```
+
+Pass `{ exitOnError: true }` to call `ctx.fail()` on error, guaranteeing a non-null return:
+
+```ts
+export default command({
+  async handler(ctx) {
+    const { config } = await ctx.config.load({ exitOnError: true })
+    config.apiUrl // string — guaranteed
   },
 })
 ```
@@ -97,11 +105,7 @@ export default command({
 Pass `{ layers: true }` to `load()` to include layer metadata in the result:
 
 ```ts
-const [error, result] = await ctx.config.load({ layers: true })
-if (error) {
-  ctx.fail(error.message)
-  return
-}
+const result = await ctx.config.load({ layers: true, exitOnError: true })
 result.config.apiUrl // string
 result.layers // ConfigLayer[]
 ```

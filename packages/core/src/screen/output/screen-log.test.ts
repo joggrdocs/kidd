@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { createScreenLog } from './screen-log.js'
 import { createOutputStore } from './store.js'
 
-describe('createScreenLog()', () => {
+describe(createScreenLog, () => {
   it('should push an info log entry', () => {
     const store = createOutputStore()
     const log = createScreenLog(store)

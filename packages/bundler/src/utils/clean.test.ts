@@ -38,7 +38,7 @@ function makeResolved(
   }
 }
 
-describe('clean()', () => {
+describe(clean, () => {
   beforeEach(() => {
     mkdirSync(testDir, { recursive: true })
   })

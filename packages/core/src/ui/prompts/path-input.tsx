@@ -127,7 +127,7 @@ export function PathInput({
         return
       }
 
-      if (key.backspace || key.delete) {
+      if (key.backspace) {
         if (cursorOffset > 0) {
           const nextValue = removeCharAt({ str: value, index: cursorOffset - 1 })
           setValue(nextValue)

@@ -132,7 +132,7 @@ export function Autocomplete<TValue>({
         return
       }
 
-      if (key.backspace || key.delete) {
+      if (key.backspace) {
         if (cursorOffset > 0) {
           const nextSearch = removeCharAt({ str: search, index: cursorOffset - 1 })
           setSearch(nextSearch)

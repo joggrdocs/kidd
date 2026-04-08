@@ -85,9 +85,9 @@ export interface ConfigHandle<TConfig> {
    * @returns The load result, or null on error (unless `exitOnError` is set).
    */
   readonly load: {
-    (options: ConfigLoadCallOptions & { readonly exitOnError: true }): Promise<
-      ConfigLoadCallResult<TConfig>
-    >
+    (
+      options: ConfigLoadCallOptions & { readonly exitOnError: true }
+    ): Promise<ConfigLoadCallResult<TConfig>>
     (options?: ConfigLoadCallOptions): Promise<ConfigLoadCallResult<TConfig> | null>
   }
 }
@@ -127,9 +127,13 @@ export interface ConfigMiddlewareOptions<TSchema extends ZodTypeAny> {
    * Override layer directories. Only applies when layered resolution is used.
    */
   readonly dirs?: {
-    /** Override the global directory name. Default: `ctx.meta.dirs.global`. */
+    /**
+     * Override the global directory name. Default: `ctx.meta.dirs.global`.
+     */
     readonly global?: string
-    /** Override the local directory name. Default: `ctx.meta.dirs.local`. */
+    /**
+     * Override the local directory name. Default: `ctx.meta.dirs.local`.
+     */
     readonly local?: string
   }
 }

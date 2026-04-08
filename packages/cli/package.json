@@ -41,10 +41,10 @@
     "@kidd-cli/core": "workspace:*",
     "@kidd-cli/utils": "workspace:*",
     "fs-extra": "^11.3.4",
-    "ink": "^6.8.0",
+    "ink": "^7.0.0",
     "liquidjs": "catalog:",
     "picocolors": "^1.1.1",
-    "react": "^19.2.4",
+    "react": "^19.2.5",
     "tsdown": "catalog:",
     "yaml": "^2.8.3",
     "zod": "catalog:"

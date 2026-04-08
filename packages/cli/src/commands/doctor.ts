@@ -33,11 +33,11 @@ const doctorCommand: Command = command({
     const [, rawPackageJson] = await readRawPackageJson(cwd)
 
     const context = createCheckContext({
-      configError: configError,
-      configResult: configResult,
+      configError,
+      configResult,
       cwd,
-      manifest: manifest,
-      rawPackageJson: rawPackageJson,
+      manifest,
+      rawPackageJson,
     })
 
     ctx.status.spinner.start('Running diagnostics...')
@@ -117,11 +117,11 @@ async function resolveResults(params: {
   const [, rawPackageJson] = await readRawPackageJson(params.cwd)
 
   const freshContext = createCheckContext({
-    configError: configError,
-    configResult: configResult,
+    configError,
+    configResult,
     cwd: params.cwd,
-    manifest: manifest,
-    rawPackageJson: rawPackageJson,
+    manifest,
+    rawPackageJson,
   })
 
   return Promise.all(CHECKS.map((check) => check.run(freshContext)))

@@ -82,7 +82,6 @@
     "vitest/no-importing-vitest-globals": "off",
     "vitest/prefer-called-times": "off",
     "vitest/prefer-called-once": "off",
-    "vitest/prefer-describe-function-title": "off",
     "vitest/prefer-expect-type-of": "off",
     "oxc/no-optional-chaining": "off",
     "react/rules-of-hooks": "error",

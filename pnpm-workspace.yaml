@@ -7,7 +7,7 @@ catalog:
   '@types/node': ^25.5.0
   '@vitest/coverage-v8': ^4.1.2
   es-toolkit: ^1.45.1
-  liquidjs: ^10.25.2
+  liquidjs: ^10.25.5
   ts-pattern: ^5.9.0
   tsdown: 0.21.7
   tsx: ^4.21.0

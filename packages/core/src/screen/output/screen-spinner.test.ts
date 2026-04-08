@@ -79,15 +79,15 @@ describe('createScreenSpinner()', () => {
     const store = createOutputStore()
     const spinner = createScreenSpinner(store)
 
-    expect(spinner.isCancelled).toBe(false)
+    expect(spinner.isCancelled).toBeFalsy()
 
     spinner.start()
-    expect(spinner.isCancelled).toBe(false)
+    expect(spinner.isCancelled).toBeFalsy()
 
     spinner.cancel()
-    expect(spinner.isCancelled).toBe(true)
+    expect(spinner.isCancelled).toBeTruthy()
 
     spinner.clear()
-    expect(spinner.isCancelled).toBe(false)
+    expect(spinner.isCancelled).toBeFalsy()
   })
 })

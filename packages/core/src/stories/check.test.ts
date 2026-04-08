@@ -5,7 +5,7 @@ import { z } from 'zod'
 import { MAX_EDITABLE_FIELDS, checkStories } from './check.js'
 import type { Story, StoryEntry, StoryGroup } from './types.js'
 
-describe('MAX_EDITABLE_FIELDS', () => {
+describe('MAX_EDITABLE_FIELDS constant', () => {
   it('should equal 6', () => {
     expect(MAX_EDITABLE_FIELDS).toBe(6)
   })
@@ -37,7 +37,7 @@ describe('checkStories()', () => {
     const result = checkStories(entries)
 
     expect(result.storyCount).toBe(1)
-    expect(result.passed).toBe(true)
+    expect(result.passed).toBeTruthy()
     expect(result.diagnostics).toHaveLength(0)
   })
 
@@ -193,7 +193,7 @@ describe('checkStories()', () => {
 
     const entries = new Map<string, StoryEntry>([['ok', okStory]])
     const passingResult = checkStories(entries)
-    expect(passingResult.passed).toBe(true)
+    expect(passingResult.passed).toBeTruthy()
 
     const schema = z.object({ n: z.number() })
     const badStory = withTag(
@@ -211,14 +211,14 @@ describe('checkStories()', () => {
 
     const failEntries = new Map<string, StoryEntry>([['bad', badStory]])
     const failingResult = checkStories(failEntries)
-    expect(failingResult.passed).toBe(false)
+    expect(failingResult.passed).toBeFalsy()
   })
 
   it('should return a frozen result', () => {
     const entries = new Map<string, StoryEntry>()
     const result = checkStories(entries)
 
-    expect(Object.isFrozen(result)).toBe(true)
-    expect(Object.isFrozen(result.diagnostics)).toBe(true)
+    expect(Object.isFrozen(result)).toBeTruthy()
+    expect(Object.isFrozen(result.diagnostics)).toBeTruthy()
   })
 })

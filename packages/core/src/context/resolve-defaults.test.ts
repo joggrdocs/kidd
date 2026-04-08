@@ -58,9 +58,9 @@ describe('mergeClackOpts()', () => {
   })
 })
 
-describe('EMPTY_CLACK_BASE', () => {
+describe('EMPTY_CLACK_BASE constant', () => {
   it('should be a frozen empty object', () => {
-    expect(Object.isFrozen(EMPTY_CLACK_BASE)).toBe(true)
+    expect(Object.isFrozen(EMPTY_CLACK_BASE)).toBeTruthy()
     expect(Object.keys(EMPTY_CLACK_BASE)).toEqual([])
   })
 })

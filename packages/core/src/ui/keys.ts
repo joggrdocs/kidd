@@ -100,8 +100,8 @@ export function normalizeKey(input: string, key: Key): NormalizedKeyEvent {
   return {
     key: resolvedKey,
     ctrl: key.ctrl,
-    // Terminal escape (\x1b) doubles as the meta prefix — clear the meta
-    // flag when the resolved key is 'escape' since it is protocol noise.
+    // Terminal escape (\x1b) doubles as the meta prefix — Clear the meta
+    // Flag when the resolved key is 'escape' since it is protocol noise.
     meta: match(resolvedKey)
       .with('escape', () => false)
       .otherwise(() => key.meta),

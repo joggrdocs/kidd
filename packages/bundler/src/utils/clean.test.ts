@@ -38,7 +38,7 @@ function makeResolved(
   }
 }
 
-describe('clean', () => {
+describe('clean()', () => {
   beforeEach(() => {
     mkdirSync(testDir, { recursive: true })
   })
@@ -65,8 +65,8 @@ describe('clean', () => {
 
     expect(result.removed).toContain('index.js')
     expect(result.removed).toContain('index.js.map')
-    expect(existsSync(join(testDir, 'index.js'))).toBe(false)
-    expect(existsSync(join(testDir, 'index.js.map'))).toBe(false)
+    expect(existsSync(join(testDir, 'index.js'))).toBeFalsy()
+    expect(existsSync(join(testDir, 'index.js.map'))).toBeFalsy()
   })
 
   it('should preserve foreign files and report them', async () => {
@@ -77,7 +77,7 @@ describe('clean', () => {
 
     expect(result.removed).toContain('index.js')
     expect(result.foreign).toContain('README.md')
-    expect(existsSync(join(testDir, 'README.md'))).toBe(true)
+    expect(existsSync(join(testDir, 'README.md'))).toBeTruthy()
   })
 
   it('should not remove extensionless files when compile is false', async () => {
@@ -86,7 +86,7 @@ describe('clean', () => {
     const result = await clean({ resolved: makeResolved(), compile: false })
 
     expect(result.foreign).toContain('cli-darwin-arm64')
-    expect(existsSync(join(testDir, 'cli-darwin-arm64'))).toBe(true)
+    expect(existsSync(join(testDir, 'cli-darwin-arm64'))).toBeTruthy()
   })
 
   it('should remove exact binary names when compile is true', async () => {
@@ -107,9 +107,9 @@ describe('clean', () => {
     expect(result.removed).toContain('my-app-darwin-arm64')
     expect(result.removed).toContain('my-app-linux-x64')
     expect(result.foreign).toContain('README.md')
-    expect(existsSync(join(testDir, 'my-app-darwin-arm64'))).toBe(false)
-    expect(existsSync(join(testDir, 'my-app-linux-x64'))).toBe(false)
-    expect(existsSync(join(testDir, 'README.md'))).toBe(true)
+    expect(existsSync(join(testDir, 'my-app-darwin-arm64'))).toBeFalsy()
+    expect(existsSync(join(testDir, 'my-app-linux-x64'))).toBeFalsy()
+    expect(existsSync(join(testDir, 'README.md'))).toBeTruthy()
   })
 
   it('should remove windows .exe binary names in multi-target builds', async () => {

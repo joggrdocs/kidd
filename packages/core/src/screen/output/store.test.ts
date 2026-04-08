@@ -78,7 +78,7 @@ describe('createOutputStore()', () => {
 
     const snapshot = store.getSnapshot()
 
-    expect(Object.isFrozen(snapshot)).toBe(true)
-    expect(Object.isFrozen(snapshot.entries)).toBe(true)
+    expect(Object.isFrozen(snapshot)).toBeTruthy()
+    expect(Object.isFrozen(snapshot.entries)).toBeTruthy()
   })
 })

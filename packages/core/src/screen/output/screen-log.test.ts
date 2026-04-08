@@ -3,14 +3,14 @@ import { describe, expect, it } from 'vitest'
 import { createScreenLog } from './screen-log.js'
 import { createOutputStore } from './store.js'
 
-describe('createScreenLog', () => {
+describe('createScreenLog()', () => {
   it('should push an info log entry', () => {
     const store = createOutputStore()
     const log = createScreenLog(store)
 
     log.info('hello')
 
-    const entries = store.getSnapshot().entries
+    const { entries } = store.getSnapshot()
     expect(entries).toHaveLength(1)
     expect(entries[0]).toMatchObject({ kind: 'log', level: 'info', text: 'hello' })
   })
@@ -21,7 +21,7 @@ describe('createScreenLog', () => {
 
     log.success('done')
 
-    const entries = store.getSnapshot().entries
+    const { entries } = store.getSnapshot()
     expect(entries).toHaveLength(1)
     expect(entries[0]).toMatchObject({ kind: 'log', level: 'success', text: 'done' })
   })
@@ -32,7 +32,7 @@ describe('createScreenLog', () => {
 
     log.error('fail')
 
-    const entries = store.getSnapshot().entries
+    const { entries } = store.getSnapshot()
     expect(entries).toHaveLength(1)
     expect(entries[0]).toMatchObject({ kind: 'log', level: 'error', text: 'fail' })
   })
@@ -43,7 +43,7 @@ describe('createScreenLog', () => {
 
     log.warn('careful')
 
-    const entries = store.getSnapshot().entries
+    const { entries } = store.getSnapshot()
     expect(entries).toHaveLength(1)
     expect(entries[0]).toMatchObject({ kind: 'log', level: 'warn', text: 'careful' })
   })
@@ -54,7 +54,7 @@ describe('createScreenLog', () => {
 
     log.step('installing')
 
-    const entries = store.getSnapshot().entries
+    const { entries } = store.getSnapshot()
     expect(entries).toHaveLength(1)
     expect(entries[0]).toMatchObject({ kind: 'log', level: 'step', text: 'installing' })
   })
@@ -65,7 +65,7 @@ describe('createScreenLog', () => {
 
     log.message('note', { symbol: '>' })
 
-    const entries = store.getSnapshot().entries
+    const { entries } = store.getSnapshot()
     expect(entries).toHaveLength(1)
     expect(entries[0]).toMatchObject({
       kind: 'log',
@@ -81,7 +81,7 @@ describe('createScreenLog', () => {
 
     log.message('bare')
 
-    const entries = store.getSnapshot().entries
+    const { entries } = store.getSnapshot()
     expect(entries).toHaveLength(1)
     expect(entries[0]).toMatchObject({ kind: 'log', level: 'message', text: 'bare' })
     expect(entries[0]).toHaveProperty('symbol', undefined)
@@ -93,7 +93,7 @@ describe('createScreenLog', () => {
 
     log.newline()
 
-    const entries = store.getSnapshot().entries
+    const { entries } = store.getSnapshot()
     expect(entries).toHaveLength(1)
     expect(entries[0]).toMatchObject({ kind: 'newline' })
   })
@@ -104,7 +104,7 @@ describe('createScreenLog', () => {
 
     log.raw('raw text')
 
-    const entries = store.getSnapshot().entries
+    const { entries } = store.getSnapshot()
     expect(entries).toHaveLength(1)
     expect(entries[0]).toMatchObject({ kind: 'raw', text: 'raw text' })
   })

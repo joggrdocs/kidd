@@ -3,13 +3,9 @@ import { describe, expect, it } from 'vitest'
 
 import { TAG, getTag, hasTag, withTag } from './tag.js'
 
-describe('TAG symbol', () => {
-  it('should be a symbol', () => {
-    expect(typeof TAG).toBe('symbol')
-  })
-
-  it('should have description "kidd.tag"', () => {
-    expect(TAG.description).toBe('kidd.tag')
+describe('TAG constant', () => {
+  it('should be the string "__tag"', () => {
+    expect(TAG).toBe('__tag')
   })
 })
 

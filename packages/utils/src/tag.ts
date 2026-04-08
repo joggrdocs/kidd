@@ -1,14 +1,14 @@
 /**
- * Unique symbol used as the property key for tagging objects.
+ * Property key used to brand objects with a tag string.
  *
- * Non-enumerable when applied via {@link withTag}, so it does not appear in
- * `Object.keys`, `JSON.stringify`, or `for...in`. Use the symbol directly to
- * read the tag: `obj[TAG]`.
+ * Defined via `Object.defineProperty` as non-enumerable, non-writable, and
+ * non-configurable, so it does not appear in `Object.keys`, `JSON.stringify`,
+ * `for...in`, or spread.
  */
-export const TAG: unique symbol = Symbol('kidd.tag')
+export const TAG = '__tag' as const
 
 /**
- * Nominal type brand that carries a tag string on the {@link TAG} symbol property.
+ * Nominal type brand that carries a tag string on the {@link TAG} property.
  *
  * @private
  */
@@ -21,7 +21,7 @@ interface NominalTag<TTag extends string> {
  *
  * Used to brand plain data objects with a discriminator that is hidden from
  * enumeration, serialization, and spread — while remaining accessible via
- * the {@link TAG} symbol for runtime type-narrowing.
+ * the {@link TAG} key for runtime type-narrowing.
  */
 export type Tagged<TObj extends object, TTag extends string> = TObj & NominalTag<TTag>
 
@@ -60,7 +60,7 @@ export function hasTag<TTag extends string>(value: unknown, tag: TTag): value is
   if (typeof value !== 'object' || value === null) {
     return false
   }
-  return (value as Record<symbol, unknown>)[TAG] === tag
+  return (value as Record<string, unknown>)[TAG] === tag
 }
 
 /**
@@ -73,7 +73,7 @@ export function getTag(value: unknown): string | undefined {
   if (typeof value !== 'object' || value === null) {
     return undefined
   }
-  const tag = (value as Record<symbol, unknown>)[TAG]
+  const tag = (value as Record<string, unknown>)[TAG]
   if (typeof tag === 'string') {
     return tag
   }

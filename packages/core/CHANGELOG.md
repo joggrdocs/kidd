@@ -1,5 +1,25 @@
 # kidd
 
+## 0.23.0
+
+### Minor Changes
+
+- 03d59ca: Extract config loading from core runtime into an opt-in middleware (`@kidd-cli/core/config`) with support for layered resolution (global > project > local). Config is no longer baked into `CommandContext` — it is added via module augmentation when the middleware is imported, keeping builds lean for CLIs that don't need config.
+
+  **Breaking:** `ctx.config` is no longer available by default. Use the config middleware:
+
+  ```ts
+  import { config } from "@kidd-cli/core/config";
+
+  cli({
+    middleware: [config({ schema: mySchema, layers: true })],
+  });
+  ```
+
+### Patch Changes
+
+- da87a23: Surface helpful error when `jiti` peer dependency is missing for stories, and display import errors instead of silent warning count when story discovery fails
+
 ## 0.22.1
 
 ### Patch Changes

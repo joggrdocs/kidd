@@ -57,7 +57,7 @@ beforeEach(() => {
 describe('createContextStatus()', () => {
   it('should return a frozen object', () => {
     const status = createContextStatus()
-    expect(Object.isFrozen(status)).toBe(true)
+    expect(Object.isFrozen(status)).toBeTruthy()
   })
 
   it('should have spinner, progress, tasks, and taskLog', () => {
@@ -200,8 +200,8 @@ describe('createContextStatus()', () => {
     it('should convert readonly frames to a mutable array', () => {
       const frames = ['a', 'b', 'c'] as const
       createContextStatus({ spinnerConfig: { frames } })
-      const call = (clack.spinner as Mock).mock.calls[0][0]
-      expect(Array.isArray(call.frames)).toBe(true)
+      const [[call]] = (clack.spinner as Mock).mock.calls
+      expect(Array.isArray(call.frames)).toBeTruthy()
       expect(call.frames).toEqual(['a', 'b', 'c'])
     })
 

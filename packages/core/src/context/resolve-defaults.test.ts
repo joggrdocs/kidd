@@ -58,9 +58,10 @@ describe('mergeClackOpts()', () => {
   })
 })
 
+// eslint-disable-next-line vitest/prefer-describe-function-title -- constant, not a function
 describe('EMPTY_CLACK_BASE', () => {
   it('should be a frozen empty object', () => {
-    expect(Object.isFrozen(EMPTY_CLACK_BASE)).toBe(true)
+    expect(Object.isFrozen(EMPTY_CLACK_BASE)).toBeTruthy()
     expect(Object.keys(EMPTY_CLACK_BASE)).toEqual([])
   })
 })

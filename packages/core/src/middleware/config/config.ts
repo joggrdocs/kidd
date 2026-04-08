@@ -338,7 +338,9 @@ function validateConfig(
   schema: ZodTypeAny,
   context?: string
 ): Result<ConfigLoadCallResult<unknown>> {
-  const prefix = context ? `Invalid ${context} config` : 'Invalid config'
+  const prefix = match(context)
+    .with(P.string, (ctx) => `Invalid ${ctx} config`)
+    .otherwise(() => 'Invalid config')
   const [validationError, validated] = validate({
     createError: ({ message }) => new Error(`${prefix}:\n${message}`),
     params: data,

@@ -157,7 +157,7 @@ describe('createLog()', () => {
   describe('stream', () => {
     it('should call clack.stream.info with iterable', async () => {
       const log = createLog()
-      const iterable = (async function* () {
+      const iterable = (async function* streamChunks() {
         yield 'chunk'
       })()
 
@@ -227,7 +227,7 @@ describe('createLog()', () => {
     it('should return a frozen object', () => {
       const log = createLog()
 
-      expect(Object.isFrozen(log)).toBe(true)
+      expect(Object.isFrozen(log)).toBeTruthy()
     })
   })
 })

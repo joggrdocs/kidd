@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import { extractConfig } from './config-helpers.js'
 
-describe('extractConfig', () => {
+describe(extractConfig, () => {
   it('should return the config from a non-null result', () => {
     const result = { config: { entry: './src/main.ts' }, configFile: '/project/kidd.config.ts' }
 

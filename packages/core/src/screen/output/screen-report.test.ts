@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { createScreenReport } from './screen-report.js'
 import { createOutputStore } from './store.js'
 
-describe('createScreenReport', () => {
+describe(createScreenReport, () => {
   it('should push a check entry to the store', () => {
     const store = createOutputStore()
     const report = createScreenReport(store)
@@ -11,7 +11,7 @@ describe('createScreenReport', () => {
 
     report.check(input)
 
-    const entries = store.getSnapshot().entries
+    const { entries } = store.getSnapshot()
     expect(entries).toHaveLength(1)
     expect(entries[0]).toMatchObject({ kind: 'check', input })
   })
@@ -27,7 +27,7 @@ describe('createScreenReport', () => {
 
     report.finding(input)
 
-    const entries = store.getSnapshot().entries
+    const { entries } = store.getSnapshot()
     expect(entries).toHaveLength(1)
     expect(entries[0]).toMatchObject({ kind: 'finding', input })
   })
@@ -45,7 +45,7 @@ describe('createScreenReport', () => {
 
     report.summary(input)
 
-    const entries = store.getSnapshot().entries
+    const { entries } = store.getSnapshot()
     expect(entries).toHaveLength(1)
     expect(entries[0]).toMatchObject({ kind: 'summary', input })
   })
@@ -60,7 +60,7 @@ describe('createScreenReport', () => {
 
     report.summary(input)
 
-    const entries = store.getSnapshot().entries
+    const { entries } = store.getSnapshot()
     expect(entries).toHaveLength(1)
     expect(entries[0]).toMatchObject({ kind: 'summary', input })
   })

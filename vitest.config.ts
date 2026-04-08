@@ -17,9 +17,9 @@ export default defineConfig({
         // ── React/Ink components ─────────────────────────────────────
         // These depend on Ink's rendering lifecycle, terminal I/O
         // (alt-screen buffers, resize events, stdin/stdout), and React
-        // hooks (useInput, useSyncExternalStore). They cannot be unit
-        // tested without a full terminal emulator. Covered implicitly
-        // by integration tests and the examples test suite.
+        // Hooks (useInput, useSyncExternalStore). They cannot be unit
+        // Tested without a full terminal emulator. Covered implicitly
+        // By integration tests and the examples test suite.
         '**/ui/layout/fullscreen.tsx',
         '**/ui/layout/use-size.tsx',
         '**/ui/layout/scroll-area.tsx',
@@ -34,25 +34,25 @@ export default defineConfig({
 
         // ── Stories viewer ───────────────────────────────────────────
         // Full Ink TUI application with panels, focus management, and
-        // live component preview. Requires interactive terminal.
+        // Live component preview. Requires interactive terminal.
         '**/stories/viewer/**',
         '**/stories/decorators.tsx',
 
         // ── Dynamic module loading ───────────────────────────────────
         // Patches Node module resolution at runtime via jiti and
-        // dynamic import(). Unsafe to unit test — the module patching
-        // side effects leak across test boundaries.
+        // Dynamic import(). Unsafe to unit test — the module patching
+        // Side effects leak across test boundaries.
         '**/stories/importer.ts',
 
         // ── Bun subprocess entry point ───────────────────────────────
         // Runs inside a `bun` process (not Node.js). Calls Bun.build()
-        // which is a Bun-only API unavailable in Vitest/Node.
+        // Which is a Bun-only API unavailable in Vitest/Node.
         '**/build/bun-runner.ts',
 
         // ── CLI command handlers (integration-tested) ────────────────
         // These are side-effect-heavy command handlers that spawn child
-        // processes, read process.argv/platform/arch, and depend on
-        // compiled binaries. Tested via integration test suite.
+        // Processes, read process.argv/platform/arch, and depend on
+        // Compiled binaries. Tested via integration test suite.
         '**/commands/run.ts',
         '**/commands/stories.ts',
       ],

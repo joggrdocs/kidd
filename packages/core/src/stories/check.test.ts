@@ -5,7 +5,6 @@ import { z } from 'zod'
 import { MAX_EDITABLE_FIELDS, checkStories } from './check.js'
 import type { Story, StoryEntry, StoryGroup } from './types.js'
 
-// eslint-disable-next-line vitest/prefer-describe-function-title -- constant, not a function
 describe('MAX_EDITABLE_FIELDS', () => {
   it('should equal 6', () => {
     expect(MAX_EDITABLE_FIELDS).toBe(6)

@@ -66,13 +66,13 @@ config({ schema: configSchema, eager: true })
 
 ### Middleware options
 
-| Field    | Type      | Default             | Description                                                          |
-| -------- | --------- | ------------------- | -------------------------------------------------------------------- |
-| `schema` | `ZodType` | --                  | Zod schema to validate the loaded config. Infers `ctx.config` type.                                          |
-| `eager`  | `boolean` | `false`             | Load config during middleware pass instead of on first `load()` call                                         |
-| `layers` | `boolean` | `false`             | Enable layered resolution when eager loading. For lazy mode, pass `{ layers: true }` to `load()` instead.    |
+| Field    | Type      | Default             | Description                                                                                                      |
+| -------- | --------- | ------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `schema` | `ZodType` | --                  | Zod schema to validate the loaded config. Infers `ctx.config` type.                                              |
+| `eager`  | `boolean` | `false`             | Load config during middleware pass instead of on first `load()` call                                             |
+| `layers` | `boolean` | `false`             | Enable layered resolution when eager loading. For lazy mode, pass `{ layers: true }` to `load()` instead.        |
 | `dirs`   | `object`  | From `ctx.meta`     | Override layer directories: `{ global?: string, local?: string }`. Only applies when layered resolution is used. |
-| `name`   | `string`  | Derived from `name` | Override the config file name for file discovery                                                             |
+| `name`   | `string`  | Derived from `name` | Override the config file name for file discovery                                                                 |
 
 ## Using `ctx.config`
 

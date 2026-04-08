@@ -79,6 +79,7 @@ export function StoriesScreen({ include, out, check }: StoriesScreenProps): Reac
  */
 function StoriesViewer({ include }: { readonly include?: string }): ReactElement {
   const [state, setState] = useState<DiscoveryState>({ phase: 'loading' })
+  // eslint-disable-next-line react/hook-use-state -- read-only state, setter intentionally unused
   const [registry] = useState(createStoryRegistry)
   const { isReloading, onReloadStart, onReloadEnd } = useReloadState()
 

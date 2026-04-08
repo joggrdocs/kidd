@@ -43,9 +43,8 @@ export interface ResolveStateOptions {
  * Handles cursor movement (left/right, home/end), character deletion
  * (backspace, Ctrl+D for forward-delete), and character insertion.
  *
- * Both `key.backspace` and `key.delete` are treated as backspace
- * because macOS terminals send `\x7f` (DEL) for the Backspace key,
- * which ink reports as `key.delete`. Forward-delete uses Ctrl+D.
+ * Backspace removes the character before the cursor.
+ * Forward-delete uses Ctrl+D.
  *
  * @param options - The state resolution options.
  * @returns The next input state.
@@ -75,7 +74,7 @@ export function resolveNextState({ state, input, key }: ResolveStateOptions): In
     return { ...state, value: nextValue, error: undefined }
   }
 
-  if (key.backspace || key.delete) {
+  if (key.backspace) {
     if (state.cursor === 0) {
       return state
     }

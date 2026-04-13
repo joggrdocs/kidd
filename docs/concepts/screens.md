@@ -19,7 +19,7 @@ export default screen({
 })
 ```
 
-See the [screen() reference](../reference/screen.md) for all available fields.
+See the [screen() reference](/reference/framework/screen) for all available fields.
 
 ### Exit behavior
 
@@ -110,7 +110,7 @@ These hooks are only available inside components rendered by `screen()`. They th
 
 `ctx.log`, `ctx.prompts`, `ctx.status`, `ctx.colors`, and `ctx.format` are not available in screen components. Screen commands use React components and Ink primitives for all output.
 
-See the [screen() reference](../reference/screen.md) for the full hooks and components API.
+See the [screen() reference](/reference/framework/screen) for the full hooks and components API.
 
 ```tsx
 import { Text, useConfig, useMeta } from '@kidd-cli/core/ui'
@@ -160,6 +160,8 @@ kidd includes a Storybook-like TUI for developing and previewing screen componen
 
 - [Context](./context.md)
 - [Lifecycle](./lifecycle.md)
-- [Build a CLI](../guides/build-a-cli.md)
-- [screen() Reference](../reference/screen.md)
-- [Core](../reference/kidd.md)
+- [Build a CLI](/guides/build-a-cli)
+- [Add Screens Guide](/guides/add-screens)
+- [Component Stories Guide](/guides/component-stories)
+- [screen() Reference](/reference/framework/screen)
+- [Core](/reference/packages/kidd)

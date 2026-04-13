@@ -59,34 +59,55 @@ flowchart TB
         CTX(["context"])
     end
 
+    subgraph mw ["Middleware Layer"]
+        AUTH(["auth"])
+        CFGMW(["config"])
+        HTTP(["http"])
+        ICONS(["icons"])
+        FIGURES(["figures"])
+        REPORT(["report"])
+    end
+
+    subgraph ui ["UI Layer"]
+        SCREEN(["screen"])
+        STORIES(["stories"])
+        UICOMP(["ui"])
+    end
+
     subgraph lib ["Lib Layer"]
         CONFIG(["config"])
         STORE(["store"])
-        LOGGER(["logger"])
+        LOG(["log"])
         FORMAT(["format"])
-        PROMPTS(["prompts"])
-        ERRORS(["errors"])
-        RESULT(["result"])
+        DOTDIR(["dotdir"])
         PROJECT(["project"])
     end
 
     INDEX --> CLICORE
     CLICORE --> CMD & MW & AUTO & CTX
-    CTX --> LOGGER & STORE & FORMAT & PROMPTS & ERRORS
-    CMD & MW --> CTX
+    CMD --> SCREEN
+    MW --> AUTH & CFGMW & HTTP & ICONS & FIGURES & REPORT
+    CTX --> LOG & STORE & FORMAT & DOTDIR
+    SCREEN --> UICOMP & STORIES
 
     classDef core fill:#313244,stroke:#89b4fa,stroke-width:2px,color:#cdd6f4
     classDef gateway fill:#313244,stroke:#fab387,stroke-width:2px,color:#cdd6f4
     classDef agent fill:#313244,stroke:#a6e3a1,stroke-width:2px,color:#cdd6f4
     classDef external fill:#313244,stroke:#f5c2e7,stroke-width:2px,color:#cdd6f4
+    classDef middleware fill:#313244,stroke:#f38ba8,stroke-width:2px,color:#cdd6f4
+    classDef uilayer fill:#313244,stroke:#94e2d5,stroke-width:2px,color:#cdd6f4
 
     class INDEX external
     class CLICORE gateway
     class CMD,MW,AUTO,CTX core
-    class CONFIG,STORE,LOGGER,FORMAT,PROMPTS,ERRORS,RESULT,PROJECT agent
+    class AUTH,CFGMW,HTTP,ICONS,FIGURES,REPORT middleware
+    class SCREEN,STORIES,UICOMP uilayer
+    class CONFIG,STORE,LOG,FORMAT,DOTDIR,PROJECT agent
 
     style entry fill:#181825,stroke:#f5c2e7,stroke-width:2px
     style core fill:#181825,stroke:#fab387,stroke-width:2px
+    style mw fill:#181825,stroke:#f38ba8,stroke-width:2px
+    style ui fill:#181825,stroke:#94e2d5,stroke-width:2px
     style lib fill:#181825,stroke:#89b4fa,stroke-width:2px
 ```
 
@@ -107,8 +128,14 @@ The framework primitives:
 | `cli.ts`        | Entry function that wires yargs, config, and context   |
 | `command.ts`    | Factory for creating typed commands                    |
 | `middleware.ts` | Factory and pipeline runner for middleware composition |
-| `autoloader.ts` | Auto-discovery and dynamic import of command files     |
+| `compose.ts`    | Compose multiple middleware into a single middleware    |
+| `autoload.ts`   | Auto-discovery and dynamic import of command files     |
 | `context/`      | Context creation, types, and error handling            |
+| `runtime/`      | CLI runtime execution and lifecycle                    |
+| `middleware/`   | Built-in middleware (auth, config, figures, http, icons, report) |
+| `screen/`       | React/Ink screen rendering and context hooks           |
+| `stories/`      | Component story definitions and viewer                 |
+| `ui/`           | Re-exported Ink components and custom UI primitives    |
 
 ### Lib Layer
 
@@ -116,17 +143,16 @@ The framework primitives:
 
 Shared utilities consumed by the core and extension layers:
 
-| Module        | Purpose                                                             |
-| ------------- | ------------------------------------------------------------------- |
-| `config.ts`   | Config file discovery, parsing, Zod validation                      |
-| `store.ts`    | File-backed JSON store (local and global)                           |
-| `logger.ts`   | Structured logging with `@clack/prompts`                            |
-| `format/`     | Pure format functions (check, finding, code-frame, tally, duration) |
-| `prompts.ts`  | Interactive prompts and spinner via `@clack/prompts`                |
-| `errors.ts`   | Sensitive data redaction and sanitization                           |
-| `result.ts`   | `Result<T, E>` type constructors (`ok`, `err`)                      |
-| `validate.ts` | Zod schema validation returning Result tuples                       |
-| `project.ts`  | Git project root detection and submodule handling                   |
+| Module      | Purpose                                                             |
+| ----------- | ------------------------------------------------------------------- |
+| `config/`   | Config file discovery, parsing, Zod validation                      |
+| `store/`    | File-backed JSON store (local and global)                           |
+| `log.ts`    | Structured logging with `@clack/prompts`                            |
+| `format/`   | Pure format functions (check, finding, code-frame, tally, duration) |
+| `dotdir/`   | Dot-directory client for auth/config file storage                   |
+| `project/`  | Git project root detection and submodule handling                   |
+| `crash.ts`  | Crash reporting and error serialization                             |
+| `debug.ts`  | Debug mode utilities                                                |
 
 ## Context
 
@@ -138,7 +164,8 @@ The `Context` is the central object threaded through every middleware and comman
 | `config`  | `DeepReadonly<TConfig>`        | No      | Loaded and validated config file contents                  |
 | `log`     | `Log`                          | No      | Logging methods (info, success, error, warn, etc.)         |
 | `prompts` | `Prompts`                      | No      | Interactive prompts (confirm, text, select, etc.)          |
-| `spinner` | `Spinner`                      | No      | Spinner for long-running operations (start, stop, message) |
+| `status`  | `Status`                       | No      | Status indicators (spinner, progress)                      |
+| `dotdir`  | `DotDirectory`                 | No      | File-backed directory client for auth/config storage       |
 | `colors`  | `Colors`                       | No      | Color formatting utilities (picocolors)                    |
 | `format`  | `Format`                       | No      | Pure string formatters (json, table)                       |
 | `store`   | `Store`                        | Yes     | In-memory key-value store for middleware data              |

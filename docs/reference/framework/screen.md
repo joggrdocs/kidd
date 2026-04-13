@@ -29,11 +29,9 @@ Import from `@kidd-cli/core/ui`.
 
 Available inside screen components. Throw if used outside a `screen()` render tree.
 
-| Hook                   | Returns             | Description                                 |
-| ---------------------- | ------------------- | ------------------------------------------- |
-| `useConfig<TConfig>()` | `Readonly<TConfig>` | Validated CLI config                        |
-| `useMeta()`            | `Readonly<Meta>`    | CLI metadata (name, version, command, dirs) |
-| `useStore()`           | `Store`             | In-memory key-value store                   |
+| Hook                  | Returns          | Description                                                            |
+| --------------------- | ---------------- | ---------------------------------------------------------------------- |
+| `useScreenContext()`  | `ScreenContext`  | Full context including `args`, `meta`, `store`, `log`, `status`, and any middleware-decorated properties (`config`, `auth`, `icons`, etc.) |
 
 ## Layout components
 
@@ -100,6 +98,6 @@ Exported from `@kidd-cli/core/ui`:
 
 ## References
 
-- [Screens](../concepts/screens.md)
-- [Build a CLI](../guides/build-a-cli.md)
-- [Core](./kidd.md)
+- [Screens](/docs/concepts/screens)
+- [Build a CLI](/guides/build-a-cli)
+- [Core](../packages/kidd)

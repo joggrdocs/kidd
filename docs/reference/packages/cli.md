@@ -205,6 +205,6 @@ kidd stories --include "src/ui/**/*.stories.tsx"
 
 ## References
 
-- [Core](./kidd.md)
-- [Build a CLI](../guides/build-a-cli.md)
-- [Configuration](../concepts/configuration.md)
+- [Core](./kidd)
+- [Build a CLI](/guides/build-a-cli)
+- [Configuration](/docs/concepts/configuration)

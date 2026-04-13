@@ -15,6 +15,17 @@ Every icon has two representations: a Nerd Font glyph and an emoji fallback. Whe
 
 This means commands never need to check font availability themselves. Call `ctx.icons.get('branch')` and the correct character is returned.
 
+**Nerd Font glyph vs emoji fallback:**
+
+```txt
+Nerd Font installed          Emoji fallback
+──────────────────           ──────────────
+ branch                    🔀 branch
+ success                   ✅ success
+ deploy                    🚀 deploy
+ typescript                📄 typescript
+```
+
 ### Font Detection
 
 Font detection runs once during middleware initialization and the result is cached for the entire command lifecycle. The detection pipeline works as follows:
@@ -381,6 +392,6 @@ When the font install fails, a warning is logged and the middleware falls back t
 
 ## References
 
-- [Core Reference](../reference/kidd.md)
+- [Core Reference](/reference/packages/kidd)
 - [Context](./context.md)
 - [Lifecycle](./lifecycle.md)

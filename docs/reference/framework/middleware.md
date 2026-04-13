@@ -84,8 +84,10 @@ Returns the same `ctx` reference. The property is non-writable and non-configura
 
 ## References
 
-- [command()](./command.md)
-- [cli()](./bootstrap.md)
-- [report()](./report.md)
-- [Context](../concepts/context.md)
-- [Lifecycle](../concepts/lifecycle.md)
+- [command()](./command)
+- [cli()](./bootstrap)
+- [report()](../middleware/report)
+- [compose()](./compose)
+- [Context](/docs/concepts/context)
+- [Lifecycle](/docs/concepts/lifecycle)
+- [Compose Middleware Guide](/guides/compose-middleware)

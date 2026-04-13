@@ -130,6 +130,6 @@ Built-in decorators:
 
 ## References
 
-- [Screens](../concepts/screens.md)
-- [CLI Reference](../reference/cli.md)
-- [Components Standard](/contributing/standards/typescript/components.md)
+- [Screens](/docs/concepts/screens)
+- [CLI Reference](/reference/packages/cli)
+- [Components Standard](/contributing/standards/typescript/components)

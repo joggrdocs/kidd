@@ -181,7 +181,18 @@ Pure string formatters for data serialization. These return strings and perform 
 ```ts
 // JSON output
 process.stdout.write(ctx.format.json({ name: 'deploy', status: 'success' }))
+```
 
+**Output:**
+
+```txt
+{
+  "name": "deploy",
+  "status": "success"
+}
+```
+
+```ts
 // Table output
 process.stdout.write(
   ctx.format.table([
@@ -189,6 +200,15 @@ process.stdout.write(
     { name: 'migrate', status: 'skipped' },
   ])
 )
+```
+
+**Output:**
+
+```txt
+name     status
+-------  -------
+deploy   success
+migrate  skipped
 ```
 
 ## `ctx.store`
@@ -266,7 +286,7 @@ if (error) {
 }
 ```
 
-See [Authentication](./authentication.md) for the full auth system reference.
+See [Authentication](./authentication.md) for concepts and [Authentication Reference](/reference/middleware/authentication) for the full API.
 
 ## Module Augmentation
 
@@ -312,7 +332,9 @@ See [Screens](./screens.md) for details.
 
 ## References
 
-- [Core Reference](../reference/kidd.md)
+- [Core Reference](/reference/packages/kidd)
 - [Lifecycle](./lifecycle.md)
 - [Configuration](./configuration.md)
 - [Authentication](./authentication.md)
+- [Error Handling](./error-handling.md)
+- [Context Reference](/reference/framework/context)

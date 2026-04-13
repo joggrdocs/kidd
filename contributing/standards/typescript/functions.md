@@ -217,6 +217,33 @@ function process(data: Data) {
 }
 ```
 
+### Use Explicit Return Types on Exports
+
+All exported functions must have explicit return type annotations. This is enforced by `isolatedDeclarations: true` in the TypeScript config, which requires return types for declaration file generation.
+
+#### Correct
+
+```ts
+export function loadConfig(path: string): Result<Config, ConfigError> {
+  // ...
+}
+
+export const formatName = (name: string): string => {
+  return name.trim().toLowerCase()
+}
+```
+
+#### Incorrect
+
+```ts
+// Missing return type — compiler error with isolatedDeclarations
+export function loadConfig(path: string) {
+  // ...
+}
+```
+
+Non-exported (private) functions should also have return types for clarity, though the compiler does not enforce it.
+
 ## References
 
 - [Naming Conventions](./naming.md) -- Parameter interface naming

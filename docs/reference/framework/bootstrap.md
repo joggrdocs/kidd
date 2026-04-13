@@ -34,7 +34,7 @@ cli({
 | `dirs`        | `DirsConfig`                                                    | --      | Directory name overrides                      |
 | `log`         | `Log`                                                           | --      | Custom log implementation                     |
 | `prompts`     | `Prompts`                                                       | --      | Custom prompts implementation                 |
-| `spinner`     | `Spinner`                                                       | --      | Custom spinner implementation                 |
+| `status`      | `Status`                                                        | --      | Custom status implementation                  |
 
 ## CliHelpOptions
 
@@ -112,23 +112,27 @@ declare module '@kidd-cli/core/config' {
 
 ## Sub-exports
 
-| Export                   | Purpose                                                                                                                                               |
-| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `@kidd-cli/core/config`  | Config loading and validation (`createConfigClient`)                                                                                                  |
-| `@kidd-cli/core/store`   | File-backed JSON store (`createStore`)                                                                                                                |
-| `@kidd-cli/core/project` | Git root resolution, path utilities (`findProjectRoot`, `isInSubmodule`, `getParentRepoRoot`, `resolvePath`, `resolveLocalPath`, `resolveGlobalPath`) |
-| `@kidd-cli/core/format`  | Standalone format functions (`formatCheck`, `formatFinding`, `formatCodeFrame`, `formatTally`, `formatDuration`)                                      |
-| `@kidd-cli/core/auth`    | Auth middleware, credential types, strategies (`auth`)                                                                                                |
-| `@kidd-cli/core/http`    | Typed HTTP client middleware (`http`, `createHttpClient`)                                                                                             |
-| `@kidd-cli/core/icons`   | Icon detection and font middleware (`icons`)                                                                                                          |
-| `@kidd-cli/core/report`  | Structured reporting middleware (`report`, `createReport`)                                                                                            |
-| `@kidd-cli/core/test`    | Test utilities (`createTestContext`, `runCommand`, `runMiddleware`, `runHandler`)                                                                     |
-| `@kidd-cli/core/ui`      | Screen commands and UI components (`screen`, `Box`, `Text`, `Select`, `useConfig`, `useMeta`, `useStore`)                                             |
+| Export                      | Purpose                                                                                                            |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `@kidd-cli/core/config`     | Config middleware and loading (`config`, `createConfigClient`)                                                      |
+| `@kidd-cli/core/auth`       | Auth middleware, credential types, strategies (`auth`, `createAuthHeaders`, `createAuthRequire`)                    |
+| `@kidd-cli/core/http`       | Typed HTTP client middleware (`http`, `createHttpClient`)                                                           |
+| `@kidd-cli/core/figures`    | Unicode symbol middleware with terminal fallback (`figures`)                                                        |
+| `@kidd-cli/core/icons`      | Icon detection and Nerd Font middleware (`icons`)                                                                   |
+| `@kidd-cli/core/report`     | Structured reporting middleware (`report`, `createReport`)                                                          |
+| `@kidd-cli/core/test`       | Test utilities (`createTestContext`, `runCommand`, `runMiddleware`, `runHandler`, `mockPrompts`, `stripAnsi`, etc.) |
+| `@kidd-cli/core/ui`         | Screen commands, UI components, and hooks (`screen`, `Box`, `Text`, `Select`, `useScreenContext`)                  |
+| `@kidd-cli/core/stories`    | Component story definitions (`story`, `stories`)                                                                   |
 
 ## References
 
-- [command()](./command.md)
-- [middleware()](./middleware.md)
-- [screen()](./screen.md)
-- [Configuration](../concepts/configuration.md)
-- [Lifecycle](../concepts/lifecycle.md)
+- [command()](./command)
+- [middleware()](./middleware)
+- [screen()](./screen)
+- [autoload()](./autoload)
+- [http()](../middleware/http)
+- [figures()](../middleware/figures)
+- [compose()](./compose)
+- [Module Augmentation](/docs/concepts/module-augmentation)
+- [Configuration](/docs/concepts/configuration)
+- [Lifecycle](/docs/concepts/lifecycle)

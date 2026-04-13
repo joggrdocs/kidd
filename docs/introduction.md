@@ -54,28 +54,28 @@ Commands live in `src/commands/`, middleware in `src/middleware/`, and the entry
 
 The `@kidd-cli/core` package exposes focused sub-exports so you only import what you need:
 
-| Export                   | Purpose                                            |
-| ------------------------ | -------------------------------------------------- |
-| `@kidd-cli/core`         | Commands, middleware, context, module augmentation |
-| `@kidd-cli/core/auth`    | Auth middleware and credential strategies          |
-| `@kidd-cli/core/http`    | HTTP client middleware                             |
-| `@kidd-cli/core/icons`   | Nerd Font icon middleware                          |
-| `@kidd-cli/core/config`  | Config client for loading outside cli()            |
-| `@kidd-cli/core/logger`  | Standalone terminal logger                         |
-| `@kidd-cli/core/store`   | File-backed JSON store                             |
-| `@kidd-cli/core/project` | Git root resolution and path utilities             |
-| `@kidd-cli/core/format`  | Standalone format functions                        |
-| `@kidd-cli/core/test`    | Test utilities for commands and middleware         |
+| Export                    | Purpose                                            |
+| ------------------------- | -------------------------------------------------- |
+| `@kidd-cli/core`          | Commands, middleware, context, module augmentation |
+| `@kidd-cli/core/config`   | Config middleware and loading                      |
+| `@kidd-cli/core/auth`     | Auth middleware and credential strategies          |
+| `@kidd-cli/core/http`     | HTTP client middleware                             |
+| `@kidd-cli/core/figures`  | Unicode symbols with terminal fallback            |
+| `@kidd-cli/core/icons`    | Nerd Font icon middleware                          |
+| `@kidd-cli/core/report`   | Structured reporting middleware                    |
+| `@kidd-cli/core/test`     | Test utilities for commands and middleware         |
+| `@kidd-cli/core/ui`       | Screen commands and UI components                 |
+| `@kidd-cli/core/stories`  | Component story definitions                        |
 
 ## Packages
 
 | Package                             | Description                                                  |
 | ----------------------------------- | ------------------------------------------------------------ |
-| [`@kidd-cli/core`](/reference/kidd) | Commands, middleware, config, context, auth, HTTP, and icons |
-| [`@kidd-cli/cli`](/reference/cli)   | Scaffolding, building, diagnostics, and code generation      |
+| [`@kidd-cli/core`](/reference/packages/kidd) | Commands, middleware, config, context, auth, HTTP, and icons |
+| [`@kidd-cli/cli`](/reference/packages/cli)   | Scaffolding, building, diagnostics, and code generation      |
 
 ## Next steps
 
-- [Quick Start](/getting-started/quick-start) -- build and run a CLI in 5 minutes
+- [Quick Start](/docs/quick-start) -- build and run a CLI in 5 minutes
 - [Build a CLI](/guides/build-a-cli) -- the full guide to commands, middleware, config, and sub-exports
-- [Lifecycle](/concepts/lifecycle) -- how a CLI invocation flows from argv to exit
+- [Lifecycle](/docs/concepts/lifecycle) -- how a CLI invocation flows from argv to exit

@@ -6,6 +6,12 @@ Patterns for conditional logic in TypeScript. This standard covers early returns
 
 ## Rules
 
+All examples in this document use `match` and `P` from [ts-pattern](https://github.com/gvergnaud/ts-pattern):
+
+```ts
+import { match, P } from 'ts-pattern'
+```
+
 ### Use ts-pattern for Multi-Branch Logic
 
 Use `ts-pattern` for conditional logic with 2+ branches. It provides exhaustiveness checking and better readability than switch statements or nested ternaries.

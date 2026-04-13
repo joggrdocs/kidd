@@ -4,7 +4,7 @@ Set up your local environment to contribute to kidd.
 
 ## Prerequisites
 
-- [Node.js](https://nodejs.org/) >= 22.0.0
+- [Node.js](https://nodejs.org/) >= 24.0.0
 - [pnpm](https://pnpm.io/) 10.x (`corepack enable` to activate)
 - [Git](https://git-scm.com/)
 - [Claude Code CLI](https://docs.anthropic.com/en/docs/claude-code) (optional but recommended)

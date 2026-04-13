@@ -6,72 +6,34 @@ export default defineConfig({
   tagline: 'Built on yargs and Zod. Convention over configuration, end-to-end type safety.',
   theme: { name: 'midnight' },
   actions: [
-    { theme: 'brand', text: 'Introduction', link: '/getting-started/introduction' },
-    { theme: 'alt', text: 'Quick Start', link: '/getting-started/quick-start' },
+    { theme: 'brand', text: 'Documentation', link: '/docs/introduction' },
+    { theme: 'alt', text: 'Quick Start', link: '/docs/quick-start' },
   ],
   sidebar: {
     below: [{ text: 'Contributing', link: '/contributing', icon: 'pixelarticons:git-merge' }],
   },
   sections: [
-    // ── Getting Started ──
+    // ── Documentation ──
     {
-      title: 'Getting Started',
-      icon: 'pixelarticons:speed-fast',
-      path: '/getting-started',
+      title: 'Documentation',
+      icon: 'pixelarticons:notes',
+      path: '/docs',
       items: [
         {
           title: 'Introduction',
-          path: '/getting-started/introduction',
+          path: '/docs/introduction',
           include: 'docs/introduction.md',
         },
         {
           title: 'Quick Start',
-          path: '/getting-started/quick-start',
+          path: '/docs/quick-start',
           include: 'docs/quick-start.md',
         },
-      ],
-    },
-
-    // ── Concepts ──
-    {
-      title: 'Concepts',
-      path: '/concepts',
-      icon: 'pixelarticons:lightbulb',
-      items: [
         {
-          title: 'Lifecycle',
-          path: '/concepts/lifecycle',
-          include: 'docs/concepts/lifecycle.md',
-        },
-        {
-          title: 'Context',
-          path: '/concepts/context',
-          include: 'docs/concepts/context.md',
-        },
-        {
-          title: 'Configuration',
-          path: '/concepts/configuration',
-          include: 'docs/concepts/configuration.md',
-        },
-        {
-          title: 'Authentication',
-          path: '/concepts/authentication',
-          include: 'docs/concepts/authentication.md',
-        },
-        {
-          title: 'Icons',
-          path: '/concepts/icons',
-          include: 'docs/concepts/icons.md',
-        },
-        {
-          title: 'Screens',
-          path: '/concepts/screens',
-          include: 'docs/concepts/screens.md',
-        },
-        {
-          title: 'Reporting',
-          path: '/concepts/reporting',
-          include: 'docs/concepts/reporting.md',
+          title: 'Concepts',
+          path: '/docs/concepts',
+          include: 'docs/concepts/*.md',
+          sort: 'alpha',
         },
       ],
     },
@@ -80,80 +42,42 @@ export default defineConfig({
     {
       title: 'Guides',
       path: '/guides',
+      standalone: true,
       icon: 'pixelarticons:book-open',
       items: [
         {
-          title: 'Build a CLI',
-          path: '/guides/build-a-cli',
-          include: 'docs/guides/build-a-cli.md',
-        },
-        {
-          title: 'Add Authentication',
-          path: '/guides/add-authentication',
-          include: 'docs/guides/add-authentication.md',
-        },
-        {
-          title: 'Testing Your CLI',
-          path: '/guides/testing-your-cli',
-          include: 'docs/guides/testing-your-cli.md',
-        },
-        {
-          title: 'Build a Compiled CLI',
-          path: '/guides/build-a-compiled-cli',
-          include: 'docs/guides/build-a-compiled-cli.md',
+          title: { from: 'heading' },
+          path: '/guides',
+          include: 'docs/guides/*.md',
+          sort: 'alpha',
         },
       ],
     },
 
-    // ── Reference: JavaScript ──
+    // ── Reference ──
     {
-      title: 'JavaScript',
+      title: 'Reference',
       path: '/reference',
+      standalone: true,
       icon: 'pixelarticons:terminal',
       items: [
         {
-          title: 'command()',
-          path: '/reference/command',
-          include: 'docs/reference/command.md',
+          title: 'Framework',
+          path: '/reference/framework',
+          include: 'docs/reference/framework/*.md',
+          sort: 'alpha',
         },
         {
-          title: 'middleware()',
+          title: 'Middleware',
           path: '/reference/middleware',
-          include: 'docs/reference/middleware.md',
+          include: 'docs/reference/middleware/*.md',
+          sort: 'alpha',
         },
         {
-          title: 'cli()',
-          path: '/reference/bootstrap',
-          include: 'docs/reference/bootstrap.md',
-        },
-        {
-          title: 'Context',
-          path: '/reference/context',
-          include: 'docs/reference/context.md',
-        },
-        {
-          title: 'screen()',
-          path: '/reference/screen',
-          include: 'docs/reference/screen.md',
-        },
-        {
-          title: 'report()',
-          path: '/reference/report',
-          include: 'docs/reference/report.md',
-        },
-      ],
-    },
-
-    // ── Reference: CLI ──
-    {
-      title: 'CLI',
-      path: '/reference/cli',
-      icon: 'pixelarticons:command',
-      items: [
-        {
-          title: 'CLI',
-          path: '/reference/cli',
-          include: 'docs/reference/cli.md',
+          title: 'Packages',
+          path: '/reference/packages',
+          include: 'docs/reference/packages/*.md',
+          sort: 'alpha',
         },
       ],
     },
@@ -235,32 +159,25 @@ export default defineConfig({
       icon: 'pixelarticons:zap',
     },
   ],
-  workspaces: [
+  packages: [
     {
-      title: 'Packages',
+      title: '@kidd-cli/core',
+      description: 'The runtime framework for commands, middleware, auth, and terminal UI.',
+      path: '/reference/framework/bootstrap',
       icon: 'pixelarticons:code',
-      items: [
-        {
-          title: '@kidd-cli/core',
-          description: 'The runtime framework for commands, middleware, auth, and terminal UI.',
-          path: '/reference/kidd',
-          icon: 'pixelarticons:code',
-          tags: ['framework', 'runtime'],
-        },
-        {
-          title: '@kidd-cli/cli',
-          description: 'The developer CLI for scaffolding, building, and diagnostics.',
-          path: '/reference/cli',
-          icon: 'pixelarticons:command',
-          tags: ['cli', 'tooling'],
-        },
-      ],
+      tags: ['framework', 'runtime'],
+    },
+    {
+      title: '@kidd-cli/cli',
+      description: 'The developer CLI for scaffolding, building, and diagnostics.',
+      path: '/reference/packages/cli',
+      icon: 'pixelarticons:command',
+      tags: ['cli', 'tooling'],
     },
   ],
   nav: [
-    { title: 'Getting Started', link: '/getting-started/introduction' },
-    { title: 'Concepts', link: '/concepts/lifecycle' },
+    { title: 'Documentation', link: '/docs/introduction' },
     { title: 'Guides', link: '/guides/build-a-cli' },
-    { title: 'Reference', link: '/reference/kidd' },
+    { title: 'Reference', link: '/reference/framework/bootstrap' },
   ],
 })

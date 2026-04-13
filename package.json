@@ -40,7 +40,7 @@
     "@types/node": "catalog:",
     "@typescript/native-preview": "7.0.0-dev.20260408.1",
     "@vitest/coverage-v8": "catalog:",
-    "@zpress/kit": "^0.2.16",
+    "@zpress/kit": "^0.2.19",
     "eslint-plugin-functional": "^9.0.4",
     "eslint-plugin-jsdoc": "^62.9.0",
     "eslint-plugin-security": "^4.0.0",
@@ -61,7 +61,9 @@
   "pnpm": {
     "overrides": {
       "@rspack/core": "2.0.0-beta.3",
-      "@rspack/binding": "2.0.0-beta.3"
+      "@rspack/binding": "2.0.0-beta.3",
+      "react": "19.2.5",
+      "react-dom": "19.2.5"
     }
   }
 }

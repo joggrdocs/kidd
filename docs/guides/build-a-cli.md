@@ -100,7 +100,7 @@ const deploy = command({
 })
 ```
 
-Root middleware wraps command middleware, which wraps the handler. See [Lifecycle](../concepts/lifecycle.md) for the full execution model.
+Root middleware wraps command middleware, which wraps the handler. See [Lifecycle](/docs/concepts/lifecycle) for the full execution model.
 
 ### 4. Hide or deprecate commands
 
@@ -336,13 +336,41 @@ export default screen({
 })
 ```
 
-Screen commands use `.tsx` files and access runtime context via hooks (`useConfig()`, `useMeta()`, `useStore()`) instead of the `ctx` object. See [Screens](../concepts/screens.md) for the full guide.
+Screen commands use `.tsx` files and access runtime context via hooks (`useConfig()`, `useMeta()`, `useStore()`) instead of the `ctx` object. See [Screens](/docs/concepts/screens) for the full guide.
 
 ## Verification
 
 ```bash
 npx my-app --help
 npx my-app deploy --env staging --dry-run
+```
+
+**`--help` output:**
+
+```txt
+my-app v1.0.0
+
+my-app - deploy and migrate with ease
+
+Commands:
+  my-app deploy   Deploy the application
+  my-app migrate  Run database migrations
+
+Options:
+  --help     Show help                                     [boolean]
+  --version  Show version number                           [boolean]
+```
+
+**Running a command:**
+
+```txt
+$ npx my-app deploy --env staging
+
+◇  my-app v1.0.0
+│
+◇  Deploying to staging
+│
+◆  Done
 ```
 
 ## Troubleshooting
@@ -367,5 +395,5 @@ npx my-app deploy --env staging --dry-run
 
 ## References
 
-- [Core Reference](../reference/kidd.md)
-- [Screens](../concepts/screens.md)
+- [Core Reference](/reference/packages/kidd)
+- [Screens](/docs/concepts/screens)

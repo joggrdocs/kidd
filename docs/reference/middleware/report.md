@@ -113,5 +113,5 @@ declare module '@kidd-cli/core' {
 
 ## References
 
-- [Reporting](../concepts/reporting.md)
-- [Core](./kidd.md)
+- [Reporting](/docs/concepts/reporting)
+- [Core](../packages/kidd)

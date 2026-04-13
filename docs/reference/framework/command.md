@@ -136,7 +136,7 @@ cli({
 
 ## References
 
-- [middleware()](./middleware.md)
-- [cli()](./bootstrap.md)
-- [screen()](./screen.md)
-- [Context](../concepts/context.md)
+- [middleware()](./middleware)
+- [cli()](./bootstrap)
+- [screen()](./screen)
+- [Context](/docs/concepts/context)

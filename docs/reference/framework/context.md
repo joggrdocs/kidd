@@ -4,19 +4,32 @@ The central object threaded through every handler and middleware.
 
 ## Properties
 
-| Property  | Type                                      | Description                                                 |
-| --------- | ----------------------------------------- | ----------------------------------------------------------- |
-| `args`    | `DeepReadonly<Merge<KiddArgs, TArgs>>`    | Parsed and validated command args                           |
-| `config`  | `DeepReadonly<Merge<CliConfig, TConfig>>` | Validated runtime config                                    |
-| `log`     | `Log`                                     | Logging methods                                             |
-| `prompts` | `Prompts`                                 | Interactive prompts                                         |
-| `spinner` | `Spinner`                                 | Spinner for long-running operations                         |
-| `colors`  | `Colors`                                  | Color formatting utilities (picocolors)                     |
-| `format`  | `Format`                                  | Pure string formatters (json, table) -- no I/O              |
-| `store`   | `Store`                                   | Typed in-memory key-value store                             |
-| `fail`    | `(message, options?) => never`            | Throw a user-facing error                                   |
-| `meta`    | `Meta`                                    | CLI metadata (name, version, command path)                  |
-| `auth?`   | `AuthContext`                             | Auth credential and login (when auth middleware registered) |
+| Property  | Type                                   | Description                                                 |
+| --------- | -------------------------------------- | ----------------------------------------------------------- |
+| `args`    | `DeepReadonly<Merge<KiddArgs, TArgs>>` | Parsed and validated command args                           |
+| `log`     | `Log`                                  | Logging methods                                             |
+| `prompts` | `Prompts`                              | Interactive prompts                                         |
+| `status`  | `Status`                               | Status indicators (`.spinner`, `.progress`)                 |
+| `colors`  | `Colors`                               | Color formatting utilities (picocolors)                     |
+| `format`  | `Format`                               | Pure string formatters (json, table) -- no I/O              |
+| `store`   | `Store`                                | Typed in-memory key-value store                             |
+| `dotdir`  | `DotDirectory`                         | File-backed directory client for auth/config storage        |
+| `fail`    | `(message, options?) => never`         | Throw a user-facing error                                   |
+| `meta`    | `Meta`                                 | CLI metadata (name, version, command path)                  |
+| `raw`     | `{ argv: readonly string[] }`          | Raw invocation data                                         |
+
+### Middleware-provided properties
+
+These properties are added by their respective middleware via `decorateContext()` and are only available when the middleware is registered.
+
+| Property  | Middleware                    | Type          | Description                         |
+| --------- | ----------------------------- | ------------- | ----------------------------------- |
+| `config`  | `config()` from `/config`     | `ConfigHandle`| Lazy config loader with `load()`    |
+| `auth`    | `auth()` from `/auth`         | `AuthContext`  | Credential, login, and logout       |
+| `icons`   | `icons()` from `/icons`       | `IconsContext` | Icon resolution with font detection |
+| `report`  | `report()` from `/report`     | `Report`       | Structured check/finding/summary    |
+| `http`    | `http()` from `/http`         | `HttpClient`   | Typed HTTP client with auth headers |
+| `figures` | `figures()` from `/figures`   | `Figures`      | Unicode symbols with fallback       |
 
 ## Log
 
@@ -70,7 +83,8 @@ In-memory key-value store for passing data between middleware and handlers.
 
 ## References
 
-- [Context (concept)](../concepts/context.md)
-- [command()](./command.md)
-- [middleware()](./middleware.md)
-- [cli()](./bootstrap.md)
+- [Context (concept)](/docs/concepts/context)
+- [Error Handling](/docs/concepts/error-handling)
+- [command()](./command)
+- [middleware()](./middleware)
+- [cli()](./bootstrap)

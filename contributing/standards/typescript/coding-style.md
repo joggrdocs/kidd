@@ -8,7 +8,9 @@ High-level constraints that govern all TypeScript in the monorepo. These rules a
 
 ### No `let` — Use `const` Only
 
-All bindings must be `const`. No reassignment, no mutation. Mutable state inside closures (factory internals) is the one accepted exception.
+All bindings must be `const`. No reassignment, no mutation.
+
+**Exception — Factory internals:** `let` is permitted inside factory function closures for encapsulated mutable state (e.g., `let running = false` inside a `createRunner()` closure). This is the only accepted use of `let` in the codebase. The mutable state must be private to the closure and never leaked.
 
 #### Correct
 

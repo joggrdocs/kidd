@@ -42,7 +42,18 @@ ctx.report.check({ status: 'fix', name: 'src/format.ts', detail: 'auto-fixed' })
 ctx.report.check({ status: 'pass', name: 'tests/unit.ts', duration: 142 })
 ```
 
-See the [report() reference](../reference/report.md) for all input fields.
+**Output:**
+
+```txt
+ ✔ src/index.ts
+ ✘ src/config.ts missing export
+ ⚠ src/utils.ts [consider splitting]
+ ○ src/legacy.ts
+ ◆ src/format.ts auto-fixed
+ ✔ tests/unit.ts (142ms)
+```
+
+See the [report() reference](/reference/middleware/report) for all input fields.
 
 ### `ctx.report.finding(input)`
 
@@ -69,7 +80,20 @@ ctx.report.finding({
 })
 ```
 
-See the [report() reference](../reference/report.md) for all input fields.
+**Output:**
+
+```txt
+  error (correctness): 'config' is defined but never used [no-unused-vars]
+  ❯ src/index.ts:1:10
+    │
+  1 │ import { config } from './config.js'
+    │          ^^^^^^ this variable is unused
+  2 │ import { run } from './run.js'
+    │
+  ╰─ help: Remove the unused variable or prefix with _
+```
+
+See the [report() reference](/reference/middleware/report) for all input fields.
 
 ### `ctx.report.summary(input)`
 
@@ -85,9 +109,13 @@ ctx.report.summary({
     { label: 'Duration', value: '5.63s' },
   ],
 })
-// Output:
-//   Tests     3 passed | 2 failed (5)
-//   Duration  5.63s
+```
+
+**Output:**
+
+```txt
+  Tests     3 passed | 2 failed (5)
+  Duration  5.63s
 ```
 
 **Inline style** -- pipe-separated one-liner:
@@ -97,11 +125,15 @@ ctx.report.summary({
   style: 'inline',
   stats: ['1 error', '3 warnings', '95 files', 'in 142ms'],
 })
-// Output:
-//   1 error | 3 warnings | 95 files | in 142ms
 ```
 
-See the [report() reference](../reference/report.md) for all input fields.
+**Output:**
+
+```txt
+  1 error | 3 warnings | 95 files | in 142ms
+```
+
+See the [report() reference](/reference/middleware/report) for all input fields.
 
 ## Standalone usage
 
@@ -162,5 +194,6 @@ declare module '@kidd-cli/core' {
 
 - [Context](./context.md)
 - [Lifecycle](./lifecycle.md)
-- [report() Reference](../reference/report.md)
-- [Core](../reference/kidd.md)
+- [report() Reference](/reference/middleware/report)
+- [Core](/reference/packages/kidd)
+- [Build a Diagnostic Command](/guides/build-a-diagnostic-command)

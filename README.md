@@ -13,10 +13,11 @@
 ## Features
 
 - 🧰 **Batteries included** — Config, auth, prompts, logging, output, and middleware built in
+- 🎭 **Terminal stories** — Develop and preview Ink React components in isolation, like Storybook for the terminal
 - 📁 **File-system autoloading** — Drop a file in `commands/`, get a command
 - ⚡ **Build and compile** — Bundle your command tree or produce cross-platform standalone binaries
 - 🚀 **Two files to a full CLI** — Define a schema, write a handler, done
-- 🛠️ **Developer experience** — Scaffolding, hot reload, route inspection, and diagnostics out of the box
+- 🎨 **Component library** — Pre-built Ink components for building rich terminal UIs
 
 ## Install
 

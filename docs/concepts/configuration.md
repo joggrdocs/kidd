@@ -328,6 +328,6 @@ cli({
 
 ## References
 
-- [Core Reference](../reference/kidd.md)
+- [Core Reference](/reference/packages/kidd)
 - [Context](./context.md)
-- [@kidd-cli/cli Reference](../reference/cli.md)
+- [@kidd-cli/cli Reference](/reference/packages/cli)

@@ -345,4 +345,4 @@ node -e "import('@kidd-cli/bundler').then(b => b.build({ config: {}, cwd: proces
 ## References
 
 - [Build a CLI](./build-a-cli.md)
-- [Configuration Concepts](../concepts/configuration.md)
+- [Configuration Concepts](/docs/concepts/configuration)

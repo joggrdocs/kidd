@@ -176,7 +176,7 @@ const whoami = command({
     if (!ctx.auth.authenticated()) {
       ctx.fail('Not authenticated')
     }
-    ctx.logger.print('Logged in')
+    ctx.log.raw('Logged in')
   },
 })
 
@@ -226,7 +226,7 @@ const status = command({
       ctx.fail(error.message)
       return
     }
-    ctx.logger.print(`API: ${result.config.apiUrl}`)
+    ctx.log.raw(`API: ${result.config.apiUrl}`)
   },
 })
 
@@ -255,7 +255,7 @@ import { createTestContext } from '@kidd-cli/core/test'
 
 const deploy = command({
   async handler(ctx) {
-    ctx.logger.print(`${ctx.icons.get('deploy')} Deploying...`)
+    ctx.log.raw(`${ctx.icons.get('deploy')} Deploying...`)
   },
 })
 

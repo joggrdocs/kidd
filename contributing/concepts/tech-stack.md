@@ -152,8 +152,8 @@ ESLint is slow on large codebases. OXC (Oxidation Compiler) is:
 
 | Requirement | Minimum Version | Reason                                                |
 | ----------- | --------------- | ----------------------------------------------------- |
-| Node.js     | 22.x            | Native ES2022 features, import.meta, top-level await  |
-| pnpm        | 9.x             | Workspace protocol, catalog protocol, better lockfile |
+| Node.js     | 24.x            | Native ES2022 features, import.meta, top-level await  |
+| pnpm        | 10.x            | Workspace protocol, catalog protocol, better lockfile |
 | TypeScript  | 5.7.x           | `isolatedDeclarations`, improved type inference       |
 
 ## Excluded Technologies

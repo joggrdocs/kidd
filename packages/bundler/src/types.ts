@@ -102,9 +102,16 @@ export interface CreateBundlerParams extends BundlerLifecycle {
  * A bundler instance with build, watch, and compile methods.
  */
 export interface Bundler {
-  readonly build: () => AsyncBundlerResult<BuildOutput>
+  readonly build: (params?: BuildOverrides) => AsyncBundlerResult<BuildOutput>
   readonly watch: (params?: WatchOverrides) => AsyncBundlerResult<void>
   readonly compile: (params?: CompileOverrides) => AsyncBundlerResult<CompileOutput>
+}
+
+/**
+ * Per-call overrides for build.
+ */
+export interface BuildOverrides extends BundlerLifecycle {
+  readonly verbose?: boolean
 }
 
 /**
@@ -112,6 +119,7 @@ export interface Bundler {
  */
 export interface WatchOverrides extends BundlerLifecycle {
   readonly onSuccess?: () => void | Promise<void>
+  readonly verbose?: boolean
 }
 
 /**

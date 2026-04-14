@@ -4,7 +4,7 @@ import { build as tsdownBuild } from 'tsdown'
 
 import { toTsdownWatchConfig } from './config.js'
 import type { AsyncBundlerResult, ResolvedBundlerConfig } from '../types.js'
-import { formatBuildError } from './build.js'
+import { formatBuildError } from '../utils/format-error.js'
 
 /**
  * Start a watch-mode build using tsdown.

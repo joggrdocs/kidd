@@ -1,4 +1,5 @@
 import { toError } from '@kidd-cli/utils/fp'
+import { match } from 'ts-pattern'
 
 /**
  * Build a descriptive error message for a failed tsdown operation.
@@ -6,22 +7,18 @@ import { toError } from '@kidd-cli/utils/fp'
  * When verbose is false only a short header is returned. When verbose is true
  * the underlying error message is appended so callers get actionable detail.
  *
- * @param phase - The tsdown phase that failed (build or watch).
- * @param error - The error returned by tsdown (unknown from attemptAsync).
- * @param verbose - Whether to include the full error details.
+ * @param params - The phase, error, and verbose flag.
  * @returns A formatted error message.
  */
-export function formatBuildError(phase: 'build' | 'watch', error: unknown, verbose: boolean): string {
-  const header = `tsdown ${phase} failed`
+export function formatBuildError(params: {
+  readonly phase: 'build' | 'watch'
+  readonly error: unknown
+  readonly verbose: boolean
+}): string {
+  const header = `tsdown ${params.phase} failed`
+  const detail = toError(params.error).message.trim()
 
-  if (!verbose) {
-    return header
-  }
-
-  const detail = toError(error).message
-  if (detail.trim().length > 0) {
-    return `${header}\n${detail.trim()}`
-  }
-
-  return header
+  return match({ verbose: params.verbose, hasDetail: detail.length > 0 })
+    .with({ verbose: true, hasDetail: true }, () => `${header}\n${detail}`)
+    .otherwise(() => header)
 }

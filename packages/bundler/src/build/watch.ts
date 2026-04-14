@@ -26,7 +26,12 @@ export async function watch(params: {
 
   const [watchError] = await attemptAsync(() => tsdownBuild(watchConfig))
   if (watchError) {
-    return err(new Error(formatBuildError('watch', watchError, params.verbose ?? false), { cause: watchError }))
+    return err(
+      new Error(
+        formatBuildError({ phase: 'watch', error: watchError, verbose: params.verbose ?? false }),
+        { cause: watchError }
+      )
+    )
   }
 
   return ok()

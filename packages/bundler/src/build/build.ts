@@ -33,7 +33,12 @@ export async function build(params: {
 
   const [buildError] = await attemptAsync(() => tsdownBuild(inlineConfig))
   if (buildError) {
-    return err(new Error(formatBuildError('build', buildError, params.verbose ?? false), { cause: buildError }))
+    return err(
+      new Error(
+        formatBuildError({ phase: 'build', error: buildError, verbose: params.verbose ?? false }),
+        { cause: buildError }
+      )
+    )
   }
 
   const entryFile = await resolveBuildEntry(params.resolved.buildOutDir)

@@ -1,5 +1,11 @@
 # @kidd-cli/bundler
 
+## 0.8.0
+
+### Minor Changes
+
+- f5d402a: Add verbose error logging to tsdown build and watch steps, matching the existing bun compile behavior
+
 ## 0.7.1
 
 ### Patch Changes

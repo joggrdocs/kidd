@@ -4,6 +4,7 @@ import { build as tsdownBuild } from 'tsdown'
 
 import { resolveBuildVars, toTsdownBuildConfig } from './config.js'
 import { clean } from '../utils/clean.js'
+import { formatBuildError } from '../utils/format-error.js'
 import { resolveBuildEntry } from '../utils/resolve-build-entry.js'
 import type { AsyncBundlerResult, BuildOutput, ResolvedBundlerConfig } from '../types.js'
 
@@ -19,6 +20,7 @@ import type { AsyncBundlerResult, BuildOutput, ResolvedBundlerConfig } from '../
 export async function build(params: {
   readonly resolved: ResolvedBundlerConfig
   readonly compile: boolean
+  readonly verbose?: boolean
 }): AsyncBundlerResult<BuildOutput> {
   if (params.resolved.build.clean) {
     await clean({ resolved: params.resolved, compile: params.compile })
@@ -31,7 +33,12 @@ export async function build(params: {
 
   const [buildError] = await attemptAsync(() => tsdownBuild(inlineConfig))
   if (buildError) {
-    return err(new Error('tsdown build failed', { cause: buildError }))
+    return err(
+      new Error(
+        formatBuildError({ phase: 'build', error: buildError, verbose: params.verbose ?? false }),
+        { cause: buildError }
+      )
+    )
   }
 
   const entryFile = await resolveBuildEntry(params.resolved.buildOutDir)

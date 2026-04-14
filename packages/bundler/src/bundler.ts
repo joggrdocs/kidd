@@ -8,6 +8,7 @@ import { compile } from './compile/compile.js'
 import type {
   AsyncBundlerResult,
   BuildOutput,
+  BuildOverrides,
   Bundler,
   BundlerLifecycle,
   CompileOutput,
@@ -51,10 +52,10 @@ export async function createBundler(params: CreateBundlerParams): Promise<Bundle
   }
 
   return {
-    build: async (): AsyncBundlerResult<BuildOutput> => {
-      const lifecycle = resolveLifecycle(baseLifecycle)
+    build: async (overrides: BuildOverrides = {}): AsyncBundlerResult<BuildOutput> => {
+      const lifecycle = resolveLifecycle(baseLifecycle, overrides)
       await lifecycle.onStart({ phase: 'build' })
-      const result = await build({ compile: hasCompile, resolved })
+      const result = await build({ compile: hasCompile, resolved, verbose: overrides.verbose })
       await lifecycle.onFinish({ phase: 'build' })
       return result
     },
@@ -62,7 +63,7 @@ export async function createBundler(params: CreateBundlerParams): Promise<Bundle
     watch: async (overrides: WatchOverrides = {}): AsyncBundlerResult<void> => {
       const lifecycle = resolveLifecycle(baseLifecycle, overrides)
       await lifecycle.onStart({ phase: 'watch' })
-      const result = await watch({ onSuccess: overrides.onSuccess, resolved })
+      const result = await watch({ onSuccess: overrides.onSuccess, resolved, verbose: overrides.verbose })
       await lifecycle.onFinish({ phase: 'watch' })
       return result
     },

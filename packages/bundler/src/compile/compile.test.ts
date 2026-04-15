@@ -272,9 +272,22 @@ describe('compile operation', () => {
     })
   })
 
-  it('should pass --no-compile-autoload-dotenv when autoloadDotenv is false', async () => {
+  it('should pass --no-compile-autoload-dotenv by default when autoloadDotenv is not configured', async () => {
     await compile({
       resolved: makeResolved({ targets: ['linux-x64'], name: 'my-app' }),
+      lifecycle: noopLifecycle,
+    })
+
+    expect(mockProcessExec).toHaveBeenCalledWith({
+      cmd: 'bun',
+      args: expect.arrayContaining(['--no-compile-autoload-dotenv']),
+      cwd: '/project',
+    })
+  })
+
+  it('should pass --no-compile-autoload-dotenv when autoloadDotenv is explicitly false', async () => {
+    await compile({
+      resolved: makeResolved({ targets: ['linux-x64'], name: 'my-app', autoloadDotenv: false }),
       lifecycle: noopLifecycle,
     })
 

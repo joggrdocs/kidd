@@ -67,7 +67,7 @@ export interface CompileOptions {
    * the working directory. Use the kidd auth dotenv strategy for explicit
    * `.env` loading instead.
    */
-  autoloadDotenv?: boolean
+  readonly autoloadDotenv?: boolean
 }
 
 /**

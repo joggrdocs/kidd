@@ -46,6 +46,10 @@ describe('config resolution', () => {
       })
     })
 
+    it('should default autoloadDotenv to false', () => {
+      expect(resolved.compile.autoloadDotenv).toBeFalsy()
+    })
+
     it('should use binaryName as compile name when no config name', () => {
       expect(resolved.compile.name).toBe('cli')
     })
@@ -75,6 +79,7 @@ describe('config resolution', () => {
         },
         commands: './src/commands',
         compile: {
+          autoloadDotenv: true,
           name: 'my-cli',
           out: './bin',
           targets: ['darwin-arm64'],
@@ -112,6 +117,10 @@ describe('config resolution', () => {
         sourcemap: false,
         target: 'node22',
       })
+    })
+
+    it('should use custom autoloadDotenv value', () => {
+      expect(resolved.compile.autoloadDotenv).toBeTruthy()
     })
 
     it('should prefer config compile name over binaryName', () => {

@@ -63,7 +63,11 @@ export async function createBundler(params: CreateBundlerParams): Promise<Bundle
     watch: async (overrides: WatchOverrides = {}): AsyncBundlerResult<void> => {
       const lifecycle = resolveLifecycle(baseLifecycle, overrides)
       await lifecycle.onStart({ phase: 'watch' })
-      const result = await watch({ onSuccess: overrides.onSuccess, resolved, verbose: overrides.verbose })
+      const result = await watch({
+        onSuccess: overrides.onSuccess,
+        resolved,
+        verbose: overrides.verbose,
+      })
       await lifecycle.onFinish({ phase: 'watch' })
       return result
     },

@@ -52,6 +52,7 @@ export async function compile(params: {
   const isMultiTarget = targets.length > 1
 
   const results = await compileTargetsSequentially({
+    autoloadDotenv: params.resolved.compile.autoloadDotenv,
     bundledEntry,
     cwd: params.resolved.cwd,
     isMultiTarget,
@@ -99,6 +100,7 @@ export function resolveTargetLabel(target: CompileTarget): string {
  * @returns The accumulated result tuples for each target.
  */
 async function compileTargetsSequentially(params: {
+  readonly autoloadDotenv: boolean
   readonly bundledEntry: string
   readonly cwd: string
   readonly isMultiTarget: boolean
@@ -118,6 +120,7 @@ async function compileTargetsSequentially(params: {
     }
 
     const result = await compileSingleTarget({
+      autoloadDotenv: params.autoloadDotenv,
       bundledEntry: params.bundledEntry,
       cwd: params.cwd,
       isMultiTarget: params.isMultiTarget,
@@ -143,6 +146,7 @@ async function compileTargetsSequentially(params: {
  * @returns A result tuple with the compiled binary info or an error.
  */
 async function compileSingleTarget(params: {
+  readonly autoloadDotenv: boolean
   readonly bundledEntry: string
   readonly cwd: string
   readonly outDir: string
@@ -162,6 +166,7 @@ async function compileSingleTarget(params: {
   const args = [
     'build',
     '--compile',
+    ...resolveAutoloadFlags({ autoloadDotenv: params.autoloadDotenv }),
     params.bundledEntry,
     '--outfile',
     outfile,
@@ -256,6 +261,26 @@ function formatCompileError(target: CompileTarget, execError: Error, verbose: bo
   }
 
   return header
+}
+
+/**
+ * Build the CLI flags that control Bun's compile-time config autoloading.
+ *
+ * `bunfig.toml` loading is always disabled — kidd CLIs should never load
+ * Bun runtime config. `.env` loading is controlled by the `autoloadDotenv`
+ * option (disabled by default).
+ *
+ * @private
+ * @param params - The autoload settings.
+ * @returns An array of CLI flag strings.
+ */
+function resolveAutoloadFlags(params: { readonly autoloadDotenv: boolean }): readonly string[] {
+  const candidates = [
+    { enabled: false, flag: '--no-compile-autoload-bunfig' },
+    { enabled: params.autoloadDotenv, flag: '--no-compile-autoload-dotenv' },
+  ] as const
+
+  return candidates.filter((c) => !c.enabled).map((c) => c.flag)
 }
 
 /**

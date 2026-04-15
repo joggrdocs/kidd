@@ -60,6 +60,14 @@ describe('KiddConfigSchema schema', () => {
 
     expect(result.success).toBeTruthy()
   })
+
+  it('should accept compile options with autoloadDotenv', () => {
+    const result = KiddConfigSchema.safeParse({
+      compile: { autoloadDotenv: true },
+    })
+
+    expect(result.success).toBeTruthy()
+  })
 })
 
 describe(validateConfig, () => {

@@ -39,6 +39,7 @@ const BuildOptionsSchema = z
  */
 const CompileOptionsSchema = z
   .object({
+    autoloadDotenv: z.boolean().optional(),
     name: z.string().optional(),
     out: z.string().optional(),
     targets: z.array(CompileTargetSchema).optional(),

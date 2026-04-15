@@ -27,6 +27,7 @@ const noopLifecycle = {
 function makeResolved(overrides?: {
   readonly targets?: readonly string[]
   readonly name?: string
+  readonly autoloadDotenv?: boolean
 }): Parameters<typeof compile>[0]['resolved'] {
   return {
     entry: '/project/src/index.ts',
@@ -42,6 +43,7 @@ function makeResolved(overrides?: {
       define: {},
     },
     compile: {
+      autoloadDotenv: overrides?.autoloadDotenv ?? false,
       targets: (overrides?.targets ?? []) as readonly CompileTarget[],
       name: overrides?.name ?? 'cli',
     },
@@ -255,6 +257,49 @@ describe('compile operation', () => {
     expect(stepStarts).toContain('linux-x64')
     expect(stepFinishes).toContain('darwin-arm64')
     expect(stepFinishes).toContain('linux-x64')
+  })
+
+  it('should always pass --no-compile-autoload-bunfig', async () => {
+    await compile({
+      resolved: makeResolved({ targets: ['linux-x64'], name: 'my-app' }),
+      lifecycle: noopLifecycle,
+    })
+
+    expect(mockProcessExec).toHaveBeenCalledWith({
+      cmd: 'bun',
+      args: expect.arrayContaining(['--no-compile-autoload-bunfig']),
+      cwd: '/project',
+    })
+  })
+
+  it('should pass --no-compile-autoload-dotenv when autoloadDotenv is false', async () => {
+    await compile({
+      resolved: makeResolved({ targets: ['linux-x64'], name: 'my-app' }),
+      lifecycle: noopLifecycle,
+    })
+
+    expect(mockProcessExec).toHaveBeenCalledWith({
+      cmd: 'bun',
+      args: expect.arrayContaining(['--no-compile-autoload-dotenv']),
+      cwd: '/project',
+    })
+  })
+
+  it('should not pass --no-compile-autoload-dotenv when autoloadDotenv is true', async () => {
+    await compile({
+      resolved: makeResolved({
+        targets: ['linux-x64'],
+        name: 'my-app',
+        autoloadDotenv: true,
+      }),
+      lifecycle: noopLifecycle,
+    })
+
+    expect(mockProcessExec).toHaveBeenCalledWith({
+      cmd: 'bun',
+      args: expect.not.arrayContaining(['--no-compile-autoload-dotenv']),
+      cwd: '/project',
+    })
   })
 
   it('should invoke bun with --compile and --outfile args', async () => {

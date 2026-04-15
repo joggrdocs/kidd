@@ -60,6 +60,14 @@ export interface CompileOptions {
    * Binary name. Defaults to cli name.
    */
   name?: string
+  /**
+   * Load `.env` files at runtime in the compiled binary. Default: false.
+   *
+   * When disabled, the compiled binary will not auto-load `.env` files from
+   * the working directory. Use the kidd auth dotenv strategy for explicit
+   * `.env` loading instead.
+   */
+  autoloadDotenv?: boolean
 }
 
 /**

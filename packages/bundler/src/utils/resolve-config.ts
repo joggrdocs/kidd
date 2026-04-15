@@ -71,6 +71,7 @@ export function resolveConfig(params: {
     buildOutDir,
     commands,
     compile: {
+      autoloadDotenv: compileOpts.autoloadDotenv ?? false,
       name: compileOpts.name ?? params.binaryName,
       targets: compileOpts.targets ?? [],
     },

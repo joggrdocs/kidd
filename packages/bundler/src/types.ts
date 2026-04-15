@@ -19,6 +19,7 @@ export interface ResolvedBuildOptions {
  * Fully resolved compile options with all defaults applied.
  */
 export interface ResolvedCompileOptions {
+  readonly autoloadDotenv: boolean
   readonly targets: readonly CompileTarget[]
   readonly name: string
 }

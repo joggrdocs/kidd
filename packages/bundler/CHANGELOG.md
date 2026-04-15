@@ -1,5 +1,16 @@
 # @kidd-cli/bundler
 
+## 0.9.0
+
+### Minor Changes
+
+- 55071fa: Disable Bun's automatic `.env` and `bunfig.toml` loading in compiled binaries by default. Adds `autoloadDotenv` option to compile config for opt-in `.env` loading. `bunfig.toml` loading is always disabled.
+
+### Patch Changes
+
+- Updated dependencies [55071fa]
+  - @kidd-cli/config@0.4.0
+
 ## 0.8.0
 
 ### Minor Changes

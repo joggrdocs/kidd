@@ -13,7 +13,7 @@ describe('KiddConfigSchema schema', () => {
     const result = KiddConfigSchema.safeParse({
       build: { external: ['pg'], minify: true, out: './dist', sourcemap: false, target: 'node20' },
       commands: './commands',
-      compile: { name: 'my-cli', out: './bin', targets: ['linux-x64', 'darwin-arm64'] },
+      compile: { autoloadDotenv: true, name: 'my-cli', out: './bin', targets: ['linux-x64', 'darwin-arm64'] },
       entry: './src/index.ts',
       include: ['assets/**'],
     })
@@ -57,14 +57,6 @@ describe('KiddConfigSchema schema', () => {
 
   it('should accept compile: false (boolean shorthand)', () => {
     const result = KiddConfigSchema.safeParse({ compile: false })
-
-    expect(result.success).toBeTruthy()
-  })
-
-  it('should accept compile options with autoloadDotenv', () => {
-    const result = KiddConfigSchema.safeParse({
-      compile: { autoloadDotenv: true },
-    })
 
     expect(result.success).toBeTruthy()
   })

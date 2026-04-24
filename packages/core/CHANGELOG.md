@@ -1,5 +1,12 @@
 # kidd
 
+## 0.23.1
+
+### Patch Changes
+
+- Updated dependencies [55071fa]
+  - @kidd-cli/config@0.4.0
+
 ## 0.23.0
 
 ### Minor Changes

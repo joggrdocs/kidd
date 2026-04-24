@@ -1,5 +1,11 @@
 # kidd-cli
 
+## 0.11.6
+
+### Patch Changes
+
+- 8980190: Fix security vulnerabilities in dependencies: upgrade liquidjs to >=10.25.7 (DoS via circular block reference), add pnpm overrides for tar (path traversal), vite (fs.deny bypass, file read, path traversal), postcss (XSS), fast-xml-parser (injection), and uuid (buffer bounds check)
+
 ## 0.11.5
 
 ### Patch Changes

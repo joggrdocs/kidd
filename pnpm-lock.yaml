@@ -16,8 +16,8 @@ catalogs:
       specifier: ^1.45.1
       version: 1.45.1
     liquidjs:
-      specifier: ^10.25.5
-      version: 10.25.5
+      specifier: ^10.25.7
+      version: 10.25.7
     ts-pattern:
       specifier: ^5.9.0
       version: 5.9.0
@@ -315,7 +315,7 @@ importers:
         version: 7.0.0(@types/react@19.2.14)(react@19.2.5)
       liquidjs:
         specifier: 'catalog:'
-        version: 10.25.5
+        version: 10.25.7
       picocolors:
         specifier: ^1.1.1
         version: 1.1.1
@@ -404,7 +404,7 @@ importers:
         version: 2.6.1
       liquidjs:
         specifier: 'catalog:'
-        version: 10.25.5
+        version: 10.25.7
       picocolors:
         specifier: ^1.1.1
         version: 1.1.1
@@ -3728,6 +3728,11 @@ packages:
 
   liquidjs@10.25.5:
     resolution: {integrity: sha512-GKiKeZjJDdVoQAu+S9rzkYsYnYhcep5W3WwZXgb5f+yq484P/k9JqamBbGYu+LBEixcUAXZr2jogdAIjB3ki1w==}
+    engines: {node: '>=16'}
+    hasBin: true
+
+  liquidjs@10.25.7:
+    resolution: {integrity: sha512-rPCjJLiD4eDhQjvv964AeXFC+HbeYBbZrd7Z82Q6hqv1lX7G+5w4SJcKLn9CAAAwHI4aS3dTdo083UB79K3pDA==}
     engines: {node: '>=16'}
     hasBin: true
 
@@ -9006,6 +9011,10 @@ snapshots:
       type-check: 0.4.0
 
   liquidjs@10.25.5:
+    dependencies:
+      commander: 10.0.1
+
+  liquidjs@10.25.7:
     dependencies:
       commander: 10.0.1
 
